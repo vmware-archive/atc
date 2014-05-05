@@ -1,0 +1,41 @@
+{
+	"ImportPath": "github.com/winston-ci/winston",
+	"GoVersion": "go1.2.1",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/bmizerany/pat",
+			"Rev": "48be7df2c27e1cec821a3284a683ce6ef90d9052"
+		},
+		{
+			"ImportPath": "github.com/fraenkel/candiedyaml",
+			"Rev": "84842532f8194fe186b48a009251dfaec9924ccd"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Rev": "3ad7dbc2473185918bdb95fcd1f107ff0f7ad712"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Rev": "51ddbbc2ace9f9ad4cf06ba63442ea2ef2019837"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Rev": "d53f20ed6065e75dd459ceb4904b3e0a5cadbf0d"
+		},
+		{
+			"ImportPath": "github.com/tedsuo/router",
+			"Rev": "ff4992c52c392a38d24b14144508fc7447a1c8e6"
+		},
+		{
+			"ImportPath": "github.com/winston-ci/prole/api/builds",
+			"Rev": "7c9d121b8aa0c89276d5be670b2919569d8b4820"
+		},
+		{
+			"ImportPath": "github.com/winston-ci/prole/routes",
+			"Rev": "7c9d121b8aa0c89276d5be670b2919569d8b4820"
+		}
+	]
+}
