@@ -18,6 +18,10 @@
 			"Rev": "3ad7dbc2473185918bdb95fcd1f107ff0f7ad712"
 		},
 		{
+			"ImportPath": "github.com/gorilla/websocket",
+			"Rev": "1e6e1281b05fe5eaaf3300bdedb8e75880b9c6fd"
+		},
+		{
 			"ImportPath": "github.com/onsi/ginkgo",
 			"Rev": "51ddbbc2ace9f9ad4cf06ba63442ea2ef2019837"
 		},
@@ -31,11 +35,11 @@
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/api/builds",
-			"Rev": "fa0786ecd1960817fda6ca9dbd6983a187464a4c"
+			"Rev": "40607c7e3a796ef82ef24651343f9294c70e6789"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/routes",
-			"Rev": "fa0786ecd1960817fda6ca9dbd6983a187464a4c"
+			"Rev": "40607c7e3a796ef82ef24651343f9294c70e6789"
 		}
 	]
 }
