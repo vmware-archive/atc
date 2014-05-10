@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"runtime"
 	"strings"
-	"io"
 )
 
 // Params map path keys to values.  For example, if your route has the path pattern:
@@ -18,11 +17,11 @@ import (
 //  }
 type Params map[string]string
 
-// A Route defines properites of an HTTP endpoint.  At runtime, the router will
-// associate each Route with a http.Handler object, and use the Route properites
+// A Route defines properties of an HTTP endpoint.  At runtime, the router will
+// associate each Route with a http.Handler object, and use the Route properties
 // to determine which Handler should be invoked.
 //
-// Currently, properies used in match are such as Method and Path.
+// Currently, properties used in match are such as Method and Path.
 //
 // Method is one of the following:
 //  GET PUT POST DELETE
@@ -113,19 +112,6 @@ func (r Routes) PathForHandler(handler string, params Params) (string, error) {
 		return "", fmt.Errorf("No route exists for handler %", handler)
 	}
 	return route.PathWithParams(params)
-}
-
-// RequestForHandler creates an http Request for a given Route and Params
-func (r Routes) RequestForHandler(handler string, params Params, body io.Reader) (*http.Request, error) {
-	route, ok := r.RouteForHandler(handler)
-	if !ok {
-		return &http.Request{}, fmt.Errorf("No route exists for handler %", handler)
-	}
-	path, err := route.PathWithParams(params)
-	if err != nil {
-		return &http.Request{},err
-	}
-	return  http.NewRequest(route.Method,path,body)
 }
 
 // Router is deprecated, please use router.NewRouter() instead

@@ -15,11 +15,11 @@
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "3ad7dbc2473185918bdb95fcd1f107ff0f7ad712"
+			"Rev": "07c882cb0b99d26838726bf7cdf43ba03fe6c04f"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "1e6e1281b05fe5eaaf3300bdedb8e75880b9c6fd"
+			"Rev": "10a95d14a3a215f5e2045d3dbbcd29f1ab209586"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
@@ -27,19 +27,19 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "d53f20ed6065e75dd459ceb4904b3e0a5cadbf0d"
+			"Rev": "f5533d435ebfcf4fa0463202dc0e966b983618b8"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/router",
-			"Rev": "ff4992c52c392a38d24b14144508fc7447a1c8e6"
+			"Rev": "e148496de27fab9f10ef07f3be00471fa59f58b9"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/api/builds",
-			"Rev": "40607c7e3a796ef82ef24651343f9294c70e6789"
+			"Rev": "fd40ad2590bd739ab52744f5706cae90fd8d8869"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/routes",
-			"Rev": "40607c7e3a796ef82ef24651343f9294c70e6789"
+			"Rev": "fd40ad2590bd739ab52744f5706cae90fd8d8869"
 		}
 	]
 }

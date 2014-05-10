@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Handlers map Handler keys to hhtp.Handler objects.  The Handler key is used to
+// Handlers map Handler keys to http.Handler objects.  The Handler key is used to
 // then match the Handler to the appropriate Route in the Router.
 type Handlers map[string]http.Handler
 
