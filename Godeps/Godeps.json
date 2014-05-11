@@ -6,6 +6,11 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "code.google.com/p/go.net/websocket",
+			"Comment": "null-117",
+			"Rev": "c17ad62118ea511e1051721b429779fa40bddc74"
+		},
+		{
 			"ImportPath": "github.com/bmizerany/pat",
 			"Rev": "48be7df2c27e1cec821a3284a683ce6ef90d9052"
 		},
@@ -35,11 +40,11 @@
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/api/builds",
-			"Rev": "fd40ad2590bd739ab52744f5706cae90fd8d8869"
+			"Rev": "d1bab54befd0807fdfc4f701244d82156878db74"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/routes",
-			"Rev": "fd40ad2590bd739ab52744f5706cae90fd8d8869"
+			"Rev": "d1bab54befd0807fdfc4f701244d82156878db74"
 		}
 	]
 }

@@ -12,7 +12,7 @@ type Build struct {
 	LogsURL  string `json:"logs_url"`
 	Callback string `json:"callback"`
 
-	Source BuildSource `json:"source"`
+	Sources []BuildSource `json:"sources"`
 
 	Status string `json:"status"`
 }
