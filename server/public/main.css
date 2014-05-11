@@ -1,0 +1,61 @@
+body {
+  font-family: Courier, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+pre {
+  font-family: Courier, monospace;
+}
+
+#build-log {
+  padding: 1em;
+}
+
+.ansi-bold { font-weight: bold; }
+
+body { background: #222222; color: #dfeee0; }
+
+a { color: #6a9eef; } 
+
+::selection { background: #555555; color: #ffffff; }
+
+.black, .ansi-black-fg { color: #453c31; }
+.black.bright,
+.ansi-black-fg.ansi-bright,
+.ansi-black-fg.ansi-bold { color: #5d4c4c; }
+
+.red, .ansi-red-fg { color: #d36764; }
+.red.bright,
+.ansi-red-fg.ansi-bright,
+.ansi-red-fg.ansi-bold { color: #d25f3a; }
+
+.green, .ansi-green-fg { color: #8cb287; }
+.green.bright,
+.ansi-green-fg.ansi-bright,
+.ansi-green-fg.ansi-bold { color: #8eac27; }
+
+.yellow, .ansi-yellow-fg { color: #ebb263; }
+.yellow.bright,
+.ansi-yellow-fg.ansi-bright,
+.ansi-yellow-fg.ansi-bold { color: #ffad65; }
+
+.blue, .ansi-blue-fg { color: #6a9eef; }
+.blue.bright,
+.ansi-blue-fg.ansi-bright,
+.ansi-blue-fg.ansi-bold { color: #8cd2ed; }
+
+.magenta, .ansi-magenta-fg { color: #e1bc8e; }
+.magenta.bright,
+.ansi-magenta-fg.ansi-bright,
+.ansi-magenta-fg.ansi-bold { color: #a16d00; }
+
+.cyan, .ansi-cyan-fg { color: #b5c9e1; }
+.cyan.bright,
+.ansi-cyan-fg.ansi-bright,
+.ansi-cyan-fg.ansi-bold { color: #b5c9e1; }
+
+.white, .ansi-white-fg { color: #c0afa0; }
+.white.bright,
+.ansi-white-fg.ansi-bright,
+.ansi-white-fg.ansi-bold { color: #e0cfc0; }
