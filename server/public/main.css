@@ -20,42 +20,42 @@ a { color: #6a9eef; }
 
 ::selection { background: #555555; color: #ffffff; }
 
-.black, .ansi-black-fg { color: #453c31; }
+.black, .ansi-black { color: #453c31; }
 .black.bright,
-.ansi-black-fg.ansi-bright,
-.ansi-black-fg.ansi-bold { color: #5d4c4c; }
+.ansi-black.ansi-bright,
+.ansi-black.ansi-bold { color: #5d4c4c; }
 
-.red, .ansi-red-fg { color: #d36764; }
+.red, .ansi-red { color: #d36764; }
 .red.bright,
-.ansi-red-fg.ansi-bright,
-.ansi-red-fg.ansi-bold { color: #d25f3a; }
+.ansi-red.ansi-bright,
+.ansi-red.ansi-bold { color: #d25f3a; }
 
-.green, .ansi-green-fg { color: #8cb287; }
+.green, .ansi-green { color: #8cb287; }
 .green.bright,
-.ansi-green-fg.ansi-bright,
-.ansi-green-fg.ansi-bold { color: #8eac27; }
+.ansi-green.ansi-bright,
+.ansi-green.ansi-bold { color: #8eac27; }
 
-.yellow, .ansi-yellow-fg { color: #ebb263; }
+.yellow, .ansi-yellow { color: #ebb263; }
 .yellow.bright,
-.ansi-yellow-fg.ansi-bright,
-.ansi-yellow-fg.ansi-bold { color: #ffad65; }
+.ansi-yellow.ansi-bright,
+.ansi-yellow.ansi-bold { color: #ffad65; }
 
-.blue, .ansi-blue-fg { color: #6a9eef; }
+.blue, .ansi-blue { color: #6a9eef; }
 .blue.bright,
-.ansi-blue-fg.ansi-bright,
-.ansi-blue-fg.ansi-bold { color: #8cd2ed; }
+.ansi-blue.ansi-bright,
+.ansi-blue.ansi-bold { color: #8cd2ed; }
 
-.magenta, .ansi-magenta-fg { color: #e1bc8e; }
+.magenta, .ansi-magenta { color: #e1bc8e; }
 .magenta.bright,
-.ansi-magenta-fg.ansi-bright,
-.ansi-magenta-fg.ansi-bold { color: #a16d00; }
+.ansi-magenta.ansi-bright,
+.ansi-magenta.ansi-bold { color: #a16d00; }
 
-.cyan, .ansi-cyan-fg { color: #b5c9e1; }
+.cyan, .ansi-cyan { color: #b5c9e1; }
 .cyan.bright,
-.ansi-cyan-fg.ansi-bright,
-.ansi-cyan-fg.ansi-bold { color: #b5c9e1; }
+.ansi-cyan.ansi-bright,
+.ansi-cyan.ansi-bold { color: #b5c9e1; }
 
-.white, .ansi-white-fg { color: #c0afa0; }
+.white, .ansi-white { color: #c0afa0; }
 .white.bright,
-.ansi-white-fg.ansi-bright,
-.ansi-white-fg.ansi-bold { color: #e0cfc0; }
+.ansi-white.ansi-bright,
+.ansi-white.ansi-bold { color: #e0cfc0; }
