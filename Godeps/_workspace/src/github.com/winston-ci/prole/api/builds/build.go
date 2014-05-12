@@ -9,6 +9,8 @@ type Build struct {
 	Env    [][2]string `json:"env"`
 	Script string      `json:"script"`
 
+	Privileged bool `json:"privileged"`
+
 	LogsURL  string `json:"logs_url"`
 	Callback string `json:"callback"`
 

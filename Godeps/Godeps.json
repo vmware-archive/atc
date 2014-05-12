@@ -40,11 +40,11 @@
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/api/builds",
-			"Rev": "d1bab54befd0807fdfc4f701244d82156878db74"
+			"Rev": "de47878cd54f234396e82fc7d72cd43c9505c93d"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/routes",
-			"Rev": "d1bab54befd0807fdfc4f701244d82156878db74"
+			"Rev": "de47878cd54f234396e82fc7d72cd43c9505c93d"
 		}
 	]
 }
