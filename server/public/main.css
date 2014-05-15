@@ -13,16 +13,16 @@ pre {
 }
 
 #autoscroll-toggle {
-	position: absolute;
-	top: 1em;
-	right: 1em;
+  position: fixed;
+  top: 1em;
+  right: 1em;
 }
 
 .ansi-bold { font-weight: bold; }
 
 body { background: #222222; color: #dfeee0; }
 
-a { color: #6a9eef; } 
+a { color: #6a9eef; }
 
 ::selection { background: #555555; color: #ffffff; }
 
