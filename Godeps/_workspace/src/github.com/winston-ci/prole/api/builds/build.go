@@ -5,6 +5,8 @@ import "encoding/json"
 type Build struct {
 	Guid string `json:"guid"`
 
+	Privileged bool `json:"privileged"`
+
 	Config Config `json:"config"`
 
 	LogsURL  string `json:"logs_url"`
@@ -20,8 +22,6 @@ type Config struct {
 
 	Env    [][2]string `json:"env"`
 	Script string      `json:"script"`
-
-	Privileged bool `json:"privileged"`
 }
 
 type Input struct {
