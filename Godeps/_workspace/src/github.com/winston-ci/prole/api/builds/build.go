@@ -2,6 +2,15 @@ package builds
 
 import "encoding/json"
 
+type Status string
+
+const (
+	StatusStarted   Status = "started"
+	StatusSucceeded Status = "succeeded"
+	StatusFailed    Status = "failed"
+	StatusErrored   Status = "errored"
+)
+
 type Build struct {
 	Guid string `json:"guid"`
 
@@ -14,7 +23,7 @@ type Build struct {
 
 	Inputs []Input `json:"inputs"`
 
-	Status string `json:"status"`
+	Status Status `json:"status"`
 }
 
 type Config struct {
