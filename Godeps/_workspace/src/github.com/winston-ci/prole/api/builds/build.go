@@ -1,7 +1,5 @@
 package builds
 
-import "encoding/json"
-
 type Status string
 
 const (
@@ -33,10 +31,21 @@ type Config struct {
 	Script string      `json:"script"`
 }
 
+type Source []byte
+
+func (source Source) MarshalJSON() ([]byte, error) {
+	return []byte(source), nil
+}
+
+func (source *Source) UnmarshalJSON(data []byte) error {
+	*source = append((*source)[0:0], data...)
+	return nil
+}
+
 type Input struct {
 	Type string `json:"type"`
 
-	Source *json.RawMessage `json:"source"`
+	Source Source `json:"source,omitempty"`
 
 	ConfigPath      string `json:"configPath"`
 	DestinationPath string `json:"destinationPath"`
