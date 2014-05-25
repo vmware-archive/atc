@@ -41,15 +41,15 @@
 		},
 		{
 			"ImportPath": "github.com/winston-ci/logbuffer",
-			"Rev": "4a5f810ca01060438e18e20567ff2234b0056c5a"
+			"Rev": "3e356ac24be07f1033ac1f6ca6a8e9653dbb8c6f"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/api/builds",
-			"Rev": "4d3d01215d682c2a69c59c7b762a5cfd9f856cc7"
+			"Rev": "6177fb5b3020aafe64171a9285bc9d8cec6b74c3"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/routes",
-			"Rev": "4d3d01215d682c2a69c59c7b762a5cfd9f856cc7"
+			"Rev": "6177fb5b3020aafe64171a9285bc9d8cec6b74c3"
 		}
 	]
 }

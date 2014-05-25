@@ -1,6 +1,7 @@
 package logbuffer
 
 import (
+	"errors"
 	"io"
 	"sync"
 )
@@ -60,8 +61,12 @@ func (buffer *LogBuffer) Attach(sink io.WriteCloser) {
 	<-buffer.waitForClosed
 }
 
-func (buffer *LogBuffer) Close() {
+func (buffer *LogBuffer) Close() error {
 	buffer.contentMutex.Lock()
+
+	if buffer.closed {
+		return errors.New("close twice")
+	}
 
 	for _, sink := range buffer.sinks {
 		sink.Close()
@@ -73,6 +78,8 @@ func (buffer *LogBuffer) Close() {
 	close(buffer.waitForClosed)
 
 	buffer.contentMutex.Unlock()
+
+	return nil
 }
 
 func (buffer *LogBuffer) Content() []byte {
