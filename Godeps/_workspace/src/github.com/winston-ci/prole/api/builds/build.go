@@ -19,7 +19,8 @@ type Build struct {
 	LogsURL  string `json:"logs_url"`
 	Callback string `json:"callback"`
 
-	Inputs []Input `json:"inputs"`
+	Inputs  []Input  `json:"inputs"`
+	Outputs []Output `json:"outputs"`
 
 	Status Status `json:"status"`
 }
@@ -29,6 +30,14 @@ type Config struct {
 
 	Env    [][2]string `json:"env"`
 	Script string      `json:"script"`
+}
+
+type Input struct {
+	Type   string `json:"type"`
+	Source Source `json:"source,omitempty"`
+
+	ConfigPath      string `json:"configPath"`
+	DestinationPath string `json:"destinationPath"`
 }
 
 type Source []byte
@@ -42,11 +51,22 @@ func (source *Source) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type Input struct {
-	Type string `json:"type"`
+type Output struct {
+	Type   string `json:"type"`
+	Params Params `json:"params,omitempty"`
 
 	Source Source `json:"source,omitempty"`
 
-	ConfigPath      string `json:"configPath"`
-	DestinationPath string `json:"destinationPath"`
+	SourcePath string `json:"sourcePath"`
+}
+
+type Params []byte
+
+func (params Params) MarshalJSON() ([]byte, error) {
+	return []byte(params), nil
+}
+
+func (params *Params) UnmarshalJSON(data []byte) error {
+	*params = append((*params)[0:0], data...)
+	return nil
 }
