@@ -36,20 +36,24 @@
 			"Rev": "50bea9a608004800126b3fddab0c3608d87c0ca9"
 		},
 		{
+			"ImportPath": "github.com/tedsuo/ifrit",
+			"Rev": "f02dc8a87f9898bcaf8aae82d92954a6d5eb7717"
+		},
+		{
 			"ImportPath": "github.com/tedsuo/router",
 			"Rev": "e148496de27fab9f10ef07f3be00471fa59f58b9"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/logbuffer",
-			"Rev": "3e356ac24be07f1033ac1f6ca6a8e9653dbb8c6f"
+			"Rev": "d759e3301e0607785108933dca75c8008ccf5d93"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/api/builds",
-			"Rev": "6177fb5b3020aafe64171a9285bc9d8cec6b74c3"
+			"Rev": "c4fb567b69d049ebe9552f5ca0addc6f14e17452"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/routes",
-			"Rev": "6177fb5b3020aafe64171a9285bc9d8cec6b74c3"
+			"Rev": "c4fb567b69d049ebe9552f5ca0addc6f14e17452"
 		}
 	]
 }

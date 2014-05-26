@@ -63,6 +63,7 @@ func (buffer *LogBuffer) Attach(sink io.WriteCloser) {
 
 func (buffer *LogBuffer) Close() error {
 	buffer.contentMutex.Lock()
+	defer buffer.contentMutex.Unlock()
 
 	if buffer.closed {
 		return errors.New("close twice")
@@ -76,8 +77,6 @@ func (buffer *LogBuffer) Close() error {
 	buffer.sinks = nil
 
 	close(buffer.waitForClosed)
-
-	buffer.contentMutex.Unlock()
 
 	return nil
 }
