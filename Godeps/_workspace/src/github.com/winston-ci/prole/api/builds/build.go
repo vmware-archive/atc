@@ -40,8 +40,15 @@ type Input struct {
 	Type   string `json:"type"`
 	Source Source `json:"source,omitempty"`
 
-	ConfigPath      string `json:"configPath"`
-	DestinationPath string `json:"destinationPath"`
+	ConfigPath      string `json:"config_path"`
+	DestinationPath string `json:"destination_path"`
+
+	Metadata []MetadataField `json:"metadata"`
+}
+
+type MetadataField struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 type Source []byte

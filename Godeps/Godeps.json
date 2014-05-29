@@ -33,11 +33,11 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "50bea9a608004800126b3fddab0c3608d87c0ca9"
+			"Rev": "05c2b322d514282430789eb9ff8efee6c904cc77"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/ifrit",
-			"Rev": "f02dc8a87f9898bcaf8aae82d92954a6d5eb7717"
+			"Rev": "8f57c1dcd12fc1cf91eea3f7704e348f3023f834"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/router",
@@ -49,11 +49,11 @@
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/api/builds",
-			"Rev": "c4fb567b69d049ebe9552f5ca0addc6f14e17452"
+			"Rev": "8e11d00afffafbc79bf73705b26deb30be843d63"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/routes",
-			"Rev": "c4fb567b69d049ebe9552f5ca0addc6f14e17452"
+			"Rev": "8e11d00afffafbc79bf73705b26deb30be843d63"
 		}
 	]
 }

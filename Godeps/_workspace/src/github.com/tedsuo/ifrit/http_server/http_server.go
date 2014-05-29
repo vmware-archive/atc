@@ -35,20 +35,14 @@ func (s *httpServer) Run(signals <-chan os.Signal, ready chan<- struct{}) error 
 
 	close(ready)
 
-	closeChan := make(chan struct{})
 	for {
 		select {
 		case <-signals:
-			close(closeChan)
 			listener.Close()
+			wg.Wait()
+			return nil
 		case err = <-serverErrChan:
-			select {
-			case <-closeChan:
-				wg.Wait()
-				return nil
-			default:
-				return err
-			}
+			return err
 		}
 	}
 
@@ -56,8 +50,8 @@ func (s *httpServer) Run(signals <-chan os.Signal, ready chan<- struct{}) error 
 
 func waitHandler(handler http.Handler, wg *sync.WaitGroup) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer wg.Done()
 		wg.Add(1)
+		defer wg.Done()
 		handler.ServeHTTP(w, r)
 	})
 }
