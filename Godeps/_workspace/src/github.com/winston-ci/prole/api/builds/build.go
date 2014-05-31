@@ -1,7 +1,5 @@
 package builds
 
-import "fmt"
-
 type Status string
 
 const (
@@ -37,65 +35,45 @@ type Config struct {
 type Input struct {
 	Name string `json:"name"`
 
-	Type   string `json:"type"`
-	Source Source `json:"source,omitempty"`
+	Type string `json:"type"`
+
+	// e.g. sha
+	Version Version `json:"version,omitempty"`
+
+	// e.g. git url, branch, private_key
+	Source Source `json:"source"`
+
+	// e.g. commit_author, commit_date
+	Metadata []MetadataField `json:"metadata,omitempty"`
 
 	ConfigPath      string `json:"config_path"`
 	DestinationPath string `json:"destination_path"`
-
-	Metadata []MetadataField `json:"metadata"`
 }
+
+type Version map[string]interface{}
+
+type Source map[string]interface{}
 
 type MetadataField struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
 
-type Source []byte
-
-func (source Source) MarshalJSON() ([]byte, error) {
-	return []byte(source), nil
-}
-
-func (source *Source) UnmarshalJSON(data []byte) error {
-	*source = append((*source)[0:0], data...)
-	return nil
-}
-
-func (source Source) String() string {
-	return string(source)
-}
-
-func (source Source) GoString() string {
-	return fmt.Sprintf("builds.Source(%q)", source)
-}
-
 type Output struct {
 	Name string `json:"name"`
 
-	Type   string `json:"type"`
+	Type string `json:"type"`
+
+	// e.g. sha
+	Version Version `json:"version"`
+
+	// e.g. git url, branch
 	Params Params `json:"params,omitempty"`
 
-	Source Source `json:"source,omitempty"`
+	// e.g. commit_author, commit_date, commit_sha
+	Metadata []MetadataField `json:"metadata,omitempty"`
 
 	SourcePath string `json:"sourcePath"`
 }
 
-type Params []byte
-
-func (params Params) MarshalJSON() ([]byte, error) {
-	return []byte(params), nil
-}
-
-func (params *Params) UnmarshalJSON(data []byte) error {
-	*params = append((*params)[0:0], data...)
-	return nil
-}
-
-func (params Params) String() string {
-	return string(params)
-}
-
-func (params Params) GoString() string {
-	return fmt.Sprintf("builds.Params(%q)", params)
-}
+type Params map[string]interface{}
