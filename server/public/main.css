@@ -2,6 +2,7 @@ body {
   font-family: Courier, monospace;
   font-size: 12px;
   line-height: 1.4;
+  margin: 0;
 }
 
 pre {
@@ -9,6 +10,7 @@ pre {
 }
 
 #build-log {
+  margin: 0;
   padding: 1em;
 }
 
@@ -111,6 +113,44 @@ ul.builds li.started a {
   color: #ebb263;
 }
 
+#build-title {
+  padding: 1em;
+}
+
+#build-title h1 {
+  display: inline-block;
+  margin: 0;
+  color: #fff;
+}
+
+#build-title.succeeded {
+  background: #8cb287;
+}
+
+#build-title.failed {
+  background: #d36764;
+}
+
+#build-title.pending {
+  background: #5d4c4c;
+}
+
+#build-title.errored {
+  background: #e1bc8e;
+}
+
+#build-title.started {
+  background: #ebb263;
+}
+
+#build-body {
+  padding: 1em;
+}
+
+#build-title.started h1 {
+  -webkit-animation: wiggle-job 0.5s infinite;
+}
+
 ul.jobs li.started a {
   -webkit-animation: wiggle-job 0.5s infinite;
 }
@@ -129,6 +169,11 @@ ul.builds li.started a {
   0% { -webkit-transform: rotate(10deg); }
   50% { -webkit-transform: rotate(-10deg); }
   100% { -webkit-transform: rotate(10deg); }
+}
+
+#metadata {
+  float: right;
+  margin-right: 1em;
 }
 
 ::selection { background: #555555; color: #ffffff; }
