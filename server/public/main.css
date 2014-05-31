@@ -176,6 +176,23 @@ ul.builds li.started a {
   margin-right: 1em;
 }
 
+#metadata h3 {
+  background: #111;;
+  padding: .25em .5em;
+}
+
+#metadata dt {
+  width: 10em;
+  display: inline-block;
+  float: left;
+  text-align: right;
+}
+
+#metadata dd {
+  white-space: pre;
+  margin-left: 11em;
+}
+
 ::selection { background: #555555; color: #ffffff; }
 
 .black, .ansi-black-fg { color: #453c31; }
