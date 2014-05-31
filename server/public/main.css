@@ -123,28 +123,69 @@ ul.builds li.started a {
   color: #fff;
 }
 
-#build-title.succeeded {
+#build-title.succeeded,
+#builds li.succeeded {
   background: #8cb287;
 }
 
-#build-title.failed {
+#build-title.failed,
+#builds li.failed {
   background: #d36764;
 }
 
-#build-title.pending {
+#build-title.pending,
+#builds li.pending {
   background: #5d4c4c;
 }
 
-#build-title.errored {
+#build-title.errored,
+#builds li.errored {
   background: #e1bc8e;
 }
 
-#build-title.started {
+#build-title.started,
+#builds li.started {
   background: #ebb263;
+}
+
+#builds {
+  display: block;
+  overflow: auto;
+  background: #111;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  white-space:nowrap;
+}
+
+#builds li {
+  display: inline-block;
+  padding: 5px;
+  opacity: .8;
+}
+
+#builds li.current {
+  opacity: 1;
+}
+
+#builds li a {
+  font-size: 20px;
+  line-height: 1em;
+  text-align: center;
+  margin: 0;
+  display: block;
+  font-weight: bold;
+  text-decoration: none;
+  color: #fff;
 }
 
 #build-body {
   padding: 1em;
+}
+
+#builds li.started a {
+  -webkit-animation: wiggle-build 0.5s infinite;
 }
 
 #build-title.started h1 {
@@ -166,9 +207,9 @@ ul.builds li.started a {
 }
 
 @-webkit-keyframes wiggle-build {
-  0% { -webkit-transform: rotate(10deg); }
-  50% { -webkit-transform: rotate(-10deg); }
-  100% { -webkit-transform: rotate(10deg); }
+  0% { -webkit-transform: rotate(5deg); }
+  50% { -webkit-transform: rotate(-5deg); }
+  100% { -webkit-transform: rotate(5deg); }
 }
 
 #metadata {
@@ -177,7 +218,7 @@ ul.builds li.started a {
 }
 
 #metadata h3 {
-  background: #111;;
+  background: #111;
   padding: .25em .5em;
 }
 

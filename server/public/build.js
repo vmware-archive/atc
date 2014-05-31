@@ -24,4 +24,9 @@ $(document).ready(function() {
 
     scrolled = true;
   });
+
+  $("#builds").bind('mousewheel', function(e){
+    $(this).scrollLeft($(this).scrollLeft() + e.originalEvent.deltaY);
+    return false;
+  });
 });
