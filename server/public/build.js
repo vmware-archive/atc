@@ -12,6 +12,16 @@ function streamLog(uri) {
   };
 }
 
+function scrollToCurrentBuild() {
+  var currentBuild = $("#builds .current");
+  var buildWidth = currentBuild.width();
+  var left = currentBuild.offset().left;
+
+  if((left + buildWidth) > window.innerWidth) {
+    $("#builds").scrollLeft(left - buildWidth);
+  }
+}
+
 $(document).ready(function() {
   $(window).scroll(function() {
     var scrollEnd = $(window).scrollTop() + $(window).height();
@@ -34,4 +44,6 @@ $(document).ready(function() {
 
     return false;
   });
+
+  scrollToCurrentBuild();
 });
