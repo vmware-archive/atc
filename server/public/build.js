@@ -26,7 +26,12 @@ $(document).ready(function() {
   });
 
   $("#builds").bind('mousewheel', function(e){
-    $(this).scrollLeft($(this).scrollLeft() + e.originalEvent.deltaY);
+    if(e.originalEvent.deltaX != 0) {
+      $(this).scrollLeft($(this).scrollLeft() + e.originalEvent.deltaX);
+    } else {
+      $(this).scrollLeft($(this).scrollLeft() - e.originalEvent.deltaY);
+    }
+
     return false;
   });
 });
