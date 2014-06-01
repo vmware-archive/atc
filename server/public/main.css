@@ -26,25 +26,6 @@ body { background: #222222; color: #dfeee0; }
 
 a { color: #6a9eef; }
 
-form.trigger-build input {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: block;
-  border: none;
-  font-family: inherit;
-  font-weight: bold;
-  color: #e0cfc0;
-  font-size: 2em;
-  cursor: pointer;
-  padding: 0.25em 0.5em;
-  background: transparent;
-}
-
-form.trigger-build input:hover {
-  background: #453c31;
-}
-
 ul.jobs {
   margin: 1em 0 0 0;
   padding: 0;
@@ -115,6 +96,7 @@ ul.builds li.started a {
 
 #build-title {
   padding: 1em;
+  position: relative;
 }
 
 #build-title h1 {
@@ -146,6 +128,39 @@ ul.builds li.started a {
 #build-title.started,
 #builds li.started {
   background: #ebb263;
+}
+
+#build-title .trigger-build {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0;
+}
+
+#build-title .trigger-build input {
+  border: none;
+  font-size: 2em;
+  font-family: inherit;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  padding: 0 16px;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.125);
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#build-title .trigger-build input:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+#build-title .trigger-build input:active {
+  background: rgba(0, 0, 0, 0.125);
+  outline: none;
 }
 
 #builds {
