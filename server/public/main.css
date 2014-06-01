@@ -173,6 +173,7 @@ ul.builds li.started a {
   padding: 0 12px;
   margin: 0;
   text-decoration: none;
+  background: rgba(255, 255, 255, 0.125);
 }
 
 #build-title a.title:hover {
