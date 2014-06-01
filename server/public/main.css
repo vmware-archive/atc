@@ -298,3 +298,57 @@ ul.builds li.started a {
 
 .ansi-white-bg { background-color: #c0afa0; }
 .ansi-bright-white-bg { background-color: #e0cfc0; }
+
+svg h1 {
+  margin: 5px;
+}
+
+svg h1.resource {
+  font-size: 1.5em;
+  margin: 5px 10px;
+  font-weight: normal;
+}
+
+svg h1 a {
+  padding: 5px;
+  font-weight: bold;
+  color: #fff;
+  text-decoration: none;
+}
+
+svg .node rect {
+  fill: #111;
+}
+
+svg .node.job.succeeded rect { fill: #8cb287; }
+svg .node.job.failed rect { fill: #d36764; }
+svg .node.job.pending rect { fill: #5d4c4c; }
+svg .node.job.errored rect { fill: #e1bc8e; }
+svg .node.job.started rect { fill: #ebb263; -webkit-animation: wiggle-job 0.5s infinite; }
+
+.edgeLabel rect {
+  fill: none;
+}
+
+.edgeLabel text {
+  font-size: 1em;
+  font-weight: normal;
+}
+
+.edgePath path {
+  stroke: #333;
+  stroke-width: 1.5px;
+  fill: none;
+}
+
+.edgePath.succeeded path { stroke: #8cb287; }
+.edgePath.failed path { stroke: #d36764; }
+.edgePath.pending path { stroke: #5d4c4c; }
+.edgePath.errored path { stroke: #e1bc8e; }
+.edgePath.started path { stroke: #ebb263; }
+
+#arrowhead-succeeded path { fill: #8cb287; }
+#arrowhead-failed path { fill: #d36764; }
+#arrowhead-pending path { fill: #5d4c4c; }
+#arrowhead-errored path { fill: #e1bc8e; }
+#arrowhead-started path { fill: #ebb263; }
