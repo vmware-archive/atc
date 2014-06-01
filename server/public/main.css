@@ -163,6 +163,27 @@ ul.builds li.started a {
   outline: none;
 }
 
+#build-title a.title {
+  border: none;
+  font-size: 2em;
+  font-family: inherit;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  padding: 0 12px;
+  margin: 0;
+  text-decoration: none;
+}
+
+#build-title a.title:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+#build-title a.title:active {
+  background: rgba(0, 0, 0, 0.125);
+  outline: none;
+}
+
 #builds {
   display: block;
   overflow: auto;
