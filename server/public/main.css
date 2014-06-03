@@ -57,6 +57,16 @@ a { color: #6a9eef; }
   background: #e1bc8e;
 }
 
+#build-title.aborted,
+#builds li.aborted {
+  background: #d25f3a;
+}
+
+#build-title.scheduled,
+#builds li.scheduled {
+  background: #ebb263;
+}
+
 #build-title.started,
 #builds li.started {
   background: #ebb263;
@@ -93,6 +103,36 @@ a { color: #6a9eef; }
 #build-title .trigger-build input:active {
   background: rgba(0, 0, 0, 0.125);
   outline: none;
+}
+
+#build-title .abort-build {
+  display: inline-block;
+}
+
+#build-title .abort-build input {
+  border: none;
+  font-family: inherit;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 16px;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.125);
+  margin-left: 2em;
+  color: #d36764;
+}
+
+#build-title .abort-build input:hover {
+  background: #d36764;
+  color: #fff;
+}
+
+#build-title .abort-build input:active {
+  background: #d25f3a;
+  color: #fff;
 }
 
 #build-title a.title {
@@ -270,6 +310,8 @@ svg .node.job.succeeded rect { fill: #8cb287; }
 svg .node.job.failed rect { fill: #d36764; }
 svg .node.job.pending rect { fill: #5d4c4c; }
 svg .node.job.errored rect { fill: #e1bc8e; }
+svg .node.job.aborted rect { fill: #d25f3a; }
+svg .node.job.scheduled rect { fill: #ebb263; }
 svg .node.job.started rect { fill: #ebb263; -webkit-animation: wiggle-job 0.5s infinite; }
 
 .edgeLabel rect {
@@ -291,10 +333,14 @@ svg .node.job.started rect { fill: #ebb263; -webkit-animation: wiggle-job 0.5s i
 .edgePath.failed path { stroke: #d36764; }
 .edgePath.pending path { stroke: #5d4c4c; }
 .edgePath.errored path { stroke: #e1bc8e; }
+.edgePath.aborted path { stroke: #d25f3a; }
+.edgePath.scheduled path { stroke: #ebb263; }
 .edgePath.started path { stroke: #ebb263; }
 
 #arrowhead-succeeded path { fill: #8cb287; }
 #arrowhead-failed path { fill: #d36764; }
 #arrowhead-pending path { fill: #5d4c4c; }
 #arrowhead-errored path { fill: #e1bc8e; }
+#arrowhead-aborted path { fill: #d25f3a; }
+#arrowhead-scheduled path { fill: #ebb263; }
 #arrowhead-started path { fill: #ebb263; }
