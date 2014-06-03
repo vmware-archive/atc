@@ -12,6 +12,8 @@ const (
 type Build struct {
 	Guid string `json:"guid"`
 
+	AbortURL string `json:"abort_url"`
+
 	Privileged bool `json:"privileged"`
 
 	Config Config `json:"config"`
