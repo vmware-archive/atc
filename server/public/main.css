@@ -26,74 +26,6 @@ body { background: #222222; color: #dfeee0; }
 
 a { color: #6a9eef; }
 
-ul.jobs {
-  margin: 1em 0 0 0;
-  padding: 0;
-}
-
-ul.jobs li {
-  list-style: none;
-}
-
-ul.jobs li a {
-  float: left;
-  font-size: 4em;
-  display: block;
-  padding: 0.25em 0.5em;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-ul.builds {
-  margin: 1em 0 0 0;
-  padding: 0;
-}
-
-ul.builds li {
-  float: left;
-  list-style: none;
-}
-
-ul.builds li a {
-  width: 3em;
-  font-size: 2em;
-  text-align: center;
-  padding: 0.5em;
-  display: block;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-ul.jobs li a:hover,
-ul.builds li a:hover {
-  background: #453c31;
-}
-
-ul.jobs li.succeeded a,
-ul.builds li.succeeded a {
-  color: #8cb287;
-}
-
-ul.jobs li.failed a,
-ul.builds li.failed a {
-  color: #d36764;
-}
-
-ul.jobs li.pending a,
-ul.builds li.pending a {
-  color: #5d4c4c;
-}
-
-ul.jobs li.errored a,
-ul.builds li.errored a {
-  color: #e1bc8e;
-}
-
-ul.jobs li.started a,
-ul.builds li.started a {
-  color: #ebb263;
-}
-
 #build-title {
   padding: 1em;
   position: relative;
@@ -198,7 +130,6 @@ ul.builds li.started a {
 
 #builds li {
   display: inline-block;
-  padding: 5px;
   opacity: .8;
 }
 
@@ -211,6 +142,7 @@ ul.builds li.started a {
   line-height: 1em;
   text-align: center;
   margin: 0;
+  padding: 5px;
   display: block;
   font-weight: bold;
   text-decoration: none;
@@ -227,14 +159,6 @@ ul.builds li.started a {
 
 #build-title.started h1 {
   -webkit-animation: wiggle-job 0.5s infinite;
-}
-
-ul.jobs li.started a {
-  -webkit-animation: wiggle-job 0.5s infinite;
-}
-
-ul.builds li.started a {
-  -webkit-animation: wiggle-build 0.5s infinite;
 }
 
 @-webkit-keyframes wiggle-job {
