@@ -23,10 +23,6 @@
 			"Rev": "07c882cb0b99d26838726bf7cdf43ba03fe6c04f"
 		},
 		{
-			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "10a95d14a3a215f5e2045d3dbbcd29f1ab209586"
-		},
-		{
 			"ImportPath": "github.com/onsi/ginkgo",
 			"Comment": "v1.0.0-2-g4cf6831",
 			"Rev": "4cf683101c36426dc975f4db4d7f01d9c071f31a"
