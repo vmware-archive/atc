@@ -7,8 +7,8 @@
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/go.net/websocket",
-			"Comment": "null-133",
-			"Rev": "aa1a4b63e03d4dfef7d5310d70338707e36fc7eb"
+			"Comment": "null-134",
+			"Rev": "9c0f9daaa74be0f25ccc12718bcb6b5d17802654"
 		},
 		{
 			"ImportPath": "github.com/bmizerany/pat",
@@ -24,12 +24,12 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.0.0-2-g4cf6831",
-			"Rev": "4cf683101c36426dc975f4db4d7f01d9c071f31a"
+			"Comment": "v1.0.0-9-g99ce275",
+			"Rev": "99ce27541cce15de9dd2e287f327507f8e2a1e94"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "05c2b322d514282430789eb9ff8efee6c904cc77"
+			"Rev": "4d5e1af32b7c2ac26981a01ecd67d939fe56f108"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/ifrit",
@@ -40,16 +40,12 @@
 			"Rev": "e148496de27fab9f10ef07f3be00471fa59f58b9"
 		},
 		{
-			"ImportPath": "github.com/winston-ci/logbuffer",
-			"Rev": "d759e3301e0607785108933dca75c8008ccf5d93"
-		},
-		{
 			"ImportPath": "github.com/winston-ci/prole/api/builds",
-			"Rev": "fcfdaac2df2f575d81aa0e3c819decb40921995b"
+			"Rev": "a0d45f6a2b7d4fd7c69164e0f3d3df16bb3a3ec6"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/routes",
-			"Rev": "fcfdaac2df2f575d81aa0e3c819decb40921995b"
+			"Rev": "a0d45f6a2b7d4fd7c69164e0f3d3df16bb3a3ec6"
 		}
 	]
 }
