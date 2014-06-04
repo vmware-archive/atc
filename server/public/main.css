@@ -26,12 +26,28 @@ body { background: #222222; color: #dfeee0; }
 
 a { color: #6a9eef; }
 
+#build-header {
+  position: fixed;
+  clear: both;
+  width: 100%;
+  height: 90px;
+  background: red;
+  z-index: 2;
+}
+
+#build-body {
+  position: relative;
+  top: 90px;
+  z-index: 1;
+}
+
 #build-title {
-  padding: 1em;
+  padding: 0;
   position: relative;
 }
 
 #build-title h1 {
+  line-height: 60px;
   display: inline-block;
   margin: 0;
   color: #fff;
@@ -189,10 +205,6 @@ a { color: #6a9eef; }
   color: #fff;
 }
 
-#build-body {
-  padding: 1em;
-}
-
 #builds li.started a {
   -webkit-animation: wiggle-build 0.5s infinite;
 }
@@ -214,13 +226,17 @@ a { color: #6a9eef; }
 }
 
 #metadata {
-  float: right;
-  margin-right: 1em;
+  position: fixed;
+  top: 0;
+  right: 0;
+  margin-top: 90px;
+  padding: 1em;
 }
 
 #metadata h3 {
   background: #111;
   padding: .25em .5em;
+  margin-top: 0;
 }
 
 #metadata dt {
