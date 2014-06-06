@@ -78,11 +78,6 @@ a { color: #6a9eef; }
   background: #d25f3a;
 }
 
-#build-title.scheduled,
-#builds li.scheduled {
-  background: #ebb263;
-}
-
 #build-title.started,
 #builds li.started {
   background: #ebb263;
@@ -327,7 +322,6 @@ svg .node.job.failed rect { fill: #d36764; }
 svg .node.job.pending rect { fill: #5d4c4c; }
 svg .node.job.errored rect { fill: #e1bc8e; }
 svg .node.job.aborted rect { fill: #d25f3a; }
-svg .node.job.scheduled rect { fill: #ebb263; }
 svg .node.job.started rect { fill: #ebb263; -webkit-animation: wiggle-job 0.5s infinite; }
 
 .edgeLabel rect {
@@ -350,7 +344,6 @@ svg .node.job.started rect { fill: #ebb263; -webkit-animation: wiggle-job 0.5s i
 .edgePath.pending path { stroke: #5d4c4c; }
 .edgePath.errored path { stroke: #e1bc8e; }
 .edgePath.aborted path { stroke: #d25f3a; }
-.edgePath.scheduled path { stroke: #ebb263; }
 .edgePath.started path { stroke: #ebb263; }
 
 #arrowhead-succeeded path { fill: #8cb287; }
@@ -358,5 +351,4 @@ svg .node.job.started rect { fill: #ebb263; -webkit-animation: wiggle-job 0.5s i
 #arrowhead-pending path { fill: #5d4c4c; }
 #arrowhead-errored path { fill: #e1bc8e; }
 #arrowhead-aborted path { fill: #d25f3a; }
-#arrowhead-scheduled path { fill: #ebb263; }
 #arrowhead-started path { fill: #ebb263; }
