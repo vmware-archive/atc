@@ -6,9 +6,19 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "code.google.com/p/go.crypto/bcrypt",
+			"Comment": "null-212",
+			"Rev": "1064b89a6fb591df0dd65422295b8498916b092f"
+		},
+		{
+			"ImportPath": "code.google.com/p/go.crypto/blowfish",
+			"Comment": "null-212",
+			"Rev": "1064b89a6fb591df0dd65422295b8498916b092f"
+		},
+		{
 			"ImportPath": "code.google.com/p/go.net/websocket",
-			"Comment": "null-134",
-			"Rev": "9c0f9daaa74be0f25ccc12718bcb6b5d17802654"
+			"Comment": "null-135",
+			"Rev": "0d5da82b4799a671e710181878bf5ba0415751a7"
 		},
 		{
 			"ImportPath": "github.com/bmizerany/pat",
@@ -20,20 +30,20 @@
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "07c882cb0b99d26838726bf7cdf43ba03fe6c04f"
+			"Rev": "1c7841955920910958c71b1cc1a03f628267d468"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.0.0-9-g99ce275",
-			"Rev": "99ce27541cce15de9dd2e287f327507f8e2a1e94"
+			"Comment": "v1.0.0-16-g12446bb",
+			"Rev": "12446bbcc74950944c897e32ea99cc8d058f9c92"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "4d5e1af32b7c2ac26981a01ecd67d939fe56f108"
+			"Rev": "036273e6f643552b16fe7a6464afd2ae0324992e"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/ifrit",
-			"Rev": "8f57c1dcd12fc1cf91eea3f7704e348f3023f834"
+			"Rev": "f5c8edd2e5e404742ad194b0979ed4c95214d569"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/router",
@@ -41,11 +51,11 @@
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/api/builds",
-			"Rev": "048119fdc11f4949d62df689a69c1fd7b99c0eb1"
+			"Rev": "a6ff7ac4cdd9e76969d7bf0e3bbdf5c003466964"
 		},
 		{
 			"ImportPath": "github.com/winston-ci/prole/routes",
-			"Rev": "048119fdc11f4949d62df689a69c1fd7b99c0eb1"
+			"Rev": "a6ff7ac4cdd9e76969d7bf0e3bbdf5c003466964"
 		}
 	]
 }

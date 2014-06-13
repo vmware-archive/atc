@@ -76,7 +76,7 @@ func (group processGroup) waitForGroup() error {
 	for _, m := range group {
 		err := <-m.Process.Wait()
 		if err != nil {
-			errMsg += fmt.Sprintf("%s: %s/n", m.Name, err)
+			errMsg += fmt.Sprintf("%s: %s\n", m.Name, err)
 		}
 	}
 
