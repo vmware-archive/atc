@@ -30,8 +30,8 @@ type Build struct {
 type Config struct {
 	Image string `json:"image"`
 
-	Env    [][2]string `json:"env"`
-	Script string      `json:"script"`
+	Env    []map[string]string `json:"env"`
+	Script string              `json:"script"`
 }
 
 type Input struct {
