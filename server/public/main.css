@@ -331,6 +331,7 @@ svg .node.job.started rect { fill: #ebb263; -webkit-animation: wiggle-job 0.5s i
 .edgeLabel text {
   font-size: 1em;
   font-weight: normal;
+  fill: #fff;
 }
 
 .edgePath path {
