@@ -54,8 +54,6 @@ type Input struct {
 
 type Version map[string]interface{}
 
-type Source map[string]interface{}
-
 type MetadataField struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
@@ -69,7 +67,10 @@ type Output struct {
 	// e.g. sha
 	Version Version `json:"version"`
 
-	// e.g. git url, branch
+	// e.g. git url, branch, private_key
+	Source Source `json:"source"`
+
+	// arbitrary config for output
 	Params Params `json:"params,omitempty"`
 
 	// e.g. commit_author, commit_date, commit_sha
@@ -77,5 +78,7 @@ type Output struct {
 
 	SourcePath string `json:"sourcePath"`
 }
+
+type Source map[string]interface{}
 
 type Params map[string]interface{}
