@@ -1,6 +1,6 @@
 {
-	"ImportPath": "github.com/winston-ci/winston",
-	"GoVersion": "go1.2.1",
+	"ImportPath": "github.com/concourse/atc",
+	"GoVersion": "go1.3",
 	"Packages": [
 		"./..."
 	],
@@ -23,6 +23,14 @@
 		{
 			"ImportPath": "github.com/bmizerany/pat",
 			"Rev": "48be7df2c27e1cec821a3284a683ce6ef90d9052"
+		},
+		{
+			"ImportPath": "github.com/concourse/turbine/api/builds",
+			"Rev": "5cd75242b748f4b8eb24559489b083de1a504dab"
+		},
+		{
+			"ImportPath": "github.com/concourse/turbine/routes",
+			"Rev": "5cd75242b748f4b8eb24559489b083de1a504dab"
 		},
 		{
 			"ImportPath": "github.com/fraenkel/candiedyaml",
@@ -48,14 +56,6 @@
 		{
 			"ImportPath": "github.com/tedsuo/router",
 			"Rev": "e148496de27fab9f10ef07f3be00471fa59f58b9"
-		},
-		{
-			"ImportPath": "github.com/winston-ci/prole/api/builds",
-			"Rev": "c7e139f06a142f7c295b3bc05c6e71e9e4b0b7fd"
-		},
-		{
-			"ImportPath": "github.com/winston-ci/prole/routes",
-			"Rev": "c7e139f06a142f7c295b3bc05c6e71e9e4b0b7fd"
 		}
 	]
 }
