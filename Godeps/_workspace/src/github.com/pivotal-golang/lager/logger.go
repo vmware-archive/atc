@@ -3,6 +3,7 @@ package lager
 import (
 	"fmt"
 	"runtime"
+	"sync/atomic"
 	"time"
 )
 
@@ -10,21 +11,28 @@ const STACK_TRACE_BUFFER_SIZE = 1024 * 100
 
 type Logger interface {
 	RegisterSink(Sink)
-	Debug(task, action, description string, data ...Data)
-	Info(task, action, description string, data ...Data)
-	Error(task, action, description string, err error, data ...Data)
-	Fatal(task, action, description string, err error, data ...Data)
+	Session(task string, data ...Data) Logger
+	Debug(action string, data ...Data)
+	Info(action string, data ...Data)
+	Error(action string, err error, data ...Data)
+	Fatal(action string, err error, data ...Data)
 }
 
 type logger struct {
-	component string
-	sinks     []Sink
+	component   string
+	task        string
+	sinks       []Sink
+	sessionID   string
+	nextSession uint64
+	data        Data
 }
 
 func NewLogger(component string) Logger {
 	return &logger{
 		component: component,
+		task:      component,
 		sinks:     []Sink{},
+		data:      Data{},
 	}
 }
 
@@ -32,20 +40,33 @@ func (l *logger) RegisterSink(sink Sink) {
 	l.sinks = append(l.sinks, sink)
 }
 
-func (l *logger) Debug(task, action, description string, data ...Data) {
-	logData := Data{}
-	if len(data) > 0 {
-		logData = data[0]
+func (l *logger) Session(task string, data ...Data) Logger {
+	sid := atomic.AddUint64(&l.nextSession, 1)
+
+	var sessionIDstr string
+
+	if l.sessionID != "" {
+		sessionIDstr = fmt.Sprintf("%s.%d", l.sessionID, sid)
+	} else {
+		sessionIDstr = fmt.Sprintf("%d", sid)
 	}
 
-	logData["description"] = description
+	return &logger{
+		component: l.component,
+		task:      fmt.Sprintf("%s.%s", l.task, task),
+		sinks:     l.sinks,
+		sessionID: sessionIDstr,
+		data:      l.baseData(data),
+	}
+}
 
+func (l *logger) Debug(action string, data ...Data) {
 	log := LogFormat{
 		Timestamp: currentTimestamp(),
 		Source:    l.component,
-		Message:   fmt.Sprintf("%s.%s.%s", l.component, task, action),
+		Message:   fmt.Sprintf("%s.%s", l.task, action),
 		LogLevel:  DEBUG,
-		Data:      logData,
+		Data:      l.baseData(data),
 	}
 
 	for _, sink := range l.sinks {
@@ -53,20 +74,13 @@ func (l *logger) Debug(task, action, description string, data ...Data) {
 	}
 }
 
-func (l *logger) Info(task, action, description string, data ...Data) {
-	logData := Data{}
-	if len(data) > 0 {
-		logData = data[0]
-	}
-
-	logData["description"] = description
-
+func (l *logger) Info(action string, data ...Data) {
 	log := LogFormat{
 		Timestamp: currentTimestamp(),
 		Source:    l.component,
-		Message:   fmt.Sprintf("%s.%s.%s", l.component, task, action),
+		Message:   fmt.Sprintf("%s.%s", l.task, action),
 		LogLevel:  INFO,
-		Data:      logData,
+		Data:      l.baseData(data),
 	}
 
 	for _, sink := range l.sinks {
@@ -74,13 +88,9 @@ func (l *logger) Info(task, action, description string, data ...Data) {
 	}
 }
 
-func (l *logger) Error(task, action, description string, err error, data ...Data) {
-	logData := Data{}
-	if len(data) > 0 {
-		logData = data[0]
-	}
+func (l *logger) Error(action string, err error, data ...Data) {
+	logData := l.baseData(data)
 
-	logData["description"] = description
 	if err != nil {
 		logData["error"] = err.Error()
 	}
@@ -88,7 +98,7 @@ func (l *logger) Error(task, action, description string, err error, data ...Data
 	log := LogFormat{
 		Timestamp: currentTimestamp(),
 		Source:    l.component,
-		Message:   fmt.Sprintf("%s.%s.%s", l.component, task, action),
+		Message:   fmt.Sprintf("%s.%s", l.task, action),
 		LogLevel:  ERROR,
 		Data:      logData,
 	}
@@ -98,26 +108,23 @@ func (l *logger) Error(task, action, description string, err error, data ...Data
 	}
 }
 
-func (l *logger) Fatal(task, action, description string, err error, data ...Data) {
-	logData := Data{}
-	if len(data) > 0 {
-		logData = data[0]
-	}
+func (l *logger) Fatal(action string, err error, data ...Data) {
+	logData := l.baseData(data)
 
 	stackTrace := make([]byte, STACK_TRACE_BUFFER_SIZE)
 	stackSize := runtime.Stack(stackTrace, false)
 	stackTrace = stackTrace[:stackSize]
 
-	logData["description"] = description
 	if err != nil {
 		logData["error"] = err.Error()
 	}
+
 	logData["trace"] = string(stackTrace)
 
 	log := LogFormat{
 		Timestamp: currentTimestamp(),
 		Source:    l.component,
-		Message:   fmt.Sprintf("%s.%s.%s", l.component, task, action),
+		Message:   fmt.Sprintf("%s.%s", l.task, action),
 		LogLevel:  FATAL,
 		Data:      logData,
 	}
@@ -127,6 +134,23 @@ func (l *logger) Fatal(task, action, description string, err error, data ...Data
 	}
 
 	panic(err)
+}
+
+func (l *logger) baseData(givenData []Data) Data {
+	data := Data{}
+	if len(givenData) > 0 {
+		data = givenData[0]
+	}
+
+	for k, v := range l.data {
+		data[k] = v
+	}
+
+	if l.sessionID != "" {
+		data["session"] = l.sessionID
+	}
+
+	return data
 }
 
 func currentTimestamp() string {
