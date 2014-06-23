@@ -1,4 +1,4 @@
-package grouper_test
+package lager_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestGroup(t *testing.T) {
+func TestLager(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Grouper v0.1 Suite")
+	RunSpecs(t, "Lager Suite")
 }

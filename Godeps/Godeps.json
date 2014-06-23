@@ -17,8 +17,8 @@
 		},
 		{
 			"ImportPath": "code.google.com/p/go.net/websocket",
-			"Comment": "null-135",
-			"Rev": "0d5da82b4799a671e710181878bf5ba0415751a7"
+			"Comment": "null-136",
+			"Rev": "28ff664507e453c4455b8c65e701bbe2b2ac980d"
 		},
 		{
 			"ImportPath": "github.com/bmizerany/pat",
@@ -26,11 +26,11 @@
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/api/builds",
-			"Rev": "5cd75242b748f4b8eb24559489b083de1a504dab"
+			"Rev": "8661b95329bdb1a60f9974a64aa1cbd94b162657"
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/routes",
-			"Rev": "5cd75242b748f4b8eb24559489b083de1a504dab"
+			"Rev": "8661b95329bdb1a60f9974a64aa1cbd94b162657"
 		},
 		{
 			"ImportPath": "github.com/fraenkel/candiedyaml",
@@ -50,8 +50,12 @@
 			"Rev": "036273e6f643552b16fe7a6464afd2ae0324992e"
 		},
 		{
+			"ImportPath": "github.com/pivotal-golang/lager",
+			"Rev": "f4d9702a48eaf81ce184a88e46f2260387664896"
+		},
+		{
 			"ImportPath": "github.com/tedsuo/ifrit",
-			"Rev": "f5c8edd2e5e404742ad194b0979ed4c95214d569"
+			"Rev": "439138de94ac33aebc7dad33cada3796318845ea"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/router",
