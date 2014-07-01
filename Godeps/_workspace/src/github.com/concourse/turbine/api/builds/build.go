@@ -28,10 +28,14 @@ type Build struct {
 }
 
 type Config struct {
-	Image string `json:"image"`
+	Image  string            `json:"image" yaml:"image"`
+	Params map[string]string `json:"params" yaml:"params"`
+	Run    RunConfig         `json:"run" yaml:"run"`
+}
 
-	Env    []map[string]string `json:"env"`
-	Script string              `json:"script"`
+type RunConfig struct {
+	Path string   `json:"path" yaml:"path"`
+	Args []string `json:"args" yaml:"args"`
 }
 
 type Input struct {
