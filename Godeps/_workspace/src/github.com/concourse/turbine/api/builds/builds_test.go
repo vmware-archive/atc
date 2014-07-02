@@ -91,44 +91,21 @@ var _ = Describe("Config", func() {
 
 		It("overrides input destinations", func() {
 			Ω(Config{
-				Inputs: []Input{
-					{
-						Name:            "some-input",
-						DestinationPath: "some-destination",
-					},
-					{
-						Name:            "another-input",
-						DestinationPath: "another-destination",
-					},
-					{
-						Name: "yet-another-input",
-					},
+				Paths: map[string]string{
+					"some-input":        "some-destination",
+					"another-input":     "another-destination",
+					"yet-another-input": "",
 				},
 			}.Merge(Config{
-				Inputs: []Input{
-					{
-						Name:            "another-input",
-						DestinationPath: "an-even-better-destination",
-					},
-					{
-						Name:            "yet-another-input",
-						DestinationPath: "new-destination",
-					},
+				Paths: map[string]string{
+					"another-input":     "an-even-better-destination",
+					"yet-another-input": "new-destination",
 				},
 			})).Should(Equal(Config{
-				Inputs: []Input{
-					{
-						Name:            "some-input",
-						DestinationPath: "some-destination",
-					},
-					{
-						Name:            "another-input",
-						DestinationPath: "an-even-better-destination",
-					},
-					{
-						Name:            "yet-another-input",
-						DestinationPath: "new-destination",
-					},
+				Paths: map[string]string{
+					"some-input":        "some-destination",
+					"another-input":     "an-even-better-destination",
+					"yet-another-input": "new-destination",
 				},
 			}))
 		})

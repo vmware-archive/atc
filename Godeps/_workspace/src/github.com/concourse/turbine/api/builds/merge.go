@@ -21,20 +21,20 @@ func (a Config) Merge(b Config) Config {
 		a.Params = b.Params
 	}
 
-	if len(b.Inputs) > 0 {
-		newInputs := make([]Input, len(a.Inputs))
-		copy(newInputs, a.Inputs)
+	if len(a.Paths) > 0 {
+		newPaths := map[string]string{}
 
-		for _, bi := range b.Inputs {
-			for i, ai := range newInputs {
-				if ai.Name == bi.Name {
-					ai.DestinationPath = bi.DestinationPath
-					newInputs[i] = ai
-				}
-			}
+		for k, v := range a.Paths {
+			newPaths[k] = v
 		}
 
-		a.Inputs = newInputs
+		for k, v := range b.Paths {
+			newPaths[k] = v
+		}
+
+		a.Paths = newPaths
+	} else {
+		a.Paths = b.Paths
 	}
 
 	if b.Run.Path != "" {

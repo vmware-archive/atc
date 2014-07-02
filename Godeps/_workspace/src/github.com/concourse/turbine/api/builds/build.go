@@ -12,8 +12,12 @@ const (
 type Build struct {
 	Guid string `json:"guid"`
 
-	Privileged bool   `json:"privileged"`
-	Config     Config `json:"config"`
+	Privileged bool `json:"privileged"`
+
+	Config Config `json:"config"`
+
+	Inputs  []Input  `json:"inputs"`
+	Outputs []Output `json:"outputs"`
 
 	AbortURL string `json:"abort_url"`
 	LogsURL  string `json:"logs_url"`
@@ -23,11 +27,10 @@ type Build struct {
 }
 
 type Config struct {
-	Image   string            `json:"image"   yaml:"image"`
-	Params  map[string]string `json:"params"  yaml:"params"`
-	Run     RunConfig         `json:"run"     yaml:"run"`
-	Inputs  []Input           `json:"inputs"  yaml:"inputs"`
-	Outputs []Output          `json:"outputs" yaml:"outputs"`
+	Image  string            `json:"image"   yaml:"image"`
+	Params map[string]string `json:"params"  yaml:"params"`
+	Run    RunConfig         `json:"run"     yaml:"run"`
+	Paths  map[string]string `json:"paths"   yaml:"paths"`
 }
 
 type RunConfig struct {
@@ -36,22 +39,20 @@ type RunConfig struct {
 }
 
 type Input struct {
-	Name string `json:"name" yaml:"name"`
+	Name string `json:"name"`
 
-	Type string `json:"type" yaml:"type"`
+	Type string `json:"type"`
 
 	// e.g. sha
-	Version Version `json:"version,omitempty" yaml:"version"`
+	Version Version `json:"version,omitempty"`
 
 	// e.g. git url, branch, private_key
-	Source Source `json:"source" yaml:"source"`
+	Source Source `json:"source"`
 
 	// e.g. commit_author, commit_date
-	Metadata []MetadataField `json:"metadata,omitempty" yaml"metadata"`
+	Metadata []MetadataField `json:"metadata,omitempty"`
 
-	ConfigPath string `json:"config_path" yaml:"config_path"`
-
-	DestinationPath string `json:"destination_path" yaml:"destination_path"`
+	ConfigPath string `json:"config_path"`
 }
 
 type Version map[string]interface{}
