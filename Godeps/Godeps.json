@@ -26,11 +26,11 @@
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/api/builds",
-			"Rev": "fccd405df9138cc16549a482cb88380602fceceb"
+			"Rev": "2c2807c25395245e1155191cebfb73884134c3f3"
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/routes",
-			"Rev": "fccd405df9138cc16549a482cb88380602fceceb"
+			"Rev": "2c2807c25395245e1155191cebfb73884134c3f3"
 		},
 		{
 			"ImportPath": "github.com/fraenkel/candiedyaml",
