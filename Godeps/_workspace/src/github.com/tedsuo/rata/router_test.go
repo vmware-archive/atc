@@ -1,29 +1,30 @@
-package router_test
+package rata_test
 
 import (
+	"net/http"
+	"net/http/httptest"
+
 	"github.com/cloudfoundry/gunk/test_server"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/tedsuo/router"
-	"net/http"
-	"net/http/httptest"
+	"github.com/tedsuo/rata"
 )
 
 var _ = Describe("Router", func() {
 	Describe("Route", func() {
-		var route router.Route
+		var route rata.Route
 
-		Describe("PathWithParams", func() {
+		Describe("CreatePath", func() {
 			BeforeEach(func() {
-				route = router.Route{
-					Handler: "whatevz",
-					Method:  "GET",
-					Path:    "/a/path/:param/with/:many_things/:many/in/:it",
+				route = rata.Route{
+					Name:   "whatevz",
+					Method: "GET",
+					Path:   "/a/path/:param/with/:many_things/:many/in/:it",
 				}
 			})
 
 			It("should return a url with all :entries populated by the passed in hash", func() {
-				Ω(route.PathWithParams(router.Params{
+				Ω(route.CreatePath(rata.Params{
 					"param":       "1",
 					"many_things": "2",
 					"many":        "a space",
@@ -33,7 +34,7 @@ var _ = Describe("Router", func() {
 
 			Context("when the hash is missing params", func() {
 				It("should error", func() {
-					_, err := route.PathWithParams(router.Params{
+					_, err := route.CreatePath(rata.Params{
 						"param": "1",
 						"many":  "2",
 						"it":    "4",
@@ -44,7 +45,7 @@ var _ = Describe("Router", func() {
 
 			Context("when the hash has extra params", func() {
 				It("should totally not care", func() {
-					Ω(route.PathWithParams(router.Params{
+					Ω(route.CreatePath(rata.Params{
 						"param":       "1",
 						"many_things": "2",
 						"many":        "a space",
@@ -56,12 +57,12 @@ var _ = Describe("Router", func() {
 
 			Context("with a trailing slash", func() {
 				It("should work", func() {
-					route = router.Route{
-						Handler: "whatevz",
-						Method:  "GET",
-						Path:    "/a/path/:param/",
+					route = rata.Route{
+						Name:   "whatevz",
+						Method: "GET",
+						Path:   "/a/path/:param/",
 					}
-					Ω(route.PathWithParams(router.Params{
+					Ω(route.CreatePath(rata.Params{
 						"param": "1",
 					})).Should(Equal(`/a/path/1/`))
 				})
@@ -70,21 +71,21 @@ var _ = Describe("Router", func() {
 	})
 
 	Describe("Routes", func() {
-		var routes router.Routes
+		var routes rata.Routes
 
-		Describe("RouteForHandler", func() {
+		Describe("FindRouteByName", func() {
 			BeforeEach(func() {
-				routes = router.Routes{
-					{Path: "/something", Method: "GET", Handler: "getter"},
-					{Path: "/something", Method: "POST", Handler: "poster"},
-					{Path: "/something", Method: "PuT", Handler: "putter"},
-					{Path: "/something", Method: "DELETE", Handler: "deleter"},
+				routes = rata.Routes{
+					{Path: "/something", Method: "GET", Name: "getter"},
+					{Path: "/something", Method: "POST", Name: "poster"},
+					{Path: "/something", Method: "PuT", Name: "putter"},
+					{Path: "/something", Method: "DELETE", Name: "deleter"},
 				}
 			})
 
 			Context("when the route is present", func() {
 				It("returns the route with the matching handler name", func() {
-					route, ok := routes.RouteForHandler("getter")
+					route, ok := routes.FindRouteByName("getter")
 					Ω(ok).Should(BeTrue())
 					Ω(route.Method).Should(Equal("GET"))
 				})
@@ -92,27 +93,27 @@ var _ = Describe("Router", func() {
 
 			Context("when the route is not present", func() {
 				It("returns falseness", func() {
-					route, ok := routes.RouteForHandler("orangutanger")
+					route, ok := routes.FindRouteByName("orangutanger")
 					Ω(ok).Should(BeFalse())
 					Ω(route).Should(BeZero())
 				})
 			})
 		})
 
-		Describe("PathForHandler", func() {
+		Describe("PathForName", func() {
 			BeforeEach(func() {
-				routes = router.Routes{
+				routes = rata.Routes{
 					{
-						Handler: "whatevz",
-						Method:  "GET",
-						Path:    "/a/path/:param/with/:many_things/:many/in/:it",
+						Name:   "whatevz",
+						Method: "GET",
+						Path:   "/a/path/:param/with/:many_things/:many/in/:it",
 					},
 				}
 			})
 
 			Context("when the route is present", func() {
 				It("returns the route with the matching handler name", func() {
-					path, err := routes.PathForHandler("whatevz", router.Params{
+					path, err := routes.CreatePathForRoute("whatevz", rata.Params{
 						"param":       "1",
 						"many_things": "2",
 						"many":        "a space",
@@ -124,7 +125,7 @@ var _ = Describe("Router", func() {
 
 				Context("when the route is not present", func() {
 					It("returns an error", func() {
-						_, err := routes.PathForHandler("foo", router.Params{
+						_, err := routes.CreatePathForRoute("foo", rata.Params{
 							"param":       "1",
 							"many_things": "2",
 							"many":        "a space",
@@ -136,7 +137,7 @@ var _ = Describe("Router", func() {
 
 				Context("when the hash is missing params", func() {
 					It("should error", func() {
-						_, err := routes.PathForHandler("whatevz", router.Params{
+						_, err := routes.CreatePathForRoute("whatevz", rata.Params{
 							"param": "1",
 							"many":  "2",
 							"it":    "4",
@@ -151,16 +152,16 @@ var _ = Describe("Router", func() {
 	Describe("Router", func() {
 		var r http.Handler
 		var err error
-		var routes = router.Routes{
-			{Path: "/something", Method: "GET", Handler: "getter"},
-			{Path: "/something", Method: "POST", Handler: "poster"},
-			{Path: "/something", Method: "PuT", Handler: "putter"},
-			{Path: "/something", Method: "DELETE", Handler: "deleter"},
+		var routes = rata.Routes{
+			{Path: "/something", Method: "GET", Name: "getter"},
+			{Path: "/something", Method: "POST", Name: "poster"},
+			{Path: "/something", Method: "PuT", Name: "putter"},
+			{Path: "/something", Method: "DELETE", Name: "deleter"},
 		}
 
 		Context("when all the handlers are present", func() {
 			var resp *httptest.ResponseRecorder
-			var handlers = router.Handlers{
+			var handlers = rata.Handlers{
 				"getter":  test_server.Respond(http.StatusOK, "get response"),
 				"poster":  test_server.Respond(http.StatusOK, "post response"),
 				"putter":  test_server.Respond(http.StatusOK, "put response"),
@@ -168,7 +169,7 @@ var _ = Describe("Router", func() {
 			}
 			BeforeEach(func() {
 				resp = httptest.NewRecorder()
-				r, err = router.NewRouter(routes, handlers)
+				r, err = rata.NewRouter(routes, handlers)
 				Ω(err).ShouldNot(HaveOccurred())
 			})
 
@@ -202,26 +203,26 @@ var _ = Describe("Router", func() {
 		})
 
 		Context("when a handler is missing", func() {
-			var incompleteHandlers = router.Handlers{
+			var incompleteHandlers = rata.Handlers{
 				"getter": test_server.Respond(http.StatusOK, "get response"),
 			}
 			It("should error", func() {
-				r, err = router.NewRouter(routes, incompleteHandlers)
+				r, err = rata.NewRouter(routes, incompleteHandlers)
 
 				Ω(err).Should(HaveOccurred())
 			})
 		})
 
 		Context("with an invalid method", func() {
-			var invalidRoutes = router.Routes{
-				{Path: "/something", Method: "SMELL", Handler: "smeller"},
+			var invalidRoutes = rata.Routes{
+				{Path: "/something", Method: "SMELL", Name: "smeller"},
 			}
 
 			It("should error", func() {
-				handlers := router.Handlers{
+				handlers := rata.Handlers{
 					"smeller": test_server.Respond(http.StatusOK, "smelt response"),
 				}
-				r, err = router.NewRouter(invalidRoutes, handlers)
+				r, err = rata.NewRouter(invalidRoutes, handlers)
 
 				Ω(err).Should(HaveOccurred())
 			})

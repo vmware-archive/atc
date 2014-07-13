@@ -1,4 +1,4 @@
-package router_test
+package rata_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestRouter(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Router Suite")
+	RunSpecs(t, "Rata Suite")
 }

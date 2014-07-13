@@ -1,4 +1,4 @@
-package router
+package rata
 
 import (
 	"fmt"
@@ -21,9 +21,9 @@ type Params map[string]string
 // associate each Route with a http.Handler object, and use the Route properties
 // to determine which Handler should be invoked.
 //
-// Currently, properties used in match are such as Method and Path.
+// Currently, the properties used for matching are Method and Path.
 //
-// Method is one of the following:
+// Method can be one of the following:
 //  GET PUT POST DELETE
 //
 // Path conforms to Pat-style pattern matching. The following docs are taken from
@@ -58,18 +58,18 @@ type Params map[string]string
 //   /foo
 //   /foo/bar
 type Route struct {
-	// Handler is a key specifying which HTTP handler the router
+	// Name is a key specifying which HTTP handler the router
 	// should associate with the endpoint at runtime.
-	Handler string
+	Name string
 	// Method is one of the following: GET,PUT,POST,DELETE
 	Method string
 	// Path contains a path pattern
 	Path string
 }
 
-// PathWithParams combines the route's path pattern with a Params map
+// CreatePath combines the route's path pattern with a Params map
 // to produce a valid path.
-func (r Route) PathWithParams(params Params) (string, error) {
+func (r Route) CreatePath(params Params) (string, error) {
 	components := strings.Split(r.Path, "/")
 	for i, c := range components {
 		if len(c) == 0 {
@@ -94,24 +94,24 @@ func (r Route) PathWithParams(params Params) (string, error) {
 // Routes is a Route collection.
 type Routes []Route
 
-// RouteForHandler looks up a Route by it's Handler key.
-func (r Routes) RouteForHandler(handler string) (Route, bool) {
+// Route looks up a Route by it's Handler key.
+func (r Routes) FindRouteByName(name string) (Route, bool) {
 	for _, route := range r {
-		if route.Handler == handler {
+		if route.Name == name {
 			return route, true
 		}
 	}
 	return Route{}, false
 }
 
-// PathForHandler looks up a Route by it's Handler key and computes it's path
+// Path looks up a Route by it's Handler key and computes it's path
 // with a given Params map.
-func (r Routes) PathForHandler(handler string, params Params) (string, error) {
-	route, ok := r.RouteForHandler(handler)
+func (r Routes) CreatePathForRoute(name string, params Params) (string, error) {
+	route, ok := r.FindRouteByName(name)
 	if !ok {
-		return "", fmt.Errorf("No route exists for handler %", handler)
+		return "", fmt.Errorf("No route exists with the name %", name)
 	}
-	return route.PathWithParams(params)
+	return route.CreatePath(params)
 }
 
 // Router is deprecated, please use router.NewRouter() instead

@@ -1,24 +1,26 @@
-package router
+package rata
 
 import (
 	"fmt"
-	"github.com/bmizerany/pat"
 	"net/http"
 	"strings"
+
+	"github.com/bmizerany/pat"
 )
 
-// Handlers map Handler keys to http.Handler objects.  The Handler key is used to
-// then match the Handler to the appropriate Route in the Router.
+// Handlers map route names to http.Handler objects.  Each Handler key must
+// match a route Name in the Routes collection.
 type Handlers map[string]http.Handler
 
 // NewRouter combines a set of Routes with their corresponding Handlers to
-// produce a http request multiplexer (AKA a "router").
+// produce a http request multiplexer (AKA a "router").  If any route does
+// not have a matching handler, an error occurs.
 func NewRouter(routes Routes, handlers Handlers) (http.Handler, error) {
 	p := pat.New()
 	for _, route := range routes {
-		handler, ok := handlers[route.Handler]
+		handler, ok := handlers[route.Name]
 		if !ok {
-			return nil, fmt.Errorf("missing handler %s", route.Handler)
+			return nil, fmt.Errorf("missing handler %s", route.Name)
 		}
 		switch strings.ToUpper(route.Method) {
 		case "GET":
