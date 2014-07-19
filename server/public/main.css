@@ -204,13 +204,7 @@ a { color: #6a9eef; }
 }
 
 #build-title.started h1 {
-  -webkit-animation: wiggle-job 0.5s infinite;
-}
-
-@-webkit-keyframes wiggle-job {
-  0% { -webkit-transform: rotate(1deg); }
-  50% { -webkit-transform: rotate(-1deg); }
-  100% { -webkit-transform: rotate(1deg); }
+  -webkit-animation: wiggle-build 0.5s infinite;
 }
 
 @-webkit-keyframes wiggle-build {
@@ -321,7 +315,8 @@ svg .node.job.failed rect { fill: #d36764; }
 svg .node.job.pending rect { fill: #5d4c4c; }
 svg .node.job.errored rect { fill: #e1bc8e; }
 svg .node.job.aborted rect { fill: #d25f3a; }
-svg .node.job.started rect { fill: #ebb263; -webkit-animation: wiggle-job 0.5s infinite; }
+svg .node.job.started rect { fill: #ebb263; }
+svg .node.job.started { -webkit-animation: wiggle-build 0.5s infinite; }
 
 .edgeLabel rect {
   fill: none;
