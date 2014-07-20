@@ -21,16 +21,20 @@
 			"Rev": "335bcad0b70a3ba61b9951992a418c9176a73fd4"
 		},
 		{
+			"ImportPath": "github.com/BurntSushi/migration",
+			"Rev": "c45b897f13350786ccaf2b7403b92b1c7ad85844"
+		},
+		{
 			"ImportPath": "github.com/bmizerany/pat",
 			"Rev": "b8a35001b773c267eb260a691f4e5499a3531600"
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/api/builds",
-			"Rev": "5bd6a827f4f750e84e157da83d43274d9a2bf013"
+			"Rev": "707d93f03aaf46d6174758a32e9d79df2159543a"
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/routes",
-			"Rev": "5bd6a827f4f750e84e157da83d43274d9a2bf013"
+			"Rev": "707d93f03aaf46d6174758a32e9d79df2159543a"
 		},
 		{
 			"ImportPath": "github.com/fraenkel/candiedyaml",
@@ -38,16 +42,20 @@
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "204566ad8c530fe658a939ff8d1857ad6f6012d2"
+			"Rev": "6628c86d6a89ce7983c7c9b5e98c1df795fbd256"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
 			"Rev": "10afcadf69098c003a97f23349c25ca16f0543e3"
 		},
 		{
+			"ImportPath": "github.com/lib/pq",
+			"Rev": "dffddbcda422b88507795533be131d05e1a3dc71"
+		},
+		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.0.0-18-gb8a1dc9",
-			"Rev": "b8a1dc909067ac17581903a056b5a709fc74c779"
+			"Comment": "v1.0.0-24-g9f2bf87",
+			"Rev": "9f2bf87d6050a4e6d18c14fd0970c81e467622ef"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
@@ -59,7 +67,7 @@
 		},
 		{
 			"ImportPath": "github.com/tedsuo/ifrit",
-			"Rev": "21ef26b2e0107e0ce523244608e430db73a353bd"
+			"Rev": "52d5ae8c0a69e6e3d6f9cc407ab76345b00b3129"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/rata",

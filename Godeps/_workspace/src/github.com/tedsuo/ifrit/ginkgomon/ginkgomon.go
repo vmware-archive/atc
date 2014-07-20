@@ -14,12 +14,11 @@ import (
 )
 
 type Runner struct {
+	Command           *exec.Cmd
 	Name              string
-	BinPath           string
 	AnsiColorCode     string
 	StartCheck        string
 	StartCheckTimeout time.Duration
-	Args              []string
 	Cleanup           func()
 }
 
@@ -27,10 +26,7 @@ func (r *Runner) Run(sigChan <-chan os.Signal, ready chan<- struct{}) error {
 	allOutput := gbytes.NewBuffer()
 
 	session, err := gexec.Start(
-		exec.Command(
-			r.BinPath,
-			r.Args...,
-		),
+		r.Command,
 		gexec.NewPrefixedWriter(
 			fmt.Sprintf("\x1b[32m[o]\x1b[%s[%s]\x1b[0m ", r.AnsiColorCode, r.Name),
 			io.MultiWriter(allOutput, ginkgo.GinkgoWriter),
