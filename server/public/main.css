@@ -291,12 +291,14 @@ a { color: #6a9eef; }
 
 svg h1 {
   margin: 5px;
+  width: 100%;
 }
 
 svg h1.resource {
   font-size: 1.5em;
   margin: 5px 10px;
   font-weight: normal;
+  width: 100%;
 }
 
 svg h1 a {
