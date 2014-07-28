@@ -26,11 +26,14 @@ body { background: #222222; color: #dfeee0; }
 
 a { color: #6a9eef; }
 
-#build-header {
-  position: fixed;
-  clear: both;
+#build-header,
+#resource-header {
   width: 100%;
   height: 90px;
+}
+
+#build-header {
+  position: fixed;
   z-index: 2;
 }
 
@@ -45,7 +48,8 @@ a { color: #6a9eef; }
   position: relative;
 }
 
-#build-title h1 {
+#build-title h1,
+#resource-header h1 {
   line-height: 60px;
   display: inline-block;
   margin: 0;
@@ -145,7 +149,8 @@ li.started {
   color: #fff;
 }
 
-#build-title a.title {
+#build-title a.title,
+#resource-header a.title {
   border: none;
   font-size: 2em;
   font-family: inherit;
@@ -158,11 +163,13 @@ li.started {
   background: rgba(255, 255, 255, 0.125);
 }
 
-#build-title a.title:hover {
+#build-title a.title:hover,
+#resource-header a.title:hover {
   background: rgba(255, 255, 255, 0.25);
 }
 
-#build-title a.title:active {
+#build-title a.title:active,
+#resource-header a.title:active {
   background: rgba(0, 0, 0, 0.125);
   outline: none;
 }
@@ -246,8 +253,44 @@ li.started {
   margin-left: 11em;
 }
 
+#version-history {
+  border-spacing: 0;
+}
+
 #version-history th {
   text-align: left;
+  margin: 0;
+  padding: 0;
+}
+
+#version-history td {
+  background: #111;
+  margin: 0;
+  padding: 0 10px;
+  border: 10px solid #222;
+  border-right: 0;
+  border-bottom: 0;
+  vertical-align: top;
+}
+
+#version-history td dl.jobs dt {
+  float: left;
+  text-align: right;
+  width: 100px;
+  font-size: 16px;
+  line-height: 1em;
+  text-align: right;
+  margin: 0;
+  padding: 7px;
+  display: block;
+  font-weight: bold;
+  text-decoration: none;
+  color: #fff;
+}
+
+#version-history td dl.jobs dd {
+  margin-left: 124px;
+  height: 3em;
 }
 
 ::selection { background: #555555; color: #ffffff; }
@@ -307,7 +350,6 @@ svg h1 {
 
 svg h1.resource {
   font-size: 1.5em;
-  margin: 5px 10px;
   font-weight: normal;
   width: 100%;
 }
