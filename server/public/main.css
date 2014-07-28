@@ -53,32 +53,32 @@ a { color: #6a9eef; }
 }
 
 #build-title.succeeded,
-#builds li.succeeded {
+li.succeeded {
   background: #8cb287;
 }
 
 #build-title.failed,
-#builds li.failed {
+li.failed {
   background: #d36764;
 }
 
 #build-title.pending,
-#builds li.pending {
+li.pending {
   background: #5d4c4c;
 }
 
 #build-title.errored,
-#builds li.errored {
+li.errored {
   background: #e1bc8e;
 }
 
 #build-title.aborted,
-#builds li.aborted {
+li.aborted {
   background: #d25f3a;
 }
 
 #build-title.started,
-#builds li.started {
+li.started {
   background: #ebb263;
 }
 
@@ -167,7 +167,8 @@ a { color: #6a9eef; }
   outline: none;
 }
 
-#builds {
+#builds,
+#version-history .builds {
   display: block;
   overflow: auto;
   background: #111;
@@ -178,8 +179,12 @@ a { color: #6a9eef; }
   white-space:nowrap;
 }
 
-#builds li {
+#builds li,
+#version-history .builds li {
   display: inline-block;
+}
+
+#builds li {
   opacity: .8;
 }
 
@@ -187,7 +192,8 @@ a { color: #6a9eef; }
   opacity: 1;
 }
 
-#builds li a {
+#builds li a,
+#version-history .builds li a {
   font-size: 20px;
   line-height: 1em;
   text-align: center;
@@ -199,7 +205,8 @@ a { color: #6a9eef; }
   color: #fff;
 }
 
-#builds li.started a {
+#builds li.started a,
+#version-history .builds li.started a {
   -webkit-animation: wiggle-build 0.5s infinite;
 }
 
@@ -237,6 +244,10 @@ a { color: #6a9eef; }
 #metadata dd {
   white-space: pre;
   margin-left: 11em;
+}
+
+#version-history th {
+  text-align: left;
 }
 
 ::selection { background: #555555; color: #ffffff; }
