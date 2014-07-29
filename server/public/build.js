@@ -4,7 +4,7 @@ function streamLog(uri) {
   var ws = new WebSocket(uri);
 
   ws.onmessage = function(event) {
-    document.getElementById("build-log").innerHTML += event.data
+    $("#build-log").append(event.data);
 
     if (autoscroll) {
       $(document).scrollTop($(document).height());
