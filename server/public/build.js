@@ -1,4 +1,4 @@
-var autoscroll = true;
+var autoscroll = false;
 
 function streamLog(uri) {
   var ws = new WebSocket(uri);
@@ -23,6 +23,11 @@ function scrollToCurrentBuild() {
 }
 
 $(document).ready(function() {
+  var title = $("#build-title");
+
+  if (title.hasClass("pending") || title.hasClass("started"))
+    autoscroll = true;
+
   $(window).scroll(function() {
     var scrollEnd = $(window).scrollTop() + $(window).height();
 
@@ -31,12 +36,10 @@ $(document).ready(function() {
     } else {
       autoscroll = false;
     }
-
-    scrolled = true;
   });
 
   $("#builds").bind('mousewheel', function(e){
-    if(e.originalEvent.deltaX != 0) {
+    if (e.originalEvent.deltaX != 0) {
       $(this).scrollLeft($(this).scrollLeft() + e.originalEvent.deltaX);
     } else {
       $(this).scrollLeft($(this).scrollLeft() - e.originalEvent.deltaY);
