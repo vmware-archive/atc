@@ -250,6 +250,10 @@ li.started {
   cursor: pointer;
 }
 
+#build-resources .build-source.first-occurrence .resource-header {
+  background: #333;
+}
+
 #build-resources .resource-header .version {
   margin: 0;
   padding: 0 6px;
