@@ -45,5 +45,11 @@ $(document).ready(function() {
     return false;
   });
 
+  $(".build-metadata").hide();
+
+  $(".resource-header").click(function() {
+    $(this).parent().find(".build-metadata").toggle();
+  });
+
   scrollToCurrentBuild();
 });
