@@ -48,7 +48,8 @@ $(document).ready(function() {
     return false;
   });
 
-  $(".build-metadata").hide();
+  if ($(".build-metadata").size() > 1)
+    $(".build-metadata").hide();
 
   $(".resource-header").click(function() {
     $(this).parent().find(".build-metadata").toggle();
