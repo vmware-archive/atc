@@ -230,12 +230,11 @@ li.started {
 #build-resources {
   float: right;
   padding: 10px;
-  width: 480px;
+  min-width: 480px;
   height: 100%;
 }
 
 #build-log {
-  margin-right: 500px;
   word-wrap: break-word;
 }
 
@@ -265,9 +264,7 @@ li.started {
 #build-resources .resource-header h3 {
   margin: 0;
   float: left;
-  position: absolute;
-  top: 0;
-  left: 6px;
+  margin-left: 6px;
   line-height: 28px;
 }
 
