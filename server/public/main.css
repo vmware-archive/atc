@@ -364,6 +364,14 @@ li.started {
 .ansi-white-bg { background-color: #c0afa0; }
 .ansi-bright-white-bg { background-color: #e0cfc0; }
 
+svg#pipeline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
 svg h1 {
   margin: 5px;
   width: 100%;
