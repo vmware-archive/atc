@@ -405,6 +405,10 @@ svg .node.job.started rect { fill: #ebb263; -webkit-animation: wiggle-build 0.5s
   fill: none;
 }
 
+svg .gateway {
+  fill: #333;
+}
+
 .edgeLabel text {
   font-size: 1em;
   font-weight: normal;
