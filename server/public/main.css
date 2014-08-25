@@ -400,11 +400,14 @@ svg .node.job.failed rect { fill: #d36764; }
 svg .node.job.pending rect { fill: #5d4c4c; }
 svg .node.job.errored rect { fill: #e1bc8e; }
 svg .node.job.aborted rect { fill: #d25f3a; }
-svg .node.job.started rect {
-  fill: #ebb263;
+svg .node.job.started rect { fill: #ebb263; }
+
+svg .node.resource.checking rect, .node.job.started rect {
   -webkit-animation: wiggle-build 0.5s infinite;
   shape-rendering: auto;
 }
+
+svg .node.resource.failing rect { fill: #e1bc8e; }
 
 
 .edgeLabel rect {
