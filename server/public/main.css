@@ -392,6 +392,7 @@ svg h1 a {
 
 svg .node rect {
   fill: #111;
+  shape-rendering: crispEdges;
 }
 
 svg .node.job.succeeded rect { fill: #8cb287; }
@@ -399,7 +400,12 @@ svg .node.job.failed rect { fill: #d36764; }
 svg .node.job.pending rect { fill: #5d4c4c; }
 svg .node.job.errored rect { fill: #e1bc8e; }
 svg .node.job.aborted rect { fill: #d25f3a; }
-svg .node.job.started rect { fill: #ebb263; -webkit-animation: wiggle-build 0.5s infinite; }
+svg .node.job.started rect {
+  fill: #ebb263;
+  -webkit-animation: wiggle-build 0.5s infinite;
+  shape-rendering: auto;
+}
+
 
 .edgeLabel rect {
   fill: none;
