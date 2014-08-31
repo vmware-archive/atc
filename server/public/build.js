@@ -2,32 +2,32 @@ var autoscroll = false;
 
 var eventHandlers = {
   "0.0": function(msg) {
-    $("#build-log").append(msg.data);
+    processLogs(msg.data);
   },
   "1.0": function(msg) {
-    var event = JSON.parse(msg.data);
+    var eventMsg = JSON.parse(msg.data);
 
-    switch(event.type) {
+    switch(eventMsg.type) {
     case "log":
-      processLogs(event.event);
+      processLogs(eventMsg.event.payload);
       break;
     case "status":
-      var status = event.event.status;
+      var status = eventMsg.event.status;
 
       if(status != "started") {
         $(".abort-build").remove();
-
-        $("#build-title").attr("class", status);
-        $("#builds .current").attr("class", status + " current");
       }
+
+      $("#build-title").attr("class", status);
+      $("#builds .current").attr("class", status + " current");
 
       break;
     }
   }
 }
 
-function processLogs(event) {
-  var sequence = ansiparse(event.payload);
+function processLogs(payload) {
+  var sequence = ansiparse(payload);
 
   var log = $("#build-log");
   var ele;
