@@ -1,7 +1,12 @@
 var autoscroll = false;
 
 var eventHandlers = {
-  "1.0": function(event) {
+  "0.0": function(log) {
+    $("#build-log").append(log.data);
+  },
+  "1.0": function(msg) {
+    var event = JSON.parse(msg);
+
     switch(event.type) {
     case "log":
       processLogs(event.event);
@@ -56,14 +61,14 @@ function streamLog(uri) {
 
   var eventHandler;
   ws.onmessage = function(event) {
-    var msg = JSON.parse(event.data);
-
     if(!eventHandler) {
-      if(msg.version) {
-        eventHandler = eventHandlers[msg.version];
+      var versionMsg = JSON.parse(event.data);
+
+      if(versionMsg.version) {
+        eventHandler = eventHandlers[versionMsg.version];
       }
     } else {
-      eventHandler(msg);
+      eventHandler(event);
     }
   };
 }
