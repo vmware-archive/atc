@@ -12,14 +12,22 @@ var eventHandlers = {
       processLogs(eventMsg.event.payload);
       break;
     case "status":
+      var currentStatus = $("#build-title").attr("class");
+
+      // only transition from transient states; state may already be set
+      // if the page loaded after build was done
+      if(currentStatus != "pending" && currentStatus != "started") {
+        break;
+      }
+
       var status = eventMsg.event.status;
+
+      $("#build-title").attr("class", status);
+      $("#builds .current").attr("class", status + " current");
 
       if(status != "started") {
         $(".abort-build").remove();
       }
-
-      $("#build-title").attr("class", status);
-      $("#builds .current").attr("class", status + " current");
 
       break;
     }
