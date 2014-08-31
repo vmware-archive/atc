@@ -1,4 +1,26 @@
-## 1.1.0-beta (6/15/2014)
+## HEAD
+
+Improvements:
+
+- Call reporters in reverse order when announcing spec completion -- allows custom reporters to emit output before the default reporter does.
+- Improved focus behavior.  Now, this:
+
+    ```golang
+    FDescribe("Some describe", func() {
+        It("A", func() {})
+
+        FIt("B", func() {})
+    })
+    ```
+
+  will run `B` but *not* `A`.  This tends to be a common usage pattern when in the thick of writing and debugging tests.
+
+
+## 1.1.0 (8/2/2014)
+
+No changes, just dropping the beta.
+
+## 1.1.0-beta (7/22/2014)
 New Features:
 
 - `ginkgo watch` now monitors packages *and their dependencies* for changes.  The depth of the dependency tree can be modified with the `-depth` flag.
@@ -10,11 +32,16 @@ New Features:
 - Ginkgo now summarizes any spec failures that occured at the end of the test run. 
 - `ginkgo --randomizeSuites` will run tests *suites* in random order using the generated/passed-in seed.
 
+Improvements:
+
+- `ginkgo -skipPackage` now takes a comma-separated list of strings.  If the *relative path* to a package matches one of the entries in the comma-separated list, that package is skipped.
+- `ginkgo --untilItFails` no longer recompiles between attempts.
+- Ginkgo now panics when a runnable node (`It`, `BeforeEach`, `JustBeforeEach`, `AfterEach`, `Measure`) is nested within another runnable node.  This is always a mistake.  Any test suites that panic because of this change should be fixed.
+
 Bug Fixes:
 
 - `ginkgo boostrap` and `ginkgo generate` no longer fail when dealing with `hyphen-separated-packages`.
 - parallel specs are now better distributed across nodes - fixed a crashing bug where (for example) distributing 11 tests across 7 nodes would panic
-- `ginkgo --untilItFails` no longer recompiles between attempts.
 
 ## 1.0.0 (5/24/2014)
 New Features:

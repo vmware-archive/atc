@@ -1,10 +1,6 @@
 package ifrit
 
-import (
-	"fmt"
-	"os"
-	"sync"
-)
+import "os"
 
 type Process interface {
 	Wait() <-chan error
@@ -17,11 +13,12 @@ func Envoke(r Runner) Process {
 
 func envokeProcess(r Runner) Process {
 	p := &process{
-		runner:         r,
-		sig:            make(chan os.Signal),
-		exitStatusChan: make(chan error, 1),
-		ready:          make(chan struct{}),
+		runner: r,
+		sig:    make(chan os.Signal),
+		ready:  make(chan struct{}),
+		exited: make(chan struct{}),
 	}
+
 	go p.run()
 
 	select {
@@ -33,37 +30,24 @@ func envokeProcess(r Runner) Process {
 }
 
 type process struct {
-	runner         Runner
-	sig            chan os.Signal
-	exitStatus     error
-	exitStatusChan chan error
-	ready          chan struct{}
-	exitOnce       sync.Once
+	runner     Runner
+	sig        chan os.Signal
+	ready      chan struct{}
+	exited     chan struct{}
+	exitStatus error
 }
 
 func (p *process) run() {
-	defer func() {
-		msg := recover()
-		if msg != nil {
-			p.exitStatusChan <- fmt.Errorf("%s", msg)
-		}
-	}()
-
-	p.exitStatusChan <- p.runner.Run(p.sig, p.ready)
-}
-
-func (p *process) getExitStatus() error {
-	p.exitOnce.Do(func() {
-		p.exitStatus = <-p.exitStatusChan
-	})
-	return p.exitStatus
+	p.exitStatus = p.runner.Run(p.sig, p.ready)
+	close(p.exited)
 }
 
 func (p *process) Wait() <-chan error {
 	exitChan := make(chan error, 1)
 
 	go func() {
-		exitChan <- p.getExitStatus()
+		<-p.exited
+		exitChan <- p.exitStatus
 	}()
 
 	return exitChan
@@ -71,6 +55,9 @@ func (p *process) Wait() <-chan error {
 
 func (p *process) Signal(signal os.Signal) {
 	go func() {
-		p.sig <- signal
+		select {
+		case p.sig <- signal:
+		case <-p.exited:
+		}
 	}()
 }

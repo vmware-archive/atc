@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/concourse/atc",
-	"GoVersion": "go1.3",
+	"GoVersion": "go1.3.1",
 	"Packages": [
 		"./..."
 	],
@@ -30,23 +30,19 @@
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/api/builds",
-			"Rev": "707d93f03aaf46d6174758a32e9d79df2159543a"
+			"Rev": "7ff409bb464b24966c2ea1f401eee05318e6a674"
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/routes",
-			"Rev": "707d93f03aaf46d6174758a32e9d79df2159543a"
+			"Rev": "7ff409bb464b24966c2ea1f401eee05318e6a674"
 		},
 		{
 			"ImportPath": "github.com/fraenkel/candiedyaml",
 			"Rev": "84842532f8194fe186b48a009251dfaec9924ccd"
 		},
 		{
-			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "6628c86d6a89ce7983c7c9b5e98c1df795fbd256"
-		},
-		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "10afcadf69098c003a97f23349c25ca16f0543e3"
+			"Rev": "4292df70df546334d4174bcd77271253c9b7835c"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
@@ -54,20 +50,21 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.0.0-24-g9f2bf87",
-			"Rev": "9f2bf87d6050a4e6d18c14fd0970c81e467622ef"
+			"Comment": "v1.1.0-6-g527974d",
+			"Rev": "527974d5873391de9d8a25b761b5fc1382e9279e"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "efd113280743f90026f1dc18b93ca5355d8df0bf"
+			"Comment": "v1.0",
+			"Rev": "a78ae492d53aad5a7a232d0d0462c14c400e3ee7"
 		},
 		{
 			"ImportPath": "github.com/pivotal-golang/lager",
-			"Rev": "e8822eb6379ecd32065776bd84139100cffa5563"
+			"Rev": "24bc7249ba26ad2f1493363b9dcedf86023f47d7"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/ifrit",
-			"Rev": "52d5ae8c0a69e6e3d6f9cc407ab76345b00b3129"
+			"Rev": "0addc90d7dcebcf87ef0fc89240c58bd1c475d8f"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/rata",

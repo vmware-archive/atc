@@ -222,12 +222,19 @@ var _ = Describe("Suite", func() {
 		Context("with a programatically focused spec", func() {
 			BeforeEach(func() {
 				specSuite.PushItNode("focused it", f("focused it"), types.FlagTypeFocused, codelocation.New(0), 0)
+
+				specSuite.PushContainerNode("focused container", func() {
+					specSuite.PushItNode("inner focused it", f("inner focused it"), types.FlagTypeFocused, codelocation.New(0), 0)
+					specSuite.PushItNode("inner unfocused it", f("inner unfocused it"), types.FlagTypeNone, codelocation.New(0), 0)
+				}, types.FlagTypeFocused, codelocation.New(0))
+
 			})
 
-			It("should only run the focused test", func() {
+			It("should only run the focused test, applying backpropagation to favor most deeply focused leaf nodes", func() {
 				Ω(runOrder).Should(Equal([]string{
 					"BeforeSuite",
 					"top BE", "top JBE", "focused it", "top AE",
+					"top BE", "top JBE", "inner focused it", "top AE",
 					"AfterSuite",
 				}))
 			})
@@ -267,6 +274,68 @@ var _ = Describe("Suite", func() {
 			It("generates the correct failure data", func() {
 				Ω(fakeR.SpecSummaries[0].Failure.Message).Should(Equal("oops!"))
 				Ω(fakeR.SpecSummaries[0].Failure.Location).Should(Equal(location))
+			})
+		})
+
+		Context("when runnable nodes are nested within other runnable nodes", func() {
+			Context("when an It is nested", func() {
+				BeforeEach(func() {
+					specSuite.PushItNode("top level it", func() {
+						specSuite.PushItNode("nested it", f("oops"), types.FlagTypeNone, codelocation.New(0), 0)
+					}, types.FlagTypeNone, codelocation.New(0), 0)
+				})
+
+				It("should fail", func() {
+					Ω(fakeT.didFail).Should(BeTrue())
+				})
+			})
+
+			Context("when a Measure is nested", func() {
+				BeforeEach(func() {
+					specSuite.PushItNode("top level it", func() {
+						specSuite.PushMeasureNode("nested measure", func(Benchmarker) {}, types.FlagTypeNone, codelocation.New(0), 10)
+					}, types.FlagTypeNone, codelocation.New(0), 0)
+				})
+
+				It("should fail", func() {
+					Ω(fakeT.didFail).Should(BeTrue())
+				})
+			})
+
+			Context("when a BeforeEach is nested", func() {
+				BeforeEach(func() {
+					specSuite.PushItNode("top level it", func() {
+						specSuite.PushBeforeEachNode(f("nested bef"), codelocation.New(0), 0)
+					}, types.FlagTypeNone, codelocation.New(0), 0)
+				})
+
+				It("should fail", func() {
+					Ω(fakeT.didFail).Should(BeTrue())
+				})
+			})
+
+			Context("when a JustBeforeEach is nested", func() {
+				BeforeEach(func() {
+					specSuite.PushItNode("top level it", func() {
+						specSuite.PushJustBeforeEachNode(f("nested jbef"), codelocation.New(0), 0)
+					}, types.FlagTypeNone, codelocation.New(0), 0)
+				})
+
+				It("should fail", func() {
+					Ω(fakeT.didFail).Should(BeTrue())
+				})
+			})
+
+			Context("when a AfterEach is nested", func() {
+				BeforeEach(func() {
+					specSuite.PushItNode("top level it", func() {
+						specSuite.PushAfterEachNode(f("nested aft"), codelocation.New(0), 0)
+					}, types.FlagTypeNone, codelocation.New(0), 0)
+				})
+
+				It("should fail", func() {
+					Ω(fakeT.didFail).Should(BeTrue())
+				})
 			})
 		})
 	})
