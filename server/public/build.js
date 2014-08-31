@@ -11,6 +11,12 @@ var eventHandlers = {
     case "log":
       processLogs(eventMsg.event.payload);
       break;
+    case "error":
+      var errorSpan = $("<span>");
+      errorSpan.addClass("error");
+      errorSpan.text(eventMsg.event.message);
+
+      $("#build-log").append(errorSpan);
     case "status":
       var currentStatus = $("#build-title").attr("class");
 
