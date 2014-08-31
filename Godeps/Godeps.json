@@ -16,11 +16,6 @@
 			"Rev": "aa2644fe4aa50e3b38d75187b4799b1f0c9ddcef"
 		},
 		{
-			"ImportPath": "code.google.com/p/go.net/websocket",
-			"Comment": "null-137",
-			"Rev": "335bcad0b70a3ba61b9951992a418c9176a73fd4"
-		},
-		{
 			"ImportPath": "github.com/BurntSushi/migration",
 			"Rev": "c45b897f13350786ccaf2b7403b92b1c7ad85844"
 		},
@@ -30,11 +25,11 @@
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/api/builds",
-			"Rev": "7ff409bb464b24966c2ea1f401eee05318e6a674"
+			"Rev": "52b120fbb34834eaf4dcacd8e1bcf8d0a74a81dc"
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/routes",
-			"Rev": "7ff409bb464b24966c2ea1f401eee05318e6a674"
+			"Rev": "52b120fbb34834eaf4dcacd8e1bcf8d0a74a81dc"
 		},
 		{
 			"ImportPath": "github.com/fraenkel/candiedyaml",

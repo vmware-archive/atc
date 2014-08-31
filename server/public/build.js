@@ -1,13 +1,69 @@
 var autoscroll = false;
 
+var eventHandlers = {
+  "1.0": function(event) {
+    switch(event.type) {
+    case "log":
+      processLogs(event.event);
+      break;
+    case "status":
+      var status = event.event.status;
+
+      if(status != "started") {
+        $(".abort-build").remove();
+
+        $("#build-title").attr("class", status);
+        $("#builds .current").attr("class", status + " current");
+      }
+
+      break;
+    }
+  }
+}
+
+function processLogs(event) {
+  var sequence = ansiparse(event.payload);
+
+  var log = $("#build-log");
+  var ele;
+
+  for(var i = 0; i < sequence.length; i++) {
+    ele = $("<span>");
+    ele.text(sequence[i].text);
+
+    if(sequence[i].foreground) {
+      ele.addClass("ansi-"+sequence[i].foreground+"-fg");
+    }
+
+    if(sequence[i].background) {
+      ele.addClass("ansi-"+sequence[i].background+"-bg");
+    }
+
+    if(sequence[i].bold) {
+      ele.addClass("ansi-bold");
+    }
+
+    log.append(ele);
+  }
+
+  if (autoscroll) {
+    $(document).scrollTop($(document).height());
+  }
+}
+
 function streamLog(uri) {
   var ws = new WebSocket(uri);
 
+  var eventHandler;
   ws.onmessage = function(event) {
-    $("#build-log").append(event.data);
+    var msg = JSON.parse(event.data);
 
-    if (autoscroll) {
-      $(document).scrollTop($(document).height());
+    if(!eventHandler) {
+      if(msg.version) {
+        eventHandler = eventHandlers[msg.version];
+      }
+    } else {
+      eventHandler(msg);
     }
   };
 }
