@@ -1,11 +1,11 @@
 var autoscroll = false;
 
 var eventHandlers = {
-  "0.0": function(log) {
-    $("#build-log").append(log.data);
+  "0.0": function(msg) {
+    $("#build-log").append(msg.data);
   },
   "1.0": function(msg) {
-    var event = JSON.parse(msg);
+    var event = JSON.parse(msg.data);
 
     switch(event.type) {
     case "log":
