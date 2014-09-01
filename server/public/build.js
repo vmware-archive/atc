@@ -122,10 +122,6 @@ function writeLogs(payload, destination) {
 
     destination.append(ele);
   }
-
-  if (autoscroll) {
-    $(document).scrollTop($(document).height());
-  }
 }
 
 function streamLog(uri) {
@@ -141,6 +137,10 @@ function streamLog(uri) {
       }
     } else {
       eventHandler(event);
+    }
+
+    if (autoscroll) {
+      $(document).scrollTop($(document).height());
     }
   };
 }
