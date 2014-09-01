@@ -83,8 +83,6 @@ type Output struct {
 
 	// e.g. commit_author, commit_date, commit_sha
 	Metadata []MetadataField `json:"metadata,omitempty"`
-
-	SourcePath string `json:"sourcePath"`
 }
 
 type Source map[string]interface{}
