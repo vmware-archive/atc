@@ -27,7 +27,7 @@ var eventHandlers = {
       break;
 
     case "error":
-      var errorSpan = $("<span>");
+      var errorSpan = $("<span/>");
       errorSpan.addClass("error");
       errorSpan.text(eventMsg.event.message);
 

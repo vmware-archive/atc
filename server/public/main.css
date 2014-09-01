@@ -173,14 +173,6 @@ pre {
   padding: 10px;
 }
 
-#build-log:empty {
-  display: none;
-}
-
-#build-log:before {
-  content: "build";
-}
-
 #build-log .error {
   font-weight: bold;
 }
@@ -202,6 +194,10 @@ pre {
   content: "outputs";
 }
 
+#build-log:before {
+  content: "build";
+}
+
 .resource-body {
   padding: 0 10px 10px;
 }
@@ -220,7 +216,8 @@ pre {
   clear: both;
 }
 
-.build-resources:empty {
+.build-resources:empty,
+#build-log:empty {
   display: none;
 }
 
@@ -337,6 +334,6 @@ svg .node.resource.checking rect, .node.job.started rect {
 }
 
 .edgePath path {
-  stroke-width: 1.5px;
+  stroke-width: 2px;
   fill: none;
 }
