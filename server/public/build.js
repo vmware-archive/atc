@@ -2,14 +2,14 @@ var autoscroll = false;
 
 var eventHandlers = {
   "0.0": function(msg) {
-    processLogs(msg.data);
+    writeLogs(msg.data, $("#build-log"));
   },
   "1.0": function(msg) {
     var eventMsg = JSON.parse(msg.data);
 
     switch(eventMsg.type) {
     case "log":
-      processLogs(eventMsg.event.payload);
+      processLogs(eventMsg.event);
       break;
     case "error":
       var errorSpan = $("<span>");
@@ -40,12 +40,28 @@ var eventHandlers = {
   }
 }
 
-function processLogs(payload) {
+function processLogs(event) {
+  var log;
+
+  if(event.origin.type == "run") {
+      log = $("#build-log");
+  } else if(event.origin.type == "input") {
+      log = $(".build-inputs .build-source[data-resource='"+event.origin.name+"'] .log");
+  } else if(event.origin.type == "output") {
+      log = $(".build-outputs .build-source[data-resource='"+event.origin.name+"'] .log");
+  }
+
+  if(!log) {
+    return;
+  }
+
+  writeLogs(event.payload, log);
+}
+
+function writeLogs(payload, destination) {
   var sequence = ansiparse(payload);
 
-  var log = $("#build-log");
   var ele;
-
   for(var i = 0; i < sequence.length; i++) {
     ele = $("<span>");
     ele.text(sequence[i].text);
@@ -62,7 +78,7 @@ function processLogs(payload) {
       ele.addClass("ansi-bold");
     }
 
-    log.append(ele);
+    destination.append(ele);
   }
 
   if (autoscroll) {
@@ -123,11 +139,11 @@ $(document).ready(function() {
     return false;
   });
 
-  if ($(".build-metadata").size() > 1)
-    $(".build-metadata").hide();
+  if ($(".resource-body").size() > 1)
+    $(".resource-body").hide();
 
   $(".resource-header").click(function() {
-    $(this).parent().find(".build-metadata").toggle();
+    $(this).parent().find(".resource-body").toggle();
   });
 
   scrollToCurrentBuild();

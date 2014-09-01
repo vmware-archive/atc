@@ -9,24 +9,6 @@ pre {
   font-family: Courier, monospace;
 }
 
-#build-log {
-  margin: 0;
-  padding: 1em;
-}
-
-#build-log .error {
-    color: #d36764;
-    font-weight: bold;
-}
-
-#autoscroll-toggle {
-  position: fixed;
-  top: 1em;
-  right: 1em;
-}
-
-.ansi-bold { font-weight: bold; }
-
 body { background: #222222; color: #dfeee0; }
 
 a { color: #6a9eef; }
@@ -232,33 +214,82 @@ li.started {
   100% { -webkit-transform: rotate(1deg); }
 }
 
-#build-resources {
-  float: right;
-  padding: 10px;
-  min-width: 480px;
-  height: 100%;
-}
-
 #build-log {
   word-wrap: break-word;
 }
 
-.build-metadata {
+#build-inputs-log .input-log {
   padding: 1em;
-}
-
-#build-resources .resource-header {
   background: #111;
-  position: relative;
-  margin-bottom: 10px;
-  cursor: pointer;
+  margin-bottom: 1em;
 }
 
-#build-resources .build-source.first-occurrence .resource-header {
+#build-outputs-log .output-log {
+  padding: 1em;
+  background: #111;
+  margin-top: 1em;
+}
+
+#build-inputs-log h3,
+#build-outputs-log h3 {
+  margin: 0 0 1em 0;
+}
+
+#build-inputs-log h3:before {
+  content: "input: ";
+}
+
+#build-outputs-log h3:before {
+  content: "output: ";
+}
+
+#build-log {
+  margin: 0;
+  padding-bottom: 1em;
+}
+
+#build-log .error {
+    color: #d36764;
+    font-weight: bold;
+}
+
+.resource-body {
+  padding: 0 10px 10px;
+}
+
+.build-metadata {
+  float: right;
+  margin: 0;
+  padding-bottom: 20px;
+}
+
+.build-resources {
+  padding: 10px;
+}
+
+.build-run {
+  padding: 10px;
+}
+
+.build-resources h2, .build-run h2 {
+  margin-top: 0;
+}
+
+.build-resources .resource-header {
+  background: #111;
+  cursor: pointer;
+  clear: both;
+}
+
+.build-resources .build-source {
+  margin-bottom: 10px;
+}
+
+.build-resources .build-source.first-occurrence .resource-header {
   background: #333;
 }
 
-#build-resources .resource-header .version {
+.build-resources .resource-header .version {
   margin: 0;
   padding: 0 6px;
   line-height: 28px;
@@ -266,14 +297,14 @@ li.started {
   color: #c0afa0;
 }
 
-#build-resources .resource-header h3 {
+.build-resources .resource-header h3 {
   margin: 0;
   float: left;
   margin-left: 6px;
   line-height: 28px;
 }
 
-#build-resources dt,
+.build-resources dt,
 .build-metadata dt {
   width: 10em;
   display: inline-block;
@@ -281,7 +312,7 @@ li.started {
   text-align: right;
 }
 
-#build-resources dd,
+.build-resources dd,
 .build-metadata dd {
   margin-left: 11em;
   white-space: pre;
@@ -320,6 +351,8 @@ li.started {
 }
 
 ::selection { background: #555555; color: #ffffff; }
+
+.ansi-bold { font-weight: bold; }
 
 .black, .ansi-black-fg { color: #453c31; }
 .black.bright, .ansi-bright-black-fg, .ansi-black-fg.ansi-bold { color: #5d4c4c; }
