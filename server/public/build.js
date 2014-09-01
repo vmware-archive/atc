@@ -1,9 +1,24 @@
 var autoscroll = false;
 
+function resourceInfo(name, type) {
+  var group = ".build-"+type+"s"
+
+  var resource = $(group).find(".build-source[data-resource='"+name+"']");
+  console.log(resource);
+  if(resource.length === 0) {
+    resource = $("#resource-template .build-source").clone(true).appendTo(group);
+    resource.attr("data-resource", name);
+    resource.find("h3").text(name);
+  }
+
+  return resource;
+}
+
 var eventHandlers = {
   "0.0": function(msg) {
     writeLogs(msg.data, $("#build-log"));
   },
+
   "1.0": function(msg) {
     var eventMsg = JSON.parse(msg.data);
 
@@ -11,12 +26,39 @@ var eventHandlers = {
     case "log":
       processLogs(eventMsg.event);
       break;
+
     case "error":
       var errorSpan = $("<span>");
       errorSpan.addClass("error");
       errorSpan.text(eventMsg.event.message);
 
       $("#build-log").append(errorSpan);
+      break;
+
+    case "input":
+    case "output":
+      var resource = eventMsg.event[eventMsg.type];
+      var info = resourceInfo(resource.name, eventMsg.type);
+
+      var version = info.find(".version");
+      if(version.children().length === 0) {
+        for(var key in resource.version) {
+          $("<dt/>").text(key).appendTo(version);
+          $("<dd/>").text(resource.version[key]).appendTo(version);
+        }
+      }
+
+      var metadata = info.find(".build-metadata");
+      if(metadata.children().length === 0) {
+        for(var i in resource.metadata) {
+          var field = resource.metadata[i];
+          $("<dt/>").text(field.name).appendTo(metadata);
+          $("<dd/>").text(field.value).appendTo(metadata);
+        }
+      }
+
+      break;
+
     case "status":
       var currentStatus = $("#build-title").attr("class");
 
@@ -43,12 +85,13 @@ var eventHandlers = {
 function processLogs(event) {
   var log;
 
-  if(event.origin.type == "run") {
-      log = $("#build-log");
-  } else if(event.origin.type == "input") {
-      log = $(".build-inputs .build-source[data-resource='"+event.origin.name+"'] .log");
-  } else if(event.origin.type == "output") {
-      log = $(".build-outputs .build-source[data-resource='"+event.origin.name+"'] .log");
+  switch(event.origin.type) {
+  case "run":
+    log = $("#build-log");
+    break;
+  case "input":
+  case "output":
+    log = resourceInfo(event.origin.name, event.origin.type).find(".log")
   }
 
   if(!log) {
