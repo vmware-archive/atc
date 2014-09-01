@@ -7,6 +7,7 @@ body {
 
 pre {
   font-family: Courier, monospace;
+  word-wrap: break-word;
 }
 
 #build-header,
@@ -168,7 +169,6 @@ pre {
 }
 
 #build-log {
-  word-wrap: break-word;
   margin: 0;
   padding: 10px;
 }
