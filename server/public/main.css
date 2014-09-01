@@ -169,28 +169,37 @@ pre {
 
 #build-log {
   word-wrap: break-word;
-}
-
-#build-inputs-log h3,
-#build-outputs-log h3 {
-  margin: 0 0 1em 0;
-}
-
-#build-inputs-log h3:before {
-  content: "input: ";
-}
-
-#build-outputs-log h3:before {
-  content: "output: ";
-}
-
-#build-log {
   margin: 0;
-  padding-bottom: 1em;
+  padding: 10px;
+}
+
+#build-log:empty {
+  display: none;
+}
+
+#build-log:before {
+  content: "build";
 }
 
 #build-log .error {
   font-weight: bold;
+}
+
+.build-resources.build-inputs:before,
+.build-resources.build-outputs:before,
+#build-log:before {
+  font-size: 1.5em;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.build-resources.build-inputs:before {
+  content: "inputs";
+}
+
+.build-resources.build-outputs:before {
+  content: "outputs";
 }
 
 .resource-body {
@@ -200,19 +209,15 @@ pre {
 .build-metadata {
   float: right;
   margin: 0;
-  padding-bottom: 20px;
 }
 
 .build-resources {
   padding: 10px;
+  clear: both;
 }
 
-.build-run {
-  padding: 10px;
-}
-
-.build-resources h2, .build-run h2 {
-  margin-top: 0;
+.build-resources:empty {
+  display: none;
 }
 
 .build-resources .resource-header {
@@ -221,7 +226,7 @@ pre {
 }
 
 .build-resources .build-source {
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .build-resources .resource-header .version {
