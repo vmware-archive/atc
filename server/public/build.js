@@ -4,7 +4,6 @@ function resourceInfo(name, type) {
   var group = ".build-"+type+"s"
 
   var resource = $(group).find(".build-source[data-resource='"+name+"']");
-  console.log(resource);
   if(resource.length === 0) {
     resource = $("#resource-template .build-source").clone(true).appendTo(group);
     resource.attr("data-resource", name);
