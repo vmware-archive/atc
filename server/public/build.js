@@ -158,8 +158,11 @@ function scrollToCurrentBuild() {
 $(document).ready(function() {
   var title = $("#build-title");
 
-  if (title.hasClass("pending") || title.hasClass("started"))
+  if (title.hasClass("pending") || title.hasClass("started")) {
     autoscroll = true;
+  } else {
+    $(".resource-body").hide();
+  }
 
   $(window).scroll(function() {
     var scrollEnd = $(window).scrollTop() + $(window).height();
@@ -180,9 +183,6 @@ $(document).ready(function() {
 
     return false;
   });
-
-  if ($(".resource-body").size() > 1)
-    $(".resource-body").hide();
 
   $(".resource-header").click(function() {
     $(this).parent().find(".resource-body").toggle();
