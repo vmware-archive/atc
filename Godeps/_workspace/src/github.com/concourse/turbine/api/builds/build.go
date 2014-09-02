@@ -72,6 +72,9 @@ type Output struct {
 
 	Type string `json:"type"`
 
+	// e.g. [success, failure]
+	On []OutputCondition `json:"on"`
+
 	// e.g. sha
 	Version Version `json:"version"`
 
@@ -84,6 +87,13 @@ type Output struct {
 	// e.g. commit_author, commit_date, commit_sha
 	Metadata []MetadataField `json:"metadata,omitempty"`
 }
+
+type OutputCondition string
+
+const (
+	OutputConditionSuccess OutputCondition = "success"
+	OutputConditionFailure OutputCondition = "failure"
+)
 
 type Source map[string]interface{}
 
