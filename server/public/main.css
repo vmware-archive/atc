@@ -311,8 +311,11 @@ svg h1.resource {
 
 svg h1 a {
   padding: 5px;
-  font-weight: bold;
   text-decoration: none;
+}
+
+svg .node.job h1 a {
+  font-weight: bold;
 }
 
 svg .node rect {
