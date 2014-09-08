@@ -155,6 +155,23 @@ var _ = Describe("Logger", func() {
 				})
 			})
 
+			Describe("WithData", func() {
+				BeforeEach(func() {
+					session = logger.WithData(lager.Data{"foo": "bar"})
+				})
+
+				It("returns a new logger with the given data", func() {
+					Ω(testSink.Logs()[0].Data["foo"]).Should(Equal("bar"))
+					Ω(testSink.Logs()[1].Data["foo"]).Should(Equal("bar"))
+					Ω(testSink.Logs()[2].Data["foo"]).Should(Equal("bar"))
+					Ω(testSink.Logs()[3].Data["foo"]).Should(Equal("bar"))
+				})
+
+				It("does not append to the logger's task", func() {
+					Ω(testSink.Logs()[0].Message).Should(Equal("my-component.some-debug-action"))
+				})
+			})
+
 			Context("with a nested session", func() {
 				BeforeEach(func() {
 					session = session.Session("sub-sub-action")

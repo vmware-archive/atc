@@ -25,11 +25,11 @@
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/api/builds",
-			"Rev": "84054c86145084b4d087f3261dfb3741c40aaff0"
+			"Rev": "aef1213d0567f94622d0274a7cba0eb855901ebb"
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/routes",
-			"Rev": "84054c86145084b4d087f3261dfb3741c40aaff0"
+			"Rev": "aef1213d0567f94622d0274a7cba0eb855901ebb"
 		},
 		{
 			"ImportPath": "github.com/fraenkel/candiedyaml",
@@ -44,18 +44,22 @@
 			"Rev": "dffddbcda422b88507795533be131d05e1a3dc71"
 		},
 		{
+			"ImportPath": "github.com/nu7hatch/gouuid",
+			"Rev": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+		},
+		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.1.0-6-g527974d",
-			"Rev": "527974d5873391de9d8a25b761b5fc1382e9279e"
+			"Comment": "v1.1.0-9-g7b9e081",
+			"Rev": "7b9e081dc43c4171e2855eb80fdab9a6b9fa604d"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Comment": "v1.0",
-			"Rev": "a78ae492d53aad5a7a232d0d0462c14c400e3ee7"
+			"Comment": "v1.0-3-ga108de5",
+			"Rev": "a108de58134c78abf1ae598295bca3dbe90beb88"
 		},
 		{
 			"ImportPath": "github.com/pivotal-golang/lager",
-			"Rev": "24bc7249ba26ad2f1493363b9dcedf86023f47d7"
+			"Rev": "c9b4b9ba624d212b1010dab04c2b4515a9ecc031"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/ifrit",

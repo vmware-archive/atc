@@ -16,6 +16,7 @@ type Logger interface {
 	Info(action string, data ...Data)
 	Error(action string, err error, data ...Data)
 	Fatal(action string, err error, data ...Data)
+	WithData(Data) Logger
 }
 
 type logger struct {
@@ -56,6 +57,16 @@ func (l *logger) Session(task string, data ...Data) Logger {
 		task:      fmt.Sprintf("%s.%s", l.task, task),
 		sinks:     l.sinks,
 		sessionID: sessionIDstr,
+		data:      l.baseData(data...),
+	}
+}
+
+func (l *logger) WithData(data Data) Logger {
+	return &logger{
+		component: l.component,
+		task:      l.task,
+		sinks:     l.sinks,
+		sessionID: l.sessionID,
 		data:      l.baseData(data),
 	}
 }
@@ -66,7 +77,7 @@ func (l *logger) Debug(action string, data ...Data) {
 		Source:    l.component,
 		Message:   fmt.Sprintf("%s.%s", l.task, action),
 		LogLevel:  DEBUG,
-		Data:      l.baseData(data),
+		Data:      l.baseData(data...),
 	}
 
 	for _, sink := range l.sinks {
@@ -80,7 +91,7 @@ func (l *logger) Info(action string, data ...Data) {
 		Source:    l.component,
 		Message:   fmt.Sprintf("%s.%s", l.task, action),
 		LogLevel:  INFO,
-		Data:      l.baseData(data),
+		Data:      l.baseData(data...),
 	}
 
 	for _, sink := range l.sinks {
@@ -89,7 +100,7 @@ func (l *logger) Info(action string, data ...Data) {
 }
 
 func (l *logger) Error(action string, err error, data ...Data) {
-	logData := l.baseData(data)
+	logData := l.baseData(data...)
 
 	if err != nil {
 		logData["error"] = err.Error()
@@ -109,7 +120,7 @@ func (l *logger) Error(action string, err error, data ...Data) {
 }
 
 func (l *logger) Fatal(action string, err error, data ...Data) {
-	logData := l.baseData(data)
+	logData := l.baseData(data...)
 
 	stackTrace := make([]byte, STACK_TRACE_BUFFER_SIZE)
 	stackSize := runtime.Stack(stackTrace, false)
@@ -136,7 +147,7 @@ func (l *logger) Fatal(action string, err error, data ...Data) {
 	panic(err)
 }
 
-func (l *logger) baseData(givenData []Data) Data {
+func (l *logger) baseData(givenData ...Data) Data {
 	data := Data{}
 	if len(givenData) > 0 {
 		data = givenData[0]
