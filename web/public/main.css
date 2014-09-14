@@ -1,12 +1,12 @@
 body {
-  font-family: Courier, monospace;
+  font-family: monospace;
   font-size: 12px;
   line-height: 1.4;
   margin: 0;
 }
 
 pre {
-  font-family: Courier, monospace;
+  font-family: monospace;
   word-wrap: break-word;
 }
 
