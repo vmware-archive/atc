@@ -47,6 +47,12 @@ func (group processGroup) Signal(signal os.Signal) {
 	}
 }
 
+func (group processGroup) Ready() <-chan struct{} {
+	ready := make(chan struct{})
+	close(ready)
+	return ready
+}
+
 func (group processGroup) Wait() <-chan error {
 	errChan := make(chan error, 1)
 

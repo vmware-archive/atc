@@ -3,29 +3,26 @@ package ifrit
 import "os"
 
 type Process interface {
+	Ready() <-chan struct{}
 	Wait() <-chan error
 	Signal(os.Signal)
 }
 
 func Envoke(r Runner) Process {
-	return envokeProcess(r)
-}
-
-func envokeProcess(r Runner) Process {
-	p := &process{
-		runner: r,
-		sig:    make(chan os.Signal),
-		ready:  make(chan struct{}),
-		exited: make(chan struct{}),
-	}
-
+	p := newProcess(r)
 	go p.run()
 
 	select {
-	case <-p.ready:
+	case <-p.Ready():
 	case <-p.Wait():
 	}
 
+	return p
+}
+
+func Background(r Runner) Process {
+	p := newProcess(r)
+	go p.run()
 	return p
 }
 
@@ -37,9 +34,23 @@ type process struct {
 	exitStatus error
 }
 
+func newProcess(runner Runner) *process {
+	return &process{
+		runner: runner,
+		sig:    make(chan os.Signal),
+		ready:  make(chan struct{}),
+		exited: make(chan struct{}),
+	}
+
+}
+
 func (p *process) run() {
 	p.exitStatus = p.runner.Run(p.sig, p.ready)
 	close(p.exited)
+}
+
+func (p *process) Ready() <-chan struct{} {
+	return p.ready
 }
 
 func (p *process) Wait() <-chan error {

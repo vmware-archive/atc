@@ -27,9 +27,9 @@ func (s sigmon) Run(signals <-chan os.Signal, ready chan<- struct{}) error {
 	osSignals := make(chan os.Signal, SIGNAL_BUFFER_SIZE)
 	signal.Notify(osSignals, s.Signals...)
 
-	process := ifrit.Envoke(s.Runner)
-
-	close(ready)
+	process := ifrit.Background(s.Runner)
+	pReady := process.Ready()
+	pWait := process.Wait()
 
 	for {
 		select {
@@ -37,7 +37,10 @@ func (s sigmon) Run(signals <-chan os.Signal, ready chan<- struct{}) error {
 			process.Signal(sig)
 		case sig := <-osSignals:
 			process.Signal(sig)
-		case err := <-process.Wait():
+		case <-pReady:
+			close(ready)
+			pReady = nil
+		case err := <-pWait:
 			signal.Stop(osSignals)
 			return err
 		}

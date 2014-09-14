@@ -7,13 +7,13 @@
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/go.crypto/bcrypt",
-			"Comment": "null-213",
-			"Rev": "aa2644fe4aa50e3b38d75187b4799b1f0c9ddcef"
+			"Comment": "null-221",
+			"Rev": "6e881b5273dfffbadb6a76a61d3c39a71e3588d1"
 		},
 		{
 			"ImportPath": "code.google.com/p/go.crypto/blowfish",
-			"Comment": "null-213",
-			"Rev": "aa2644fe4aa50e3b38d75187b4799b1f0c9ddcef"
+			"Comment": "null-221",
+			"Rev": "6e881b5273dfffbadb6a76a61d3c39a71e3588d1"
 		},
 		{
 			"ImportPath": "github.com/BurntSushi/migration",
@@ -25,11 +25,15 @@
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/api/builds",
-			"Rev": "aef1213d0567f94622d0274a7cba0eb855901ebb"
+			"Rev": "1a6dd3f54c77169b3796ec4e32136c599b495f5d"
+		},
+		{
+			"ImportPath": "github.com/concourse/turbine/event",
+			"Rev": "1a6dd3f54c77169b3796ec4e32136c599b495f5d"
 		},
 		{
 			"ImportPath": "github.com/concourse/turbine/routes",
-			"Rev": "aef1213d0567f94622d0274a7cba0eb855901ebb"
+			"Rev": "1a6dd3f54c77169b3796ec4e32136c599b495f5d"
 		},
 		{
 			"ImportPath": "github.com/fraenkel/candiedyaml",
@@ -37,11 +41,11 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "4292df70df546334d4174bcd77271253c9b7835c"
+			"Rev": "a6f041ac33b84488bb44137d6866cd3c8706d792"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Rev": "dffddbcda422b88507795533be131d05e1a3dc71"
+			"Rev": "b021d0ef20de4f7ed239e2cbe3b95648d8e41e95"
 		},
 		{
 			"ImportPath": "github.com/nu7hatch/gouuid",
@@ -49,21 +53,21 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.1.0-9-g7b9e081",
-			"Rev": "7b9e081dc43c4171e2855eb80fdab9a6b9fa604d"
+			"Comment": "v1.1.0-11-ge809316",
+			"Rev": "e8093161dcbdab0a59dfe56f3f8c867d243ac75f"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Comment": "v1.0-3-ga108de5",
-			"Rev": "a108de58134c78abf1ae598295bca3dbe90beb88"
+			"Comment": "v1.0-12-g3ca2515",
+			"Rev": "3ca2515afb00bc39bc77d27cdbce85a7caaf103e"
 		},
 		{
 			"ImportPath": "github.com/pivotal-golang/lager",
-			"Rev": "c9b4b9ba624d212b1010dab04c2b4515a9ecc031"
+			"Rev": "a106931abed5afe3043eae8851be8b33a4bdfa3f"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/ifrit",
-			"Rev": "0addc90d7dcebcf87ef0fc89240c58bd1c475d8f"
+			"Rev": "fcdd56f5f4e33c55e7f7edbd911abbadba2e49ed"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/rata",

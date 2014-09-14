@@ -41,9 +41,11 @@ func Chug(reader io.Reader, out chan<- Entry) {
 }
 
 func entry(raw []byte) (entry Entry) {
+	copiedBytes := make([]byte, len(raw))
+	copy(copiedBytes, raw)
 	entry = Entry{
 		IsLager: false,
-		Raw:     raw,
+		Raw:     copiedBytes,
 	}
 
 	rawString := string(raw)

@@ -13,6 +13,15 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+type Config struct {
+	Command           *exec.Cmd
+	Name              string
+	AnsiColorCode     string
+	StartCheck        string
+	StartCheckTimeout time.Duration
+	Cleanup           func()
+}
+
 type Runner struct {
 	Command           *exec.Cmd
 	Name              string
@@ -20,7 +29,28 @@ type Runner struct {
 	StartCheck        string
 	StartCheckTimeout time.Duration
 	Cleanup           func()
-	BufferChan        chan *gbytes.Buffer
+	session           *gexec.Session
+	sessionReady      chan struct{}
+}
+
+func New(config Config) *Runner {
+	return &Runner{
+		Name:              config.Name,
+		Command:           config.Command,
+		AnsiColorCode:     config.AnsiColorCode,
+		StartCheck:        config.StartCheck,
+		StartCheckTimeout: config.StartCheckTimeout,
+		Cleanup:           config.Cleanup,
+		sessionReady:      make(chan struct{}),
+	}
+}
+
+func (r *Runner) Buffer() *gbytes.Buffer {
+	if r.sessionReady == nil {
+		panic("ginkgomon improperly created without using New")
+	}
+	<-r.sessionReady
+	return r.session.Buffer()
 }
 
 func (r *Runner) Run(sigChan <-chan os.Signal, ready chan<- struct{}) error {
@@ -51,13 +81,16 @@ func (r *Runner) Run(sigChan <-chan os.Signal, ready chan<- struct{}) error {
 		Eventually(allOutput, timeout).Should(gbytes.Say(r.StartCheck))
 	}
 
+	r.session = session
+	if r.sessionReady != nil {
+		close(r.sessionReady)
+	}
 	close(ready)
 
 	var signal os.Signal
 
 	for {
 		select {
-		case r.BufferChan <- session.Buffer():
 
 		case signal = <-sigChan:
 			session.Signal(signal)
