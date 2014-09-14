@@ -118,7 +118,7 @@ pre {
 }
 
 #builds,
-#version-history .builds {
+.builds-list {
   display: block;
   overflow: auto;
   list-style: none;
@@ -129,7 +129,7 @@ pre {
 }
 
 #builds li,
-#version-history .builds li {
+.builds-list li {
   display: inline-block;
 }
 
@@ -142,7 +142,7 @@ pre {
 }
 
 #builds li a,
-#version-history .builds li a {
+.builds-list li a {
   font-size: 20px;
   line-height: 1em;
   text-align: center;
@@ -154,12 +154,33 @@ pre {
 }
 
 #builds li.started a,
-#version-history .builds li.started a {
+.builds-list li.started {
   -webkit-animation: wiggle-build 0.5s infinite;
 }
 
 #build-title.started h1 {
   -webkit-animation: wiggle-build 0.5s infinite;
+}
+
+#build-body .section {
+  margin: 0 30px;
+}
+
+#build-body .section h2 {
+  font-size: 2em;
+  font-weight: bold;
+  display: block;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+#build-body .builds-list {
+  padding: 20px;
+}
+
+#build-body .builds-list a {
+  font-size: 40px;
+  padding: 10px;
 }
 
 @-webkit-keyframes wiggle-build {
@@ -261,12 +282,13 @@ pre {
 
 #version-history {
   border-spacing: 0;
+  width: 100%;
 }
 
 #version-history th {
   text-align: left;
   margin: 0;
-  padding: 0;
+  padding: 0 1em;
 }
 
 #version-history td {
@@ -277,6 +299,10 @@ pre {
   border-right: 0;
   border-bottom: 0;
   vertical-align: top;
+}
+
+#version-history dl.build-metadata {
+  padding: 1em;
 }
 
 #version-history table.jobs td {
