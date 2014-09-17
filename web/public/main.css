@@ -242,7 +242,7 @@ pre {
   display: none;
 }
 
-.build-resources .resource-header {
+.resource-header {
   cursor: pointer;
   clear: both;
 }
@@ -251,21 +251,21 @@ pre {
   margin-top: 10px;
 }
 
-.build-resources .resource-header .version {
+.resource-header .version {
   margin: 0;
   padding: 0 6px;
   line-height: 28px;
   float: right;
 }
 
-.build-resources .resource-header h3 {
+.resource-header h3 {
   margin: 0;
   float: left;
   margin-left: 6px;
   line-height: 28px;
 }
 
-.build-resources dt,
+.build-source dt,
 .build-metadata dt {
   width: 10em;
   display: inline-block;
@@ -273,7 +273,7 @@ pre {
   text-align: right;
 }
 
-.build-resources dd,
+.build-source dd,
 .build-metadata dd {
   margin-left: 11em;
   white-space: pre;
@@ -294,7 +294,7 @@ pre {
 #version-history td {
   background: #111;
   margin: 0;
-  padding: 0 10px 10px;
+  padding-bottom: 10px;
   border: 10px solid #222;
   border-right: 0;
   border-bottom: 0;
