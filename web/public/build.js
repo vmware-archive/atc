@@ -35,7 +35,7 @@ var eventHandlers = {
       var resource = eventMsg.event[eventMsg.type];
       var info = resourceInfo(resource.name, eventMsg.type);
 
-      resource.removeClass("running");
+      info.removeClass("running");
 
       var version = info.find(".version");
       if(version.children().length === 0) {
