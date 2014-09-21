@@ -16,9 +16,35 @@ pre {
   height: 90px;
 }
 
-#build-header {
+#build-header,
+#page-header {
   position: fixed;
   z-index: 2;
+}
+
+#page-header {
+  width: 100%;
+  height: 40px;
+}
+
+#page-header .groups {
+  display: block;
+  overflow: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#page-header .groups li {
+  display: inline-block;
+  font-size: 18px;
+  line-height: 40px;
+}
+
+#page-header .groups li a {
+  display: inline-block;
+  padding: 0 10px;
+  text-decoration: none;
 }
 
 #build-body {
@@ -125,7 +151,7 @@ pre {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  white-space:nowrap;
+  white-space: nowrap;
 }
 
 #builds li,
@@ -326,7 +352,15 @@ span.error {
   text-align: right;
 }
 
-svg#pipeline {
+#pipeline {
+  position: absolute;
+  top: 40px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#pipeline svg {
   position: absolute;
   top: 0;
   bottom: 0;
