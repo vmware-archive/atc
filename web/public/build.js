@@ -27,15 +27,11 @@ var eventHandlers = {
       break;
 
     case "error":
-      var errorSpan = $("<span/>");
-      errorSpan.addClass("error");
-      errorSpan.text(eventMsg.event.message);
-
-      $("#build-log").append(errorSpan);
+      processError(eventMsg.event);
       break;
 
     case "input":
-    case "output":
+    case "output":77980564
       var resource = eventMsg.event[eventMsg.type];
       var info = resourceInfo(resource.name, eventMsg.type);
 
@@ -98,6 +94,33 @@ function processLogs(event) {
   }
 
   writeLogs(event.payload, log);
+}
+
+function processError(event) {
+  var log;
+
+  var errorSpan = $("<span/>");
+  errorSpan.addClass("error");
+  errorSpan.text(event.message);
+
+  if(event.origin) {
+    switch(event.origin.type) {
+    case "input":
+    case "output":
+      var resource = resourceInfo(event.origin.name, event.origin.type);
+      resource.addClass("errored");
+
+      log = resource.find(".log");
+    }
+  } else {
+    log = $("#build-log");
+  }
+
+  if(!log) {
+    return;
+  }
+
+  log.append(errorSpan);
 }
 
 function writeLogs(payload, destination) {

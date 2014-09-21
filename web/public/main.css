@@ -194,7 +194,7 @@ pre {
   padding: 10px;
 }
 
-#build-log .error {
+span.error {
   font-weight: bold;
 }
 
