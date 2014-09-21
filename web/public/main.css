@@ -189,6 +189,12 @@ pre {
   100% { -webkit-transform: rotate(1deg); }
 }
 
+@-webkit-keyframes pulsate {
+  0% { opacity: 1.0; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1.0; }
+}
+
 #build-log {
   margin: 0;
   padding: 10px;
@@ -249,6 +255,10 @@ span.error {
 
 .build-resources .build-source {
   margin-top: 10px;
+}
+
+.build-source.running h3 {
+  -webkit-animation: pulsate 1s infinite;
 }
 
 .resource-header .version {

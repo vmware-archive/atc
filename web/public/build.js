@@ -35,6 +35,8 @@ var eventHandlers = {
       var resource = eventMsg.event[eventMsg.type];
       var info = resourceInfo(resource.name, eventMsg.type);
 
+      resource.removeClass("running");
+
       var version = info.find(".version");
       if(version.children().length === 0) {
         for(var key in resource.version) {
@@ -86,7 +88,11 @@ function processLogs(event) {
     break;
   case "input":
   case "output":
-    log = resourceInfo(event.origin.name, event.origin.type).find(".log")
+    var resource = resourceInfo(event.origin.name, event.origin.type);
+    if(!resource.hasClass("running"))
+      resource.addClass("running");
+
+    log = resource.find(".log")
   }
 
   if(!log) {
@@ -108,6 +114,7 @@ function processError(event) {
     case "input":
     case "output":
       var resource = resourceInfo(event.origin.name, event.origin.type);
+      resource.removeClass("running");
       resource.addClass("errored");
 
       log = resource.find(".log");
@@ -181,10 +188,10 @@ function scrollToCurrentBuild() {
 $(document).ready(function() {
   var title = $("#build-title");
 
+  $(".resource-body").hide();
+
   if (title.hasClass("pending") || title.hasClass("started")) {
     autoscroll = true;
-  } else {
-    $(".resource-body").hide();
   }
 
   $(window).scroll(function() {
