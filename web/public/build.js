@@ -31,7 +31,7 @@ var eventHandlers = {
       break;
 
     case "input":
-    case "output":77980564
+    case "output":
       var resource = eventMsg.event[eventMsg.type];
       var info = resourceInfo(resource.name, eventMsg.type);
 
