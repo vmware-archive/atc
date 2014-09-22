@@ -154,11 +154,46 @@ function writeLogs(payload, destination) {
   }
 }
 
+var successfullyConnected = false;
+var eventIndex = 0;
+var currentEvent = 0;
+
 function streamLog(uri) {
   var ws = new WebSocket(uri);
 
   var eventHandler;
+
+  ws.onerror = function(event) {
+    if(!successfullyConnected) {
+      // assume rejected because of auth
+      $("#build-requires-auth").show();
+    }
+  };
+
+  ws.onopen = function(event) {
+    successfullyConnected = true;
+
+    // reset event processing so we can catch up on reconnect
+    currentEvent = 0;
+  }
+
+  ws.onclose = function(event) {
+    if(successfullyConnected) {
+      // reconnect
+      setTimeout(function() { streamLog(uri) }, 1000);
+    }
+  }
+
   ws.onmessage = function(event) {
+    currentEvent++;
+
+    // keep track of events we've already seen; skip until we catch up
+    if(currentEvent <= eventIndex) {
+      return;
+    } else {
+      eventIndex++;
+    }
+
     if(!eventHandler) {
       var versionMsg = JSON.parse(event.data);
 

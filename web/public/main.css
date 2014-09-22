@@ -37,14 +37,14 @@ pre {
 
 #page-header .groups li {
   display: inline-block;
-  font-size: 18px;
-  line-height: 40px;
 }
 
 #page-header .groups li a {
   display: inline-block;
   padding: 0 10px;
   text-decoration: none;
+  font-size: 18px;
+  line-height: 40px;
 }
 
 #build-body {
@@ -224,6 +224,23 @@ pre {
 #build-log {
   margin: 0;
   padding: 10px;
+}
+
+#build-requires-auth {
+  display: none; /* gets toggled by failed websocket connection */
+}
+
+#build-requires-auth input {
+  width: 100%;
+  padding: 0 10px;
+  text-decoration: none;
+  font-size: 18px;
+  line-height: 40px;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 0;
+  border: none;
 }
 
 span.error {
