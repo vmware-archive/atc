@@ -270,6 +270,7 @@ span.error {
 
 .resource-body {
   padding: 0 10px 10px;
+  display: none; /* toggled via js */
 }
 
 .resource-body pre {

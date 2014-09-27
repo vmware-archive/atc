@@ -223,8 +223,6 @@ function scrollToCurrentBuild() {
 $(document).ready(function() {
   var title = $("#build-title");
 
-  $(".resource-body").hide();
-
   if (title.hasClass("pending") || title.hasClass("started")) {
     autoscroll = true;
   }
