@@ -130,6 +130,29 @@ function processError(event) {
   log.append(errorSpan);
 }
 
+var currentLine;
+var lineCursor;
+var lineToOverwrite;
+
+function overwriteLine(segment) {
+  lineCursor.after(segment);
+
+  lineCursor = $(segment);
+
+  var textLen = segment.text().length;
+  lineToOverwrite.each(function() {
+    var text = $(this).text();
+
+    if(text.length >= textLen) {
+      $(this).text(text.substr(textLen));
+      return false;
+    } else {
+      $(this).remove();
+      textLen -= text.length;
+    }
+  });
+}
+
 function writeLogs(payload, destination) {
   var sequence = ansiparse(payload);
 
@@ -137,6 +160,10 @@ function writeLogs(payload, destination) {
   for(var i = 0; i < sequence.length; i++) {
     ele = $("<span>");
     ele.text(sequence[i].text);
+
+    if(sequence[i].linebreak) {
+      ele.addClass("linebreak");
+    }
 
     if(sequence[i].foreground) {
       ele.addClass("ansi-"+sequence[i].foreground+"-fg");
@@ -150,7 +177,19 @@ function writeLogs(payload, destination) {
       ele.addClass("ansi-bold");
     }
 
-    destination.append(ele);
+    if(sequence[i].cr) {
+      lineCursor = currentLine;
+      lineToOverwrite = currentLine.nextAll();
+    } else if(sequence[i].linebreak) {
+      currentLine = ele;
+      lineToOverwrite = null;
+    }
+
+    if(lineToOverwrite) {
+      overwriteLine(ele);
+    } else {
+      destination.append(ele);
+    }
   }
 }
 
