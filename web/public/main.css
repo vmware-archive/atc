@@ -235,6 +235,12 @@ pre {
   100% { -webkit-transform: rotate(1deg); }
 }
 
+@-webkit-keyframes wiggle-build-wigglier {
+  0% { -webkit-transform: rotate(3deg); }
+  50% { -webkit-transform: rotate(-3deg); }
+  100% { -webkit-transform: rotate(3deg); }
+}
+
 @-webkit-keyframes pulsate {
   0% { opacity: 1.0; }
   50% { opacity: 0.5; }
@@ -404,6 +410,30 @@ span.error {
   bottom: 0;
   left: 0;
   right: 0;
+}
+
+#pipeline .legend {
+  position: fixed;
+  bottom: 1em;
+  left: 1em;
+  margin: 0;
+  padding: 0;
+}
+
+#pipeline .legend dt {
+  width: 10px;
+  height: 10px;
+  margin: 4px;
+  float: left;
+}
+
+#pipeline .legend dt.started {
+  -webkit-animation: wiggle-build-wigglier 0.5s infinite;
+}
+
+#pipeline .legend dd {
+  margin-left: 22px;
+  line-height: 18px;
 }
 
 svg h1 {
