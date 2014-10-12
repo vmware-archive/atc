@@ -65,6 +65,26 @@ pre {
   margin: 0;
 }
 
+#build-title .build-times {
+  display: inline-block;
+  padding: 0;
+  margin: -1em;
+  position: relative;
+  top: .9em;
+}
+
+#build-title .build-times dt {
+  width: 10em;
+  display: inline-block;
+  float: left;
+  text-align: right;
+}
+
+#build-title .build-times dd {
+  margin-left: 11em;
+  white-space: pre;
+  word-wrap: break-word;
+}
 
 #build-title .trigger-build {
   position: absolute;

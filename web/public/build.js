@@ -59,13 +59,40 @@ var eventHandlers = {
     case "status":
       var currentStatus = $("#build-title").attr("class");
 
+      var buildTimes = $(".build-times");
+
+      var status = eventMsg.event.status;
+      var m = moment.unix(eventMsg.event.time);
+
+      var time = $("<time>");
+      time.text(m.fromNow());
+      time.attr("datetime", m.format());
+      time.attr("title", m.format("lll Z"));
+      time.addClass(status);
+
+      if(status == "started") {
+        $("<dt/>").text(status).appendTo(buildTimes);
+        $("<dd/>").append(time).appendTo(buildTimes);
+      } else {
+        $("<dt/>").text(status).appendTo(buildTimes);
+        $("<dd/>").append(time).appendTo(buildTimes);
+
+        var startTime = moment($(".build-times time.started").attr("datetime"));
+        var duration = moment.duration(m.diff(startTime));
+
+        var durationEle = $("<span>");
+        durationEle.addClass("duration");
+        durationEle.text(duration.format("h[h]m[m]s[s]"));
+
+        $("<dt/>").text("duration").appendTo(buildTimes);
+        $("<dd/>").append(durationEle).appendTo(buildTimes);
+      }
+
       // only transition from transient states; state may already be set
       // if the page loaded after build was done
       if(currentStatus != "pending" && currentStatus != "started") {
         break;
       }
-
-      var status = eventMsg.event.status;
 
       $("#build-title").attr("class", status);
       $("#builds .current").attr("class", status + " current");
