@@ -204,7 +204,7 @@ function writeLogs(payload, destination) {
       ele.addClass("ansi-bold");
     }
 
-    if(sequence[i].cr) {
+    if(sequence[i].cr && currentLine) {
       lineCursor = currentLine;
       lineToOverwrite = currentLine.nextAll();
     } else if(sequence[i].linebreak) {
