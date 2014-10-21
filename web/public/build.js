@@ -14,55 +14,35 @@ function resourceInfo(name, type) {
 }
 
 var eventHandlers = {
-  "0.0": function(msg) {
-    writeLogs(msg.data, $("#build-log"));
+  "0.0": {
+    "log": function(msg) {
+      writeLogs(msg.data, $("#build-log"));
+    },
   },
 
-  "1.0": function(msg) {
-    var eventMsg = JSON.parse(msg.data);
+  "1.0": {
+    "log": function(msg) {
+      processLogs(JSON.parse(msg.data));
+    },
 
-    switch(eventMsg.type) {
-    case "log":
-      processLogs(eventMsg.event);
-      break;
-
-    case "error":
-      processError(eventMsg.event);
-      break;
-
-    case "input":
-    case "output":
-      var resource = eventMsg.event[eventMsg.type];
-      var info = resourceInfo(resource.name, eventMsg.type);
-
-      info.removeClass("running");
-
-      var version = info.find(".version");
-      if(version.children().length === 0) {
-        for(var key in resource.version) {
-          $("<dt/>").text(key).appendTo(version);
-          $("<dd/>").text(resource.version[key]).appendTo(version);
-        }
+    "error": function(msg) {
+      if (msg.data === undefined) {
+        // 'error' event may also be native browser error, unfortunately
+        return
       }
 
-      var metadata = info.find(".build-metadata");
-      if(metadata.children().length === 0) {
-        for(var i in resource.metadata) {
-          var field = resource.metadata[i];
-          $("<dt/>").text(field.name).appendTo(metadata);
-          $("<dd/>").text(field.value).appendTo(metadata);
-        }
-      }
+      processError(JSON.parse(msg.data));
+    },
 
-      break;
+    "status": function(msg) {
+      var event = JSON.parse(msg.data);
 
-    case "status":
       var currentStatus = $("#build-title").attr("class");
 
       var buildTimes = $(".build-times");
 
-      var status = eventMsg.event.status;
-      var m = moment.unix(eventMsg.event.time);
+      var status = event.status;
+      var m = moment.unix(event.time);
 
       var time = $("<time>");
       time.text(m.fromNow());
@@ -91,7 +71,7 @@ var eventHandlers = {
       // only transition from transient states; state may already be set
       // if the page loaded after build was done
       if(currentStatus != "pending" && currentStatus != "started") {
-        break;
+        return;
       }
 
       $("#build-title").attr("class", status);
@@ -100,8 +80,38 @@ var eventHandlers = {
       if(status != "started") {
         $(".abort-build").remove();
       }
+    },
 
-      break;
+    "input": function(msg) {
+      renderResource(JSON.parse(msg.data), msg.type);
+    },
+
+    "output": function(msg) {
+      renderResource(JSON.parse(msg.data), msg.type);
+    }
+  }
+}
+
+function renderResource(event, type) {
+  var resource = event[type];
+  var info = resourceInfo(resource.name, type);
+
+  info.removeClass("running");
+
+  var version = info.find(".version");
+  if(version.children().length === 0) {
+    for(var key in resource.version) {
+      $("<dt/>").text(key).appendTo(version);
+      $("<dd/>").text(resource.version[key]).appendTo(version);
+    }
+  }
+
+  var metadata = info.find(".build-metadata");
+  if(metadata.children().length === 0) {
+    for(var i in resource.metadata) {
+      var field = resource.metadata[i];
+      $("<dt/>").text(field.name).appendTo(metadata);
+      $("<dd/>").text(field.value).appendTo(metadata);
     }
   }
 }
@@ -218,60 +228,42 @@ function writeLogs(payload, destination) {
       destination.append(ele);
     }
   }
+
+  if (autoscroll) {
+    $(document).scrollTop($(document).height());
+  }
 }
 
 var successfullyConnected = false;
-var eventIndex = 0;
-var currentEvent = 0;
 
 function streamLog(uri) {
-  var ws = new WebSocket(uri);
+  var es = new EventSource(uri);
 
   var eventHandler;
 
-  ws.onerror = function(event) {
+  es.addEventListener("version", function(event) {
+    if (eventHandler) {
+      for (var key in eventHandler) {
+        es.removeEventListener(key, eventHandler[key]);
+      }
+    }
+
+    var version = JSON.parse(event.data);
+    eventHandler = eventHandlers[version];
+
+    for (var key in eventHandler) {
+      es.addEventListener(key, eventHandler[key], false);
+    }
+  });
+
+  es.addEventListener("end", function(event) {
+    es.close();
+  });
+
+  es.onerror = function(event) {
     if(!successfullyConnected) {
       // assume rejected because of auth
       $("#build-requires-auth").show();
-    }
-  };
-
-  ws.onopen = function(event) {
-    successfullyConnected = true;
-
-    // reset event processing so we can catch up on reconnect
-    currentEvent = 0;
-  }
-
-  ws.onclose = function(event) {
-    if(successfullyConnected) {
-      // reconnect
-      setTimeout(function() { streamLog(uri) }, 1000);
-    }
-  }
-
-  ws.onmessage = function(event) {
-    currentEvent++;
-
-    // keep track of events we've already seen; skip until we catch up
-    if(currentEvent <= eventIndex) {
-      return;
-    } else {
-      eventIndex++;
-    }
-
-    if(!eventHandler) {
-      var versionMsg = JSON.parse(event.data);
-
-      if(versionMsg.version) {
-        eventHandler = eventHandlers[versionMsg.version];
-      }
-    } else {
-      eventHandler(event);
-    }
-
-    if (autoscroll) {
-      $(document).scrollTop($(document).height());
     }
   };
 }
