@@ -30,7 +30,7 @@ var v1Handlers = {
   "status": function(msg) {
     var event = JSON.parse(msg.data);
 
-    var currentStatus = $("#build-title").attr("class");
+    var currentStatus = $("#page-header").attr("class");
 
     var buildTimes = $(".build-times");
 
@@ -67,7 +67,7 @@ var v1Handlers = {
       return;
     }
 
-    $("#build-title").attr("class", status);
+    $("#page-header").attr("class", status);
     $("#builds .current").attr("class", status + " current");
 
     if(status != "started") {
@@ -291,7 +291,7 @@ function scrollToCurrentBuild() {
 }
 
 $(document).ready(function() {
-  var title = $("#build-title");
+  var title = $("#page-header");
 
   if (title.hasClass("pending") || title.hasClass("started")) {
     autoscroll = true;
@@ -317,7 +317,7 @@ $(document).ready(function() {
     return false;
   });
 
-  $(".resource-header").click(function() {
+  $(".build-source .header").click(function() {
     $(this).parent().find(".resource-body").toggle();
   });
 

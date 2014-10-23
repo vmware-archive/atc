@@ -10,24 +10,22 @@ pre {
   word-wrap: break-word;
 }
 
-#build-header,
-#resource-header {
-  width: 100%;
-  height: 90px;
-}
-
-#build-header,
 #page-header {
+  width: 100%;
   position: fixed;
   z-index: 2;
 }
 
-#page-header {
-  width: 100%;
-  height: 40px;
+.build-header {
+  height: 90px;
+}
+
+.resource-header {
+  height: 60px;
 }
 
 #page-header .groups {
+  height: 40px;
   display: block;
   overflow: auto;
   list-style: none;
@@ -47,54 +45,45 @@ pre {
   line-height: 40px;
 }
 
-#build-body {
-  position: relative;
-  top: 90px;
-  z-index: 1;
-}
-
-#build-title {
+.build-header {
   padding: 0;
-  position: relative;
+  height: 60px;
 }
 
-#build-title h1,
-#resource-header h1 {
+.build-header h1,
+.resource-header h1 {
   line-height: 60px;
-  display: inline-block;
+  float: left;
+  margin: 0;
+  margin-left: 10px;
+}
+
+.build-header .build-times {
+  height: 48px;
+  float: left;
+  padding: 6px;
   margin: 0;
 }
 
-#build-title .build-times {
-  display: inline-block;
-  padding: 0;
-  margin: -1em;
-  position: relative;
-  top: .9em;
-}
-
-#build-title .build-times dt {
-  width: 10em;
+.build-header .build-times dt {
+  width: 8em;
   display: inline-block;
   float: left;
   text-align: right;
 }
 
-#build-title .build-times dd {
-  margin-left: 11em;
+.build-header .build-times dd {
+  margin-left: 9em;
   white-space: pre;
   word-wrap: break-word;
 }
 
-#build-title .trigger-build {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  padding: 0;
+.build-header .trigger-build {
+  float: right;
 }
 
-#build-title .trigger-build input {
+.build-header .trigger-build input {
+  background: rgba(255, 255, 255, 0.125);
   border: none;
   font-size: 2em;
   font-family: inherit;
@@ -103,62 +92,57 @@ pre {
   cursor: pointer;
   padding: 0 16px;
   margin: 0;
-  background: rgba(255, 255, 255, 0.125);
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  height: 60px;
 }
 
-#build-title .trigger-build input:hover {
+.build-header .trigger-build input:hover {
   background: rgba(255, 255, 255, 0.25);
 }
 
-#build-title .trigger-build input:active {
+.build-header .trigger-build input:active {
   background: rgba(0, 0, 0, 0.125);
   outline: none;
 }
 
-#build-title .abort-build {
-  display: inline-block;
+.build-header .abort-build {
+  float: right;
 }
 
-#build-title .abort-build input {
+.build-header .abort-build input {
+  background: rgba(255, 255, 255, 0.125);
   border: none;
   font-family: inherit;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  bottom: 0;
   font-weight: bold;
   cursor: pointer;
   padding: 0 16px;
-  margin: 0;
-  background: rgba(255, 255, 255, 0.125);
-  margin-left: 2em;
+  margin: 10px;
+  height: 40px;
 }
 
-#build-title a.title,
-#resource-header a.title {
+.build-header a.back,
+.resource-header a.back {
+  float: left;
+  line-height: 60px;
   border: none;
   font-size: 2em;
   font-family: inherit;
   font-weight: bold;
   color: #fff;
   cursor: pointer;
-  padding: 0 12px;
+  padding: 0 16px;
   margin: 0;
+  margin-right: 10px;
   text-decoration: none;
   background: rgba(255, 255, 255, 0.125);
 }
 
-#build-title a.title:hover,
-#resource-header a.title:hover {
+.build-header a.back:hover,
+.resource-header a.back:hover {
   background: rgba(255, 255, 255, 0.25);
 }
 
-#build-title a.title:active,
-#resource-header a.title:active {
+.build-header a.back:active,
+.resource-header a.back:active {
   background: rgba(0, 0, 0, 0.125);
   outline: none;
 }
@@ -204,8 +188,13 @@ pre {
   -webkit-animation: wiggle-build 0.5s infinite;
 }
 
-#build-title.started h1 {
+#page-header.started .build-header h1 {
   -webkit-animation: wiggle-build 0.5s infinite;
+}
+
+#build-body {
+  position: relative;
+  top: 90px;
 }
 
 #build-body .section {
@@ -318,9 +307,10 @@ span.error {
   display: none;
 }
 
-.resource-header {
+.build-source .header {
   cursor: pointer;
   clear: both;
+  position: relative;
 }
 
 .build-resources .build-source {
@@ -331,14 +321,16 @@ span.error {
   -webkit-animation: pulsate 1s infinite;
 }
 
-.resource-header .version {
+.build-source .header .version {
   margin: 0;
   padding: 0 6px;
   line-height: 28px;
-  float: right;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
-.resource-header h3 {
+.build-source .header h3 {
   margin: 0;
   float: left;
   margin-left: 6px;
@@ -361,21 +353,23 @@ span.error {
 }
 
 #version-history {
-  border-spacing: 0;
+  border-spacing: 10px;
   width: 100%;
+  position: relative;
+  top: 60px;
+  padding: 20px;
 }
 
 #version-history th {
   text-align: left;
   margin: 0;
-  padding: 0 1em;
+  padding: 5px;
 }
 
 #version-history td {
-  background: #111;
   margin: 0;
   padding-bottom: 10px;
-  border: 10px solid #222;
+  border-spacing: 10px;
   border-right: 0;
   border-bottom: 0;
   vertical-align: top;
