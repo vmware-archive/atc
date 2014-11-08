@@ -50,15 +50,21 @@ var v1Handlers = {
       $("<dt/>").text(status).appendTo(buildTimes);
       $("<dd/>").append(time).appendTo(buildTimes);
 
-      var startTime = moment($(".build-times time.started").attr("datetime"));
-      var duration = moment.duration(m.diff(startTime));
+      var startTime = $(".build-times time.started").attr("datetime");
 
-      var durationEle = $("<span>");
-      durationEle.addClass("duration");
-      durationEle.text(duration.format("h[h]m[m]s[s]"));
+      // Some events cause the build to never start (e.g. input errors).
+      var didStart = !!startTime
 
-      $("<dt/>").text("duration").appendTo(buildTimes);
-      $("<dd/>").append(durationEle).appendTo(buildTimes);
+      if(didStart) {
+        var duration = moment.duration(m.diff(moment(startTime)));
+
+        var durationEle = $("<span>");
+        durationEle.addClass("duration");
+        durationEle.text(duration.format("h[h]m[m]s[s]"));
+
+        $("<dt/>").text("duration").appendTo(buildTimes);
+        $("<dd/>").append(durationEle).appendTo(buildTimes);
+      }
     }
 
     // only transition from transient states; state may already be set
