@@ -156,18 +156,18 @@ function processError(event) {
   errorSpan.addClass("error");
   errorSpan.text(event.message);
 
-  if(event.origin) {
-    switch(event.origin.type) {
-    case "input":
-    case "output":
-      var resource = resourceInfo(event.origin.name, event.origin.type);
-      resource.removeClass("running");
-      resource.addClass("errored");
+  switch(event.origin.type) {
+  case "input":
+  case "output":
+    var resource = resourceInfo(event.origin.name, event.origin.type);
+    resource.removeClass("running");
+    resource.addClass("errored");
 
-      log = resource.find(".log");
-    }
-  } else {
+    log = resource.find(".log");
+    break;
+  default:
     log = $("#build-log");
+    break;
   }
 
   if(!log) {
