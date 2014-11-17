@@ -104,7 +104,7 @@ var eventHandlers = {
 
 function renderResource(event, type) {
   var resource = event[type];
-  var info = resourceInfo(resource.resource, type);
+  var info = resourceInfo(resource.name, type);
 
   info.removeClass("running");
 
