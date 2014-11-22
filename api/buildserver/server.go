@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/concourse/atc/auth"
 	"github.com/concourse/atc/builder"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/event"
@@ -20,6 +21,7 @@ type Server struct {
 	pingInterval        time.Duration
 	eventHandlerFactory EventHandlerFactory
 	drain               <-chan struct{}
+	fallback            auth.Validator
 
 	httpClient *http.Client
 }
@@ -27,6 +29,7 @@ type Server struct {
 type BuildsDB interface {
 	GetBuild(buildID int) (db.Build, error)
 	GetAllBuilds() ([]db.Build, error)
+	JobIsPublic(jobName string) (bool, error)
 
 	CreateOneOffBuild() (db.Build, error)
 	SaveBuildStatus(buildID int, status db.Status) error
@@ -41,6 +44,7 @@ func NewServer(
 	pingInterval time.Duration,
 	eventHandlerFactory EventHandlerFactory,
 	drain <-chan struct{},
+	fallback auth.Validator,
 ) *Server {
 	return &Server{
 		logger:              logger,
@@ -48,6 +52,7 @@ func NewServer(
 		builder:             builder,
 		pingInterval:        pingInterval,
 		eventHandlerFactory: eventHandlerFactory,
+		fallback:            fallback,
 
 		httpClient: &http.Client{
 			Transport: &http.Transport{

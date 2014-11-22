@@ -56,6 +56,67 @@ var _ = Describe("SQL DB", func() {
 
 	itIsADB()
 
+	Describe("determining if a job's builds are publically viewable", func() {
+		Context("when the job is publically viewable", func() {
+			BeforeEach(func() {
+				config := atc.Config{
+					Jobs: atc.JobConfigs{
+						{
+							Name:   "some-job",
+							Public: true,
+						},
+					},
+				}
+
+				err := sqlDB.SaveConfig(config)
+				Ω(err).ShouldNot(HaveOccurred())
+			})
+
+			It("returns true", func() {
+				public, _ := sqlDB.JobIsPublic("some-job")
+				Ω(public).Should(BeTrue())
+			})
+
+			It("does not error", func() {
+				_, err := sqlDB.JobIsPublic("some-job")
+				Ω(err).ShouldNot(HaveOccurred())
+			})
+		})
+
+		Context("when the job is not publically viewable", func() {
+			BeforeEach(func() {
+				config := atc.Config{
+					Jobs: atc.JobConfigs{
+						{
+							Name:   "some-job",
+							Public: false,
+						},
+					},
+				}
+
+				err := sqlDB.SaveConfig(config)
+				Ω(err).ShouldNot(HaveOccurred())
+			})
+
+			It("returns false", func() {
+				public, _ := sqlDB.JobIsPublic("some-job")
+				Ω(public).Should(BeFalse())
+			})
+
+			It("does not error", func() {
+				_, err := sqlDB.JobIsPublic("some-job")
+				Ω(err).ShouldNot(HaveOccurred())
+			})
+		})
+
+		Context("when the job with the given name can't be found", func() {
+			It("errors", func() {
+				_, err := sqlDB.JobIsPublic("does-not-exist")
+				Ω(err).Should(HaveOccurred())
+			})
+		})
+	})
+
 	Describe("config", func() {
 		yep := true
 

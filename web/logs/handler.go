@@ -51,9 +51,14 @@ func NewHandler(
 				return
 			}
 
-			job, found := config.Jobs.Lookup(build.JobName)
-			if !found || !job.Public {
-				w.WriteHeader(http.StatusNotFound)
+			public, err := s.db.JobIsPublic(build.JobName)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			if !public {
+				auth.Unauthorized(w)
 				return
 			}
 		}

@@ -37,6 +37,7 @@ func NewHandler(
 		pingInterval,
 		eventHandlerFactory,
 		drain,
+		validator,
 	)
 
 	jobServer := jobserver.NewServer(logger, jobsDB, configDB)
@@ -56,16 +57,16 @@ func NewHandler(
 		atc.GetConfig:  validate(http.HandlerFunc(configServer.GetConfig)),
 		atc.SaveConfig: validate(http.HandlerFunc(configServer.SaveConfig)),
 
+		atc.ListBuilds:  http.HandlerFunc(buildServer.ListBuilds),
 		atc.CreateBuild: validate(http.HandlerFunc(buildServer.CreateBuild)),
-		atc.ListBuilds:  validate(http.HandlerFunc(buildServer.ListBuilds)),
-		atc.BuildEvents: validate(http.HandlerFunc(buildServer.BuildEvents)),
+		atc.BuildEvents: http.HandlerFunc(buildServer.BuildEvents),
 		atc.AbortBuild:  validate(http.HandlerFunc(buildServer.AbortBuild)),
 		atc.HijackBuild: validate(http.HandlerFunc(buildServer.HijackBuild)),
 
 		atc.ListJobs:      http.HandlerFunc(jobServer.ListJobs),
-		atc.GetJob:        validate(http.HandlerFunc(jobServer.GetJob)),
-		atc.ListJobBuilds: validate(http.HandlerFunc(jobServer.ListJobBuilds)),
-		atc.GetJobBuild:   validate(http.HandlerFunc(jobServer.GetJobBuild)),
+		atc.GetJob:        http.HandlerFunc(jobServer.GetJob),
+		atc.ListJobBuilds: http.HandlerFunc(jobServer.ListJobBuilds),
+		atc.GetJobBuild:   http.HandlerFunc(jobServer.GetJobBuild),
 
 		atc.ListResources: http.HandlerFunc(resourceServer.ListResources),
 

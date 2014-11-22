@@ -2,10 +2,10 @@
 package fakes
 
 import (
-	"sync"
-
 	"github.com/concourse/atc/api/buildserver"
 	"github.com/concourse/atc/db"
+
+	"sync"
 )
 
 type FakeBuildsDB struct {
@@ -21,14 +21,23 @@ type FakeBuildsDB struct {
 	GetAllBuildsStub        func() ([]db.Build, error)
 	getAllBuildsMutex       sync.RWMutex
 	getAllBuildsArgsForCall []struct{}
-	getAllBuildsReturns     struct {
+	getAllBuildsReturns struct {
 		result1 []db.Build
+		result2 error
+	}
+	JobIsPublicStub        func(jobName string) (bool, error)
+	jobIsPublicMutex       sync.RWMutex
+	jobIsPublicArgsForCall []struct {
+		jobName string
+	}
+	jobIsPublicReturns struct {
+		result1 bool
 		result2 error
 	}
 	CreateOneOffBuildStub        func() (db.Build, error)
 	createOneOffBuildMutex       sync.RWMutex
 	createOneOffBuildArgsForCall []struct{}
-	createOneOffBuildReturns     struct {
+	createOneOffBuildReturns struct {
 		result1 db.Build
 		result2 error
 	}
@@ -106,6 +115,39 @@ func (fake *FakeBuildsDB) GetAllBuildsReturns(result1 []db.Build, result2 error)
 	fake.GetAllBuildsStub = nil
 	fake.getAllBuildsReturns = struct {
 		result1 []db.Build
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBuildsDB) JobIsPublic(jobName string) (bool, error) {
+	fake.jobIsPublicMutex.Lock()
+	fake.jobIsPublicArgsForCall = append(fake.jobIsPublicArgsForCall, struct {
+		jobName string
+	}{jobName})
+	fake.jobIsPublicMutex.Unlock()
+	if fake.JobIsPublicStub != nil {
+		return fake.JobIsPublicStub(jobName)
+	} else {
+		return fake.jobIsPublicReturns.result1, fake.jobIsPublicReturns.result2
+	}
+}
+
+func (fake *FakeBuildsDB) JobIsPublicCallCount() int {
+	fake.jobIsPublicMutex.RLock()
+	defer fake.jobIsPublicMutex.RUnlock()
+	return len(fake.jobIsPublicArgsForCall)
+}
+
+func (fake *FakeBuildsDB) JobIsPublicArgsForCall(i int) string {
+	fake.jobIsPublicMutex.RLock()
+	defer fake.jobIsPublicMutex.RUnlock()
+	return fake.jobIsPublicArgsForCall[i].jobName
+}
+
+func (fake *FakeBuildsDB) JobIsPublicReturns(result1 bool, result2 error) {
+	fake.JobIsPublicStub = nil
+	fake.jobIsPublicReturns = struct {
+		result1 bool
 		result2 error
 	}{result1, result2}
 }
