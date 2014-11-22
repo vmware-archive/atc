@@ -9,7 +9,7 @@ import (
 	"github.com/concourse/atc/api/present"
 )
 
-func (s *Server) CreateBuild(w http.ResponseWriter, r *http.Request) {
+func (s *server) CreateBuild(w http.ResponseWriter, r *http.Request) {
 	var turbineBuild turbine.Build
 	err := json.NewDecoder(r.Body).Decode(&turbineBuild)
 	if err != nil {

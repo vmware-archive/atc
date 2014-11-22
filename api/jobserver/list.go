@@ -8,7 +8,7 @@ import (
 	"github.com/concourse/atc/api/present"
 )
 
-func (s *Server) ListJobs(w http.ResponseWriter, r *http.Request) {
+func (s *server) ListJobs(w http.ResponseWriter, r *http.Request) {
 	var jobs []atc.Job
 
 	config, err := s.configDB.GetConfig()

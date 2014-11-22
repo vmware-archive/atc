@@ -13,7 +13,7 @@ import (
 
 type EventHandlerFactory func(event.BuildsDB, int, event.Censor) http.Handler
 
-type Server struct {
+type server struct {
 	logger lager.Logger
 
 	db                  BuildsDB
@@ -50,8 +50,8 @@ func NewServer(
 	eventHandlerFactory EventHandlerFactory,
 	drain <-chan struct{},
 	fallback auth.Validator,
-) *Server {
-	return &Server{
+) *server {
+	return &server{
 		logger:              logger,
 		db:                  db,
 		jobIsPublicDB:       jobIsPublicDB,

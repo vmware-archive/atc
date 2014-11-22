@@ -7,7 +7,7 @@ import (
 	"github.com/concourse/atc/api/present"
 )
 
-func (s *Server) GetJob(w http.ResponseWriter, r *http.Request) {
+func (s *server) GetJob(w http.ResponseWriter, r *http.Request) {
 	jobName := r.FormValue(":job_name")
 
 	config, err := s.configDB.GetConfig()

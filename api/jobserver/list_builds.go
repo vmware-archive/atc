@@ -8,7 +8,7 @@ import (
 	"github.com/concourse/atc/api/present"
 )
 
-func (s *Server) ListJobBuilds(w http.ResponseWriter, r *http.Request) {
+func (s *server) ListJobBuilds(w http.ResponseWriter, r *http.Request) {
 	jobName := r.FormValue(":job_name")
 
 	builds, err := s.db.GetAllJobBuilds(jobName)

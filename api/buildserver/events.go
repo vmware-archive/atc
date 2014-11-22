@@ -7,7 +7,7 @@ import (
 	"github.com/concourse/atc/auth"
 )
 
-func (s *Server) BuildEvents(w http.ResponseWriter, r *http.Request) {
+func (s *server) BuildEvents(w http.ResponseWriter, r *http.Request) {
 	buildID, err := strconv.Atoi(r.FormValue(":build_id"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
