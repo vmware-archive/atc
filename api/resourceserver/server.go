@@ -6,7 +6,7 @@ import (
 	"github.com/concourse/atc"
 )
 
-type Server struct {
+type server struct {
 	logger lager.Logger
 
 	configDB ConfigDB
@@ -19,8 +19,8 @@ type ConfigDB interface {
 func NewServer(
 	logger lager.Logger,
 	configDB ConfigDB,
-) *Server {
-	return &Server{
+) *server {
+	return &server{
 		logger:   logger,
 		configDB: configDB,
 	}

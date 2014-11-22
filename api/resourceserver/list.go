@@ -8,7 +8,7 @@ import (
 	"github.com/concourse/atc/api/present"
 )
 
-func (s *Server) ListResources(w http.ResponseWriter, r *http.Request) {
+func (s *server) ListResources(w http.ResponseWriter, r *http.Request) {
 	var resources []atc.Resource
 
 	config, err := s.configDB.GetConfig()
