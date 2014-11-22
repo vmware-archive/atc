@@ -24,6 +24,15 @@ type FakeConfigDB struct {
 	saveConfigReturns struct {
 		result1 error
 	}
+	JobIsPublicStub        func(jobName string) (bool, error)
+	jobIsPublicMutex       sync.RWMutex
+	jobIsPublicArgsForCall []struct {
+		jobName string
+	}
+	jobIsPublicReturns struct {
+		result1 bool
+		result2 error
+	}
 }
 
 func (fake *FakeConfigDB) GetConfig() (atc.Config, error) {
@@ -81,6 +90,39 @@ func (fake *FakeConfigDB) SaveConfigReturns(result1 error) {
 	fake.saveConfigReturns = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeConfigDB) JobIsPublic(jobName string) (bool, error) {
+	fake.jobIsPublicMutex.Lock()
+	fake.jobIsPublicArgsForCall = append(fake.jobIsPublicArgsForCall, struct {
+		jobName string
+	}{jobName})
+	fake.jobIsPublicMutex.Unlock()
+	if fake.JobIsPublicStub != nil {
+		return fake.JobIsPublicStub(jobName)
+	} else {
+		return fake.jobIsPublicReturns.result1, fake.jobIsPublicReturns.result2
+	}
+}
+
+func (fake *FakeConfigDB) JobIsPublicCallCount() int {
+	fake.jobIsPublicMutex.RLock()
+	defer fake.jobIsPublicMutex.RUnlock()
+	return len(fake.jobIsPublicArgsForCall)
+}
+
+func (fake *FakeConfigDB) JobIsPublicArgsForCall(i int) string {
+	fake.jobIsPublicMutex.RLock()
+	defer fake.jobIsPublicMutex.RUnlock()
+	return fake.jobIsPublicArgsForCall[i].jobName
+}
+
+func (fake *FakeConfigDB) JobIsPublicReturns(result1 bool, result2 error) {
+	fake.JobIsPublicStub = nil
+	fake.jobIsPublicReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
 }
 
 var _ db.ConfigDB = new(FakeConfigDB)

@@ -24,6 +24,8 @@ var _ = Describe("SQL DB", func() {
 
 	var sqlDB *SQLDB
 
+	var dbSharedBehaviorInput = dbSharedBehaviorInput{}
+
 	BeforeSuite(func() {
 		postgresRunner = postgresrunner.Runner{
 			Port: 5433 + GinkgoParallelNode(),
@@ -44,7 +46,7 @@ var _ = Describe("SQL DB", func() {
 
 		sqlDB = NewSQL(lagertest.NewTestLogger("test"), dbConn)
 
-		db = sqlDB
+		dbSharedBehaviorInput.DB = sqlDB
 	})
 
 	AfterEach(func() {
@@ -54,7 +56,7 @@ var _ = Describe("SQL DB", func() {
 		postgresRunner.DropTestDB()
 	})
 
-	itIsADB()
+	Describe("is a DB", dbSharedBehavior(&dbSharedBehaviorInput))
 
 	Describe("determining if a job's builds are publically viewable", func() {
 		Context("when the job is publically viewable", func() {

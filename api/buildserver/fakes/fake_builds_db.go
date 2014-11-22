@@ -21,7 +21,7 @@ type FakeBuildsDB struct {
 	GetAllBuildsStub        func() ([]db.Build, error)
 	getAllBuildsMutex       sync.RWMutex
 	getAllBuildsArgsForCall []struct{}
-	getAllBuildsReturns struct {
+	getAllBuildsReturns     struct {
 		result1 []db.Build
 		result2 error
 	}
@@ -37,7 +37,7 @@ type FakeBuildsDB struct {
 	CreateOneOffBuildStub        func() (db.Build, error)
 	createOneOffBuildMutex       sync.RWMutex
 	createOneOffBuildArgsForCall []struct{}
-	createOneOffBuildReturns struct {
+	createOneOffBuildReturns     struct {
 		result1 db.Build
 		result2 error
 	}

@@ -175,12 +175,7 @@ func (db *SQLDB) JobIsPublic(jobName string) (bool, error) {
 		return false, err
 	}
 
-	job, found := config.Jobs.Lookup(jobName)
-	if !found {
-		return false, fmt.Errorf("cannot find job with job name '%s'", jobName)
-	}
-
-	return job.Public, nil
+	return config.JobIsPublic(jobName)
 }
 
 func (db *SQLDB) GetBuild(buildID int) (Build, error) {
