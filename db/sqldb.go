@@ -169,15 +169,6 @@ func (db *SQLDB) GetAllStartedBuilds() ([]Build, error) {
 	return bs, nil
 }
 
-func (db *SQLDB) JobIsPublic(jobName string) (bool, error) {
-	config, err := db.GetConfig()
-	if err != nil {
-		return false, err
-	}
-
-	return config.JobIsPublic(jobName)
-}
-
 func (db *SQLDB) GetBuild(buildID int) (Build, error) {
 	return scanBuild(db.conn.QueryRow(`
 		SELECT `+buildColumns+`

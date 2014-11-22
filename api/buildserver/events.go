@@ -26,7 +26,7 @@ func (s *Server) BuildEvents(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		public, err := s.db.JobIsPublic(build.JobName)
+		public, err := s.jobIsPublicDB.JobIsPublic(build.JobName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

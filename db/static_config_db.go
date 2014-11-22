@@ -19,7 +19,3 @@ func (db StaticConfigDB) GetConfig() (atc.Config, error) {
 func (db StaticConfigDB) SaveConfig(atc.Config) error {
 	return ErrConfigIsStatic
 }
-
-func (db StaticConfigDB) JobIsPublic(jobName string) (bool, error) {
-	return db.Config.JobIsPublic(jobName)
-}

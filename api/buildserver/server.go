@@ -17,6 +17,7 @@ type Server struct {
 	logger lager.Logger
 
 	db                  BuildsDB
+	jobIsPublicDB       JobIsPublicDB
 	builder             builder.Builder
 	pingInterval        time.Duration
 	eventHandlerFactory EventHandlerFactory
@@ -29,7 +30,6 @@ type Server struct {
 type BuildsDB interface {
 	GetBuild(buildID int) (db.Build, error)
 	GetAllBuilds() ([]db.Build, error)
-	JobIsPublic(jobName string) (bool, error)
 
 	CreateOneOffBuild() (db.Build, error)
 	SaveBuildStatus(buildID int, status db.Status) error
@@ -37,9 +37,14 @@ type BuildsDB interface {
 	GetBuildEvents(buildID int) ([]db.BuildEvent, error)
 }
 
+type JobIsPublicDB interface {
+	JobIsPublic(jobName string) (bool, error)
+}
+
 func NewServer(
 	logger lager.Logger,
 	db BuildsDB,
+	jobIsPublicDB JobIsPublicDB,
 	builder builder.Builder,
 	pingInterval time.Duration,
 	eventHandlerFactory EventHandlerFactory,
@@ -49,6 +54,7 @@ func NewServer(
 	return &Server{
 		logger:              logger,
 		db:                  db,
+		jobIsPublicDB:       jobIsPublicDB,
 		builder:             builder,
 		pingInterval:        pingInterval,
 		eventHandlerFactory: eventHandlerFactory,

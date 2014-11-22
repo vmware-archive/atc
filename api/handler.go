@@ -21,6 +21,7 @@ func NewHandler(
 	logger lager.Logger,
 	validator auth.Validator,
 	buildsDB buildserver.BuildsDB,
+	jobIsPublicDB buildserver.JobIsPublicDB,
 	jobsDB jobserver.JobsDB,
 	configDB configserver.ConfigDB,
 	configValidator configserver.ConfigValidator,
@@ -33,6 +34,7 @@ func NewHandler(
 	buildServer := buildserver.NewServer(
 		logger,
 		buildsDB,
+		jobIsPublicDB,
 		builder,
 		pingInterval,
 		eventHandlerFactory,
