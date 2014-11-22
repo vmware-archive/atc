@@ -7,7 +7,7 @@ import (
 	"github.com/concourse/atc/api/present"
 )
 
-func (s *Server) GetJobBuild(w http.ResponseWriter, r *http.Request) {
+func (s *server) GetJobBuild(w http.ResponseWriter, r *http.Request) {
 	jobName := r.FormValue(":job_name")
 	buildName := r.FormValue(":build_name")
 

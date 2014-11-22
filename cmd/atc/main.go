@@ -244,6 +244,7 @@ func main() {
 		logger,
 		webValidator,
 		db,
+		configDB,
 		db,
 		configDB,
 		config.ValidateConfig,

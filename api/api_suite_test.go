@@ -24,6 +24,7 @@ import (
 
 var (
 	buildsDB            *buildfakes.FakeBuildsDB
+	jobIsPublicDB       *buildfakes.FakeJobIsPublicDB
 	jobsDB              *jobfakes.FakeJobsDB
 	configDB            *configfakes.FakeConfigDB
 	configValidationErr error
@@ -65,6 +66,7 @@ func (f *fakeEventHandlerFactory) Construct(
 
 var _ = BeforeEach(func() {
 	buildsDB = new(buildfakes.FakeBuildsDB)
+	jobIsPublicDB = new(buildfakes.FakeJobIsPublicDB)
 	jobsDB = new(jobfakes.FakeJobsDB)
 	configDB = new(configfakes.FakeConfigDB)
 	configValidationErr = nil
@@ -79,6 +81,7 @@ var _ = BeforeEach(func() {
 		lagertest.NewTestLogger("callbacks"),
 		auth.NoopValidator{},
 		buildsDB,
+		jobIsPublicDB,
 		jobsDB,
 		db.ConfigDBWithDefaults{configDB},
 		func(atc.Config) error { return configValidationErr },

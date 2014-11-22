@@ -6,7 +6,7 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-type Server struct {
+type server struct {
 	logger lager.Logger
 
 	db       ConfigDB
@@ -23,8 +23,8 @@ func NewServer(
 	logger lager.Logger,
 	db ConfigDB,
 	validator ConfigValidator,
-) *Server {
-	return &Server{
+) *server {
+	return &server{
 		logger:   logger,
 		db:       db,
 		validate: validator,

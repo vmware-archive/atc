@@ -6,7 +6,7 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-type Server struct {
+type server struct {
 	logger lager.Logger
 
 	peerAddr string
@@ -15,8 +15,8 @@ type Server struct {
 	pipesL *sync.RWMutex
 }
 
-func NewServer(logger lager.Logger, peerAddr string) *Server {
-	return &Server{
+func NewServer(logger lager.Logger, peerAddr string) *server {
+	return &server{
 		logger: logger,
 
 		peerAddr: peerAddr,

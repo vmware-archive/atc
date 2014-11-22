@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/concourse/atc/auth"
 	"github.com/concourse/atc/builder"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/event"
@@ -12,14 +13,16 @@ import (
 
 type EventHandlerFactory func(event.BuildsDB, int, event.Censor) http.Handler
 
-type Server struct {
+type server struct {
 	logger lager.Logger
 
 	db                  BuildsDB
+	jobIsPublicDB       JobIsPublicDB
 	builder             builder.Builder
 	pingInterval        time.Duration
 	eventHandlerFactory EventHandlerFactory
 	drain               <-chan struct{}
+	fallback            auth.Validator
 
 	httpClient *http.Client
 }
@@ -34,20 +37,28 @@ type BuildsDB interface {
 	GetBuildEvents(buildID int) ([]db.BuildEvent, error)
 }
 
+type JobIsPublicDB interface {
+	JobIsPublic(jobName string) (bool, error)
+}
+
 func NewServer(
 	logger lager.Logger,
 	db BuildsDB,
+	jobIsPublicDB JobIsPublicDB,
 	builder builder.Builder,
 	pingInterval time.Duration,
 	eventHandlerFactory EventHandlerFactory,
 	drain <-chan struct{},
-) *Server {
-	return &Server{
+	fallback auth.Validator,
+) *server {
+	return &server{
 		logger:              logger,
 		db:                  db,
+		jobIsPublicDB:       jobIsPublicDB,
 		builder:             builder,
 		pingInterval:        pingInterval,
 		eventHandlerFactory: eventHandlerFactory,
+		fallback:            fallback,
 
 		httpClient: &http.Client{
 			Transport: &http.Transport{

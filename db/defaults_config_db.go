@@ -7,7 +7,7 @@ type ConfigDBWithDefaults struct {
 }
 
 func (configDB ConfigDBWithDefaults) GetConfig() (atc.Config, error) {
-	config, err := configDB.ConfigDB.GetConfig()
+	config, err := configDB.getUnderlyingConfig()
 	if err != nil {
 		return atc.Config{}, err
 	}
@@ -33,4 +33,17 @@ func (configDB ConfigDBWithDefaults) GetConfig() (atc.Config, error) {
 	}
 
 	return config, nil
+}
+
+func (configDB ConfigDBWithDefaults) JobIsPublic(jobName string) (bool, error) {
+	config, err := configDB.getUnderlyingConfig()
+	if err != nil {
+		return false, err
+	}
+
+	return config.JobIsPublic(jobName)
+}
+
+func (configDB ConfigDBWithDefaults) getUnderlyingConfig() (atc.Config, error) {
+	return configDB.ConfigDB.GetConfig()
 }

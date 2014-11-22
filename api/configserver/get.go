@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) GetConfig(w http.ResponseWriter, r *http.Request) {
+func (s *server) GetConfig(w http.ResponseWriter, r *http.Request) {
 	config, err := s.db.GetConfig()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

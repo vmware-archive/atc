@@ -58,6 +58,8 @@ type DB interface {
 type ConfigDB interface {
 	GetConfig() (atc.Config, error)
 	SaveConfig(atc.Config) error
+
+	JobIsPublic(jobName string) (bool, error)
 }
 
 type Lock interface {

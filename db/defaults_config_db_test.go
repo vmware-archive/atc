@@ -2,7 +2,7 @@ package db_test
 
 import (
 	"github.com/concourse/atc"
-	. "github.com/concourse/atc/db"
+	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/fakes"
 
 	. "github.com/onsi/ginkgo"
@@ -11,19 +11,24 @@ import (
 
 var _ = Describe("ConfigDBWithDefaults", func() {
 	var realConfigDB *fakes.FakeConfigDB
-	var configDB ConfigDB
+	var configDB db.ConfigDB
+	var config atc.Config
+
+	JustBeforeEach(func() {
+		realConfigDB.GetConfigReturns(config, nil)
+	})
 
 	BeforeEach(func() {
 		realConfigDB = new(fakes.FakeConfigDB)
 
-		configDB = ConfigDBWithDefaults{
+		configDB = db.ConfigDBWithDefaults{
 			ConfigDB: realConfigDB,
 		}
 	})
 
 	Context("when an input does not specify its name or whether to trigger", func() {
 		BeforeEach(func() {
-			realConfigDB.GetConfigReturns(atc.Config{
+			config = atc.Config{
 				Jobs: atc.JobConfigs{
 					{
 						Name: "some-job",
@@ -34,7 +39,7 @@ var _ = Describe("ConfigDBWithDefaults", func() {
 						},
 					},
 				},
-			}, nil)
+			}
 		})
 
 		It("defaults trigger to true, and the name to the resource", func() {
@@ -59,7 +64,7 @@ var _ = Describe("ConfigDBWithDefaults", func() {
 
 	Context("when an output does not specify when to perform", func() {
 		BeforeEach(func() {
-			realConfigDB.GetConfigReturns(atc.Config{
+			config = atc.Config{
 				Jobs: atc.JobConfigs{
 					{
 						Name: "some-job",
@@ -70,7 +75,7 @@ var _ = Describe("ConfigDBWithDefaults", func() {
 						},
 					},
 				},
-			}, nil)
+			}
 		})
 
 		It("performs on success", func() {
@@ -87,6 +92,72 @@ var _ = Describe("ConfigDBWithDefaults", func() {
 					},
 				},
 			}))
+		})
+	})
+
+	Describe("determining if a job's builds are publically viewable", func() {
+		Context("when the job is publically viewable", func() {
+			BeforeEach(func() {
+				config = atc.Config{
+					Jobs: atc.JobConfigs{
+						{
+							Name:   "some-job",
+							Public: true,
+						},
+					},
+				}
+			})
+
+			It("returns true", func() {
+				public, _ := configDB.JobIsPublic("some-job")
+				Ω(public).Should(BeTrue())
+			})
+
+			It("does not error", func() {
+				_, err := configDB.JobIsPublic("some-job")
+				Ω(err).ShouldNot(HaveOccurred())
+			})
+		})
+
+		Context("when the job is not publically viewable", func() {
+			BeforeEach(func() {
+				config = atc.Config{
+					Jobs: atc.JobConfigs{
+						{
+							Name:   "some-job",
+							Public: false,
+						},
+					},
+				}
+			})
+
+			It("returns false", func() {
+				public, _ := configDB.JobIsPublic("some-job")
+				Ω(public).Should(BeFalse())
+			})
+
+			It("does not error", func() {
+				_, err := configDB.JobIsPublic("some-job")
+				Ω(err).ShouldNot(HaveOccurred())
+			})
+		})
+
+		Context("when the job with the given name can't be found", func() {
+			BeforeEach(func() {
+				config = atc.Config{
+					Jobs: atc.JobConfigs{
+						{
+							Name:   "some-job",
+							Public: false,
+						},
+					},
+				}
+			})
+
+			It("errors", func() {
+				_, err := configDB.JobIsPublic("does-not-exist")
+				Ω(err).Should(HaveOccurred())
+			})
 		})
 	})
 })

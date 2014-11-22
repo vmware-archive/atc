@@ -10,7 +10,7 @@ import (
 	"github.com/tedsuo/rata"
 )
 
-func (s *Server) AbortBuild(w http.ResponseWriter, r *http.Request) {
+func (s *server) AbortBuild(w http.ResponseWriter, r *http.Request) {
 	buildID, err := strconv.Atoi(r.FormValue(":build_id"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

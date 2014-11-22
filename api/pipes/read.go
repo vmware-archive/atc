@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) ReadPipe(w http.ResponseWriter, r *http.Request) {
+func (s *server) ReadPipe(w http.ResponseWriter, r *http.Request) {
 	pipeID := r.FormValue(":pipe_id")
 
 	s.pipesL.RLock()

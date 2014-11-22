@@ -10,7 +10,7 @@ import (
 	"github.com/concourse/atc"
 )
 
-func (s *Server) CreatePipe(w http.ResponseWriter, r *http.Request) {
+func (s *server) CreatePipe(w http.ResponseWriter, r *http.Request) {
 	guid, err := uuid.NewV4()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
