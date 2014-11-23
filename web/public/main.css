@@ -236,7 +236,7 @@ pre {
   100% { opacity: 1.0; }
 }
 
-#build-log {
+.build-logs {
   margin: 0;
   padding: 10px;
 }
@@ -264,7 +264,7 @@ span.error {
 
 .build-resources.build-inputs:before,
 .build-resources.build-outputs:before,
-#build-log:before {
+.build-logs:before {
   font-size: 1.5em;
   font-weight: bold;
   display: block;
@@ -279,7 +279,7 @@ span.error {
   content: "outputs";
 }
 
-#build-log:before {
+.build-logs:before {
   content: "build";
 }
 
@@ -303,7 +303,7 @@ span.error {
 }
 
 .build-resources:empty,
-#build-log:empty {
+.build-logs:empty {
   display: none;
 }
 
