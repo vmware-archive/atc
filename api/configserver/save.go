@@ -8,7 +8,7 @@ import (
 	"github.com/concourse/atc"
 )
 
-func (s *Server) SaveConfig(w http.ResponseWriter, r *http.Request) {
+func (s *server) SaveConfig(w http.ResponseWriter, r *http.Request) {
 	var config atc.Config
 	err := json.NewDecoder(r.Body).Decode(&config)
 	if err != nil {

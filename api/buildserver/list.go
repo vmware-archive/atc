@@ -8,7 +8,7 @@ import (
 	"github.com/concourse/atc/api/present"
 )
 
-func (s *Server) ListBuilds(w http.ResponseWriter, r *http.Request) {
+func (s *server) ListBuilds(w http.ResponseWriter, r *http.Request) {
 	builds, err := s.db.GetAllBuilds()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
