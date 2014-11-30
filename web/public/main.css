@@ -224,6 +224,12 @@ pre {
   100% { -webkit-transform: rotate(1deg); }
 }
 
+@-webkit-keyframes pulsing {
+  0% { opacity: 1; }
+  50% { opacity: .5; }
+  100% { opacity: 1; }
+}
+
 @-webkit-keyframes wiggle-build-wigglier {
   0% { -webkit-transform: rotate(3deg); }
   50% { -webkit-transform: rotate(-3deg); }
@@ -455,20 +461,34 @@ svg .node rect {
 }
 
 svg .node.resource.checking rect, .node.job.started rect {
-  -webkit-animation: wiggle-build 0.5s infinite;
+  -webkit-animation: pulsing 2s infinite;
   shape-rendering: auto;
 }
 
-.edgeLabel rect {
-  fill: none;
-}
-
-.edgeLabel text {
-  font-size: 1em;
-  font-weight: normal;
-}
-
-.edgePath path {
+.edge path {
   stroke-width: 2px;
   fill: none;
+}
+
+.node text {
+  fill: #fff;
+}
+
+.node.job text {
+  font-weight: bold;
+}
+
+.node.constrained-input {
+  opacity: 0.5;
+}
+
+svg .active path {
+  stroke-width: 4px;
+}
+
+svg .active.node rect {
+  filter: url(#embiggen);
+}
+svg .active.node text {
+  font-size: 1.06em;
 }
