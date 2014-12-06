@@ -185,11 +185,13 @@ pre {
 
 #builds li.started a,
 .builds-list li.started {
-  -webkit-animation: wiggle-build 0.5s infinite;
+  -webkit-animation: pulsate 2s infinite;
+  animation: pulsate 2s infinite;
 }
 
 #page-header.started .build-header h1 {
-  -webkit-animation: wiggle-build 0.5s infinite;
+  -webkit-animation: pulsate 2s infinite;
+  animation: pulsate 2s infinite;
 }
 
 #build-body {
@@ -218,25 +220,13 @@ pre {
   padding: 10px;
 }
 
-@-webkit-keyframes wiggle-build {
-  0% { -webkit-transform: rotate(1deg); }
-  50% { -webkit-transform: rotate(-1deg); }
-  100% { -webkit-transform: rotate(1deg); }
-}
-
-@-webkit-keyframes pulsing {
-  0% { opacity: 1; }
-  50% { opacity: .5; }
-  100% { opacity: 1; }
-}
-
-@-webkit-keyframes wiggle-build-wigglier {
-  0% { -webkit-transform: rotate(3deg); }
-  50% { -webkit-transform: rotate(-3deg); }
-  100% { -webkit-transform: rotate(3deg); }
-}
-
 @-webkit-keyframes pulsate {
+  0% { opacity: 1.0; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1.0; }
+}
+
+@keyframes pulsate {
   0% { opacity: 1.0; }
   50% { opacity: 0.5; }
   100% { opacity: 1.0; }
@@ -324,7 +314,8 @@ span.error {
 }
 
 .build-source.running h3 {
-  -webkit-animation: pulsate 1s infinite;
+  -webkit-animation: pulsate 2s infinite;
+  animation: pulsate 2s infinite;
 }
 
 .build-source .header .version {
@@ -427,10 +418,6 @@ span.error {
   float: left;
 }
 
-#pipeline .legend dt.started {
-  -webkit-animation: wiggle-build-wigglier 0.5s infinite;
-}
-
 #pipeline .legend dd {
   margin-left: 22px;
   line-height: 18px;
@@ -461,7 +448,8 @@ svg .node rect {
 }
 
 svg .node.resource.checking rect, .node.job.started rect {
-  -webkit-animation: pulsing 2s infinite;
+  -webkit-animation: pulsate 2s infinite;
+  animation: pulsate 2s infinite;
   shape-rendering: auto;
 }
 
