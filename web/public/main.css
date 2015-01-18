@@ -478,7 +478,7 @@ svg .active.node text {
 
 @-webkit-keyframes dash {
   0% {
-    stroke-dashoffset: 100;
+    stroke-dashoffset: 13;
   }
 
   100% {
@@ -488,16 +488,6 @@ svg .active.node text {
 
 @keyframes dash {
   0% {
-    stroke-dashoffset: 100;
-  }
-
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
-
-@-webkit-keyframes dash-small {
-  0% {
     stroke-dashoffset: 13;
   }
 
@@ -506,20 +496,13 @@ svg .active.node text {
   }
 }
 
-#pipeline .legend dt.started rect {
-  stroke-width: 3;
-  stroke-dasharray: 10, 3;
-
-  -webkit-animation: dash-small 1s linear infinite;
-  animation: dash-small 1s linear infinite;
-}
-
+#pipeline .legend dt.started rect,
 svg .job.node.started rect {
   stroke-width: 2;
   stroke-dasharray: 10, 3;
 
-  -webkit-animation: dash 5s linear infinite;
-  animation: dash 5s linear infinite;
+  -webkit-animation: dash 1s linear infinite;
+  animation: dash 1s linear infinite;
 }
 
 #pipeline .legend dt.started {
