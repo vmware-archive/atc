@@ -183,17 +183,6 @@ pre {
   text-decoration: none;
 }
 
-#builds li.started a,
-.builds-list li.started {
-  -webkit-animation: pulsate 2s infinite;
-  animation: pulsate 2s infinite;
-}
-
-#page-header.started .build-header h1 {
-  -webkit-animation: pulsate 2s infinite;
-  animation: pulsate 2s infinite;
-}
-
 #build-body {
   position: relative;
   top: 90px;
@@ -459,12 +448,6 @@ svg .node rect {
   shape-rendering: crispEdges;
 }
 
-svg .node.resource.checking rect, .node.job.started rect {
-  -webkit-animation: pulsate 2s infinite;
-  animation: pulsate 2s infinite;
-  shape-rendering: auto;
-}
-
 .edge path {
   stroke-width: 2px;
   fill: none;
@@ -491,4 +474,33 @@ svg .active.node rect {
 }
 svg .active.node text {
   font-size: 1.06em;
+}
+
+@-webkit-keyframes dash {
+  0% {
+    stroke-dashoffset: 100;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dashoffset: 100;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+svg .job.node.started rect {
+  stroke-width: 2;
+  stroke-miterlimit: 2;
+  stroke-dasharray: 10, 3;
+
+  -webkit-animation: dash 5s linear infinite;
+  animation: dash 5s linear infinite;
 }
