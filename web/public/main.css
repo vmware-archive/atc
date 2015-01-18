@@ -496,11 +496,36 @@ svg .active.node text {
   }
 }
 
+@-webkit-keyframes dash-small {
+  0% {
+    stroke-dashoffset: 13;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+#pipeline .legend dt.started rect {
+  stroke-width: 3;
+  stroke-dasharray: 10, 3;
+
+  -webkit-animation: dash-small 1s linear infinite;
+  animation: dash-small 1s linear infinite;
+}
+
 svg .job.node.started rect {
   stroke-width: 2;
-  stroke-miterlimit: 2;
   stroke-dasharray: 10, 3;
 
   -webkit-animation: dash 5s linear infinite;
   animation: dash 5s linear infinite;
+}
+
+#pipeline .legend dt.started {
+  position: relative;
+}
+
+#pipeline .legend dt.started rect {
+  fill: none;
 }
