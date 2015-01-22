@@ -472,43 +472,7 @@ svg .active path {
 svg .active.node rect {
   filter: url(#embiggen);
 }
+
 svg .active.node text {
   font-size: 1.06em;
-}
-
-@-webkit-keyframes dash {
-  0% {
-    stroke-dashoffset: 13;
-  }
-
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes dash {
-  0% {
-    stroke-dashoffset: 13;
-  }
-
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
-
-#pipeline .legend dt.started rect,
-svg .job.node.started rect {
-  stroke-width: 2;
-  stroke-dasharray: 10, 3;
-
-  -webkit-animation: dash 1s linear infinite;
-  animation: dash 1s linear infinite;
-}
-
-#pipeline .legend dt.started {
-  position: relative;
-}
-
-#pipeline .legend dt.started rect {
-  fill: none;
 }
