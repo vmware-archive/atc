@@ -119,34 +119,6 @@ pre {
   height: 40px;
 }
 
-.build-header a.back,
-.resource-header a.back {
-  float: left;
-  line-height: 60px;
-  border: none;
-  font-size: 2em;
-  font-family: inherit;
-  font-weight: bold;
-  color: #fff;
-  cursor: pointer;
-  padding: 0 16px;
-  margin: 0;
-  margin-right: 10px;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.125);
-}
-
-.build-header a.back:hover,
-.resource-header a.back:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.build-header a.back:active,
-.resource-header a.back:active {
-  background: rgba(0, 0, 0, 0.125);
-  outline: none;
-}
-
 #builds,
 .builds-list {
   display: block;
