@@ -31,6 +31,7 @@ pre {
   list-style: none;
   margin: 0;
   padding: 0;
+  background: rgba(255, 255, 255, 0.125);
 }
 
 #page-header .groups li {
@@ -45,6 +46,10 @@ pre {
   line-height: 40px;
 }
 
+#page-header .groups li.active a {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 .build-header {
   padding: 0;
   height: 60px;
@@ -55,7 +60,7 @@ pre {
   line-height: 60px;
   float: left;
   margin: 0;
-  margin-left: 10px;
+  margin-left: 18px;
 }
 
 .build-header .build-times {
@@ -157,7 +162,7 @@ pre {
 
 #build-body {
   position: relative;
-  top: 90px;
+  top: 130px;
 }
 
 #build-body .section {
