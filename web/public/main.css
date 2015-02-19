@@ -13,15 +13,8 @@ pre {
 #page-header {
   width: 100%;
   position: fixed;
+  top: 40px;
   z-index: 2;
-}
-
-.build-header {
-  height: 90px;
-}
-
-.resource-header {
-  height: 60px;
 }
 
 nav .groups {
@@ -55,7 +48,8 @@ nav .groups li.active a {
   background: rgba(255, 255, 255, 0.25);
 }
 
-.build-header {
+.build-header,
+.resource-header {
   padding: 0;
   height: 60px;
 }
