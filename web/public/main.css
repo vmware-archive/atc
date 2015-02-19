@@ -24,11 +24,11 @@ nav .groups {
   list-style: none;
   margin: 0;
   padding: 0;
-  background: rgba(255, 255, 255, 0.125);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  z-index: 2;
 }
 
 nav .groups li {
@@ -41,14 +41,6 @@ nav .groups li a {
   text-decoration: none;
   font-size: 18px;
   line-height: 40px;
-}
-
-nav .groups li.main a {
-  background: rgba(0, 0, 0, 0.25);
-}
-
-nav .groups li.active a {
-  background: rgba(255, 255, 255, 0.25);
 }
 
 .build-header,
