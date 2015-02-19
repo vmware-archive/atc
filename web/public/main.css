@@ -24,7 +24,7 @@ pre {
   height: 60px;
 }
 
-#page-header .groups {
+nav .groups {
   height: 40px;
   display: block;
   overflow: auto;
@@ -34,11 +34,11 @@ pre {
   background: rgba(255, 255, 255, 0.125);
 }
 
-#page-header .groups li {
+nav .groups li {
   display: inline-block;
 }
 
-#page-header .groups li a {
+nav .groups li a {
   display: inline-block;
   padding: 0 10px;
   text-decoration: none;
@@ -46,7 +46,11 @@ pre {
   line-height: 40px;
 }
 
-#page-header .groups li.active a {
+nav .groups li.main a {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+nav .groups li.active a {
   background: rgba(255, 255, 255, 0.25);
 }
 
