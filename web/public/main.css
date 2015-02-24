@@ -118,6 +118,27 @@ nav .groups li a {
   height: 40px;
 }
 
+#cli-downloads {
+  position: fixed;
+  bottom: 1em;
+  right: 1em;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+#cli-downloads:before {
+  content: "cli:";
+}
+
+#cli-downloads li {
+  display: inline-block;
+}
+
+#cli-downloads a {
+  text-decoration: none;
+}
+
 #builds,
 .builds-list {
   display: block;
