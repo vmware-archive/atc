@@ -82,45 +82,48 @@ nav .groups li a {
   word-wrap: break-word;
 }
 
-.build-header .trigger-build {
-  float: right;
-}
-
-.build-header .trigger-build input {
-  background: rgba(255, 255, 255, 0.125);
-  border: none;
-  font-size: 2em;
-  font-family: inherit;
-  font-weight: bold;
-  color: #fff;
-  cursor: pointer;
-  padding: 0 16px;
-  margin: 0;
-  height: 60px;
-}
-
-.build-header .trigger-build input:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.build-header .trigger-build input:active {
-  background: rgba(0, 0, 0, 0.125);
-  outline: none;
-}
-
+.build-header .trigger-build,
 .build-header .abort-build {
   float: right;
 }
 
-.build-header .abort-build input {
-  background: rgba(255, 255, 255, 0.125);
+.build-header .trigger-build button {
+  background: transparent;
   border: none;
   font-family: inherit;
-  font-weight: bold;
+  font-size: 30px;
   cursor: pointer;
-  padding: 0 16px;
   margin: 10px;
+  width: 40px;
   height: 40px;
+  border-radius: 100%;
+}
+
+.build-header .trigger-build button i {
+  position: relative;
+  bottom: -2px;
+}
+
+.build-header .abort-build button i {
+  position: relative;
+  bottom: -1px;
+}
+
+.build-header .trigger-build button:active,
+.build-header .abort-build button:active {
+  outline: none;
+}
+
+.build-header .abort-build button {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 30px;
+  cursor: pointer;
+  margin: 10px 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 100%;
 }
 
 #cli-downloads {
