@@ -205,11 +205,6 @@ nav .groups li a {
   100% { opacity: 1.0; }
 }
 
-.build-logs {
-  margin: 0;
-  padding: 10px;
-}
-
 #build-requires-auth {
   display: none; /* gets toggled by failed websocket connection */
 }
@@ -231,27 +226,6 @@ span.error {
   font-weight: bold;
 }
 
-.build-resources.build-inputs:before,
-.build-resources.build-outputs:before,
-.build-logs:before {
-  font-size: 1.5em;
-  font-weight: bold;
-  display: block;
-  margin-bottom: 10px;
-}
-
-.build-resources.build-inputs:before {
-  content: "inputs";
-}
-
-.build-resources.build-outputs:before {
-  content: "outputs";
-}
-
-.build-logs:before {
-  content: "build";
-}
-
 .resource-body {
   padding: 0 10px 10px;
   display: none; /* toggled via js */
@@ -266,32 +240,41 @@ span.error {
   margin: 0;
 }
 
-.build-resources {
+.steps {
   padding: 10px;
+}
+
+.steps .seq {
   clear: both;
 }
 
-.build-resources:empty,
-.build-logs:empty {
-  display: none;
+.steps .seq > .build-source:last {
+  padding-bottom: 0;
 }
 
-.build-source .header {
+.steps .nest {
+  padding: 10px;
+  padding-bottom: 0;
+  margin-bottom: 10px;
+  clear: both;
+}
+
+.build-step {
+  padding-bottom: 10px;
+}
+
+.build-step .header {
   cursor: pointer;
   clear: both;
   position: relative;
 }
 
-.build-resources .build-source {
-  margin-top: 10px;
-}
-
-.build-source.running h3 {
+.build-step.running h3 {
   -webkit-animation: pulsate 2s infinite;
   animation: pulsate 2s infinite;
 }
 
-.build-source .header .version {
+.build-step .header .version {
   margin: 0;
   padding: 0 6px;
   line-height: 28px;
@@ -300,14 +283,14 @@ span.error {
   right: 0;
 }
 
-.build-source .header h3 {
+.build-step .header h3 {
   margin: 0;
   float: left;
   margin-left: 6px;
   line-height: 28px;
 }
 
-.build-source dt,
+.build-step dt,
 .build-metadata dt {
   width: 10em;
   display: inline-block;
@@ -315,7 +298,7 @@ span.error {
   text-align: right;
 }
 
-.build-source dd,
+.build-step dd,
 .build-metadata dd {
   margin-left: 11em;
   white-space: pre;
