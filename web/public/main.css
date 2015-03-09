@@ -226,12 +226,12 @@ span.error {
   font-weight: bold;
 }
 
-.resource-body {
-  padding: 0 10px 10px;
+.step-body {
+  padding: 0 10px;
   display: none; /* toggled via js */
 }
 
-.resource-body pre {
+.step-body pre {
   margin: 10px 0 0;
 }
 
@@ -252,21 +252,17 @@ span.error {
   padding-bottom: 0;
 }
 
-.steps > .nest {
+.steps .seq, .steps .nest {
   margin-bottom: 10px;
+}
+
+.steps .seq:last-child, .steps .nest:last-child {
+  margin-bottom: 0;
 }
 
 .steps .nest {
   padding: 10px;
   clear: both;
-}
-
-.seq {
-  margin-bottom: 10px;
-}
-
-.seq:last-child {
-  margin-bottom: 0;
 }
 
 .build-step .header {
@@ -275,18 +271,25 @@ span.error {
   position: relative;
 }
 
-.build-step.running h3 {
-  -webkit-animation: pulsate 2s infinite;
-  animation: pulsate 2s infinite;
+.build-step .header i {
+  line-height: 28px;
+}
+
+.build-step .header i.left {
+  float: left;
+  margin-left: 6px;
+}
+
+.build-step .header i.right {
+  float: right;
+  margin-right: 6px;
 }
 
 .build-step .header .version {
+  float: right;
   margin: 0;
   padding: 0 6px;
   line-height: 28px;
-  position: absolute;
-  top: 0;
-  right: 0;
 }
 
 .build-step .header h3 {
