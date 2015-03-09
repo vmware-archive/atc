@@ -252,15 +252,21 @@ span.error {
   padding-bottom: 0;
 }
 
+.steps > .nest {
+  margin-bottom: 10px;
+}
+
 .steps .nest {
   padding: 10px;
-  padding-bottom: 0;
-  margin-bottom: 10px;
   clear: both;
 }
 
-.build-step {
-  padding-bottom: 10px;
+.seq {
+  margin-bottom: 10px;
+}
+
+.seq:last-child {
+  margin-bottom: 0;
 }
 
 .build-step .header {
