@@ -107,7 +107,7 @@ nav .groups li a {
 }
 
 .build-header .abort-build button {
-  margin: 10px;
+  margin-right: 5px;
 }
 
 #cli-downloads {
