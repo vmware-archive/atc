@@ -273,29 +273,27 @@ span.error {
 
 .build-step .header i {
   line-height: 28px;
+  width: 28px;
 }
 
 .build-step .header i.left {
   float: left;
-  margin-left: 6px;
 }
 
 .build-step .header i.right {
   float: right;
-  margin-right: 6px;
 }
 
 .build-step .header .version {
   float: right;
   margin: 0;
-  padding: 0 6px;
+  padding-left: 6px;
   line-height: 28px;
 }
 
 .build-step .header h3 {
   margin: 0;
   float: left;
-  margin-left: 6px;
   line-height: 28px;
 }
 
