@@ -43,6 +43,10 @@ nav .groups li a {
   line-height: 40px;
 }
 
+#content {
+  margin-top: 40px;
+}
+
 .build-header,
 .resource-header {
   padding: 0;
@@ -168,8 +172,7 @@ nav .groups li a {
 }
 
 #build-body {
-  position: relative;
-  top: 130px;
+  margin-top: 130px;
 }
 
 #build-body .section {
@@ -228,7 +231,6 @@ span.error {
 
 .step-body {
   padding: 0 10px;
-  display: none; /* toggled via js */
 }
 
 .step-body pre {
@@ -269,6 +271,7 @@ span.error {
   cursor: pointer;
   clear: both;
   position: relative;
+  min-height: 28px;
 }
 
 .build-step .header i {
@@ -278,6 +281,12 @@ span.error {
 
 .build-step .header i.left {
   float: left;
+
+  /*
+    since the leftmost icons don't have a background color,
+    remove the spacing between it and the header
+  */
+  margin-right: -6px;
 }
 
 .build-step .header i.right {
@@ -293,6 +302,7 @@ span.error {
 
 .build-step .header h3 {
   margin: 0;
+  padding: 0 6px;
   float: left;
   line-height: 28px;
 }
@@ -312,12 +322,17 @@ span.error {
   word-wrap: break-word;
 }
 
+.resource-check-status {
+  margin-bottom: 20px;
+}
+
+.resource-check-status .header {
+  cursor: default;
+}
+
 #version-history {
-  border-spacing: 10px;
   width: 100%;
-  position: relative;
-  top: 60px;
-  padding: 20px;
+  padding: 0 10px;
 }
 
 #version-history tr.disabled {
@@ -335,7 +350,7 @@ span.error {
 #version-history th {
   text-align: left;
   margin: 0;
-  padding: 5px;
+  padding: 0;
 }
 
 #version-history td {
@@ -349,12 +364,18 @@ span.error {
 
 #version-history dl.build-metadata {
   padding: 1em;
+  float: none;
 }
 
 #version-history table.jobs td {
   border: 0;
   padding: 10px 10px 0;
-  vertical-align: middle;
+  vertical-align: top;
+}
+
+#version-history table.jobs .builds-list li {
+  float: left;
+  margin: 5px;
 }
 
 #version-history table.jobs h3 {
