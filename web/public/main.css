@@ -190,6 +190,9 @@ nav .groups li a {
 #build-body {
   margin-top: 130px;
 }
+#build-body.build-body-noSubHeader {
+  margin-top: 100px;
+}
 
 #build-body .section {
   margin: 0 30px;
