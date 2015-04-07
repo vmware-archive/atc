@@ -31,6 +31,17 @@ nav .groups {
   z-index: 2;
 }
 
+.nav-right {
+  list-style: none;
+  position: fixed;
+  z-index: 2;
+  top: 0;
+  right: 10px;
+   height: 40px;
+  margin: 0;
+
+}
+
 nav .groups li {
   display: inline-block;
 }
@@ -43,8 +54,13 @@ nav .groups li a {
   line-height: 40px;
 }
 
+
 #content {
   margin-top: 40px;
+}
+
+.wrap {
+  padding: 0 20px;
 }
 
 .build-header,
