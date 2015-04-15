@@ -97,12 +97,11 @@ nav .groups li a {
   word-wrap: break-word;
 }
 
-.build-header .trigger-build,
 .build-header .abort-build {
   float: right;
 }
 
-.build-header .trigger-build button,
+.build-action,
 .build-header .abort-build button {
   background: transparent;
   border: none;
@@ -110,7 +109,7 @@ nav .groups li a {
   padding: 0;
 }
 
-.build-header .trigger-build i,
+.build-action i,
 .build-header .abort-build i {
   width: 40px;
   line-height: 40px;
@@ -119,9 +118,9 @@ nav .groups li a {
   cursor: pointer;
 }
 
-.build-header .trigger-build button:active,
+.build-action:active,
 .build-header .abort-build button:active,
-.build-header .trigger-build button:focus,
+.build-action:focus,
 .build-header .abort-build button:focus {
   outline: none;
 }
@@ -162,13 +161,14 @@ nav .groups li a {
   white-space: nowrap;
 }
 
-#builds li,
 .builds-list li {
-  display: inline-block;
+  float: left;
+  margin: 5px;
 }
 
 #builds li {
   opacity: .8;
+  display: inline-block;
 }
 
 #builds li.current {
