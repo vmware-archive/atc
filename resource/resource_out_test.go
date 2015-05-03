@@ -26,10 +26,9 @@ var _ = Describe("Resource Out", func() {
 		params             atc.Params
 		fakeArtifactSource *fakes.FakeArtifactSource
 
-		outScriptStdout     string
-		outScriptStderr     string
-		outScriptExitStatus int
-		runOutError         error
+		outScriptStdout string
+		outScriptStderr string
+		runOutError     error
 
 		outScriptProcess *gfakes.FakeProcess
 
@@ -48,12 +47,12 @@ var _ = Describe("Resource Out", func() {
 
 		outScriptStdout = "{}"
 		outScriptStderr = ""
-		outScriptExitStatus = 0
 		runOutError = nil
 
 		outScriptProcess = new(gfakes.FakeProcess)
 		outScriptProcess.IDReturns(42)
 		outScriptProcess.WaitStub = func() (int, error) {
+			outScriptExitStatus := 0
 			return outScriptExitStatus, nil
 		}
 
@@ -307,7 +306,10 @@ var _ = Describe("Resource Out", func() {
 
 		Context("when /opt/resource/out exits nonzero", func() {
 			BeforeEach(func() {
-				outScriptExitStatus = 9
+				outScriptProcess.WaitStub = func() (int, error) {
+					outScriptExitStatus := 9
+					return outScriptExitStatus, nil
+				}
 			})
 
 			It("returns an err containing stdout/stderr of the process", func() {
@@ -455,7 +457,10 @@ var _ = Describe("Resource Out", func() {
 
 		Context("when /opt/resource/out exits nonzero", func() {
 			BeforeEach(func() {
-				outScriptExitStatus = 9
+				outScriptProcess.WaitStub = func() (int, error) {
+					outScriptExitStatus := 9
+					return outScriptExitStatus, nil
+				}
 			})
 
 			It("returns an err containing stdout/stderr of the process", func() {
