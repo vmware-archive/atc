@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -40,6 +41,7 @@ func NewHandler(
 	configDB db.ConfigDB,
 	templatesDir, publicDir string,
 	engine engine.Engine,
+	forceHTTPS bool,
 ) (http.Handler, error) {
 	tfuncs := &templateFuncs{
 		assetsDir: publicDir,
@@ -124,7 +126,13 @@ func NewHandler(
 		},
 	}
 
-	return rata.NewRouter(routes.Routes, handlers)
+	r, err := rata.NewRouter(routes.Routes, handlers)
+
+	if forceHTTPS {
+		return redirectionHandler{handler: r}, err
+	} else {
+		return r, err
+	}
 }
 
 func loadTemplateWithPipeline(templatesDir, name string, funcs template.FuncMap) (*template.Template, error) {
@@ -139,4 +147,19 @@ func loadTemplateWithoutPipeline(templatesDir, name string, funcs template.FuncM
 		filepath.Join(templatesDir, "layouts", "without_pipeline.html"),
 		filepath.Join(templatesDir, name),
 	)
+}
+
+type redirectionHandler struct {
+	handler http.Handler
+}
+
+func (r redirectionHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	proto := req.Header.Get("X-Forwarded-Proto")
+
+	if proto == "https" {
+		r.handler.ServeHTTP(w, req)
+	} else {
+		redirectURLString := fmt.Sprintf("https://%s/%s", req.Host, req.URL.Path)
+		http.Redirect(w, req, redirectURLString, http.StatusMovedPermanently)
+	}
 }

@@ -2,6 +2,7 @@ package acceptance_test
 
 import (
 	"fmt"
+	"os/exec"
 	"time"
 
 	"github.com/lib/pq"
@@ -36,7 +37,10 @@ var _ = Describe("Resource Pausing", func() {
 		bus := db.NewNotificationsBus(dbListener)
 		sqlDB = db.NewSQL(dbLogger, dbConn, bus)
 		Ω(err).ShouldNot(HaveOccurred())
-		atcProcess, atcPort = startATC(atcBin, 1)
+
+		var atcCommand *exec.Cmd
+		atcCommand, atcPort = createATCCommand(atcBin, 1)
+		atcProcess = startATC(atcCommand)
 	})
 
 	AfterEach(func() {

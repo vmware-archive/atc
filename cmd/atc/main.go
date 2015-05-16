@@ -174,6 +174,12 @@ var cliDownloadsDir = flag.String(
 	"directory containing CLI binaries to serve",
 )
 
+var forceHTTPS = flag.Bool(
+	"forceHTTPS",
+	false,
+	"require client connections to use HTTPS",
+)
+
 func main() {
 	flag.Parse()
 
@@ -305,6 +311,7 @@ func main() {
 		sink, // sink *lager.ReconfigurableSink,
 
 		*cliDownloadsDir, // cliDownloadsDir string,
+		*forceHTTPS,
 	)
 	if err != nil {
 		fatal(err)
@@ -328,6 +335,7 @@ func main() {
 		*templatesDir,
 		*publicDir,
 		engine,
+		*forceHTTPS,
 	)
 	if err != nil {
 		fatal(err)

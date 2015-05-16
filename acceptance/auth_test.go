@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os/exec"
-	"path/filepath"
 	"time"
 
 	"github.com/lib/pq"
@@ -39,18 +38,15 @@ var _ = Describe("Auth", func() {
 		Ω(err).ShouldNot(HaveOccurred())
 
 		atcPort = 5697 + uint16(GinkgoParallelNode())
-		debugPort := 6697 + uint16(GinkgoParallelNode())
 
-		atcCommand := exec.Command(
+		var atcCommand *exec.Cmd
+		atcCommand, atcPort = createATCCommandWithFlags(
 			atcBin,
-			"-webListenPort", fmt.Sprintf("%d", atcPort),
-			"-debugListenPort", fmt.Sprintf("%d", debugPort),
-			"-httpUsername", "admin",
-			"-httpHashedPassword", "$2a$04$Cl3vCfrp01EM9NGekxL59uPusP/hBIM3toCkCuECK3saCbOAyrg/O", // "password"
-			"-templates", filepath.Join("..", "web", "templates"),
-			"-public", filepath.Join("..", "web", "public"),
-			"-sqlDataSource", postgresRunner.DataSourceName(),
-		)
+			1,
+			map[string]string{
+				"-publiclyViewable": "false",
+			})
+
 		atcRunner := ginkgomon.New(ginkgomon.Config{
 			Command:       atcCommand,
 			Name:          "atc",
