@@ -37,8 +37,6 @@ var _ = Describe("Auth", func() {
 		atcBin, err := gexec.Build("github.com/concourse/atc/cmd/atc")
 		Ω(err).ShouldNot(HaveOccurred())
 
-		atcPort = 5697 + uint16(GinkgoParallelNode())
-
 		var atcCommand *exec.Cmd
 		atcCommand, atcPort = createATCCommandWithFlags(
 			atcBin,
@@ -46,14 +44,7 @@ var _ = Describe("Auth", func() {
 			map[string]string{
 				"-publiclyViewable": "false",
 			})
-
-		atcRunner := ginkgomon.New(ginkgomon.Config{
-			Command:       atcCommand,
-			Name:          "atc",
-			StartCheck:    "atc.listening",
-			AnsiColorCode: "32m",
-		})
-		atcProcess = ginkgomon.Invoke(atcRunner)
+		atcProcess = startATC(atcCommand)
 	})
 
 	AfterEach(func() {
@@ -65,10 +56,15 @@ var _ = Describe("Auth", func() {
 		postgresRunner.DropTestDB()
 	})
 
-	It("can reach the page", func() {
+	It("requires authentication to reach the page", func() {
 		request, err := http.NewRequest("GET", fmt.Sprintf("http://127.0.0.1:%d", atcPort), nil)
 
 		resp, err := http.DefaultClient.Do(request)
+		Ω(err).ShouldNot(HaveOccurred())
+		Ω(resp.StatusCode).Should(Equal(http.StatusUnauthorized))
+
+		request.SetBasicAuth("admin", "wrongpassword")
+		resp, err = http.DefaultClient.Do(request)
 		Ω(err).ShouldNot(HaveOccurred())
 		Ω(resp.StatusCode).Should(Equal(http.StatusUnauthorized))
 
