@@ -159,7 +159,7 @@ func (r redirectionHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 	if proto == "https" {
 		r.handler.ServeHTTP(w, req)
 	} else {
-		redirectURLString := fmt.Sprintf("https://%s/%s", req.Host, req.URL.Path)
+		redirectURLString := fmt.Sprintf("https://%s%s", req.Host, req.URL.Path)
 		http.Redirect(w, req, redirectURLString, http.StatusMovedPermanently)
 	}
 }
