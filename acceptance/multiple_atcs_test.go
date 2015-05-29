@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 	"time"
 
 	"github.com/lib/pq"
@@ -44,8 +45,13 @@ var _ = Describe("Multiple ATCs", func() {
 		bus := db.NewNotificationsBus(dbListener)
 		sqlDB = db.NewSQL(dbLogger, dbConn, bus)
 
-		atcOneProcess, atcOnePort = startATC(atcBin, 1)
-		atcTwoProcess, atcTwoPort = startATC(atcBin, 2)
+		var atcOneCommand *exec.Cmd
+		atcOneCommand, atcOnePort = createATCCommand(atcBin, 1)
+		atcOneProcess = startATC(atcOneCommand)
+
+		var atcTwoCommand *exec.Cmd
+		atcTwoCommand, atcTwoPort = createATCCommand(atcBin, 2)
+		atcTwoProcess = startATC(atcTwoCommand)
 	})
 
 	AfterEach(func() {

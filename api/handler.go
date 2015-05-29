@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"path/filepath"
 
@@ -48,6 +49,7 @@ func NewHandler(
 	sink *lager.ReconfigurableSink,
 
 	cliDownloadsDir string,
+	forceHTTPS bool,
 ) (http.Handler, error) {
 	absCLIDownloadsDir, err := filepath.Abs(cliDownloadsDir)
 	if err != nil {
@@ -136,5 +138,30 @@ func NewHandler(
 		atc.DownloadCLI: http.HandlerFunc(cliServer.Download),
 	}
 
-	return rata.NewRouter(atc.Routes, handlers)
+	r, err := rata.NewRouter(atc.Routes, handlers)
+
+	if forceHTTPS {
+		return rejectionHandler{handler: r}, err
+	} else {
+		return r, err
+	}
+}
+
+type rejectionHandler struct {
+	handler http.Handler
+}
+
+func (r rejectionHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	proto := req.Header.Get("X-Forwarded-Proto")
+
+	if proto == "https" {
+		r.handler.ServeHTTP(w, req)
+	} else {
+		forbidden(w)
+	}
+}
+
+func forbidden(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusForbidden)
+	fmt.Fprintf(w, "forbidden")
 }

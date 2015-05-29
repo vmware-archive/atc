@@ -73,22 +73,57 @@ func Authenticate(page *agouti.Page, username, password string) {
 	page.Refresh()
 }
 
-func startATC(atcBin string, atcServerNumber uint16) (ifrit.Process, uint16) {
+func createATCCommandWithFlags(atcBin string, atcServerNumber uint16, flags map[string]string) (*exec.Cmd, uint16) {
 	atcPort := 5697 + uint16(GinkgoParallelNode()) + (atcServerNumber * 100)
 	debugPort := 6697 + uint16(GinkgoParallelNode()) + (atcServerNumber * 100)
 
-	atcCommand := exec.Command(
+	atcFlags := map[string]string{
+		"-publiclyViewable":   "true",
+		"-forceHTTPS":         "false",
+		"-webListenPort":      fmt.Sprintf("%d", atcPort),
+		"-callbacksURL":       fmt.Sprintf("http://127.0.0.1:%d", atcPort),
+		"-debugListenPort":    fmt.Sprintf("%d", debugPort),
+		"-httpUsername":       "admin",
+		"-httpHashedPassword": "$2a$04$DYaOWeQgyxTCv7QxydTP9u1KnwXWSKipC4BeTuBy.9m.IlkAdqNGG", // "password"
+		"-templates":          filepath.Join("..", "web", "templates"),
+		"-public":             filepath.Join("..", "web", "public"),
+		"-sqlDataSource":      postgresRunner.DataSourceName(),
+	}
+
+	// merge in any provided values
+	if flags != nil {
+		for k, _ := range atcFlags {
+			if flags[k] != "" {
+				atcFlags[k] = flags[k]
+			}
+		}
+	}
+
+	var flagsAsStrings []string
+	for k, v := range atcFlags {
+		// boolean flag values are treated differently;
+		// they require = when setting to false.
+		// See https://golang.org/pkg/flag/
+		if v == "true" || v == "false" {
+			flag := fmt.Sprintf("%s=%s", k, v)
+			flagsAsStrings = append(flagsAsStrings, flag)
+		} else {
+			flagsAsStrings = append(flagsAsStrings, k, v)
+		}
+
+	}
+
+	return exec.Command(
 		atcBin,
-		"-webListenPort", fmt.Sprintf("%d", atcPort),
-		"-callbacksURL", fmt.Sprintf("http://127.0.0.1:%d", atcPort),
-		"-debugListenPort", fmt.Sprintf("%d", debugPort),
-		"-httpUsername", "admin",
-		"-httpHashedPassword", "$2a$04$DYaOWeQgyxTCv7QxydTP9u1KnwXWSKipC4BeTuBy.9m.IlkAdqNGG", // "password"
-		"-publiclyViewable=true",
-		"-templates", filepath.Join("..", "web", "templates"),
-		"-public", filepath.Join("..", "web", "public"),
-		"-sqlDataSource", postgresRunner.DataSourceName(),
-	)
+		flagsAsStrings...,
+	), atcPort
+}
+
+func createATCCommand(atcBin string, atcServerNumber uint16) (*exec.Cmd, uint16) {
+	return createATCCommandWithFlags(atcBin, atcServerNumber, nil)
+}
+
+func startATC(atcCommand *exec.Cmd) ifrit.Process {
 	atcRunner := ginkgomon.New(ginkgomon.Config{
 		Command:       atcCommand,
 		Name:          "atc",
@@ -96,5 +131,5 @@ func startATC(atcBin string, atcServerNumber uint16) (ifrit.Process, uint16) {
 		AnsiColorCode: "32m",
 	})
 
-	return ginkgomon.Invoke(atcRunner), atcPort
+	return ginkgomon.Invoke(atcRunner)
 }

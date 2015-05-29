@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os/exec"
-	"path/filepath"
 	"time"
 
 	"github.com/lib/pq"
@@ -38,26 +37,14 @@ var _ = Describe("Auth", func() {
 		atcBin, err := gexec.Build("github.com/concourse/atc/cmd/atc")
 		Ω(err).ShouldNot(HaveOccurred())
 
-		atcPort = 5697 + uint16(GinkgoParallelNode())
-		debugPort := 6697 + uint16(GinkgoParallelNode())
-
-		atcCommand := exec.Command(
+		var atcCommand *exec.Cmd
+		atcCommand, atcPort = createATCCommandWithFlags(
 			atcBin,
-			"-webListenPort", fmt.Sprintf("%d", atcPort),
-			"-debugListenPort", fmt.Sprintf("%d", debugPort),
-			"-httpUsername", "admin",
-			"-httpHashedPassword", "$2a$04$Cl3vCfrp01EM9NGekxL59uPusP/hBIM3toCkCuECK3saCbOAyrg/O", // "password"
-			"-templates", filepath.Join("..", "web", "templates"),
-			"-public", filepath.Join("..", "web", "public"),
-			"-sqlDataSource", postgresRunner.DataSourceName(),
-		)
-		atcRunner := ginkgomon.New(ginkgomon.Config{
-			Command:       atcCommand,
-			Name:          "atc",
-			StartCheck:    "atc.listening",
-			AnsiColorCode: "32m",
-		})
-		atcProcess = ginkgomon.Invoke(atcRunner)
+			1,
+			map[string]string{
+				"-publiclyViewable": "false",
+			})
+		atcProcess = startATC(atcCommand)
 	})
 
 	AfterEach(func() {
@@ -69,10 +56,15 @@ var _ = Describe("Auth", func() {
 		postgresRunner.DropTestDB()
 	})
 
-	It("can reach the page", func() {
+	It("requires authentication to reach the page", func() {
 		request, err := http.NewRequest("GET", fmt.Sprintf("http://127.0.0.1:%d", atcPort), nil)
 
 		resp, err := http.DefaultClient.Do(request)
+		Ω(err).ShouldNot(HaveOccurred())
+		Ω(resp.StatusCode).Should(Equal(http.StatusUnauthorized))
+
+		request.SetBasicAuth("admin", "wrongpassword")
+		resp, err = http.DefaultClient.Do(request)
 		Ω(err).ShouldNot(HaveOccurred())
 		Ω(resp.StatusCode).Should(Equal(http.StatusUnauthorized))
 
