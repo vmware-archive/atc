@@ -6605,6 +6605,9 @@ Elm.Ansi.make = function (_elm) {
    var EraseDisplay = function (a) {
       return {ctor: "EraseDisplay",_0: a};
    };
+   var CursorColumn = function (a) {
+      return {ctor: "CursorColumn",_0: a};
+   };
    var CursorPosition = F2(function (a,b) {
       return {ctor: "CursorPosition",_0: a,_1: b};
    });
@@ -6847,6 +6850,17 @@ Elm.Ansi.make = function (_elm) {
               case "D": return A2(completeBracketed,
                 parser,
                 _U.list([CursorBack(A2($Maybe.withDefault,1,_p19))]));
+              case "E": return A2(completeBracketed,
+                parser,
+                _U.list([CursorDown(A2($Maybe.withDefault,1,_p19))
+                        ,CursorColumn(0)]));
+              case "F": return A2(completeBracketed,
+                parser,
+                _U.list([CursorUp(A2($Maybe.withDefault,1,_p19))
+                        ,CursorColumn(0)]));
+              case "G": return A2(completeBracketed,
+                parser,
+                _U.list([CursorColumn(A2($Maybe.withDefault,0,_p19))]));
               case "H": return A2(completeBracketed,
                 parser,
                 cursorPosition(A2($Basics._op["++"],_p18,_U.list([_p19]))));
@@ -6932,6 +6946,7 @@ Elm.Ansi.make = function (_elm) {
                              ,CursorForward: CursorForward
                              ,CursorBack: CursorBack
                              ,CursorPosition: CursorPosition
+                             ,CursorColumn: CursorColumn
                              ,EraseDisplay: EraseDisplay
                              ,EraseLine: EraseLine
                              ,SaveCursorPosition: SaveCursorPosition
@@ -8103,21 +8118,26 @@ Elm.Ansi.Log.make = function (_elm) {
       line,
       lines) : A3($Array.set,row,line,lines);
    });
-   var init = {lines: $Array.empty
-              ,position: {row: 0,column: 0}
-              ,savedPosition: $Maybe.Nothing
-              ,style: {foreground: $Maybe.Nothing
-                      ,background: $Maybe.Nothing
-                      ,bold: false
-                      ,faint: false
-                      ,italic: false
-                      ,underline: false
-                      ,inverted: false}
-              ,remainder: ""};
    var moveCursor = F3(function (r,c,pos) {
       return _U.update(pos,
       {row: pos.row + r,column: pos.column + c});
    });
+   var init = function (ldisc) {
+      return {lineDiscipline: ldisc
+             ,lines: $Array.empty
+             ,position: {row: 0,column: 0}
+             ,savedPosition: $Maybe.Nothing
+             ,style: {foreground: $Maybe.Nothing
+                     ,background: $Maybe.Nothing
+                     ,bold: false
+                     ,faint: false
+                     ,italic: false
+                     ,underline: false
+                     ,inverted: false}
+             ,remainder: ""};
+   };
+   var Cooked = {ctor: "Cooked"};
+   var Raw = {ctor: "Raw"};
    var CursorPosition = F2(function (a,b) {
       return {row: a,column: b};
    });
@@ -8151,8 +8171,14 @@ Elm.Ansi.Log.make = function (_elm) {
            model.position)});
          case "CarriageReturn": return _U.update(model,
            {position: A2(CursorPosition,model.position.row,0)});
-         case "Linebreak": return _U.update(model,
-           {position: A3(moveCursor,1,0,model.position)});
+         case "Linebreak": var _p9 = model.lineDiscipline;
+           if (_p9.ctor === "Raw") {
+                 return _U.update(model,
+                 {position: A3(moveCursor,1,0,model.position)});
+              } else {
+                 return _U.update(model,
+                 {position: A2(CursorPosition,model.position.row + 1,0)});
+              }
          case "Remainder": return _U.update(model,{remainder: _p7._0});
          case "CursorUp": return _U.update(model,
            {position: A3(moveCursor,0 - _p7._0,0,model.position)});
@@ -8164,14 +8190,16 @@ Elm.Ansi.Log.make = function (_elm) {
            {position: A3(moveCursor,0,0 - _p7._0,model.position)});
          case "CursorPosition": return _U.update(model,
            {position: A2(CursorPosition,_p7._0 - 1,_p7._1 - 1)});
+         case "CursorColumn": return _U.update(model,
+           {position: A2(CursorPosition,model.position.row,_p7._0)});
          case "SaveCursorPosition": return _U.update(model,
            {savedPosition: $Maybe.Just(model.position)});
          case "RestoreCursorPosition": return _U.update(model,
            {position: A2($Maybe.withDefault,
            model.position,
            model.savedPosition)});
-         case "EraseLine": var _p9 = _p7._0;
-           switch (_p9.ctor)
+         case "EraseLine": var _p10 = _p7._0;
+           switch (_p10.ctor)
            {case "EraseToBeginning":
               var lineToChange = A2($Maybe.withDefault,
                 _U.list([]),
@@ -8202,12 +8230,13 @@ Elm.Ansi.Log.make = function (_elm) {
       handleAction,
       A2($Basics._op["++"],model.remainder,str));
    });
-   var Window = F5(function (a,b,c,d,e) {
-      return {lines: a
-             ,position: b
-             ,savedPosition: c
-             ,style: d
-             ,remainder: e};
+   var Window = F6(function (a,b,c,d,e,f) {
+      return {lineDiscipline: a
+             ,lines: b
+             ,position: c
+             ,savedPosition: d
+             ,style: e
+             ,remainder: f};
    });
    return _elm.Ansi.Log.values = {_op: _op
                                  ,init: init
@@ -8215,7 +8244,9 @@ Elm.Ansi.Log.make = function (_elm) {
                                  ,Window: Window
                                  ,Chunk: Chunk
                                  ,CursorPosition: CursorPosition
-                                 ,Style: Style};
+                                 ,Style: Style
+                                 ,Raw: Raw
+                                 ,Cooked: Cooked};
 };
 Elm.Dict = Elm.Dict || {};
 Elm.Dict.make = function (_elm) {
@@ -8296,7 +8327,7 @@ Elm.Dict.make = function (_elm) {
                                                         ,lgot
                                                         ,"/"
                                                         ,rgot
-                                                        ,"\nPlease report this bug to <https://github.com/elm-lang/Elm/issues>"])));
+                                                        ,"\nPlease report this bug to <https://github.com/elm-lang/core/issues>"])));
    });
    var isBBlack = function (dict) {
       var _p2 = dict;
@@ -13196,7 +13227,7 @@ Elm.StepTree.make = function (_elm) {
    var initBottom = F3(function (create,id,name) {
       var step = {name: name
                  ,state: StepStatePending
-                 ,log: $Ansi$Log.init};
+                 ,log: $Ansi$Log.init($Ansi$Log.Cooked)};
       return {tree: create(step)
              ,foci: A2($Dict.singleton,
              id,
