@@ -8327,7 +8327,7 @@ Elm.Dict.make = function (_elm) {
                                                         ,lgot
                                                         ,"/"
                                                         ,rgot
-                                                        ,"\nPlease report this bug to <https://github.com/elm-lang/core/issues>"])));
+                                                        ,"\nPlease report this bug to <https://github.com/elm-lang/Elm/issues>"])));
    });
    var isBBlack = function (dict) {
       var _p2 = dict;
@@ -12923,6 +12923,9 @@ Elm.BuildEvent.make = function (_elm) {
    A2($Json$Decode._op[":="],"event",$Json$Decode.string),
    A2($Json$Decode._op[":="],"version",$Json$Decode.string),
    A2($Json$Decode._op[":="],"data",$Json$Decode.value));
+   var Error = F2(function (a,b) {
+      return {ctor: "Error",_0: a,_1: b};
+   });
    var Log = F2(function (a,b) {
       return {ctor: "Log",_0: a,_1: b};
    });
@@ -12946,6 +12949,12 @@ Elm.BuildEvent.make = function (_elm) {
            Log,
            A2($Json$Decode._op[":="],"origin",decodeOrigin),
            A2($Json$Decode._op[":="],"payload",$Json$Decode.string)),
+           e.value);
+         case "error": return A2($Json$Decode.decodeValue,
+           A3($Json$Decode.object2,
+           Error,
+           A2($Json$Decode._op[":="],"origin",decodeOrigin),
+           A2($Json$Decode._op[":="],"message",$Json$Decode.string)),
            e.value);
          case "finish-task": return A2($Json$Decode.decodeValue,
            A3($Json$Decode.object2,
@@ -12971,6 +12980,7 @@ Elm.BuildEvent.make = function (_elm) {
                                    ,FinishGet: FinishGet
                                    ,FinishTask: FinishTask
                                    ,Log: Log
+                                   ,Error: Error
                                    ,BuildEventEnvelope: BuildEventEnvelope
                                    ,Origin: Origin
                                    ,StepTypeTask: StepTypeTask
@@ -13187,12 +13197,12 @@ Elm.StepTree.make = function (_elm) {
                   return _p1._0;
                } else {
                   return _U.crashCase("StepTree",
-                  {start: {line: 222,column: 7},end: {line: 227,column: 35}},
+                  {start: {line: 224,column: 7},end: {line: 229,column: 35}},
                   _p1)("impossible");
                }
          } else {
             return _U.crashCase("StepTree",
-            {start: {line: 220,column: 3},end: {line: 230,column: 31}},
+            {start: {line: 222,column: 3},end: {line: 232,column: 31}},
             _p0)("impossible");
          }
    });
@@ -13203,7 +13213,7 @@ Elm.StepTree.make = function (_elm) {
          case "OnFailure": return _p4._0.hook;
          case "Ensure": return _p4._0.hook;
          default: return _U.crashCase("StepTree",
-           {start: {line: 190,column: 3},end: {line: 201,column: 31}},
+           {start: {line: 192,column: 3},end: {line: 203,column: 31}},
            _p4)("impossible");}
    };
    var getStep = function (tree) {
@@ -13215,7 +13225,7 @@ Elm.StepTree.make = function (_elm) {
          case "Try": return _p6._0;
          case "Timeout": return _p6._0;
          default: return _U.crashCase("StepTree",
-           {start: {line: 144,column: 3},end: {line: 161,column: 31}},
+           {start: {line: 146,column: 3},end: {line: 163,column: 31}},
            _p6)("impossible");}
    };
    var Root = F2(function (a,b) {    return {tree: a,foci: b};});
@@ -13227,14 +13237,15 @@ Elm.StepTree.make = function (_elm) {
    var initBottom = F3(function (create,id,name) {
       var step = {name: name
                  ,state: StepStatePending
-                 ,log: $Ansi$Log.init($Ansi$Log.Cooked)};
+                 ,log: $Ansi$Log.init($Ansi$Log.Cooked)
+                 ,error: $Maybe.Nothing};
       return {tree: create(step)
              ,foci: A2($Dict.singleton,
              id,
              A2($Focus.create,$Basics.identity,$Basics.identity))};
    });
-   var Step = F3(function (a,b,c) {
-      return {name: a,state: b,log: c};
+   var Step = F4(function (a,b,c,d) {
+      return {name: a,state: b,log: c,error: d};
    });
    var HookedStep = F2(function (a,b) {
       return {step: a,hook: b};
@@ -13262,7 +13273,7 @@ Elm.StepTree.make = function (_elm) {
          case "Try": return Try(update(_p8._0));
          case "Timeout": return Timeout(update(_p8._0));
          default: return _U.crashCase("StepTree",
-           {start: {line: 165,column: 3},end: {line: 182,column: 31}},
+           {start: {line: 167,column: 3},end: {line: 184,column: 31}},
            _p8)("impossible");}
    });
    var wrapStep = F2(function (id,subFocus) {
@@ -13280,7 +13291,7 @@ Elm.StepTree.make = function (_elm) {
          case "Ensure": var _p16 = _p13._0;
            return Ensure(_U.update(_p16,{hook: update(_p16.hook)}));
          default: return _U.crashCase("StepTree",
-           {start: {line: 205,column: 3},end: {line: 216,column: 31}},
+           {start: {line: 207,column: 3},end: {line: 218,column: 31}},
            _p13)("impossible");}
    });
    var wrapHook = F2(function (id,subFocus) {
@@ -13300,7 +13311,7 @@ Elm.StepTree.make = function (_elm) {
             _p18._0));
          } else {
             return _U.crashCase("StepTree",
-            {start: {line: 234,column: 3},end: {line: 239,column: 31}},
+            {start: {line: 236,column: 3},end: {line: 241,column: 31}},
             _p18)("impossible");
          }
    });
@@ -13308,7 +13319,7 @@ Elm.StepTree.make = function (_elm) {
       var _p20 = A2($Dict.get,plan.id,subFoci);
       if (_p20.ctor === "Nothing") {
             return _U.crashCase("StepTree",
-            {start: {line: 131,column: 3},end: {line: 136,column: 74}},
+            {start: {line: 133,column: 3},end: {line: 138,column: 74}},
             _p20)("welp");
          } else {
             return {ctor: "_Tuple2"
@@ -13578,88 +13589,129 @@ Elm.Build.make = function (_elm) {
                       ,A2($Html.h3,_U.list([]),_U.list([$Html.text(_p4.name)]))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("step-body")]),
-              _U.list([viewStepLog(_p4.log)]))]));
+              _U.list([viewStepLog(_p4.log)]))
+              ,function () {
+                 var _p5 = _p4.error;
+                 if (_p5.ctor === "Nothing") {
+                       return A2($Html.div,_U.list([]),_U.list([]));
+                    } else {
+                       return A2($Html.div,
+                       _U.list([$Html$Attributes.$class("step-error")]),
+                       _U.list([A2($Html.span,
+                       _U.list([$Html$Attributes.$class("error")]),
+                       _U.list([$Html.text(_p5._0)]))]));
+                    }
+              }()]));
    });
    var viewStepTree = function (tree) {
-      var _p5 = tree;
-      switch (_p5.ctor)
-      {case "Task": return A2(viewStep,_p5._0,"fa-terminal");
-         case "Get": return A2(viewStep,_p5._0,"fa-arrow-down");
+      var _p6 = tree;
+      switch (_p6.ctor)
+      {case "Task": return A2(viewStep,_p6._0,"fa-terminal");
+         case "Get": return A2(viewStep,_p6._0,"fa-arrow-down");
          case "Aggregate": return A2($Html.div,
            _U.list([$Html$Attributes.$class("aggregate")]),
-           $Array.toList(A2($Array.map,viewStepTree,_p5._0)));
+           $Array.toList(A2($Array.map,viewStepTree,_p6._0)));
          case "OnSuccess": return A2($Html.div,
            _U.list([$Html$Attributes.$class("on-success")]),
            _U.list([A2($Html.div,
                    _U.list([$Html$Attributes.$class("step")]),
-                   _U.list([viewStepTree(_p5._0.step)]))
+                   _U.list([viewStepTree(_p6._0.step)]))
                    ,A2($Html.div,
                    _U.list([$Html$Attributes.$class("children hook-success")]),
-                   _U.list([viewStepTree(_p5._0.hook)]))]));
+                   _U.list([viewStepTree(_p6._0.hook)]))]));
          default: return $Html.text("not implemented");}
    };
    var view = F2(function (action,model) {
-      var _p6 = model.stepRoot;
-      if (_p6.ctor === "Nothing") {
+      var _p7 = model.stepRoot;
+      if (_p7.ctor === "Nothing") {
             return $Html.text("loading...");
          } else {
             return A2($Html.div,
             _U.list([$Html$Attributes.$class("steps")]),
-            _U.list([viewStepTree(_p6._0.tree)]));
+            _U.list([viewStepTree(_p7._0.tree)]));
          }
    });
    var setStepState = F2(function (state,tree) {
-      var _p7 = tree;
-      switch (_p7.ctor)
-      {case "Task": return $StepTree.Task(_U.update(_p7._0,
+      var _p8 = tree;
+      switch (_p8.ctor)
+      {case "Task": return $StepTree.Task(_U.update(_p8._0,
            {state: state}));
          case "Get": return A2($StepTree.Get,
-           _U.update(_p7._0,{state: state}),
-           _p7._1);
+           _U.update(_p8._0,{state: state}),
+           _p8._1);
          default: return tree;}
    });
-   var finishStep = F3(function (id,exitStatus,_p8) {
-      var _p9 = _p8;
-      var _p12 = _p9.tree;
-      var _p11 = _p9.foci;
-      var _p10 = A2($Dict.get,id,_p11);
-      if (_p10.ctor === "Nothing") {
-            return {tree: _p12,foci: _p11};
+   var finishStep = F3(function (id,exitStatus,_p9) {
+      var _p10 = _p9;
+      var _p13 = _p10.tree;
+      var _p12 = _p10.foci;
+      var _p11 = A2($Dict.get,id,_p12);
+      if (_p11.ctor === "Nothing") {
+            return {tree: _p13,foci: _p12};
          } else {
             var stepState = _U.eq(exitStatus,
             0) ? $StepTree.StepStateSucceeded : $StepTree.StepStateFailed;
             return {tree: A3($Focus.update,
-                   _p10._0,
+                   _p11._0,
                    setStepState(stepState),
-                   _p12)
-                   ,foci: _p11};
+                   _p13)
+                   ,foci: _p12};
          }
    });
-   var appendStepLog = F2(function (output,tree) {
-      var _p13 = tree;
-      switch (_p13.ctor)
-      {case "Task": var _p14 = _p13._0;
-           return $StepTree.Task(_U.update(_p14,
-           {log: A2($Ansi$Log.update,output,_p14.log)}));
-         case "Get": var _p15 = _p13._0;
-           return A2($StepTree.Get,
-           _U.update(_p15,{log: A2($Ansi$Log.update,output,_p15.log)}),
-           _p13._1);
+   var setStepError = F2(function (message,tree) {
+      var _p14 = tree;
+      switch (_p14.ctor)
+      {case "Task": return $StepTree.Task(_U.update(_p14._0,
+           {error: $Maybe.Just(message)}));
+         case "Get": return A2($StepTree.Get,
+           _U.update(_p14._0,{error: $Maybe.Just(message)}),
+           _p14._1);
          default: return tree;}
    });
-   var appendLog = F3(function (id,output,_p16) {
-      var _p17 = _p16;
-      var _p20 = _p17.tree;
-      var _p19 = _p17.foci;
-      var _p18 = A2($Dict.get,id,_p19);
-      if (_p18.ctor === "Nothing") {
+   var setError = F3(function (id,message,_p15) {
+      var _p16 = _p15;
+      var _p20 = _p16.tree;
+      var _p19 = _p16.foci;
+      var _p17 = A2($Dict.get,id,_p19);
+      if (_p17.ctor === "Nothing") {
             return {tree: _p20,foci: _p19};
          } else {
             return {tree: A3($Focus.update,
-                   _p18._0,
-                   appendStepLog(output),
+                   _p17._0,
+                   function (_p18) {
+                      return A2(setStepState,
+                      $StepTree.StepStateErrored,
+                      A2(setStepError,message,_p18));
+                   },
                    _p20)
                    ,foci: _p19};
+         }
+   });
+   var appendStepLog = F2(function (output,tree) {
+      var _p21 = tree;
+      switch (_p21.ctor)
+      {case "Task": var _p22 = _p21._0;
+           return $StepTree.Task(_U.update(_p22,
+           {log: A2($Ansi$Log.update,output,_p22.log)}));
+         case "Get": var _p23 = _p21._0;
+           return A2($StepTree.Get,
+           _U.update(_p23,{log: A2($Ansi$Log.update,output,_p23.log)}),
+           _p21._1);
+         default: return tree;}
+   });
+   var appendLog = F3(function (id,output,_p24) {
+      var _p25 = _p24;
+      var _p28 = _p25.tree;
+      var _p27 = _p25.foci;
+      var _p26 = A2($Dict.get,id,_p27);
+      if (_p26.ctor === "Nothing") {
+            return {tree: _p28,foci: _p27};
+         } else {
+            return {tree: A3($Focus.update,
+                   _p26._0,
+                   appendStepLog(output),
+                   _p28)
+                   ,foci: _p27};
          }
    });
    var Closed = {ctor: "Closed"};
@@ -13683,8 +13735,8 @@ Elm.Build.make = function (_elm) {
       "event",
       A2($Signal.forwardTo,
       actions,
-      function (_p21) {
-         return Event(parseEvent(_p21));
+      function (_p29) {
+         return Event(parseEvent(_p29));
       }));
       var settings = A2($EventSource.Settings,
       $Maybe.Just(A2($Signal.forwardTo,
@@ -13703,25 +13755,25 @@ Elm.Build.make = function (_elm) {
       A2($Task.andThen,A2($Task.andThen,connect,eventsSub),endSub)));
    });
    var update = F2(function (action,model) {
-      var _p22 = action;
-      switch (_p22.ctor)
+      var _p30 = action;
+      switch (_p30.ctor)
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
-         case "PlanFetched": if (_p22._0.ctor === "Err") {
+         case "PlanFetched": if (_p30._0.ctor === "Err") {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch plan: ",
-                 $Basics.toString(_p22._0._0)),
+                 $Basics.toString(_p30._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,
-                        {stepRoot: $Maybe.Just($StepTree.init(_p22._0._0))})
+                        {stepRoot: $Maybe.Just($StepTree.init(_p30._0._0))})
                         ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
               }
          case "Listening": return {ctor: "_Tuple2"
-                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p22._0)})
+                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p30._0)})
                                   ,_1: $Effects.none};
          case "Opened": return {ctor: "_Tuple2"
                                ,_0: model
@@ -13729,37 +13781,43 @@ Elm.Build.make = function (_elm) {
          case "Errored": return {ctor: "_Tuple2"
                                 ,_0: model
                                 ,_1: $Effects.none};
-         case "Event": if (_p22._0.ctor === "Ok") {
-                 switch (_p22._0._0.ctor)
+         case "Event": if (_p30._0.ctor === "Ok") {
+                 switch (_p30._0._0.ctor)
                  {case "Log": return {ctor: "_Tuple2"
                                      ,_0: _U.update(model,
                                      {stepRoot: A2($Maybe.map,
-                                     A2(appendLog,_p22._0._0._0.id,_p22._0._0._1),
+                                     A2(appendLog,_p30._0._0._0.id,_p30._0._0._1),
                                      model.stepRoot)})
                                      ,_1: $Effects.none};
+                    case "Error": return {ctor: "_Tuple2"
+                                         ,_0: _U.update(model,
+                                         {stepRoot: A2($Maybe.map,
+                                         A2(setError,_p30._0._0._0.id,_p30._0._0._1),
+                                         model.stepRoot)})
+                                         ,_1: $Effects.none};
                     case "FinishTask": return {ctor: "_Tuple2"
                                               ,_0: _U.update(model,
                                               {stepRoot: A2($Maybe.map,
-                                              A2(finishStep,_p22._0._0._0.id,_p22._0._0._1),
+                                              A2(finishStep,_p30._0._0._0.id,_p30._0._0._1),
                                               model.stepRoot)})
                                               ,_1: $Effects.none};
                     case "FinishGet": return {ctor: "_Tuple2"
                                              ,_0: _U.update(model,
                                              {stepRoot: A2($Maybe.map,
-                                             A2(finishStep,_p22._0._0._0.id,_p22._0._0._1),
+                                             A2(finishStep,_p30._0._0._0.id,_p30._0._0._1),
                                              model.stepRoot)})
                                              ,_1: $Effects.none};
                     default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: A2($Debug.log,_p22._0._0,$Effects.none)};
+                        ,_1: A2($Debug.log,_p30._0._0,$Effects.none)};
               }
-         case "EndOfEvents": var _p23 = model.eventSource;
-           if (_p23.ctor === "Just") {
+         case "EndOfEvents": var _p31 = model.eventSource;
+           if (_p31.ctor === "Just") {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{eventsLoaded: true})
-                        ,_1: closeEvents(_p23._0)};
+                        ,_1: closeEvents(_p31._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }
@@ -13809,6 +13867,8 @@ Elm.Build.make = function (_elm) {
                               ,update: update
                               ,appendLog: appendLog
                               ,appendStepLog: appendStepLog
+                              ,setError: setError
+                              ,setStepError: setStepError
                               ,finishStep: finishStep
                               ,setStepState: setStepState
                               ,view: view
