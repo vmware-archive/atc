@@ -13604,22 +13604,47 @@ Elm.Build.make = function (_elm) {
               }()]));
    });
    var viewStepTree = function (tree) {
-      var _p6 = tree;
-      switch (_p6.ctor)
-      {case "Task": return A2(viewStep,_p6._0,"fa-terminal");
-         case "Get": return A2(viewStep,_p6._0,"fa-arrow-down");
-         case "Aggregate": return A2($Html.div,
-           _U.list([$Html$Attributes.$class("aggregate")]),
-           $Array.toList(A2($Array.map,viewStepTree,_p6._0)));
-         case "OnSuccess": return A2($Html.div,
-           _U.list([$Html$Attributes.$class("on-success")]),
-           _U.list([A2($Html.div,
-                   _U.list([$Html$Attributes.$class("step")]),
-                   _U.list([viewStepTree(_p6._0.step)]))
-                   ,A2($Html.div,
-                   _U.list([$Html$Attributes.$class("children hook-success")]),
-                   _U.list([viewStepTree(_p6._0.hook)]))]));
-         default: return $Html.text("not implemented");}
+      viewStepTree: while (true) {
+         var _p6 = tree;
+         switch (_p6.ctor)
+         {case "Task": return A2(viewStep,_p6._0,"fa-terminal");
+            case "Get": return A2(viewStep,_p6._0,"fa-arrow-down");
+            case "DependentGet": return A2(viewStep,_p6._0,"fa-arrow-down");
+            case "Put": return A2(viewStep,_p6._0,"fa-arrow-up");
+            case "Try": var _v6 = _p6._0;
+              tree = _v6;
+              continue viewStepTree;
+            case "Timeout": var _v7 = _p6._0;
+              tree = _v7;
+              continue viewStepTree;
+            case "Aggregate": return A2($Html.div,
+              _U.list([$Html$Attributes.$class("aggregate")]),
+              $Array.toList(A2($Array.map,viewStepTree,_p6._0)));
+            case "OnSuccess": return A2($Html.div,
+              _U.list([$Html$Attributes.$class("on-success")]),
+              _U.list([A2($Html.div,
+                      _U.list([$Html$Attributes.$class("step")]),
+                      _U.list([viewStepTree(_p6._0.step)]))
+                      ,A2($Html.div,
+                      _U.list([$Html$Attributes.$class("children hook-success")]),
+                      _U.list([viewStepTree(_p6._0.hook)]))]));
+            case "OnFailure": return A2($Html.div,
+              _U.list([$Html$Attributes.$class("on-failure")]),
+              _U.list([A2($Html.div,
+                      _U.list([$Html$Attributes.$class("step")]),
+                      _U.list([viewStepTree(_p6._0.step)]))
+                      ,A2($Html.div,
+                      _U.list([$Html$Attributes.$class("children hook-failure")]),
+                      _U.list([viewStepTree(_p6._0.hook)]))]));
+            default: return A2($Html.div,
+              _U.list([$Html$Attributes.$class("ensure")]),
+              _U.list([A2($Html.div,
+                      _U.list([$Html$Attributes.$class("step")]),
+                      _U.list([viewStepTree(_p6._0.step)]))
+                      ,A2($Html.div,
+                      _U.list([$Html$Attributes.$class("children hook-ensure")]),
+                      _U.list([viewStepTree(_p6._0.hook)]))]));}
+      }
    };
    var view = F2(function (action,model) {
       var _p7 = model.stepRoot;
@@ -13670,48 +13695,44 @@ Elm.Build.make = function (_elm) {
    });
    var setError = F3(function (id,message,_p15) {
       var _p16 = _p15;
-      var _p20 = _p16.tree;
-      var _p19 = _p16.foci;
-      var _p17 = A2($Dict.get,id,_p19);
+      var _p19 = _p16.tree;
+      var _p18 = _p16.foci;
+      var _p17 = A2($Dict.get,id,_p18);
       if (_p17.ctor === "Nothing") {
-            return {tree: _p20,foci: _p19};
+            return {tree: _p19,foci: _p18};
          } else {
             return {tree: A3($Focus.update,
                    _p17._0,
-                   function (_p18) {
-                      return A2(setStepState,
-                      $StepTree.StepStateErrored,
-                      A2(setStepError,message,_p18));
-                   },
-                   _p20)
-                   ,foci: _p19};
+                   setStepError(message),
+                   _p19)
+                   ,foci: _p18};
          }
    });
    var appendStepLog = F2(function (output,tree) {
-      var _p21 = tree;
-      switch (_p21.ctor)
-      {case "Task": var _p22 = _p21._0;
-           return $StepTree.Task(_U.update(_p22,
-           {log: A2($Ansi$Log.update,output,_p22.log)}));
-         case "Get": var _p23 = _p21._0;
+      var _p20 = tree;
+      switch (_p20.ctor)
+      {case "Task": var _p21 = _p20._0;
+           return $StepTree.Task(_U.update(_p21,
+           {log: A2($Ansi$Log.update,output,_p21.log)}));
+         case "Get": var _p22 = _p20._0;
            return A2($StepTree.Get,
-           _U.update(_p23,{log: A2($Ansi$Log.update,output,_p23.log)}),
-           _p21._1);
+           _U.update(_p22,{log: A2($Ansi$Log.update,output,_p22.log)}),
+           _p20._1);
          default: return tree;}
    });
-   var appendLog = F3(function (id,output,_p24) {
-      var _p25 = _p24;
-      var _p28 = _p25.tree;
-      var _p27 = _p25.foci;
-      var _p26 = A2($Dict.get,id,_p27);
-      if (_p26.ctor === "Nothing") {
-            return {tree: _p28,foci: _p27};
+   var appendLog = F3(function (id,output,_p23) {
+      var _p24 = _p23;
+      var _p27 = _p24.tree;
+      var _p26 = _p24.foci;
+      var _p25 = A2($Dict.get,id,_p26);
+      if (_p25.ctor === "Nothing") {
+            return {tree: _p27,foci: _p26};
          } else {
             return {tree: A3($Focus.update,
-                   _p26._0,
+                   _p25._0,
                    appendStepLog(output),
-                   _p28)
-                   ,foci: _p27};
+                   _p27)
+                   ,foci: _p26};
          }
    });
    var Closed = {ctor: "Closed"};
@@ -13735,8 +13756,8 @@ Elm.Build.make = function (_elm) {
       "event",
       A2($Signal.forwardTo,
       actions,
-      function (_p29) {
-         return Event(parseEvent(_p29));
+      function (_p28) {
+         return Event(parseEvent(_p28));
       }));
       var settings = A2($EventSource.Settings,
       $Maybe.Just(A2($Signal.forwardTo,
@@ -13755,25 +13776,25 @@ Elm.Build.make = function (_elm) {
       A2($Task.andThen,A2($Task.andThen,connect,eventsSub),endSub)));
    });
    var update = F2(function (action,model) {
-      var _p30 = action;
-      switch (_p30.ctor)
+      var _p29 = action;
+      switch (_p29.ctor)
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
-         case "PlanFetched": if (_p30._0.ctor === "Err") {
+         case "PlanFetched": if (_p29._0.ctor === "Err") {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch plan: ",
-                 $Basics.toString(_p30._0._0)),
+                 $Basics.toString(_p29._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,
-                        {stepRoot: $Maybe.Just($StepTree.init(_p30._0._0))})
+                        {stepRoot: $Maybe.Just($StepTree.init(_p29._0._0))})
                         ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
               }
          case "Listening": return {ctor: "_Tuple2"
-                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p30._0)})
+                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p29._0)})
                                   ,_1: $Effects.none};
          case "Opened": return {ctor: "_Tuple2"
                                ,_0: model
@@ -13781,43 +13802,43 @@ Elm.Build.make = function (_elm) {
          case "Errored": return {ctor: "_Tuple2"
                                 ,_0: model
                                 ,_1: $Effects.none};
-         case "Event": if (_p30._0.ctor === "Ok") {
-                 switch (_p30._0._0.ctor)
+         case "Event": if (_p29._0.ctor === "Ok") {
+                 switch (_p29._0._0.ctor)
                  {case "Log": return {ctor: "_Tuple2"
                                      ,_0: _U.update(model,
                                      {stepRoot: A2($Maybe.map,
-                                     A2(appendLog,_p30._0._0._0.id,_p30._0._0._1),
+                                     A2(appendLog,_p29._0._0._0.id,_p29._0._0._1),
                                      model.stepRoot)})
                                      ,_1: $Effects.none};
                     case "Error": return {ctor: "_Tuple2"
                                          ,_0: _U.update(model,
                                          {stepRoot: A2($Maybe.map,
-                                         A2(setError,_p30._0._0._0.id,_p30._0._0._1),
+                                         A2(setError,_p29._0._0._0.id,_p29._0._0._1),
                                          model.stepRoot)})
                                          ,_1: $Effects.none};
                     case "FinishTask": return {ctor: "_Tuple2"
                                               ,_0: _U.update(model,
                                               {stepRoot: A2($Maybe.map,
-                                              A2(finishStep,_p30._0._0._0.id,_p30._0._0._1),
+                                              A2(finishStep,_p29._0._0._0.id,_p29._0._0._1),
                                               model.stepRoot)})
                                               ,_1: $Effects.none};
                     case "FinishGet": return {ctor: "_Tuple2"
                                              ,_0: _U.update(model,
                                              {stepRoot: A2($Maybe.map,
-                                             A2(finishStep,_p30._0._0._0.id,_p30._0._0._1),
+                                             A2(finishStep,_p29._0._0._0.id,_p29._0._0._1),
                                              model.stepRoot)})
                                              ,_1: $Effects.none};
                     default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: A2($Debug.log,_p30._0._0,$Effects.none)};
+                        ,_1: A2($Debug.log,_p29._0._0,$Effects.none)};
               }
-         case "EndOfEvents": var _p31 = model.eventSource;
-           if (_p31.ctor === "Just") {
+         case "EndOfEvents": var _p30 = model.eventSource;
+           if (_p30.ctor === "Just") {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{eventsLoaded: true})
-                        ,_1: closeEvents(_p31._0)};
+                        ,_1: closeEvents(_p30._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }
