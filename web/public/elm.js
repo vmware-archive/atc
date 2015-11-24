@@ -13691,6 +13691,7 @@ Elm.Build.make = function (_elm) {
       },
       tree);
    });
+   var setRunning = setStepState($StepTree.StepStateRunning);
    var updateStep = F3(function (id,update,root) {
       return A2($Maybe.map,A2($StepTree.update,id,update),root);
    });
@@ -13767,14 +13768,18 @@ Elm.Build.make = function (_elm) {
                                      ,_0: _U.update(model,
                                      {stepRoot: A3(updateStep,
                                      _p2._0._0._0.id,
-                                     appendStepLog(_p2._0._0._1),
+                                     function (_p3) {
+                                        return setRunning(A2(appendStepLog,_p2._0._0._1,_p3));
+                                     },
                                      model.stepRoot)})
                                      ,_1: $Effects.none};
                     case "Error": return {ctor: "_Tuple2"
                                          ,_0: _U.update(model,
                                          {stepRoot: A3(updateStep,
                                          _p2._0._0._0.id,
-                                         setStepError(_p2._0._0._1),
+                                         function (_p4) {
+                                            return setRunning(A2(setStepError,_p2._0._0._1,_p4));
+                                         },
                                          model.stepRoot)})
                                          ,_1: $Effects.none};
                     case "FinishTask": return {ctor: "_Tuple2"
@@ -13797,11 +13802,11 @@ Elm.Build.make = function (_elm) {
                         ,_0: model
                         ,_1: A2($Debug.log,_p2._0._0,$Effects.none)};
               }
-         case "EndOfEvents": var _p3 = model.eventSource;
-           if (_p3.ctor === "Just") {
+         case "EndOfEvents": var _p5 = model.eventSource;
+           if (_p5.ctor === "Just") {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{eventsLoaded: true})
-                        ,_1: closeEvents(_p3._0)};
+                        ,_1: closeEvents(_p5._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }
@@ -13850,6 +13855,7 @@ Elm.Build.make = function (_elm) {
                               ,init: init
                               ,update: update
                               ,updateStep: updateStep
+                              ,setRunning: setRunning
                               ,appendStepLog: appendStepLog
                               ,setStepError: setStepError
                               ,finishStep: finishStep
