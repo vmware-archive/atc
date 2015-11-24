@@ -13791,7 +13791,8 @@ Elm.Build.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StepTree = Elm.StepTree.make(_elm),
-   $Task = Elm.Task.make(_elm);
+   $Task = Elm.Task.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
    var parseEvent = function (e) {
       return A2($Json$Decode.decodeString,
@@ -13885,26 +13886,60 @@ Elm.Build.make = function (_elm) {
       Listening,
       A2($Task.andThen,A2($Task.andThen,connect,eventsSub),endSub)));
    });
+   var PlanFetched = function (a) {
+      return {ctor: "PlanFetched",_0: a};
+   };
+   var fetchBuildPlan = F2(function (delay,buildId) {
+      var fetchPlan = A2($Task.map,
+      PlanFetched,
+      $Task.toResult(A2($Http.get,
+      $BuildPlan.decode,
+      A2($Basics._op["++"],
+      "/api/v1/builds/",
+      A2($Basics._op["++"],$Basics.toString(buildId),"/plan")))));
+      return $Effects.task(A2($Task.andThen,
+      $Task.sleep(delay),
+      function (_p2) {
+         return fetchPlan;
+      }));
+   });
+   var init = F2(function (actions,buildId) {
+      var model = {actions: actions
+                  ,buildId: buildId
+                  ,stepRoot: $Maybe.Nothing
+                  ,eventSource: $Maybe.Nothing
+                  ,eventsLoaded: false};
+      return {ctor: "_Tuple2"
+             ,_0: model
+             ,_1: A2(fetchBuildPlan,0,buildId)};
+   });
    var update = F2(function (action,model) {
-      var _p2 = action;
-      switch (_p2.ctor)
+      var _p3 = action;
+      switch (_p3.ctor)
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
-         case "PlanFetched": if (_p2._0.ctor === "Err") {
-                 return A2($Debug.log,
-                 A2($Basics._op["++"],
-                 "failed to fetch plan: ",
-                 $Basics.toString(_p2._0._0)),
-                 {ctor: "_Tuple2",_0: model,_1: $Effects.none});
+         case "PlanFetched": if (_p3._0.ctor === "Err") {
+                 if (_p3._0._0.ctor === "BadResponse" && _p3._0._0._0 === 404)
+                 {
+                       return {ctor: "_Tuple2"
+                              ,_0: model
+                              ,_1: A2(fetchBuildPlan,$Time.second,model.buildId)};
+                    } else {
+                       return A2($Debug.log,
+                       A2($Basics._op["++"],
+                       "failed to fetch plan: ",
+                       $Basics.toString(_p3._0._0)),
+                       {ctor: "_Tuple2",_0: model,_1: $Effects.none});
+                    }
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,
-                        {stepRoot: $Maybe.Just($StepTree.init(_p2._0._0))})
+                        {stepRoot: $Maybe.Just($StepTree.init(_p3._0._0))})
                         ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
               }
          case "Listening": return {ctor: "_Tuple2"
-                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p2._0)})
+                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p3._0)})
                                   ,_1: $Effects.none};
          case "Opened": return {ctor: "_Tuple2"
                                ,_0: model
@@ -13912,104 +13947,84 @@ Elm.Build.make = function (_elm) {
          case "Errored": return {ctor: "_Tuple2"
                                 ,_0: model
                                 ,_1: $Effects.none};
-         case "Event": if (_p2._0.ctor === "Ok") {
-                 switch (_p2._0._0.ctor)
+         case "Event": if (_p3._0.ctor === "Ok") {
+                 switch (_p3._0._0.ctor)
                  {case "Log": return {ctor: "_Tuple2"
                                      ,_0: _U.update(model,
                                      {stepRoot: A3(updateStep,
-                                     _p2._0._0._0.id,
-                                     function (_p3) {
-                                        return setRunning(A2(appendStepLog,_p2._0._0._1,_p3));
+                                     _p3._0._0._0.id,
+                                     function (_p4) {
+                                        return setRunning(A2(appendStepLog,_p3._0._0._1,_p4));
                                      },
                                      model.stepRoot)})
                                      ,_1: $Effects.none};
                     case "Error": return {ctor: "_Tuple2"
                                          ,_0: _U.update(model,
                                          {stepRoot: A3(updateStep,
-                                         _p2._0._0._0.id,
-                                         function (_p4) {
-                                            return setRunning(A2(setStepError,_p2._0._0._1,_p4));
+                                         _p3._0._0._0.id,
+                                         function (_p5) {
+                                            return setRunning(A2(setStepError,_p3._0._0._1,_p5));
                                          },
                                          model.stepRoot)})
                                          ,_1: $Effects.none};
                     case "InitializeTask": return {ctor: "_Tuple2"
                                                   ,_0: _U.update(model,
                                                   {stepRoot: A3(updateStep,
-                                                  _p2._0._0._0.id,
+                                                  _p3._0._0._0.id,
                                                   setRunning,
                                                   model.stepRoot)})
                                                   ,_1: $Effects.none};
                     case "StartTask": return {ctor: "_Tuple2"
                                              ,_0: _U.update(model,
                                              {stepRoot: A3(updateStep,
-                                             _p2._0._0._0.id,
+                                             _p3._0._0._0.id,
                                              setRunning,
                                              model.stepRoot)})
                                              ,_1: $Effects.none};
                     case "FinishTask": return {ctor: "_Tuple2"
                                               ,_0: _U.update(model,
                                               {stepRoot: A3(updateStep,
-                                              _p2._0._0._0.id,
-                                              finishStep(_p2._0._0._1),
+                                              _p3._0._0._0.id,
+                                              finishStep(_p3._0._0._1),
                                               model.stepRoot)})
                                               ,_1: $Effects.none};
                     case "FinishGet": return {ctor: "_Tuple2"
                                              ,_0: _U.update(model,
                                              {stepRoot: A3(updateStep,
-                                             _p2._0._0._0.id,
-                                             finishStep(_p2._0._0._1),
+                                             _p3._0._0._0.id,
+                                             finishStep(_p3._0._0._1),
                                              model.stepRoot)})
                                              ,_1: $Effects.none};
                     case "FinishPut": return {ctor: "_Tuple2"
                                              ,_0: _U.update(model,
                                              {stepRoot: A3(updateStep,
-                                             _p2._0._0._0.id,
-                                             finishStep(_p2._0._0._1),
+                                             _p3._0._0._0.id,
+                                             finishStep(_p3._0._0._1),
                                              model.stepRoot)})
                                              ,_1: $Effects.none};
                     default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: A2($Debug.log,_p2._0._0,$Effects.none)};
+                        ,_1: A2($Debug.log,_p3._0._0,$Effects.none)};
               }
          case "StepTreeAction": return {ctor: "_Tuple2"
                                        ,_0: _U.update(model,
                                        {stepRoot: A2($Maybe.map,
-                                       $StepTree.update(_p2._0),
+                                       $StepTree.update(_p3._0),
                                        model.stepRoot)})
                                        ,_1: $Effects.none};
-         case "EndOfEvents": var _p5 = model.eventSource;
-           if (_p5.ctor === "Just") {
+         case "EndOfEvents": var _p6 = model.eventSource;
+           if (_p6.ctor === "Just") {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{eventsLoaded: true})
-                        ,_1: closeEvents(_p5._0)};
+                        ,_1: closeEvents(_p6._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }
          default: return {ctor: "_Tuple2"
                          ,_0: _U.update(model,{eventSource: $Maybe.Nothing})
                          ,_1: $Effects.none};}
-   });
-   var PlanFetched = function (a) {
-      return {ctor: "PlanFetched",_0: a};
-   };
-   var fetchBuildPlan = function (buildId) {
-      return $Effects.task(A2($Task.map,
-      PlanFetched,
-      $Task.toResult(A2($Http.get,
-      $BuildPlan.decode,
-      A2($Basics._op["++"],
-      "/api/v1/builds/",
-      A2($Basics._op["++"],$Basics.toString(buildId),"/plan"))))));
-   };
-   var init = F2(function (actions,buildId) {
-      var model = {actions: actions
-                  ,buildId: buildId
-                  ,stepRoot: $Maybe.Nothing
-                  ,eventSource: $Maybe.Nothing
-                  ,eventsLoaded: false};
-      return {ctor: "_Tuple2",_0: model,_1: fetchBuildPlan(buildId)};
    });
    var Noop = {ctor: "Noop"};
    var Model = F5(function (a,b,c,d,e) {
