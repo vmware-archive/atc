@@ -8248,6 +8248,987 @@ Elm.Ansi.Log.make = function (_elm) {
                                  ,Raw: Raw
                                  ,Cooked: Cooked};
 };
+Elm.Native.Effects = {};
+Elm.Native.Effects.make = function(localRuntime) {
+
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Effects = localRuntime.Native.Effects || {};
+	if (localRuntime.Native.Effects.values)
+	{
+		return localRuntime.Native.Effects.values;
+	}
+
+	var Task = Elm.Native.Task.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+	var Signal = Elm.Signal.make(localRuntime);
+	var List = Elm.Native.List.make(localRuntime);
+
+
+	// polyfill so things will work even if rAF is not available for some reason
+	var _requestAnimationFrame =
+		typeof requestAnimationFrame !== 'undefined'
+			? requestAnimationFrame
+			: function(cb) { setTimeout(cb, 1000 / 60); }
+			;
+
+
+	// batchedSending and sendCallback implement a small state machine in order
+	// to schedule only one send(time) call per animation frame.
+	//
+	// Invariants:
+	// 1. In the NO_REQUEST state, there is never a scheduled sendCallback.
+	// 2. In the PENDING_REQUEST and EXTRA_REQUEST states, there is always exactly
+	//    one scheduled sendCallback.
+	var NO_REQUEST = 0;
+	var PENDING_REQUEST = 1;
+	var EXTRA_REQUEST = 2;
+	var state = NO_REQUEST;
+	var messageArray = [];
+
+
+	function batchedSending(address, tickMessages)
+	{
+		// insert ticks into the messageArray
+		var foundAddress = false;
+
+		for (var i = messageArray.length; i--; )
+		{
+			if (messageArray[i].address === address)
+			{
+				foundAddress = true;
+				messageArray[i].tickMessages = A3(List.foldl, List.cons, messageArray[i].tickMessages, tickMessages);
+				break;
+			}
+		}
+
+		if (!foundAddress)
+		{
+			messageArray.push({ address: address, tickMessages: tickMessages });
+		}
+
+		// do the appropriate state transition
+		switch (state)
+		{
+			case NO_REQUEST:
+				_requestAnimationFrame(sendCallback);
+				state = PENDING_REQUEST;
+				break;
+			case PENDING_REQUEST:
+				state = PENDING_REQUEST;
+				break;
+			case EXTRA_REQUEST:
+				state = PENDING_REQUEST;
+				break;
+		}
+	}
+
+
+	function sendCallback(time)
+	{
+		switch (state)
+		{
+			case NO_REQUEST:
+				// This state should not be possible. How can there be no
+				// request, yet somehow we are actively fulfilling a
+				// request?
+				throw new Error(
+					'Unexpected send callback.\n' +
+					'Please report this to <https://github.com/evancz/elm-effects/issues>.'
+				);
+
+			case PENDING_REQUEST:
+				// At this point, we do not *know* that another frame is
+				// needed, but we make an extra request to rAF just in
+				// case. It's possible to drop a frame if rAF is called
+				// too late, so we just do it preemptively.
+				_requestAnimationFrame(sendCallback);
+				state = EXTRA_REQUEST;
+
+				// There's also stuff we definitely need to send.
+				send(time);
+				return;
+
+			case EXTRA_REQUEST:
+				// Turns out the extra request was not needed, so we will
+				// stop calling rAF. No reason to call it all the time if
+				// no one needs it.
+				state = NO_REQUEST;
+				return;
+		}
+	}
+
+
+	function send(time)
+	{
+		for (var i = messageArray.length; i--; )
+		{
+			var messages = A3(
+				List.foldl,
+				F2( function(toAction, list) { return List.Cons(toAction(time), list); } ),
+				List.Nil,
+				messageArray[i].tickMessages
+			);
+			Task.perform( A2(Signal.send, messageArray[i].address, messages) );
+		}
+		messageArray = [];
+	}
+
+
+	function requestTickSending(address, tickMessages)
+	{
+		return Task.asyncFunction(function(callback) {
+			batchedSending(address, tickMessages);
+			callback(Task.succeed(Utils.Tuple0));
+		});
+	}
+
+
+	return localRuntime.Native.Effects.values = {
+		requestTickSending: F2(requestTickSending)
+	};
+
+};
+
+Elm.Native.Time = {};
+
+Elm.Native.Time.make = function(localRuntime)
+{
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Time = localRuntime.Native.Time || {};
+	if (localRuntime.Native.Time.values)
+	{
+		return localRuntime.Native.Time.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+
+
+	// FRAMES PER SECOND
+
+	function fpsWhen(desiredFPS, isOn)
+	{
+		var msPerFrame = 1000 / desiredFPS;
+		var ticker = NS.input('fps-' + desiredFPS, null);
+
+		function notifyTicker()
+		{
+			localRuntime.notify(ticker.id, null);
+		}
+
+		function firstArg(x, y)
+		{
+			return x;
+		}
+
+		// input fires either when isOn changes, or when ticker fires.
+		// Its value is a tuple with the current timestamp, and the state of isOn
+		var input = NS.timestamp(A3(NS.map2, F2(firstArg), NS.dropRepeats(isOn), ticker));
+
+		var initialState = {
+			isOn: false,
+			time: localRuntime.timer.programStart,
+			delta: 0
+		};
+
+		var timeoutId;
+
+		function update(input, state)
+		{
+			var currentTime = input._0;
+			var isOn = input._1;
+			var wasOn = state.isOn;
+			var previousTime = state.time;
+
+			if (isOn)
+			{
+				timeoutId = localRuntime.setTimeout(notifyTicker, msPerFrame);
+			}
+			else if (wasOn)
+			{
+				clearTimeout(timeoutId);
+			}
+
+			return {
+				isOn: isOn,
+				time: currentTime,
+				delta: (isOn && !wasOn) ? 0 : currentTime - previousTime
+			};
+		}
+
+		return A2(
+			NS.map,
+			function(state) { return state.delta; },
+			A3(NS.foldp, F2(update), update(input.value, initialState), input)
+		);
+	}
+
+
+	// EVERY
+
+	function every(t)
+	{
+		var ticker = NS.input('every-' + t, null);
+		function tellTime()
+		{
+			localRuntime.notify(ticker.id, null);
+		}
+		var clock = A2(NS.map, fst, NS.timestamp(ticker));
+		setInterval(tellTime, t);
+		return clock;
+	}
+
+
+	function fst(pair)
+	{
+		return pair._0;
+	}
+
+
+	function read(s)
+	{
+		var t = Date.parse(s);
+		return isNaN(t) ? Maybe.Nothing : Maybe.Just(t);
+	}
+
+	return localRuntime.Native.Time.values = {
+		fpsWhen: F2(fpsWhen),
+		every: every,
+		toDate: function(t) { return new Date(t); },
+		read: read
+	};
+};
+
+Elm.Time = Elm.Time || {};
+Elm.Time.make = function (_elm) {
+   "use strict";
+   _elm.Time = _elm.Time || {};
+   if (_elm.Time.values) return _elm.Time.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Native$Signal = Elm.Native.Signal.make(_elm),
+   $Native$Time = Elm.Native.Time.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var delay = $Native$Signal.delay;
+   var since = F2(function (time,signal) {
+      var stop = A2($Signal.map,
+      $Basics.always(-1),
+      A2(delay,time,signal));
+      var start = A2($Signal.map,$Basics.always(1),signal);
+      var delaydiff = A3($Signal.foldp,
+      F2(function (x,y) {    return x + y;}),
+      0,
+      A2($Signal.merge,start,stop));
+      return A2($Signal.map,
+      F2(function (x,y) {    return !_U.eq(x,y);})(0),
+      delaydiff);
+   });
+   var timestamp = $Native$Signal.timestamp;
+   var every = $Native$Time.every;
+   var fpsWhen = $Native$Time.fpsWhen;
+   var fps = function (targetFrames) {
+      return A2(fpsWhen,targetFrames,$Signal.constant(true));
+   };
+   var inMilliseconds = function (t) {    return t;};
+   var millisecond = 1;
+   var second = 1000 * millisecond;
+   var minute = 60 * second;
+   var hour = 60 * minute;
+   var inHours = function (t) {    return t / hour;};
+   var inMinutes = function (t) {    return t / minute;};
+   var inSeconds = function (t) {    return t / second;};
+   return _elm.Time.values = {_op: _op
+                             ,millisecond: millisecond
+                             ,second: second
+                             ,minute: minute
+                             ,hour: hour
+                             ,inMilliseconds: inMilliseconds
+                             ,inSeconds: inSeconds
+                             ,inMinutes: inMinutes
+                             ,inHours: inHours
+                             ,fps: fps
+                             ,fpsWhen: fpsWhen
+                             ,every: every
+                             ,timestamp: timestamp
+                             ,delay: delay
+                             ,since: since};
+};
+Elm.Effects = Elm.Effects || {};
+Elm.Effects.make = function (_elm) {
+   "use strict";
+   _elm.Effects = _elm.Effects || {};
+   if (_elm.Effects.values) return _elm.Effects.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$Effects = Elm.Native.Effects.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var ignore = function (task) {
+      return A2($Task.map,$Basics.always({ctor: "_Tuple0"}),task);
+   };
+   var requestTickSending = $Native$Effects.requestTickSending;
+   var toTaskHelp = F3(function (address,effect,_p0) {
+      var _p1 = _p0;
+      var _p5 = _p1._1;
+      var _p4 = _p1;
+      var _p3 = _p1._0;
+      var _p2 = effect;
+      switch (_p2.ctor)
+      {case "Task": var reporter = A2($Task.andThen,
+           _p2._0,
+           function (answer) {
+              return A2($Signal.send,address,_U.list([answer]));
+           });
+           return {ctor: "_Tuple2"
+                  ,_0: A2($Task.andThen,
+                  _p3,
+                  $Basics.always(ignore($Task.spawn(reporter))))
+                  ,_1: _p5};
+         case "Tick": return {ctor: "_Tuple2"
+                             ,_0: _p3
+                             ,_1: A2($List._op["::"],_p2._0,_p5)};
+         case "None": return _p4;
+         default: return A3($List.foldl,toTaskHelp(address),_p4,_p2._0);}
+   });
+   var toTask = F2(function (address,effect) {
+      var _p6 = A3(toTaskHelp,
+      address,
+      effect,
+      {ctor: "_Tuple2"
+      ,_0: $Task.succeed({ctor: "_Tuple0"})
+      ,_1: _U.list([])});
+      var combinedTask = _p6._0;
+      var tickMessages = _p6._1;
+      return $List.isEmpty(tickMessages) ? combinedTask : A2($Task.andThen,
+      combinedTask,
+      $Basics.always(A2(requestTickSending,address,tickMessages)));
+   });
+   var Never = function (a) {    return {ctor: "Never",_0: a};};
+   var Batch = function (a) {    return {ctor: "Batch",_0: a};};
+   var batch = Batch;
+   var None = {ctor: "None"};
+   var none = None;
+   var Tick = function (a) {    return {ctor: "Tick",_0: a};};
+   var tick = Tick;
+   var Task = function (a) {    return {ctor: "Task",_0: a};};
+   var task = Task;
+   var map = F2(function (func,effect) {
+      var _p7 = effect;
+      switch (_p7.ctor)
+      {case "Task": return Task(A2($Task.map,func,_p7._0));
+         case "Tick": return Tick(function (_p8) {
+              return func(_p7._0(_p8));
+           });
+         case "None": return None;
+         default: return Batch(A2($List.map,map(func),_p7._0));}
+   });
+   return _elm.Effects.values = {_op: _op
+                                ,none: none
+                                ,task: task
+                                ,tick: tick
+                                ,map: map
+                                ,batch: batch
+                                ,toTask: toTask};
+};
+Elm.Native.EventSource = {};
+Elm.Native.EventSource.make = function(localRuntime) {
+  localRuntime.Native = localRuntime.Native || {};
+  localRuntime.Native.EventSource = localRuntime.Native.EventSource || {};
+  if (localRuntime.Native.EventSource.values) {
+    return localRuntime.Native.EventSource.values;
+  }
+
+  var Task = Elm.Native.Task.make (localRuntime);
+  var Maybe = Elm.Maybe.make(localRuntime);
+  var Utils = Elm.Native.Utils.make (localRuntime);
+
+  function connect(uri, settings) {
+    return Task.asyncFunction(function(callback) {
+      var es = new EventSource(uri);
+
+      if (settings.onOpen.ctor === "Just") {
+        es.onopen = function() {
+          Task.perform(settings.onOpen._0._0(Utils.Tuple0));
+        };
+      }
+
+      if (settings.onError.ctor === "Just") {
+        es.onerror = function(e) {
+          Task.perform(settings.onError._0._0(Utils.Tuple0));
+        };
+      }
+
+      callback(Task.succeed(es));
+    });
+  }
+
+  function on(eventName, address, es) {
+    return Task.asyncFunction(function(callback) {
+      es.addEventListener(eventName, function(event) {
+        Task.perform(address._0({
+          ctor: "Event",
+          lastEventId: event.lastEventId ? Maybe.Just(event.lastEventId) : Maybe.Nothing,
+          name: event.type ? Maybe.Just(event.type) : Maybe.Nothing,
+          data: event.data
+        }));
+      });
+
+      callback(Task.succeed(es));
+    });
+  }
+
+  function close(es) {
+    return Task.asyncFunction(function(callback) {
+      es.close();
+      callback(Task.succeed(Utils.Tuple0));
+    });
+  }
+
+  localRuntime.Native.EventSource.values = {
+    connect: F2(connect),
+    on: F3(on),
+    close: close,
+  };
+
+  return localRuntime.Native.EventSource.values;
+};
+
+Elm.EventSource = Elm.EventSource || {};
+Elm.EventSource.make = function (_elm) {
+   "use strict";
+   _elm.EventSource = _elm.EventSource || {};
+   if (_elm.EventSource.values) return _elm.EventSource.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$EventSource = Elm.Native.EventSource.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var close = $Native$EventSource.close;
+   var on = $Native$EventSource.on;
+   var connect = $Native$EventSource.connect;
+   var Settings = F2(function (a,b) {
+      return {onOpen: a,onError: b};
+   });
+   var Event = F3(function (a,b,c) {
+      return {lastEventId: a,name: b,data: c};
+   });
+   var EventSource = {ctor: "EventSource"};
+   return _elm.EventSource.values = {_op: _op
+                                    ,EventSource: EventSource
+                                    ,Event: Event
+                                    ,Settings: Settings
+                                    ,connect: connect
+                                    ,on: on
+                                    ,close: close};
+};
+Elm.Native.Json = {};
+
+Elm.Native.Json.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Json = localRuntime.Native.Json || {};
+	if (localRuntime.Native.Json.values) {
+		return localRuntime.Native.Json.values;
+	}
+
+	var ElmArray = Elm.Native.Array.make(localRuntime);
+	var List = Elm.Native.List.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+	var Result = Elm.Result.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+
+
+	function crash(expected, actual) {
+		throw new Error(
+			'expecting ' + expected + ' but got ' + JSON.stringify(actual)
+		);
+	}
+
+
+	// PRIMITIVE VALUES
+
+	function decodeNull(successValue) {
+		return function(value) {
+			if (value === null) {
+				return successValue;
+			}
+			crash('null', value);
+		};
+	}
+
+
+	function decodeString(value) {
+		if (typeof value === 'string' || value instanceof String) {
+			return value;
+		}
+		crash('a String', value);
+	}
+
+
+	function decodeFloat(value) {
+		if (typeof value === 'number') {
+			return value;
+		}
+		crash('a Float', value);
+	}
+
+
+	function decodeInt(value) {
+		if (typeof value !== 'number') {
+			crash('an Int', value);
+		}
+
+		if (value < 2147483647 && value > -2147483647 && (value | 0) === value) {
+			return value;
+		}
+
+		if (isFinite(value) && !(value % 1)) {
+			return value;
+		}
+
+		crash('an Int', value);
+	}
+
+
+	function decodeBool(value) {
+		if (typeof value === 'boolean') {
+			return value;
+		}
+		crash('a Bool', value);
+	}
+
+
+	// ARRAY
+
+	function decodeArray(decoder) {
+		return function(value) {
+			if (value instanceof Array) {
+				var len = value.length;
+				var array = new Array(len);
+				for (var i = len; i--; ) {
+					array[i] = decoder(value[i]);
+				}
+				return ElmArray.fromJSArray(array);
+			}
+			crash('an Array', value);
+		};
+	}
+
+
+	// LIST
+
+	function decodeList(decoder) {
+		return function(value) {
+			if (value instanceof Array) {
+				var len = value.length;
+				var list = List.Nil;
+				for (var i = len; i--; ) {
+					list = List.Cons( decoder(value[i]), list );
+				}
+				return list;
+			}
+			crash('a List', value);
+		};
+	}
+
+
+	// MAYBE
+
+	function decodeMaybe(decoder) {
+		return function(value) {
+			try {
+				return Maybe.Just(decoder(value));
+			} catch(e) {
+				return Maybe.Nothing;
+			}
+		};
+	}
+
+
+	// FIELDS
+
+	function decodeField(field, decoder) {
+		return function(value) {
+			var subValue = value[field];
+			if (subValue !== undefined) {
+				return decoder(subValue);
+			}
+			crash("an object with field '" + field + "'", value);
+		};
+	}
+
+
+	// OBJECTS
+
+	function decodeKeyValuePairs(decoder) {
+		return function(value) {
+			var isObject =
+				typeof value === 'object'
+					&& value !== null
+					&& !(value instanceof Array);
+
+			if (isObject) {
+				var keyValuePairs = List.Nil;
+				for (var key in value)
+				{
+					var elmValue = decoder(value[key]);
+					var pair = Utils.Tuple2(key, elmValue);
+					keyValuePairs = List.Cons(pair, keyValuePairs);
+				}
+				return keyValuePairs;
+			}
+
+			crash('an object', value);
+		};
+	}
+
+	function decodeObject1(f, d1) {
+		return function(value) {
+			return f(d1(value));
+		};
+	}
+
+	function decodeObject2(f, d1, d2) {
+		return function(value) {
+			return A2( f, d1(value), d2(value) );
+		};
+	}
+
+	function decodeObject3(f, d1, d2, d3) {
+		return function(value) {
+			return A3( f, d1(value), d2(value), d3(value) );
+		};
+	}
+
+	function decodeObject4(f, d1, d2, d3, d4) {
+		return function(value) {
+			return A4( f, d1(value), d2(value), d3(value), d4(value) );
+		};
+	}
+
+	function decodeObject5(f, d1, d2, d3, d4, d5) {
+		return function(value) {
+			return A5( f, d1(value), d2(value), d3(value), d4(value), d5(value) );
+		};
+	}
+
+	function decodeObject6(f, d1, d2, d3, d4, d5, d6) {
+		return function(value) {
+			return A6( f,
+				d1(value),
+				d2(value),
+				d3(value),
+				d4(value),
+				d5(value),
+				d6(value)
+			);
+		};
+	}
+
+	function decodeObject7(f, d1, d2, d3, d4, d5, d6, d7) {
+		return function(value) {
+			return A7( f,
+				d1(value),
+				d2(value),
+				d3(value),
+				d4(value),
+				d5(value),
+				d6(value),
+				d7(value)
+			);
+		};
+	}
+
+	function decodeObject8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
+		return function(value) {
+			return A8( f,
+				d1(value),
+				d2(value),
+				d3(value),
+				d4(value),
+				d5(value),
+				d6(value),
+				d7(value),
+				d8(value)
+			);
+		};
+	}
+
+
+	// TUPLES
+
+	function decodeTuple1(f, d1) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 1 ) {
+				crash('a Tuple of length 1', value);
+			}
+			return f( d1(value[0]) );
+		};
+	}
+
+	function decodeTuple2(f, d1, d2) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 2 ) {
+				crash('a Tuple of length 2', value);
+			}
+			return A2( f, d1(value[0]), d2(value[1]) );
+		};
+	}
+
+	function decodeTuple3(f, d1, d2, d3) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 3 ) {
+				crash('a Tuple of length 3', value);
+			}
+			return A3( f, d1(value[0]), d2(value[1]), d3(value[2]) );
+		};
+	}
+
+
+	function decodeTuple4(f, d1, d2, d3, d4) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 4 ) {
+				crash('a Tuple of length 4', value);
+			}
+			return A4( f, d1(value[0]), d2(value[1]), d3(value[2]), d4(value[3]) );
+		};
+	}
+
+
+	function decodeTuple5(f, d1, d2, d3, d4, d5) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 5 ) {
+				crash('a Tuple of length 5', value);
+			}
+			return A5( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4])
+			);
+		};
+	}
+
+
+	function decodeTuple6(f, d1, d2, d3, d4, d5, d6) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 6 ) {
+				crash('a Tuple of length 6', value);
+			}
+			return A6( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4]),
+				d6(value[5])
+			);
+		};
+	}
+
+	function decodeTuple7(f, d1, d2, d3, d4, d5, d6, d7) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 7 ) {
+				crash('a Tuple of length 7', value);
+			}
+			return A7( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4]),
+				d6(value[5]),
+				d7(value[6])
+			);
+		};
+	}
+
+
+	function decodeTuple8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 8 ) {
+				crash('a Tuple of length 8', value);
+			}
+			return A8( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4]),
+				d6(value[5]),
+				d7(value[6]),
+				d8(value[7])
+			);
+		};
+	}
+
+
+	// CUSTOM DECODERS
+
+	function decodeValue(value) {
+		return value;
+	}
+
+	function runDecoderValue(decoder, value) {
+		try {
+			return Result.Ok(decoder(value));
+		} catch(e) {
+			return Result.Err(e.message);
+		}
+	}
+
+	function customDecoder(decoder, callback) {
+		return function(value) {
+			var result = callback(decoder(value));
+			if (result.ctor === 'Err') {
+				throw new Error('custom decoder failed: ' + result._0);
+			}
+			return result._0;
+		};
+	}
+
+	function andThen(decode, callback) {
+		return function(value) {
+			var result = decode(value);
+			return callback(result)(value);
+		};
+	}
+
+	function fail(msg) {
+		return function(value) {
+			throw new Error(msg);
+		};
+	}
+
+	function succeed(successValue) {
+		return function(value) {
+			return successValue;
+		};
+	}
+
+
+	// ONE OF MANY
+
+	function oneOf(decoders) {
+		return function(value) {
+			var errors = [];
+			var temp = decoders;
+			while (temp.ctor !== '[]') {
+				try {
+					return temp._0(value);
+				} catch(e) {
+					errors.push(e.message);
+				}
+				temp = temp._1;
+			}
+			throw new Error('expecting one of the following:\n    ' + errors.join('\n    '));
+		};
+	}
+
+	function get(decoder, value) {
+		try {
+			return Result.Ok(decoder(value));
+		} catch(e) {
+			return Result.Err(e.message);
+		}
+	}
+
+
+	// ENCODE / DECODE
+
+	function runDecoderString(decoder, string) {
+		try {
+			return Result.Ok(decoder(JSON.parse(string)));
+		} catch(e) {
+			return Result.Err(e.message);
+		}
+	}
+
+	function encode(indentLevel, value) {
+		return JSON.stringify(value, null, indentLevel);
+	}
+
+	function identity(value) {
+		return value;
+	}
+
+	function encodeObject(keyValuePairs) {
+		var obj = {};
+		while (keyValuePairs.ctor !== '[]') {
+			var pair = keyValuePairs._0;
+			obj[pair._0] = pair._1;
+			keyValuePairs = keyValuePairs._1;
+		}
+		return obj;
+	}
+
+	return localRuntime.Native.Json.values = {
+		encode: F2(encode),
+		runDecoderString: F2(runDecoderString),
+		runDecoderValue: F2(runDecoderValue),
+
+		get: F2(get),
+		oneOf: oneOf,
+
+		decodeNull: decodeNull,
+		decodeInt: decodeInt,
+		decodeFloat: decodeFloat,
+		decodeString: decodeString,
+		decodeBool: decodeBool,
+
+		decodeMaybe: decodeMaybe,
+
+		decodeList: decodeList,
+		decodeArray: decodeArray,
+
+		decodeField: F2(decodeField),
+
+		decodeObject1: F2(decodeObject1),
+		decodeObject2: F3(decodeObject2),
+		decodeObject3: F4(decodeObject3),
+		decodeObject4: F5(decodeObject4),
+		decodeObject5: F6(decodeObject5),
+		decodeObject6: F7(decodeObject6),
+		decodeObject7: F8(decodeObject7),
+		decodeObject8: F9(decodeObject8),
+		decodeKeyValuePairs: decodeKeyValuePairs,
+
+		decodeTuple1: F2(decodeTuple1),
+		decodeTuple2: F3(decodeTuple2),
+		decodeTuple3: F4(decodeTuple3),
+		decodeTuple4: F5(decodeTuple4),
+		decodeTuple5: F6(decodeTuple5),
+		decodeTuple6: F7(decodeTuple6),
+		decodeTuple7: F8(decodeTuple7),
+		decodeTuple8: F9(decodeTuple8),
+
+		andThen: F2(andThen),
+		decodeValue: decodeValue,
+		customDecoder: F2(customDecoder),
+		fail: fail,
+		succeed: succeed,
+
+		identity: identity,
+		encodeNull: null,
+		encodeArray: ElmArray.toJSArray,
+		encodeList: List.toArray,
+		encodeObject: encodeObject
+
+	};
+};
+
 Elm.Dict = Elm.Dict || {};
 Elm.Dict.make = function (_elm) {
    "use strict";
@@ -9008,1026 +9989,6 @@ Elm.Dict.make = function (_elm) {
                              ,toList: toList
                              ,fromList: fromList};
 };
-Elm.Native.Effects = {};
-Elm.Native.Effects.make = function(localRuntime) {
-
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Effects = localRuntime.Native.Effects || {};
-	if (localRuntime.Native.Effects.values)
-	{
-		return localRuntime.Native.Effects.values;
-	}
-
-	var Task = Elm.Native.Task.make(localRuntime);
-	var Utils = Elm.Native.Utils.make(localRuntime);
-	var Signal = Elm.Signal.make(localRuntime);
-	var List = Elm.Native.List.make(localRuntime);
-
-
-	// polyfill so things will work even if rAF is not available for some reason
-	var _requestAnimationFrame =
-		typeof requestAnimationFrame !== 'undefined'
-			? requestAnimationFrame
-			: function(cb) { setTimeout(cb, 1000 / 60); }
-			;
-
-
-	// batchedSending and sendCallback implement a small state machine in order
-	// to schedule only one send(time) call per animation frame.
-	//
-	// Invariants:
-	// 1. In the NO_REQUEST state, there is never a scheduled sendCallback.
-	// 2. In the PENDING_REQUEST and EXTRA_REQUEST states, there is always exactly
-	//    one scheduled sendCallback.
-	var NO_REQUEST = 0;
-	var PENDING_REQUEST = 1;
-	var EXTRA_REQUEST = 2;
-	var state = NO_REQUEST;
-	var messageArray = [];
-
-
-	function batchedSending(address, tickMessages)
-	{
-		// insert ticks into the messageArray
-		var foundAddress = false;
-
-		for (var i = messageArray.length; i--; )
-		{
-			if (messageArray[i].address === address)
-			{
-				foundAddress = true;
-				messageArray[i].tickMessages = A3(List.foldl, List.cons, messageArray[i].tickMessages, tickMessages);
-				break;
-			}
-		}
-
-		if (!foundAddress)
-		{
-			messageArray.push({ address: address, tickMessages: tickMessages });
-		}
-
-		// do the appropriate state transition
-		switch (state)
-		{
-			case NO_REQUEST:
-				_requestAnimationFrame(sendCallback);
-				state = PENDING_REQUEST;
-				break;
-			case PENDING_REQUEST:
-				state = PENDING_REQUEST;
-				break;
-			case EXTRA_REQUEST:
-				state = PENDING_REQUEST;
-				break;
-		}
-	}
-
-
-	function sendCallback(time)
-	{
-		switch (state)
-		{
-			case NO_REQUEST:
-				// This state should not be possible. How can there be no
-				// request, yet somehow we are actively fulfilling a
-				// request?
-				throw new Error(
-					'Unexpected send callback.\n' +
-					'Please report this to <https://github.com/evancz/elm-effects/issues>.'
-				);
-
-			case PENDING_REQUEST:
-				// At this point, we do not *know* that another frame is
-				// needed, but we make an extra request to rAF just in
-				// case. It's possible to drop a frame if rAF is called
-				// too late, so we just do it preemptively.
-				_requestAnimationFrame(sendCallback);
-				state = EXTRA_REQUEST;
-
-				// There's also stuff we definitely need to send.
-				send(time);
-				return;
-
-			case EXTRA_REQUEST:
-				// Turns out the extra request was not needed, so we will
-				// stop calling rAF. No reason to call it all the time if
-				// no one needs it.
-				state = NO_REQUEST;
-				return;
-		}
-	}
-
-
-	function send(time)
-	{
-		for (var i = messageArray.length; i--; )
-		{
-			var messages = A3(
-				List.foldl,
-				F2( function(toAction, list) { return List.Cons(toAction(time), list); } ),
-				List.Nil,
-				messageArray[i].tickMessages
-			);
-			Task.perform( A2(Signal.send, messageArray[i].address, messages) );
-		}
-		messageArray = [];
-	}
-
-
-	function requestTickSending(address, tickMessages)
-	{
-		return Task.asyncFunction(function(callback) {
-			batchedSending(address, tickMessages);
-			callback(Task.succeed(Utils.Tuple0));
-		});
-	}
-
-
-	return localRuntime.Native.Effects.values = {
-		requestTickSending: F2(requestTickSending)
-	};
-
-};
-
-Elm.Native.Time = {};
-
-Elm.Native.Time.make = function(localRuntime)
-{
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Time = localRuntime.Native.Time || {};
-	if (localRuntime.Native.Time.values)
-	{
-		return localRuntime.Native.Time.values;
-	}
-
-	var NS = Elm.Native.Signal.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-
-
-	// FRAMES PER SECOND
-
-	function fpsWhen(desiredFPS, isOn)
-	{
-		var msPerFrame = 1000 / desiredFPS;
-		var ticker = NS.input('fps-' + desiredFPS, null);
-
-		function notifyTicker()
-		{
-			localRuntime.notify(ticker.id, null);
-		}
-
-		function firstArg(x, y)
-		{
-			return x;
-		}
-
-		// input fires either when isOn changes, or when ticker fires.
-		// Its value is a tuple with the current timestamp, and the state of isOn
-		var input = NS.timestamp(A3(NS.map2, F2(firstArg), NS.dropRepeats(isOn), ticker));
-
-		var initialState = {
-			isOn: false,
-			time: localRuntime.timer.programStart,
-			delta: 0
-		};
-
-		var timeoutId;
-
-		function update(input, state)
-		{
-			var currentTime = input._0;
-			var isOn = input._1;
-			var wasOn = state.isOn;
-			var previousTime = state.time;
-
-			if (isOn)
-			{
-				timeoutId = localRuntime.setTimeout(notifyTicker, msPerFrame);
-			}
-			else if (wasOn)
-			{
-				clearTimeout(timeoutId);
-			}
-
-			return {
-				isOn: isOn,
-				time: currentTime,
-				delta: (isOn && !wasOn) ? 0 : currentTime - previousTime
-			};
-		}
-
-		return A2(
-			NS.map,
-			function(state) { return state.delta; },
-			A3(NS.foldp, F2(update), update(input.value, initialState), input)
-		);
-	}
-
-
-	// EVERY
-
-	function every(t)
-	{
-		var ticker = NS.input('every-' + t, null);
-		function tellTime()
-		{
-			localRuntime.notify(ticker.id, null);
-		}
-		var clock = A2(NS.map, fst, NS.timestamp(ticker));
-		setInterval(tellTime, t);
-		return clock;
-	}
-
-
-	function fst(pair)
-	{
-		return pair._0;
-	}
-
-
-	function read(s)
-	{
-		var t = Date.parse(s);
-		return isNaN(t) ? Maybe.Nothing : Maybe.Just(t);
-	}
-
-	return localRuntime.Native.Time.values = {
-		fpsWhen: F2(fpsWhen),
-		every: every,
-		toDate: function(t) { return new Date(t); },
-		read: read
-	};
-};
-
-Elm.Time = Elm.Time || {};
-Elm.Time.make = function (_elm) {
-   "use strict";
-   _elm.Time = _elm.Time || {};
-   if (_elm.Time.values) return _elm.Time.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Native$Signal = Elm.Native.Signal.make(_elm),
-   $Native$Time = Elm.Native.Time.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var delay = $Native$Signal.delay;
-   var since = F2(function (time,signal) {
-      var stop = A2($Signal.map,
-      $Basics.always(-1),
-      A2(delay,time,signal));
-      var start = A2($Signal.map,$Basics.always(1),signal);
-      var delaydiff = A3($Signal.foldp,
-      F2(function (x,y) {    return x + y;}),
-      0,
-      A2($Signal.merge,start,stop));
-      return A2($Signal.map,
-      F2(function (x,y) {    return !_U.eq(x,y);})(0),
-      delaydiff);
-   });
-   var timestamp = $Native$Signal.timestamp;
-   var every = $Native$Time.every;
-   var fpsWhen = $Native$Time.fpsWhen;
-   var fps = function (targetFrames) {
-      return A2(fpsWhen,targetFrames,$Signal.constant(true));
-   };
-   var inMilliseconds = function (t) {    return t;};
-   var millisecond = 1;
-   var second = 1000 * millisecond;
-   var minute = 60 * second;
-   var hour = 60 * minute;
-   var inHours = function (t) {    return t / hour;};
-   var inMinutes = function (t) {    return t / minute;};
-   var inSeconds = function (t) {    return t / second;};
-   return _elm.Time.values = {_op: _op
-                             ,millisecond: millisecond
-                             ,second: second
-                             ,minute: minute
-                             ,hour: hour
-                             ,inMilliseconds: inMilliseconds
-                             ,inSeconds: inSeconds
-                             ,inMinutes: inMinutes
-                             ,inHours: inHours
-                             ,fps: fps
-                             ,fpsWhen: fpsWhen
-                             ,every: every
-                             ,timestamp: timestamp
-                             ,delay: delay
-                             ,since: since};
-};
-Elm.Effects = Elm.Effects || {};
-Elm.Effects.make = function (_elm) {
-   "use strict";
-   _elm.Effects = _elm.Effects || {};
-   if (_elm.Effects.values) return _elm.Effects.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Native$Effects = Elm.Native.Effects.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Task = Elm.Task.make(_elm),
-   $Time = Elm.Time.make(_elm);
-   var _op = {};
-   var ignore = function (task) {
-      return A2($Task.map,$Basics.always({ctor: "_Tuple0"}),task);
-   };
-   var requestTickSending = $Native$Effects.requestTickSending;
-   var toTaskHelp = F3(function (address,effect,_p0) {
-      var _p1 = _p0;
-      var _p5 = _p1._1;
-      var _p4 = _p1;
-      var _p3 = _p1._0;
-      var _p2 = effect;
-      switch (_p2.ctor)
-      {case "Task": var reporter = A2($Task.andThen,
-           _p2._0,
-           function (answer) {
-              return A2($Signal.send,address,_U.list([answer]));
-           });
-           return {ctor: "_Tuple2"
-                  ,_0: A2($Task.andThen,
-                  _p3,
-                  $Basics.always(ignore($Task.spawn(reporter))))
-                  ,_1: _p5};
-         case "Tick": return {ctor: "_Tuple2"
-                             ,_0: _p3
-                             ,_1: A2($List._op["::"],_p2._0,_p5)};
-         case "None": return _p4;
-         default: return A3($List.foldl,toTaskHelp(address),_p4,_p2._0);}
-   });
-   var toTask = F2(function (address,effect) {
-      var _p6 = A3(toTaskHelp,
-      address,
-      effect,
-      {ctor: "_Tuple2"
-      ,_0: $Task.succeed({ctor: "_Tuple0"})
-      ,_1: _U.list([])});
-      var combinedTask = _p6._0;
-      var tickMessages = _p6._1;
-      return $List.isEmpty(tickMessages) ? combinedTask : A2($Task.andThen,
-      combinedTask,
-      $Basics.always(A2(requestTickSending,address,tickMessages)));
-   });
-   var Never = function (a) {    return {ctor: "Never",_0: a};};
-   var Batch = function (a) {    return {ctor: "Batch",_0: a};};
-   var batch = Batch;
-   var None = {ctor: "None"};
-   var none = None;
-   var Tick = function (a) {    return {ctor: "Tick",_0: a};};
-   var tick = Tick;
-   var Task = function (a) {    return {ctor: "Task",_0: a};};
-   var task = Task;
-   var map = F2(function (func,effect) {
-      var _p7 = effect;
-      switch (_p7.ctor)
-      {case "Task": return Task(A2($Task.map,func,_p7._0));
-         case "Tick": return Tick(function (_p8) {
-              return func(_p7._0(_p8));
-           });
-         case "None": return None;
-         default: return Batch(A2($List.map,map(func),_p7._0));}
-   });
-   return _elm.Effects.values = {_op: _op
-                                ,none: none
-                                ,task: task
-                                ,tick: tick
-                                ,map: map
-                                ,batch: batch
-                                ,toTask: toTask};
-};
-Elm.Native.EventSource = {};
-Elm.Native.EventSource.make = function(localRuntime) {
-  localRuntime.Native = localRuntime.Native || {};
-  localRuntime.Native.EventSource = localRuntime.Native.EventSource || {};
-  if (localRuntime.Native.EventSource.values) {
-    return localRuntime.Native.EventSource.values;
-  }
-
-  var Task = Elm.Native.Task.make (localRuntime);
-  var Maybe = Elm.Maybe.make(localRuntime);
-  var Utils = Elm.Native.Utils.make (localRuntime);
-
-  function connect(uri, settings) {
-    return Task.asyncFunction(function(callback) {
-      var es = new EventSource(uri);
-
-      if (settings.onOpen.ctor === "Just") {
-        es.onopen = function() {
-          Task.perform(settings.onOpen._0._0(Utils.Tuple0));
-        };
-      }
-
-      if (settings.onError.ctor === "Just") {
-        es.onerror = function(e) {
-          Task.perform(settings.onError._0._0(Utils.Tuple0));
-        };
-      }
-
-      callback(Task.succeed(es));
-    });
-  }
-
-  function on(eventName, address, es) {
-    return Task.asyncFunction(function(callback) {
-      es.addEventListener(eventName, function(event) {
-        Task.perform(address._0({
-          ctor: "Event",
-          lastEventId: event.lastEventId ? Maybe.Just(event.lastEventId) : Maybe.Nothing,
-          name: event.type ? Maybe.Just(event.type) : Maybe.Nothing,
-          data: event.data
-        }));
-      });
-
-      callback(Task.succeed(es));
-    });
-  }
-
-  function close(es) {
-    return Task.asyncFunction(function(callback) {
-      es.close();
-      callback(Task.succeed(Utils.Tuple0));
-    });
-  }
-
-  localRuntime.Native.EventSource.values = {
-    connect: F2(connect),
-    on: F3(on),
-    close: close,
-  };
-
-  return localRuntime.Native.EventSource.values;
-};
-
-Elm.EventSource = Elm.EventSource || {};
-Elm.EventSource.make = function (_elm) {
-   "use strict";
-   _elm.EventSource = _elm.EventSource || {};
-   if (_elm.EventSource.values) return _elm.EventSource.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Native$EventSource = Elm.Native.EventSource.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Task = Elm.Task.make(_elm);
-   var _op = {};
-   var close = $Native$EventSource.close;
-   var on = $Native$EventSource.on;
-   var connect = $Native$EventSource.connect;
-   var Settings = F2(function (a,b) {
-      return {onOpen: a,onError: b};
-   });
-   var Event = F3(function (a,b,c) {
-      return {lastEventId: a,name: b,data: c};
-   });
-   var EventSource = {ctor: "EventSource"};
-   return _elm.EventSource.values = {_op: _op
-                                    ,EventSource: EventSource
-                                    ,Event: Event
-                                    ,Settings: Settings
-                                    ,connect: connect
-                                    ,on: on
-                                    ,close: close};
-};
-Elm.Focus = Elm.Focus || {};
-Elm.Focus.make = function (_elm) {
-   "use strict";
-   _elm.Focus = _elm.Focus || {};
-   if (_elm.Focus.values) return _elm.Focus.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   _op["=>"] = F2(function (largerFocus,smallerFocus) {
-      return {get: function (big) {
-                return smallerFocus.get(largerFocus.get(big));
-             }
-             ,update: F2(function (f,big) {
-                return A2(largerFocus.update,smallerFocus.update(f),big);
-             })};
-   });
-   var update = F3(function (focus,f,big) {
-      return A2(focus.update,f,big);
-   });
-   var set = F3(function (focus,small,big) {
-      return A2(focus.update,$Basics.always(small),big);
-   });
-   var get = F2(function (focus,big) {    return focus.get(big);});
-   var create = F2(function (get,update) {
-      return {get: get,update: update};
-   });
-   var Focus = F2(function (a,b) {    return {get: a,update: b};});
-   return _elm.Focus.values = {_op: _op
-                              ,get: get
-                              ,set: set
-                              ,update: update
-                              ,create: create
-                              ,Focus: Focus};
-};
-Elm.Native.Json = {};
-
-Elm.Native.Json.make = function(localRuntime) {
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Json = localRuntime.Native.Json || {};
-	if (localRuntime.Native.Json.values) {
-		return localRuntime.Native.Json.values;
-	}
-
-	var ElmArray = Elm.Native.Array.make(localRuntime);
-	var List = Elm.Native.List.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-	var Result = Elm.Result.make(localRuntime);
-	var Utils = Elm.Native.Utils.make(localRuntime);
-
-
-	function crash(expected, actual) {
-		throw new Error(
-			'expecting ' + expected + ' but got ' + JSON.stringify(actual)
-		);
-	}
-
-
-	// PRIMITIVE VALUES
-
-	function decodeNull(successValue) {
-		return function(value) {
-			if (value === null) {
-				return successValue;
-			}
-			crash('null', value);
-		};
-	}
-
-
-	function decodeString(value) {
-		if (typeof value === 'string' || value instanceof String) {
-			return value;
-		}
-		crash('a String', value);
-	}
-
-
-	function decodeFloat(value) {
-		if (typeof value === 'number') {
-			return value;
-		}
-		crash('a Float', value);
-	}
-
-
-	function decodeInt(value) {
-		if (typeof value !== 'number') {
-			crash('an Int', value);
-		}
-
-		if (value < 2147483647 && value > -2147483647 && (value | 0) === value) {
-			return value;
-		}
-
-		if (isFinite(value) && !(value % 1)) {
-			return value;
-		}
-
-		crash('an Int', value);
-	}
-
-
-	function decodeBool(value) {
-		if (typeof value === 'boolean') {
-			return value;
-		}
-		crash('a Bool', value);
-	}
-
-
-	// ARRAY
-
-	function decodeArray(decoder) {
-		return function(value) {
-			if (value instanceof Array) {
-				var len = value.length;
-				var array = new Array(len);
-				for (var i = len; i--; ) {
-					array[i] = decoder(value[i]);
-				}
-				return ElmArray.fromJSArray(array);
-			}
-			crash('an Array', value);
-		};
-	}
-
-
-	// LIST
-
-	function decodeList(decoder) {
-		return function(value) {
-			if (value instanceof Array) {
-				var len = value.length;
-				var list = List.Nil;
-				for (var i = len; i--; ) {
-					list = List.Cons( decoder(value[i]), list );
-				}
-				return list;
-			}
-			crash('a List', value);
-		};
-	}
-
-
-	// MAYBE
-
-	function decodeMaybe(decoder) {
-		return function(value) {
-			try {
-				return Maybe.Just(decoder(value));
-			} catch(e) {
-				return Maybe.Nothing;
-			}
-		};
-	}
-
-
-	// FIELDS
-
-	function decodeField(field, decoder) {
-		return function(value) {
-			var subValue = value[field];
-			if (subValue !== undefined) {
-				return decoder(subValue);
-			}
-			crash("an object with field '" + field + "'", value);
-		};
-	}
-
-
-	// OBJECTS
-
-	function decodeKeyValuePairs(decoder) {
-		return function(value) {
-			var isObject =
-				typeof value === 'object'
-					&& value !== null
-					&& !(value instanceof Array);
-
-			if (isObject) {
-				var keyValuePairs = List.Nil;
-				for (var key in value)
-				{
-					var elmValue = decoder(value[key]);
-					var pair = Utils.Tuple2(key, elmValue);
-					keyValuePairs = List.Cons(pair, keyValuePairs);
-				}
-				return keyValuePairs;
-			}
-
-			crash('an object', value);
-		};
-	}
-
-	function decodeObject1(f, d1) {
-		return function(value) {
-			return f(d1(value));
-		};
-	}
-
-	function decodeObject2(f, d1, d2) {
-		return function(value) {
-			return A2( f, d1(value), d2(value) );
-		};
-	}
-
-	function decodeObject3(f, d1, d2, d3) {
-		return function(value) {
-			return A3( f, d1(value), d2(value), d3(value) );
-		};
-	}
-
-	function decodeObject4(f, d1, d2, d3, d4) {
-		return function(value) {
-			return A4( f, d1(value), d2(value), d3(value), d4(value) );
-		};
-	}
-
-	function decodeObject5(f, d1, d2, d3, d4, d5) {
-		return function(value) {
-			return A5( f, d1(value), d2(value), d3(value), d4(value), d5(value) );
-		};
-	}
-
-	function decodeObject6(f, d1, d2, d3, d4, d5, d6) {
-		return function(value) {
-			return A6( f,
-				d1(value),
-				d2(value),
-				d3(value),
-				d4(value),
-				d5(value),
-				d6(value)
-			);
-		};
-	}
-
-	function decodeObject7(f, d1, d2, d3, d4, d5, d6, d7) {
-		return function(value) {
-			return A7( f,
-				d1(value),
-				d2(value),
-				d3(value),
-				d4(value),
-				d5(value),
-				d6(value),
-				d7(value)
-			);
-		};
-	}
-
-	function decodeObject8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
-		return function(value) {
-			return A8( f,
-				d1(value),
-				d2(value),
-				d3(value),
-				d4(value),
-				d5(value),
-				d6(value),
-				d7(value),
-				d8(value)
-			);
-		};
-	}
-
-
-	// TUPLES
-
-	function decodeTuple1(f, d1) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 1 ) {
-				crash('a Tuple of length 1', value);
-			}
-			return f( d1(value[0]) );
-		};
-	}
-
-	function decodeTuple2(f, d1, d2) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 2 ) {
-				crash('a Tuple of length 2', value);
-			}
-			return A2( f, d1(value[0]), d2(value[1]) );
-		};
-	}
-
-	function decodeTuple3(f, d1, d2, d3) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 3 ) {
-				crash('a Tuple of length 3', value);
-			}
-			return A3( f, d1(value[0]), d2(value[1]), d3(value[2]) );
-		};
-	}
-
-
-	function decodeTuple4(f, d1, d2, d3, d4) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 4 ) {
-				crash('a Tuple of length 4', value);
-			}
-			return A4( f, d1(value[0]), d2(value[1]), d3(value[2]), d4(value[3]) );
-		};
-	}
-
-
-	function decodeTuple5(f, d1, d2, d3, d4, d5) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 5 ) {
-				crash('a Tuple of length 5', value);
-			}
-			return A5( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4])
-			);
-		};
-	}
-
-
-	function decodeTuple6(f, d1, d2, d3, d4, d5, d6) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 6 ) {
-				crash('a Tuple of length 6', value);
-			}
-			return A6( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4]),
-				d6(value[5])
-			);
-		};
-	}
-
-	function decodeTuple7(f, d1, d2, d3, d4, d5, d6, d7) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 7 ) {
-				crash('a Tuple of length 7', value);
-			}
-			return A7( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4]),
-				d6(value[5]),
-				d7(value[6])
-			);
-		};
-	}
-
-
-	function decodeTuple8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 8 ) {
-				crash('a Tuple of length 8', value);
-			}
-			return A8( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4]),
-				d6(value[5]),
-				d7(value[6]),
-				d8(value[7])
-			);
-		};
-	}
-
-
-	// CUSTOM DECODERS
-
-	function decodeValue(value) {
-		return value;
-	}
-
-	function runDecoderValue(decoder, value) {
-		try {
-			return Result.Ok(decoder(value));
-		} catch(e) {
-			return Result.Err(e.message);
-		}
-	}
-
-	function customDecoder(decoder, callback) {
-		return function(value) {
-			var result = callback(decoder(value));
-			if (result.ctor === 'Err') {
-				throw new Error('custom decoder failed: ' + result._0);
-			}
-			return result._0;
-		};
-	}
-
-	function andThen(decode, callback) {
-		return function(value) {
-			var result = decode(value);
-			return callback(result)(value);
-		};
-	}
-
-	function fail(msg) {
-		return function(value) {
-			throw new Error(msg);
-		};
-	}
-
-	function succeed(successValue) {
-		return function(value) {
-			return successValue;
-		};
-	}
-
-
-	// ONE OF MANY
-
-	function oneOf(decoders) {
-		return function(value) {
-			var errors = [];
-			var temp = decoders;
-			while (temp.ctor !== '[]') {
-				try {
-					return temp._0(value);
-				} catch(e) {
-					errors.push(e.message);
-				}
-				temp = temp._1;
-			}
-			throw new Error('expecting one of the following:\n    ' + errors.join('\n    '));
-		};
-	}
-
-	function get(decoder, value) {
-		try {
-			return Result.Ok(decoder(value));
-		} catch(e) {
-			return Result.Err(e.message);
-		}
-	}
-
-
-	// ENCODE / DECODE
-
-	function runDecoderString(decoder, string) {
-		try {
-			return Result.Ok(decoder(JSON.parse(string)));
-		} catch(e) {
-			return Result.Err(e.message);
-		}
-	}
-
-	function encode(indentLevel, value) {
-		return JSON.stringify(value, null, indentLevel);
-	}
-
-	function identity(value) {
-		return value;
-	}
-
-	function encodeObject(keyValuePairs) {
-		var obj = {};
-		while (keyValuePairs.ctor !== '[]') {
-			var pair = keyValuePairs._0;
-			obj[pair._0] = pair._1;
-			keyValuePairs = keyValuePairs._1;
-		}
-		return obj;
-	}
-
-	return localRuntime.Native.Json.values = {
-		encode: F2(encode),
-		runDecoderString: F2(runDecoderString),
-		runDecoderValue: F2(runDecoderValue),
-
-		get: F2(get),
-		oneOf: oneOf,
-
-		decodeNull: decodeNull,
-		decodeInt: decodeInt,
-		decodeFloat: decodeFloat,
-		decodeString: decodeString,
-		decodeBool: decodeBool,
-
-		decodeMaybe: decodeMaybe,
-
-		decodeList: decodeList,
-		decodeArray: decodeArray,
-
-		decodeField: F2(decodeField),
-
-		decodeObject1: F2(decodeObject1),
-		decodeObject2: F3(decodeObject2),
-		decodeObject3: F4(decodeObject3),
-		decodeObject4: F5(decodeObject4),
-		decodeObject5: F6(decodeObject5),
-		decodeObject6: F7(decodeObject6),
-		decodeObject7: F8(decodeObject7),
-		decodeObject8: F9(decodeObject8),
-		decodeKeyValuePairs: decodeKeyValuePairs,
-
-		decodeTuple1: F2(decodeTuple1),
-		decodeTuple2: F3(decodeTuple2),
-		decodeTuple3: F4(decodeTuple3),
-		decodeTuple4: F5(decodeTuple4),
-		decodeTuple5: F6(decodeTuple5),
-		decodeTuple6: F7(decodeTuple6),
-		decodeTuple7: F8(decodeTuple7),
-		decodeTuple8: F9(decodeTuple8),
-
-		andThen: F2(andThen),
-		decodeValue: decodeValue,
-		customDecoder: F2(customDecoder),
-		fail: fail,
-		succeed: succeed,
-
-		identity: identity,
-		encodeNull: null,
-		encodeArray: ElmArray.toJSArray,
-		encodeList: List.toArray,
-		encodeObject: encodeObject
-
-	};
-};
-
 Elm.Json = Elm.Json || {};
 Elm.Json.Encode = Elm.Json.Encode || {};
 Elm.Json.Encode.make = function (_elm) {
@@ -13146,6 +13107,45 @@ Elm.BuildPlan.make = function (_elm) {
                                   ,decodeTimeout: decodeTimeout
                                   ,lazy: lazy};
 };
+Elm.Focus = Elm.Focus || {};
+Elm.Focus.make = function (_elm) {
+   "use strict";
+   _elm.Focus = _elm.Focus || {};
+   if (_elm.Focus.values) return _elm.Focus.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   _op["=>"] = F2(function (largerFocus,smallerFocus) {
+      return {get: function (big) {
+                return smallerFocus.get(largerFocus.get(big));
+             }
+             ,update: F2(function (f,big) {
+                return A2(largerFocus.update,smallerFocus.update(f),big);
+             })};
+   });
+   var update = F3(function (focus,f,big) {
+      return A2(focus.update,f,big);
+   });
+   var set = F3(function (focus,small,big) {
+      return A2(focus.update,$Basics.always(small),big);
+   });
+   var get = F2(function (focus,big) {    return focus.get(big);});
+   var create = F2(function (get,update) {
+      return {get: get,update: update};
+   });
+   var Focus = F2(function (a,b) {    return {get: a,update: b};});
+   return _elm.Focus.values = {_op: _op
+                              ,get: get
+                              ,set: set
+                              ,update: update
+                              ,create: create
+                              ,Focus: Focus};
+};
 Elm.Html = Elm.Html || {};
 Elm.Html.Lazy = Elm.Html.Lazy || {};
 Elm.Html.Lazy.make = function (_elm) {
@@ -13396,12 +13396,12 @@ Elm.StepTree.make = function (_elm) {
                   return _p8._0;
                } else {
                   return _U.crashCase("StepTree",
-                  {start: {line: 256,column: 7},end: {line: 261,column: 35}},
+                  {start: {line: 267,column: 7},end: {line: 272,column: 35}},
                   _p8)("impossible");
                }
          } else {
             return _U.crashCase("StepTree",
-            {start: {line: 254,column: 3},end: {line: 264,column: 31}},
+            {start: {line: 265,column: 3},end: {line: 275,column: 31}},
             _p7)("impossible");
          }
    });
@@ -13412,7 +13412,7 @@ Elm.StepTree.make = function (_elm) {
          case "OnFailure": return _p11._0.hook;
          case "Ensure": return _p11._0.hook;
          default: return _U.crashCase("StepTree",
-           {start: {line: 224,column: 3},end: {line: 235,column: 31}},
+           {start: {line: 235,column: 3},end: {line: 246,column: 31}},
            _p11)("impossible");}
    };
    var getStep = function (tree) {
@@ -13424,9 +13424,18 @@ Elm.StepTree.make = function (_elm) {
          case "Try": return _p13._0;
          case "Timeout": return _p13._0;
          default: return _U.crashCase("StepTree",
-           {start: {line: 178,column: 3},end: {line: 195,column: 31}},
+           {start: {line: 189,column: 3},end: {line: 206,column: 31}},
            _p13)("impossible");}
    };
+   var update = F3(function (id,update,root) {
+      var _p15 = A2($Dict.get,id,root.foci);
+      if (_p15.ctor === "Nothing") {
+            return root;
+         } else {
+            return _U.update(root,
+            {tree: A3($Focus.update,_p15._0,update,root.tree)});
+         }
+   });
    var Root = F2(function (a,b) {    return {tree: a,foci: b};});
    var StepStateErrored = {ctor: "StepStateErrored"};
    var StepStateFailed = {ctor: "StepStateFailed"};
@@ -13461,19 +13470,19 @@ Elm.StepTree.make = function (_elm) {
       return {ctor: "OnSuccess",_0: a};
    };
    var updateStep = F2(function (update,tree) {
-      var _p15 = tree;
-      switch (_p15.ctor)
-      {case "OnSuccess": var _p16 = _p15._0;
-           return OnSuccess(_U.update(_p16,{step: update(_p16.step)}));
-         case "OnFailure": var _p17 = _p15._0;
-           return OnFailure(_U.update(_p17,{step: update(_p17.step)}));
-         case "Ensure": var _p18 = _p15._0;
-           return Ensure(_U.update(_p18,{step: update(_p18.step)}));
-         case "Try": return Try(update(_p15._0));
-         case "Timeout": return Timeout(update(_p15._0));
+      var _p16 = tree;
+      switch (_p16.ctor)
+      {case "OnSuccess": var _p17 = _p16._0;
+           return OnSuccess(_U.update(_p17,{step: update(_p17.step)}));
+         case "OnFailure": var _p18 = _p16._0;
+           return OnFailure(_U.update(_p18,{step: update(_p18.step)}));
+         case "Ensure": var _p19 = _p16._0;
+           return Ensure(_U.update(_p19,{step: update(_p19.step)}));
+         case "Try": return Try(update(_p16._0));
+         case "Timeout": return Timeout(update(_p16._0));
          default: return _U.crashCase("StepTree",
-           {start: {line: 199,column: 3},end: {line: 216,column: 31}},
-           _p15)("impossible");}
+           {start: {line: 210,column: 3},end: {line: 227,column: 31}},
+           _p16)("impossible");}
    });
    var wrapStep = F2(function (id,subFocus) {
       return A2($Focus._op["=>"],
@@ -13481,17 +13490,17 @@ Elm.StepTree.make = function (_elm) {
       subFocus);
    });
    var updateHook = F2(function (update,tree) {
-      var _p20 = tree;
-      switch (_p20.ctor)
-      {case "OnSuccess": var _p21 = _p20._0;
-           return OnSuccess(_U.update(_p21,{hook: update(_p21.hook)}));
-         case "OnFailure": var _p22 = _p20._0;
-           return OnFailure(_U.update(_p22,{hook: update(_p22.hook)}));
-         case "Ensure": var _p23 = _p20._0;
-           return Ensure(_U.update(_p23,{hook: update(_p23.hook)}));
+      var _p21 = tree;
+      switch (_p21.ctor)
+      {case "OnSuccess": var _p22 = _p21._0;
+           return OnSuccess(_U.update(_p22,{hook: update(_p22.hook)}));
+         case "OnFailure": var _p23 = _p21._0;
+           return OnFailure(_U.update(_p23,{hook: update(_p23.hook)}));
+         case "Ensure": var _p24 = _p21._0;
+           return Ensure(_U.update(_p24,{hook: update(_p24.hook)}));
          default: return _U.crashCase("StepTree",
-           {start: {line: 239,column: 3},end: {line: 250,column: 31}},
-           _p20)("impossible");}
+           {start: {line: 250,column: 3},end: {line: 261,column: 31}},
+           _p21)("impossible");}
    });
    var wrapHook = F2(function (id,subFocus) {
       return A2($Focus._op["=>"],
@@ -13502,30 +13511,30 @@ Elm.StepTree.make = function (_elm) {
       return {ctor: "Aggregate",_0: a};
    };
    var setAggIndex = F3(function (idx,update,tree) {
-      var _p25 = tree;
-      if (_p25.ctor === "Aggregate") {
+      var _p26 = tree;
+      if (_p26.ctor === "Aggregate") {
             return Aggregate(A3($Array.set,
             idx,
             update(A2(getAggIndex,idx,tree)),
-            _p25._0));
+            _p26._0));
          } else {
             return _U.crashCase("StepTree",
-            {start: {line: 268,column: 3},end: {line: 273,column: 31}},
-            _p25)("impossible");
+            {start: {line: 279,column: 3},end: {line: 284,column: 31}},
+            _p26)("impossible");
          }
    });
    var wrapAgg = F3(function (subFoci,i,plan) {
-      var _p27 = A2($Dict.get,plan.id,subFoci);
-      if (_p27.ctor === "Nothing") {
+      var _p28 = A2($Dict.get,plan.id,subFoci);
+      if (_p28.ctor === "Nothing") {
             return _U.crashCase("StepTree",
-            {start: {line: 165,column: 3},end: {line: 170,column: 74}},
-            _p27)("welp");
+            {start: {line: 176,column: 3},end: {line: 181,column: 74}},
+            _p28)("welp");
          } else {
             return {ctor: "_Tuple2"
                    ,_0: plan.id
                    ,_1: A2($Focus._op["=>"],
                    A2($Focus.create,getAggIndex(i),setAggIndex(i)),
-                   _p27._0)};
+                   _p28._0)};
          }
    });
    var DependentGet = function (a) {
@@ -13537,20 +13546,20 @@ Elm.StepTree.make = function (_elm) {
    });
    var Task = function (a) {    return {ctor: "Task",_0: a};};
    var init = function (plan) {
-      var _p29 = plan.step;
-      switch (_p29.ctor)
-      {case "Task": return A3(initBottom,Task,plan.id,_p29._0);
+      var _p30 = plan.step;
+      switch (_p30.ctor)
+      {case "Task": return A3(initBottom,Task,plan.id,_p30._0);
          case "Get": return A3(initBottom,
-           A2($Basics.flip,Get,_p29._1),
+           A2($Basics.flip,Get,_p30._1),
            plan.id,
-           _p29._0);
-         case "Put": return A3(initBottom,Put,plan.id,_p29._0);
+           _p30._0);
+         case "Put": return A3(initBottom,Put,plan.id,_p30._0);
          case "DependentGet": return A3(initBottom,
            DependentGet,
            plan.id,
-           _p29._0);
-         case "Aggregate": var _p30 = _p29._0;
-           var inited = A2($Array.map,init,_p30);
+           _p30._0);
+         case "Aggregate": var _p31 = _p30._0;
+           var inited = A2($Array.map,init,_p31);
            var trees = A2($Array.map,
            function (_) {
               return _.tree;
@@ -13560,14 +13569,14 @@ Elm.StepTree.make = function (_elm) {
            $Dict.union,
            $Dict.empty,
            A2($Array.map,function (_) {    return _.foci;},inited));
-           var wrappedFoci = A2($Array.indexedMap,wrapAgg(subFoci),_p30);
+           var wrappedFoci = A2($Array.indexedMap,wrapAgg(subFoci),_p31);
            var foci = $Dict.fromList($Array.toList(wrappedFoci));
            return A2(Root,Aggregate(trees),foci);
-         case "OnSuccess": return A2(initHookedStep,OnSuccess,_p29._0);
-         case "OnFailure": return A2(initHookedStep,OnFailure,_p29._0);
-         case "Ensure": return A2(initHookedStep,Ensure,_p29._0);
-         case "Try": return A2(initWrappedStep,Try,_p29._0);
-         default: return A2(initWrappedStep,Timeout,_p29._0);}
+         case "OnSuccess": return A2(initHookedStep,OnSuccess,_p30._0);
+         case "OnFailure": return A2(initHookedStep,OnFailure,_p30._0);
+         case "Ensure": return A2(initHookedStep,Ensure,_p30._0);
+         case "Try": return A2(initWrappedStep,Try,_p30._0);
+         default: return A2(initWrappedStep,Timeout,_p30._0);}
    };
    var initHookedStep = F2(function (create,hookedPlan) {
       var hookRoot = init(hookedPlan.hook);
@@ -13578,24 +13587,25 @@ Elm.StepTree.make = function (_elm) {
              A2($Dict.map,wrapHook,hookRoot.foci))};
    });
    var initWrappedStep = F2(function (create,plan) {
-      var _p31 = init(plan);
-      var tree = _p31.tree;
-      var foci = _p31.foci;
+      var _p32 = init(plan);
+      var tree = _p32.tree;
+      var foci = _p32.foci;
       return {tree: create(tree),foci: A2($Dict.map,wrapStep,foci)};
    });
    var map = F2(function (f,tree) {
-      var _p32 = tree;
-      switch (_p32.ctor)
-      {case "Task": return Task(f(_p32._0));
-         case "Get": return A2(Get,f(_p32._0),_p32._1);
-         case "Put": return Put(f(_p32._0));
-         case "DependentGet": return DependentGet(f(_p32._0));
+      var _p33 = tree;
+      switch (_p33.ctor)
+      {case "Task": return Task(f(_p33._0));
+         case "Get": return A2(Get,f(_p33._0),_p33._1);
+         case "Put": return Put(f(_p33._0));
+         case "DependentGet": return DependentGet(f(_p33._0));
          default: return tree;}
    });
    return _elm.StepTree.values = {_op: _op
                                  ,init: init
                                  ,map: map
                                  ,view: view
+                                 ,update: update
                                  ,Root: Root
                                  ,HookedStep: HookedStep
                                  ,Step: Step
@@ -13626,10 +13636,8 @@ Elm.Build.make = function (_elm) {
    $BuildEvent = Elm.BuildEvent.make(_elm),
    $BuildPlan = Elm.BuildPlan.make(_elm),
    $Debug = Elm.Debug.make(_elm),
-   $Dict = Elm.Dict.make(_elm),
    $Effects = Elm.Effects.make(_elm),
    $EventSource = Elm.EventSource.make(_elm),
-   $Focus = Elm.Focus.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Http = Elm.Http.make(_elm),
@@ -13663,22 +13671,10 @@ Elm.Build.make = function (_elm) {
       },
       tree);
    });
-   var finishStep = F3(function (id,exitStatus,_p1) {
-      var _p2 = _p1;
-      var _p5 = _p2.tree;
-      var _p4 = _p2.foci;
-      var _p3 = A2($Dict.get,id,_p4);
-      if (_p3.ctor === "Nothing") {
-            return {tree: _p5,foci: _p4};
-         } else {
-            var stepState = _U.eq(exitStatus,
-            0) ? $StepTree.StepStateSucceeded : $StepTree.StepStateFailed;
-            return {tree: A3($Focus.update,
-                   _p3._0,
-                   setStepState(stepState),
-                   _p5)
-                   ,foci: _p4};
-         }
+   var finishStep = F2(function (exitStatus,tree) {
+      var stepState = _U.eq(exitStatus,
+      0) ? $StepTree.StepStateSucceeded : $StepTree.StepStateFailed;
+      return A2(setStepState,stepState,tree);
    });
    var setStepError = F2(function (message,tree) {
       return A2($StepTree.map,
@@ -13687,47 +13683,16 @@ Elm.Build.make = function (_elm) {
       },
       tree);
    });
-   var setError = F3(function (id,message,_p6) {
-      var _p7 = _p6;
-      var _p10 = _p7.tree;
-      var _p9 = _p7.foci;
-      var _p8 = A2($Dict.get,id,_p9);
-      if (_p8.ctor === "Nothing") {
-            return {tree: _p10,foci: _p9};
-         } else {
-            return {tree: A3($Focus.update,
-                   _p8._0,
-                   setStepError(message),
-                   _p10)
-                   ,foci: _p9};
-         }
-   });
    var appendStepLog = F2(function (output,tree) {
-      var _p11 = tree;
-      switch (_p11.ctor)
-      {case "Task": var _p12 = _p11._0;
-           return $StepTree.Task(_U.update(_p12,
-           {log: A2($Ansi$Log.update,output,_p12.log)}));
-         case "Get": var _p13 = _p11._0;
-           return A2($StepTree.Get,
-           _U.update(_p13,{log: A2($Ansi$Log.update,output,_p13.log)}),
-           _p11._1);
-         default: return tree;}
+      return A2($StepTree.map,
+      function (step) {
+         return _U.update(step,
+         {log: A2($Ansi$Log.update,output,step.log)});
+      },
+      tree);
    });
-   var appendLog = F3(function (id,output,_p14) {
-      var _p15 = _p14;
-      var _p18 = _p15.tree;
-      var _p17 = _p15.foci;
-      var _p16 = A2($Dict.get,id,_p17);
-      if (_p16.ctor === "Nothing") {
-            return {tree: _p18,foci: _p17};
-         } else {
-            return {tree: A3($Focus.update,
-                   _p16._0,
-                   appendStepLog(output),
-                   _p18)
-                   ,foci: _p17};
-         }
+   var updateStep = F3(function (id,update,root) {
+      return A2($Maybe.map,A2($StepTree.update,id,update),root);
    });
    var Closed = {ctor: "Closed"};
    var closeEvents = function (eventSource) {
@@ -13750,8 +13715,8 @@ Elm.Build.make = function (_elm) {
       "event",
       A2($Signal.forwardTo,
       actions,
-      function (_p19) {
-         return Event(parseEvent(_p19));
+      function (_p1) {
+         return Event(parseEvent(_p1));
       }));
       var settings = A2($EventSource.Settings,
       $Maybe.Just(A2($Signal.forwardTo,
@@ -13770,25 +13735,25 @@ Elm.Build.make = function (_elm) {
       A2($Task.andThen,A2($Task.andThen,connect,eventsSub),endSub)));
    });
    var update = F2(function (action,model) {
-      var _p20 = action;
-      switch (_p20.ctor)
+      var _p2 = action;
+      switch (_p2.ctor)
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
-         case "PlanFetched": if (_p20._0.ctor === "Err") {
+         case "PlanFetched": if (_p2._0.ctor === "Err") {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch plan: ",
-                 $Basics.toString(_p20._0._0)),
+                 $Basics.toString(_p2._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,
-                        {stepRoot: $Maybe.Just($StepTree.init(_p20._0._0))})
+                        {stepRoot: $Maybe.Just($StepTree.init(_p2._0._0))})
                         ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
               }
          case "Listening": return {ctor: "_Tuple2"
-                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p20._0)})
+                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p2._0)})
                                   ,_1: $Effects.none};
          case "Opened": return {ctor: "_Tuple2"
                                ,_0: model
@@ -13796,43 +13761,47 @@ Elm.Build.make = function (_elm) {
          case "Errored": return {ctor: "_Tuple2"
                                 ,_0: model
                                 ,_1: $Effects.none};
-         case "Event": if (_p20._0.ctor === "Ok") {
-                 switch (_p20._0._0.ctor)
+         case "Event": if (_p2._0.ctor === "Ok") {
+                 switch (_p2._0._0.ctor)
                  {case "Log": return {ctor: "_Tuple2"
                                      ,_0: _U.update(model,
-                                     {stepRoot: A2($Maybe.map,
-                                     A2(appendLog,_p20._0._0._0.id,_p20._0._0._1),
+                                     {stepRoot: A3(updateStep,
+                                     _p2._0._0._0.id,
+                                     appendStepLog(_p2._0._0._1),
                                      model.stepRoot)})
                                      ,_1: $Effects.none};
                     case "Error": return {ctor: "_Tuple2"
                                          ,_0: _U.update(model,
-                                         {stepRoot: A2($Maybe.map,
-                                         A2(setError,_p20._0._0._0.id,_p20._0._0._1),
+                                         {stepRoot: A3(updateStep,
+                                         _p2._0._0._0.id,
+                                         setStepError(_p2._0._0._1),
                                          model.stepRoot)})
                                          ,_1: $Effects.none};
                     case "FinishTask": return {ctor: "_Tuple2"
                                               ,_0: _U.update(model,
-                                              {stepRoot: A2($Maybe.map,
-                                              A2(finishStep,_p20._0._0._0.id,_p20._0._0._1),
+                                              {stepRoot: A3(updateStep,
+                                              _p2._0._0._0.id,
+                                              finishStep(_p2._0._0._1),
                                               model.stepRoot)})
                                               ,_1: $Effects.none};
                     case "FinishGet": return {ctor: "_Tuple2"
                                              ,_0: _U.update(model,
-                                             {stepRoot: A2($Maybe.map,
-                                             A2(finishStep,_p20._0._0._0.id,_p20._0._0._1),
+                                             {stepRoot: A3(updateStep,
+                                             _p2._0._0._0.id,
+                                             finishStep(_p2._0._0._1),
                                              model.stepRoot)})
                                              ,_1: $Effects.none};
                     default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: A2($Debug.log,_p20._0._0,$Effects.none)};
+                        ,_1: A2($Debug.log,_p2._0._0,$Effects.none)};
               }
-         case "EndOfEvents": var _p21 = model.eventSource;
-           if (_p21.ctor === "Just") {
+         case "EndOfEvents": var _p3 = model.eventSource;
+           if (_p3.ctor === "Just") {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{eventsLoaded: true})
-                        ,_1: closeEvents(_p21._0)};
+                        ,_1: closeEvents(_p3._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }
@@ -13880,9 +13849,8 @@ Elm.Build.make = function (_elm) {
                               ,Closed: Closed
                               ,init: init
                               ,update: update
-                              ,appendLog: appendLog
+                              ,updateStep: updateStep
                               ,appendStepLog: appendStepLog
-                              ,setError: setError
                               ,setStepError: setStepError
                               ,finishStep: finishStep
                               ,setStepState: setStepState
