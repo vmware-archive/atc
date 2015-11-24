@@ -12874,6 +12874,9 @@ Elm.BuildEvent.make = function (_elm) {
    var InitializeTask = function (a) {
       return {ctor: "InitializeTask",_0: a};
    };
+   var FinishPut = F2(function (a,b) {
+      return {ctor: "FinishPut",_0: a,_1: b};
+   });
    var FinishGet = F2(function (a,b) {
       return {ctor: "FinishGet",_0: a,_1: b};
    });
@@ -12920,6 +12923,12 @@ Elm.BuildEvent.make = function (_elm) {
            A2($Json$Decode._op[":="],"origin",decodeOrigin),
            A2($Json$Decode._op[":="],"exit_status",$Json$Decode.$int)),
            e.value);
+         case "finish-put": return A2($Json$Decode.decodeValue,
+           A3($Json$Decode.object2,
+           FinishPut,
+           A2($Json$Decode._op[":="],"origin",decodeOrigin),
+           A2($Json$Decode._op[":="],"exit_status",$Json$Decode.$int)),
+           e.value);
          default: return $Result.Err(A2($Basics._op["++"],
            "unknown event type: ",
            _p2));}
@@ -12930,6 +12939,7 @@ Elm.BuildEvent.make = function (_elm) {
    return _elm.BuildEvent.values = {_op: _op
                                    ,BuildStatus: BuildStatus
                                    ,FinishGet: FinishGet
+                                   ,FinishPut: FinishPut
                                    ,InitializeTask: InitializeTask
                                    ,StartTask: StartTask
                                    ,FinishTask: FinishTask
@@ -13822,6 +13832,13 @@ Elm.Build.make = function (_elm) {
                                               model.stepRoot)})
                                               ,_1: $Effects.none};
                     case "FinishGet": return {ctor: "_Tuple2"
+                                             ,_0: _U.update(model,
+                                             {stepRoot: A3(updateStep,
+                                             _p2._0._0._0.id,
+                                             finishStep(_p2._0._0._1),
+                                             model.stepRoot)})
+                                             ,_1: $Effects.none};
+                    case "FinishPut": return {ctor: "_Tuple2"
                                              ,_0: _U.update(model,
                                              {stepRoot: A3(updateStep,
                                              _p2._0._0._0.id,
