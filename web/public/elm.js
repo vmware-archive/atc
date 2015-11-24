@@ -11608,6 +11608,64 @@ Elm.BuildPlan.make = function (_elm) {
                                   ,decodeTimeout: decodeTimeout
                                   ,lazy: lazy};
 };
+Elm.Native.Scroll = {};
+Elm.Native.Scroll.make = function(localRuntime) {
+  localRuntime.Native = localRuntime.Native || {};
+  localRuntime.Native.Scroll = localRuntime.Native.Scroll || {};
+  if (localRuntime.Native.Scroll.values) {
+    return localRuntime.Native.Scroll.values;
+  }
+
+  var NS = Elm.Native.Signal.make(localRuntime);
+
+  var Task = Elm.Native.Task.make(localRuntime);
+  var Utils = Elm.Native.Utils.make(localRuntime);
+
+  var fromBottom = NS.input('Scroll.fromBottom', 0);
+
+  localRuntime.addListener([fromBottom.id], window, 'scroll', function() {
+    var scrolledHeight = window.pageYOffset + document.documentElement.clientHeight;
+
+    localRuntime.notify(
+      fromBottom.id,
+      document.documentElement.scrollHeight - scrolledHeight
+    );
+  });
+
+  function toBottom() {
+    return Task.asyncFunction(function(callback) {
+      window.scrollTo(0, document.body.scrollHeight);
+      callback(Task.succeed(Utils.Tuple0));
+    });
+  }
+
+  localRuntime.Native.Scroll.values = {
+    toBottom: toBottom,
+    fromBottom: fromBottom,
+  };
+
+  return localRuntime.Native.Scroll.values;
+};
+
+Elm.Scroll = Elm.Scroll || {};
+Elm.Scroll.make = function (_elm) {
+   "use strict";
+   _elm.Scroll = _elm.Scroll || {};
+   if (_elm.Scroll.values) return _elm.Scroll.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$Scroll = Elm.Native.Scroll.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var fromBottom = $Native$Scroll.fromBottom;
+   var toBottom = $Native$Scroll.toBottom({ctor: "_Tuple0"});
+   return _elm.Scroll.values = {_op: _op,toBottom: toBottom,fromBottom: fromBottom};
+};
 Elm.Focus = Elm.Focus || {};
 Elm.Focus.make = function (_elm) {
    "use strict";
@@ -12049,6 +12107,7 @@ Elm.Build.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Scroll = Elm.Scroll.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StepTree = Elm.StepTree.make(_elm),
    $Task = Elm.Task.make(_elm),
@@ -12082,6 +12141,8 @@ Elm.Build.make = function (_elm) {
             _U.list([A2($StepTree.view,A2($Signal.forwardTo,actions,StepTreeAction),_p0._0.tree)]));
          }
    });
+   var ScrollFromBottom = function (a) {    return {ctor: "ScrollFromBottom",_0: a};};
+   var ScrollTick = {ctor: "ScrollTick"};
    var Closed = {ctor: "Closed"};
    var closeEvents = function (eventSource) {    return $Effects.task(A2($Task.map,$Basics.always(Closed),$EventSource.close(eventSource)));};
    var EndOfEvents = {ctor: "EndOfEvents"};
@@ -12106,13 +12167,24 @@ Elm.Build.make = function (_elm) {
       return $Effects.task(A2($Task.andThen,$Task.sleep(delay),function (_p2) {    return fetchPlan;}));
    });
    var init = F2(function (actions,buildId) {
-      var model = {actions: actions,buildId: buildId,stepRoot: $Maybe.Nothing,eventSource: $Maybe.Nothing,eventsLoaded: false};
-      return {ctor: "_Tuple2",_0: model,_1: A2(fetchBuildPlan,0,buildId)};
+      var model = {actions: actions,buildId: buildId,stepRoot: $Maybe.Nothing,eventSource: $Maybe.Nothing,eventsLoaded: false,autoScroll: true};
+      return {ctor: "_Tuple2",_0: model,_1: $Effects.batch(_U.list([$Effects.tick($Basics.always(ScrollTick)),A2(fetchBuildPlan,0,buildId)]))};
    });
+   var Noop = {ctor: "Noop"};
+   var scrollToBottom = $Effects.task(A2($Task.map,$Basics.always(Noop),$Scroll.toBottom));
    var update = F2(function (action,model) {
       var _p3 = action;
       switch (_p3.ctor)
       {case "Noop": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         case "ScrollTick": return model.autoScroll ? {ctor: "_Tuple2"
+                                                      ,_0: model
+                                                      ,_1: $Effects.batch(_U.list([$Effects.tick($Basics.always(ScrollTick))
+                                                                                  ,scrollToBottom]))} : {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         case "ScrollFromBottom": return _U.eq(_p3._0,0) ? {ctor: "_Tuple2"
+                                                           ,_0: _U.update(model,{autoScroll: true})
+                                                           ,_1: $Effects.tick($Basics.always(ScrollTick))} : {ctor: "_Tuple2"
+                                                                                                             ,_0: _U.update(model,{autoScroll: false})
+                                                                                                             ,_1: $Effects.none};
          case "PlanFetched": if (_p3._0.ctor === "Err") {
                  if (_p3._0._0.ctor === "BadResponse" && _p3._0._0._0 === 404) {
                        return {ctor: "_Tuple2",_0: model,_1: A2(fetchBuildPlan,$Time.second,model.buildId)};
@@ -12127,7 +12199,7 @@ Elm.Build.make = function (_elm) {
                         ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
               }
          case "Listening": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Just(_p3._0)}),_1: $Effects.none};
-         case "Opened": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         case "Opened": return {ctor: "_Tuple2",_0: model,_1: scrollToBottom};
          case "Errored": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          case "Event": if (_p3._0.ctor === "Ok") {
                  switch (_p3._0._0.ctor)
@@ -12157,8 +12229,7 @@ Elm.Build.make = function (_elm) {
               }
          default: return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Nothing}),_1: $Effects.none};}
    });
-   var Noop = {ctor: "Noop"};
-   var Model = F5(function (a,b,c,d,e) {    return {actions: a,buildId: b,stepRoot: c,eventSource: d,eventsLoaded: e};});
+   var Model = F6(function (a,b,c,d,e,f) {    return {actions: a,buildId: b,stepRoot: c,eventSource: d,eventsLoaded: e,autoScroll: f};});
    return _elm.Build.values = {_op: _op
                               ,Model: Model
                               ,Noop: Noop
@@ -12169,6 +12240,8 @@ Elm.Build.make = function (_elm) {
                               ,Event: Event
                               ,EndOfEvents: EndOfEvents
                               ,Closed: Closed
+                              ,ScrollTick: ScrollTick
+                              ,ScrollFromBottom: ScrollFromBottom
                               ,StepTreeAction: StepTreeAction
                               ,init: init
                               ,update: update
@@ -12182,7 +12255,8 @@ Elm.Build.make = function (_elm) {
                               ,fetchBuildPlan: fetchBuildPlan
                               ,subscribeToEvents: subscribeToEvents
                               ,closeEvents: closeEvents
-                              ,parseEvent: parseEvent};
+                              ,parseEvent: parseEvent
+                              ,scrollToBottom: scrollToBottom};
 };
 Elm.StartApp = Elm.StartApp || {};
 Elm.StartApp.make = function (_elm) {
@@ -12237,6 +12311,7 @@ Elm.Main.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Scroll = Elm.Scroll.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
    $Task = Elm.Task.make(_elm);
@@ -12251,7 +12326,7 @@ Elm.Main.make = function (_elm) {
       return $StartApp.start({init: A2($Build.init,pageDrivenActions.address,buildId)
                              ,update: $Build.update
                              ,view: $Build.view
-                             ,inputs: _U.list([pageDrivenActions.signal])});
+                             ,inputs: _U.list([pageDrivenActions.signal,A2($Signal.map,$Build.ScrollFromBottom,$Scroll.fromBottom)])});
    }();
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
