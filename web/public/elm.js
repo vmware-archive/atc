@@ -13298,7 +13298,7 @@ Elm.StepTree.make = function (_elm) {
       var _p2 = state;
       switch (_p2.ctor)
       {case "StepStatePending": return A2($Html.i,
-           _U.list([$Html$Attributes.$class("right fa fa-fw fa-beer")]),
+           _U.list([$Html$Attributes.$class("right fa fa-fw fa-circle-o-notch")]),
            _U.list([]));
          case "StepStateRunning": return A2($Html.i,
            _U.list([$Html$Attributes.$class("right fa fa-fw fa-spin fa-circle-o-notch")]),
