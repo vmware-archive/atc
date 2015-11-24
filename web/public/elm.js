@@ -13914,6 +13914,7 @@ Elm.Build.make = function (_elm) {
       return {ctor: "ScrollFromBottom",_0: a};
    };
    var ScrollTick = {ctor: "ScrollTick"};
+   var keepScrolling = $Effects.tick($Basics.always(ScrollTick));
    var Closed = {ctor: "Closed"};
    var closeEvents = function (eventSource) {
       return $Effects.task(A2($Task.map,
@@ -13980,7 +13981,7 @@ Elm.Build.make = function (_elm) {
                   ,autoScroll: true};
       return {ctor: "_Tuple2"
              ,_0: model
-             ,_1: $Effects.batch(_U.list([$Effects.tick($Basics.always(ScrollTick))
+             ,_1: $Effects.batch(_U.list([keepScrolling
                                          ,A2(fetchBuildPlan,0,buildId)]))};
    });
    var Noop = {ctor: "Noop"};
@@ -13993,12 +13994,13 @@ Elm.Build.make = function (_elm) {
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
-         case "ScrollTick": return model.autoScroll ? {ctor: "_Tuple2"
-                                                      ,_0: model
-                                                      ,_1: $Effects.batch(_U.list([$Effects.tick($Basics.always(ScrollTick))
-                                                                                  ,scrollToBottom]))} : {ctor: "_Tuple2"
-                                                                                                        ,_0: model
-                                                                                                        ,_1: $Effects.none};
+         case "ScrollTick":
+         return $Basics.not(model.eventsLoaded) && model.autoScroll ? {ctor: "_Tuple2"
+                                                                      ,_0: model
+                                                                      ,_1: $Effects.batch(_U.list([keepScrolling
+                                                                                                  ,scrollToBottom]))} : {ctor: "_Tuple2"
+                                                                                                                        ,_0: model
+                                                                                                                        ,_1: $Effects.none};
          case "ScrollFromBottom": return _U.eq(_p3._0,
            0) ? {ctor: "_Tuple2"
                 ,_0: _U.update(model,{autoScroll: true})
@@ -14122,6 +14124,7 @@ Elm.Build.make = function (_elm) {
                               ,StepTreeAction: StepTreeAction
                               ,init: init
                               ,update: update
+                              ,keepScrolling: keepScrolling
                               ,updateStep: updateStep
                               ,setRunning: setRunning
                               ,appendStepLog: appendStepLog
