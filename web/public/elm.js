@@ -12868,6 +12868,12 @@ Elm.BuildEvent.make = function (_elm) {
    var FinishTask = F2(function (a,b) {
       return {ctor: "FinishTask",_0: a,_1: b};
    });
+   var StartTask = function (a) {
+      return {ctor: "StartTask",_0: a};
+   };
+   var InitializeTask = function (a) {
+      return {ctor: "InitializeTask",_0: a};
+   };
    var FinishGet = F2(function (a,b) {
       return {ctor: "FinishGet",_0: a,_1: b};
    });
@@ -12892,6 +12898,16 @@ Elm.BuildEvent.make = function (_elm) {
            A2($Json$Decode._op[":="],"origin",decodeOrigin),
            A2($Json$Decode._op[":="],"message",$Json$Decode.string)),
            e.value);
+         case "initialize-task": return A2($Json$Decode.decodeValue,
+           A2($Json$Decode.object1,
+           InitializeTask,
+           A2($Json$Decode._op[":="],"origin",decodeOrigin)),
+           e.value);
+         case "start-task": return A2($Json$Decode.decodeValue,
+           A2($Json$Decode.object1,
+           StartTask,
+           A2($Json$Decode._op[":="],"origin",decodeOrigin)),
+           e.value);
          case "finish-task": return A2($Json$Decode.decodeValue,
            A3($Json$Decode.object2,
            FinishTask,
@@ -12914,6 +12930,8 @@ Elm.BuildEvent.make = function (_elm) {
    return _elm.BuildEvent.values = {_op: _op
                                    ,BuildStatus: BuildStatus
                                    ,FinishGet: FinishGet
+                                   ,InitializeTask: InitializeTask
+                                   ,StartTask: StartTask
                                    ,FinishTask: FinishTask
                                    ,Log: Log
                                    ,Error: Error
@@ -13782,6 +13800,20 @@ Elm.Build.make = function (_elm) {
                                          },
                                          model.stepRoot)})
                                          ,_1: $Effects.none};
+                    case "InitializeTask": return {ctor: "_Tuple2"
+                                                  ,_0: _U.update(model,
+                                                  {stepRoot: A3(updateStep,
+                                                  _p2._0._0._0.id,
+                                                  setRunning,
+                                                  model.stepRoot)})
+                                                  ,_1: $Effects.none};
+                    case "StartTask": return {ctor: "_Tuple2"
+                                             ,_0: _U.update(model,
+                                             {stepRoot: A3(updateStep,
+                                             _p2._0._0._0.id,
+                                             setRunning,
+                                             model.stepRoot)})
+                                             ,_1: $Effects.none};
                     case "FinishTask": return {ctor: "_Tuple2"
                                               ,_0: _U.update(model,
                                               {stepRoot: A3(updateStep,
