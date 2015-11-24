@@ -6027,934 +6027,6 @@ Elm.Signal.make = function (_elm) {
                                ,forwardTo: forwardTo
                                ,Mailbox: Mailbox};
 };
-Elm.Native.Char = {};
-Elm.Native.Char.make = function(localRuntime) {
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Char = localRuntime.Native.Char || {};
-	if (localRuntime.Native.Char.values)
-	{
-		return localRuntime.Native.Char.values;
-	}
-
-	var Utils = Elm.Native.Utils.make(localRuntime);
-
-	return localRuntime.Native.Char.values = {
-		fromCode: function(c) { return Utils.chr(String.fromCharCode(c)); },
-		toCode: function(c) { return c.charCodeAt(0); },
-		toUpper: function(c) { return Utils.chr(c.toUpperCase()); },
-		toLower: function(c) { return Utils.chr(c.toLowerCase()); },
-		toLocaleUpper: function(c) { return Utils.chr(c.toLocaleUpperCase()); },
-		toLocaleLower: function(c) { return Utils.chr(c.toLocaleLowerCase()); }
-	};
-};
-
-Elm.Char = Elm.Char || {};
-Elm.Char.make = function (_elm) {
-   "use strict";
-   _elm.Char = _elm.Char || {};
-   if (_elm.Char.values) return _elm.Char.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Native$Char = Elm.Native.Char.make(_elm);
-   var _op = {};
-   var fromCode = $Native$Char.fromCode;
-   var toCode = $Native$Char.toCode;
-   var toLocaleLower = $Native$Char.toLocaleLower;
-   var toLocaleUpper = $Native$Char.toLocaleUpper;
-   var toLower = $Native$Char.toLower;
-   var toUpper = $Native$Char.toUpper;
-   var isBetween = F3(function (low,high,$char) {
-      var code = toCode($char);
-      return _U.cmp(code,toCode(low)) > -1 && _U.cmp(code,
-      toCode(high)) < 1;
-   });
-   var isUpper = A2(isBetween,_U.chr("A"),_U.chr("Z"));
-   var isLower = A2(isBetween,_U.chr("a"),_U.chr("z"));
-   var isDigit = A2(isBetween,_U.chr("0"),_U.chr("9"));
-   var isOctDigit = A2(isBetween,_U.chr("0"),_U.chr("7"));
-   var isHexDigit = function ($char) {
-      return isDigit($char) || (A3(isBetween,
-      _U.chr("a"),
-      _U.chr("f"),
-      $char) || A3(isBetween,_U.chr("A"),_U.chr("F"),$char));
-   };
-   return _elm.Char.values = {_op: _op
-                             ,isUpper: isUpper
-                             ,isLower: isLower
-                             ,isDigit: isDigit
-                             ,isOctDigit: isOctDigit
-                             ,isHexDigit: isHexDigit
-                             ,toUpper: toUpper
-                             ,toLower: toLower
-                             ,toLocaleUpper: toLocaleUpper
-                             ,toLocaleLower: toLocaleLower
-                             ,toCode: toCode
-                             ,fromCode: fromCode};
-};
-Elm.Native.String = {};
-
-Elm.Native.String.make = function(localRuntime) {
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.String = localRuntime.Native.String || {};
-	if (localRuntime.Native.String.values)
-	{
-		return localRuntime.Native.String.values;
-	}
-	if ('values' in Elm.Native.String)
-	{
-		return localRuntime.Native.String.values = Elm.Native.String.values;
-	}
-
-
-	var Char = Elm.Char.make(localRuntime);
-	var List = Elm.Native.List.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-	var Result = Elm.Result.make(localRuntime);
-	var Utils = Elm.Native.Utils.make(localRuntime);
-
-	function isEmpty(str)
-	{
-		return str.length === 0;
-	}
-	function cons(chr, str)
-	{
-		return chr + str;
-	}
-	function uncons(str)
-	{
-		var hd = str[0];
-		if (hd)
-		{
-			return Maybe.Just(Utils.Tuple2(Utils.chr(hd), str.slice(1)));
-		}
-		return Maybe.Nothing;
-	}
-	function append(a, b)
-	{
-		return a + b;
-	}
-	function concat(strs)
-	{
-		return List.toArray(strs).join('');
-	}
-	function length(str)
-	{
-		return str.length;
-	}
-	function map(f, str)
-	{
-		var out = str.split('');
-		for (var i = out.length; i--; )
-		{
-			out[i] = f(Utils.chr(out[i]));
-		}
-		return out.join('');
-	}
-	function filter(pred, str)
-	{
-		return str.split('').map(Utils.chr).filter(pred).join('');
-	}
-	function reverse(str)
-	{
-		return str.split('').reverse().join('');
-	}
-	function foldl(f, b, str)
-	{
-		var len = str.length;
-		for (var i = 0; i < len; ++i)
-		{
-			b = A2(f, Utils.chr(str[i]), b);
-		}
-		return b;
-	}
-	function foldr(f, b, str)
-	{
-		for (var i = str.length; i--; )
-		{
-			b = A2(f, Utils.chr(str[i]), b);
-		}
-		return b;
-	}
-	function split(sep, str)
-	{
-		return List.fromArray(str.split(sep));
-	}
-	function join(sep, strs)
-	{
-		return List.toArray(strs).join(sep);
-	}
-	function repeat(n, str)
-	{
-		var result = '';
-		while (n > 0)
-		{
-			if (n & 1)
-			{
-				result += str;
-			}
-			n >>= 1, str += str;
-		}
-		return result;
-	}
-	function slice(start, end, str)
-	{
-		return str.slice(start, end);
-	}
-	function left(n, str)
-	{
-		return n < 1 ? '' : str.slice(0, n);
-	}
-	function right(n, str)
-	{
-		return n < 1 ? '' : str.slice(-n);
-	}
-	function dropLeft(n, str)
-	{
-		return n < 1 ? str : str.slice(n);
-	}
-	function dropRight(n, str)
-	{
-		return n < 1 ? str : str.slice(0, -n);
-	}
-	function pad(n, chr, str)
-	{
-		var half = (n - str.length) / 2;
-		return repeat(Math.ceil(half), chr) + str + repeat(half | 0, chr);
-	}
-	function padRight(n, chr, str)
-	{
-		return str + repeat(n - str.length, chr);
-	}
-	function padLeft(n, chr, str)
-	{
-		return repeat(n - str.length, chr) + str;
-	}
-
-	function trim(str)
-	{
-		return str.trim();
-	}
-	function trimLeft(str)
-	{
-		return str.replace(/^\s+/, '');
-	}
-	function trimRight(str)
-	{
-		return str.replace(/\s+$/, '');
-	}
-
-	function words(str)
-	{
-		return List.fromArray(str.trim().split(/\s+/g));
-	}
-	function lines(str)
-	{
-		return List.fromArray(str.split(/\r\n|\r|\n/g));
-	}
-
-	function toUpper(str)
-	{
-		return str.toUpperCase();
-	}
-	function toLower(str)
-	{
-		return str.toLowerCase();
-	}
-
-	function any(pred, str)
-	{
-		for (var i = str.length; i--; )
-		{
-			if (pred(Utils.chr(str[i])))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-	function all(pred, str)
-	{
-		for (var i = str.length; i--; )
-		{
-			if (!pred(Utils.chr(str[i])))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	function contains(sub, str)
-	{
-		return str.indexOf(sub) > -1;
-	}
-	function startsWith(sub, str)
-	{
-		return str.indexOf(sub) === 0;
-	}
-	function endsWith(sub, str)
-	{
-		return str.length >= sub.length &&
-			str.lastIndexOf(sub) === str.length - sub.length;
-	}
-	function indexes(sub, str)
-	{
-		var subLen = sub.length;
-		var i = 0;
-		var is = [];
-		while ((i = str.indexOf(sub, i)) > -1)
-		{
-			is.push(i);
-			i = i + subLen;
-		}
-		return List.fromArray(is);
-	}
-
-	function toInt(s)
-	{
-		var len = s.length;
-		if (len === 0)
-		{
-			return Result.Err("could not convert string '" + s + "' to an Int" );
-		}
-		var start = 0;
-		if (s[0] === '-')
-		{
-			if (len === 1)
-			{
-				return Result.Err("could not convert string '" + s + "' to an Int" );
-			}
-			start = 1;
-		}
-		for (var i = start; i < len; ++i)
-		{
-			if (!Char.isDigit(s[i]))
-			{
-				return Result.Err("could not convert string '" + s + "' to an Int" );
-			}
-		}
-		return Result.Ok(parseInt(s, 10));
-	}
-
-	function toFloat(s)
-	{
-		var len = s.length;
-		if (len === 0)
-		{
-			return Result.Err("could not convert string '" + s + "' to a Float" );
-		}
-		var start = 0;
-		if (s[0] === '-')
-		{
-			if (len === 1)
-			{
-				return Result.Err("could not convert string '" + s + "' to a Float" );
-			}
-			start = 1;
-		}
-		var dotCount = 0;
-		for (var i = start; i < len; ++i)
-		{
-			if (Char.isDigit(s[i]))
-			{
-				continue;
-			}
-			if (s[i] === '.')
-			{
-				dotCount += 1;
-				if (dotCount <= 1)
-				{
-					continue;
-				}
-			}
-			return Result.Err("could not convert string '" + s + "' to a Float" );
-		}
-		return Result.Ok(parseFloat(s));
-	}
-
-	function toList(str)
-	{
-		return List.fromArray(str.split('').map(Utils.chr));
-	}
-	function fromList(chars)
-	{
-		return List.toArray(chars).join('');
-	}
-
-	return Elm.Native.String.values = {
-		isEmpty: isEmpty,
-		cons: F2(cons),
-		uncons: uncons,
-		append: F2(append),
-		concat: concat,
-		length: length,
-		map: F2(map),
-		filter: F2(filter),
-		reverse: reverse,
-		foldl: F3(foldl),
-		foldr: F3(foldr),
-
-		split: F2(split),
-		join: F2(join),
-		repeat: F2(repeat),
-
-		slice: F3(slice),
-		left: F2(left),
-		right: F2(right),
-		dropLeft: F2(dropLeft),
-		dropRight: F2(dropRight),
-
-		pad: F3(pad),
-		padLeft: F3(padLeft),
-		padRight: F3(padRight),
-
-		trim: trim,
-		trimLeft: trimLeft,
-		trimRight: trimRight,
-
-		words: words,
-		lines: lines,
-
-		toUpper: toUpper,
-		toLower: toLower,
-
-		any: F2(any),
-		all: F2(all),
-
-		contains: F2(contains),
-		startsWith: F2(startsWith),
-		endsWith: F2(endsWith),
-		indexes: F2(indexes),
-
-		toInt: toInt,
-		toFloat: toFloat,
-		toList: toList,
-		fromList: fromList
-	};
-};
-
-Elm.String = Elm.String || {};
-Elm.String.make = function (_elm) {
-   "use strict";
-   _elm.String = _elm.String || {};
-   if (_elm.String.values) return _elm.String.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Native$String = Elm.Native.String.make(_elm),
-   $Result = Elm.Result.make(_elm);
-   var _op = {};
-   var fromList = $Native$String.fromList;
-   var toList = $Native$String.toList;
-   var toFloat = $Native$String.toFloat;
-   var toInt = $Native$String.toInt;
-   var indices = $Native$String.indexes;
-   var indexes = $Native$String.indexes;
-   var endsWith = $Native$String.endsWith;
-   var startsWith = $Native$String.startsWith;
-   var contains = $Native$String.contains;
-   var all = $Native$String.all;
-   var any = $Native$String.any;
-   var toLower = $Native$String.toLower;
-   var toUpper = $Native$String.toUpper;
-   var lines = $Native$String.lines;
-   var words = $Native$String.words;
-   var trimRight = $Native$String.trimRight;
-   var trimLeft = $Native$String.trimLeft;
-   var trim = $Native$String.trim;
-   var padRight = $Native$String.padRight;
-   var padLeft = $Native$String.padLeft;
-   var pad = $Native$String.pad;
-   var dropRight = $Native$String.dropRight;
-   var dropLeft = $Native$String.dropLeft;
-   var right = $Native$String.right;
-   var left = $Native$String.left;
-   var slice = $Native$String.slice;
-   var repeat = $Native$String.repeat;
-   var join = $Native$String.join;
-   var split = $Native$String.split;
-   var foldr = $Native$String.foldr;
-   var foldl = $Native$String.foldl;
-   var reverse = $Native$String.reverse;
-   var filter = $Native$String.filter;
-   var map = $Native$String.map;
-   var length = $Native$String.length;
-   var concat = $Native$String.concat;
-   var append = $Native$String.append;
-   var uncons = $Native$String.uncons;
-   var cons = $Native$String.cons;
-   var fromChar = function ($char) {    return A2(cons,$char,"");};
-   var isEmpty = $Native$String.isEmpty;
-   return _elm.String.values = {_op: _op
-                               ,isEmpty: isEmpty
-                               ,length: length
-                               ,reverse: reverse
-                               ,repeat: repeat
-                               ,cons: cons
-                               ,uncons: uncons
-                               ,fromChar: fromChar
-                               ,append: append
-                               ,concat: concat
-                               ,split: split
-                               ,join: join
-                               ,words: words
-                               ,lines: lines
-                               ,slice: slice
-                               ,left: left
-                               ,right: right
-                               ,dropLeft: dropLeft
-                               ,dropRight: dropRight
-                               ,contains: contains
-                               ,startsWith: startsWith
-                               ,endsWith: endsWith
-                               ,indexes: indexes
-                               ,indices: indices
-                               ,toInt: toInt
-                               ,toFloat: toFloat
-                               ,toList: toList
-                               ,fromList: fromList
-                               ,toUpper: toUpper
-                               ,toLower: toLower
-                               ,pad: pad
-                               ,padLeft: padLeft
-                               ,padRight: padRight
-                               ,trim: trim
-                               ,trimLeft: trimLeft
-                               ,trimRight: trimRight
-                               ,map: map
-                               ,filter: filter
-                               ,foldl: foldl
-                               ,foldr: foldr
-                               ,any: any
-                               ,all: all};
-};
-Elm.Ansi = Elm.Ansi || {};
-Elm.Ansi.make = function (_elm) {
-   "use strict";
-   _elm.Ansi = _elm.Ansi || {};
-   if (_elm.Ansi.values) return _elm.Ansi.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $String = Elm.String.make(_elm);
-   var _op = {};
-   var encodeCode = function (code) {
-      var _p0 = code;
-      if (_p0.ctor === "Nothing") {
-            return "";
-         } else {
-            return $Basics.toString(_p0._0);
-         }
-   };
-   var encodeCodes = function (codes) {
-      return A2($String.join,";",A2($List.map,encodeCode,codes));
-   };
-   var Unescaped = function (a) {
-      return {ctor: "Unescaped",_0: a};
-   };
-   var CSI = F2(function (a,b) {
-      return {ctor: "CSI",_0: a,_1: b};
-   });
-   var Escaped = {ctor: "Escaped"};
-   var Parser = F3(function (a,b,c) {
-      return {ctor: "Parser",_0: a,_1: b,_2: c};
-   });
-   var emptyParser = Parser(Unescaped(""));
-   var completeBracketed = F2(function (_p1,actions) {
-      var _p2 = _p1;
-      var _p3 = _p2._2;
-      return A3(Parser,
-      Unescaped(""),
-      A3($List.foldl,_p3,_p2._1,actions),
-      _p3);
-   });
-   var EraseAll = {ctor: "EraseAll"};
-   var EraseToEnd = {ctor: "EraseToEnd"};
-   var EraseToBeginning = {ctor: "EraseToBeginning"};
-   var eraseMode = function (code) {
-      var _p4 = code;
-      switch (_p4)
-      {case 0: return EraseToEnd;
-         case 1: return EraseToBeginning;
-         default: return EraseAll;}
-   };
-   var BrightWhite = {ctor: "BrightWhite"};
-   var BrightCyan = {ctor: "BrightCyan"};
-   var BrightMagenta = {ctor: "BrightMagenta"};
-   var BrightBlue = {ctor: "BrightBlue"};
-   var BrightYellow = {ctor: "BrightYellow"};
-   var BrightGreen = {ctor: "BrightGreen"};
-   var BrightRed = {ctor: "BrightRed"};
-   var BrightBlack = {ctor: "BrightBlack"};
-   var White = {ctor: "White"};
-   var Cyan = {ctor: "Cyan"};
-   var Magenta = {ctor: "Magenta"};
-   var Blue = {ctor: "Blue"};
-   var Yellow = {ctor: "Yellow"};
-   var Green = {ctor: "Green"};
-   var Red = {ctor: "Red"};
-   var Black = {ctor: "Black"};
-   var RestoreCursorPosition = {ctor: "RestoreCursorPosition"};
-   var SaveCursorPosition = {ctor: "SaveCursorPosition"};
-   var EraseLine = function (a) {
-      return {ctor: "EraseLine",_0: a};
-   };
-   var EraseDisplay = function (a) {
-      return {ctor: "EraseDisplay",_0: a};
-   };
-   var CursorColumn = function (a) {
-      return {ctor: "CursorColumn",_0: a};
-   };
-   var CursorPosition = F2(function (a,b) {
-      return {ctor: "CursorPosition",_0: a,_1: b};
-   });
-   var cursorPosition = function (codes) {
-      var _p5 = codes;
-      _v3_5: do {
-         if (_p5.ctor === "::") {
-               if (_p5._0.ctor === "Nothing") {
-                     if (_p5._1.ctor === "[]") {
-                           return _U.list([A2(CursorPosition,1,1)]);
-                        } else {
-                           if (_p5._1._0.ctor === "Nothing") {
-                                 if (_p5._1._1.ctor === "[]") {
-                                       return _U.list([A2(CursorPosition,1,1)]);
-                                    } else {
-                                       break _v3_5;
-                                    }
-                              } else {
-                                 if (_p5._1._1.ctor === "[]") {
-                                       return _U.list([A2(CursorPosition,1,_p5._1._0._0)]);
-                                    } else {
-                                       break _v3_5;
-                                    }
-                              }
-                        }
-                  } else {
-                     if (_p5._1.ctor === "::") {
-                           if (_p5._1._0.ctor === "Nothing") {
-                                 if (_p5._1._1.ctor === "[]") {
-                                       return _U.list([A2(CursorPosition,_p5._0._0,1)]);
-                                    } else {
-                                       break _v3_5;
-                                    }
-                              } else {
-                                 if (_p5._1._1.ctor === "[]") {
-                                       return _U.list([A2(CursorPosition,_p5._0._0,_p5._1._0._0)]);
-                                    } else {
-                                       break _v3_5;
-                                    }
-                              }
-                        } else {
-                           break _v3_5;
-                        }
-                  }
-            } else {
-               break _v3_5;
-            }
-      } while (false);
-      return _U.list([]);
-   };
-   var CursorBack = function (a) {
-      return {ctor: "CursorBack",_0: a};
-   };
-   var CursorForward = function (a) {
-      return {ctor: "CursorForward",_0: a};
-   };
-   var CursorDown = function (a) {
-      return {ctor: "CursorDown",_0: a};
-   };
-   var CursorUp = function (a) {
-      return {ctor: "CursorUp",_0: a};
-   };
-   var CarriageReturn = {ctor: "CarriageReturn"};
-   var Linebreak = {ctor: "Linebreak"};
-   var SetInverted = function (a) {
-      return {ctor: "SetInverted",_0: a};
-   };
-   var SetUnderline = function (a) {
-      return {ctor: "SetUnderline",_0: a};
-   };
-   var SetItalic = function (a) {
-      return {ctor: "SetItalic",_0: a};
-   };
-   var SetFaint = function (a) {
-      return {ctor: "SetFaint",_0: a};
-   };
-   var SetBold = function (a) {
-      return {ctor: "SetBold",_0: a};
-   };
-   var SetBackground = function (a) {
-      return {ctor: "SetBackground",_0: a};
-   };
-   var SetForeground = function (a) {
-      return {ctor: "SetForeground",_0: a};
-   };
-   var reset = _U.list([SetForeground($Maybe.Nothing)
-                       ,SetBackground($Maybe.Nothing)
-                       ,SetBold(false)
-                       ,SetFaint(false)
-                       ,SetItalic(false)
-                       ,SetUnderline(false)
-                       ,SetInverted(false)]);
-   var codeActions = function (code) {
-      var _p6 = code;
-      switch (_p6)
-      {case 0: return reset;
-         case 1: return _U.list([SetBold(true)]);
-         case 2: return _U.list([SetFaint(true)]);
-         case 3: return _U.list([SetItalic(true)]);
-         case 4: return _U.list([SetUnderline(true)]);
-         case 7: return _U.list([SetInverted(true)]);
-         case 30: return _U.list([SetForeground($Maybe.Just(Black))]);
-         case 31: return _U.list([SetForeground($Maybe.Just(Red))]);
-         case 32: return _U.list([SetForeground($Maybe.Just(Green))]);
-         case 33: return _U.list([SetForeground($Maybe.Just(Yellow))]);
-         case 34: return _U.list([SetForeground($Maybe.Just(Blue))]);
-         case 35: return _U.list([SetForeground($Maybe.Just(Magenta))]);
-         case 36: return _U.list([SetForeground($Maybe.Just(Cyan))]);
-         case 37: return _U.list([SetForeground($Maybe.Just(White))]);
-         case 40: return _U.list([SetBackground($Maybe.Just(Black))]);
-         case 41: return _U.list([SetBackground($Maybe.Just(Red))]);
-         case 42: return _U.list([SetBackground($Maybe.Just(Green))]);
-         case 43: return _U.list([SetBackground($Maybe.Just(Yellow))]);
-         case 44: return _U.list([SetBackground($Maybe.Just(Blue))]);
-         case 45: return _U.list([SetBackground($Maybe.Just(Magenta))]);
-         case 46: return _U.list([SetBackground($Maybe.Just(Cyan))]);
-         case 47: return _U.list([SetBackground($Maybe.Just(White))]);
-         case 90:
-         return _U.list([SetForeground($Maybe.Just(BrightBlack))]);
-         case 91:
-         return _U.list([SetForeground($Maybe.Just(BrightRed))]);
-         case 92:
-         return _U.list([SetForeground($Maybe.Just(BrightGreen))]);
-         case 93:
-         return _U.list([SetForeground($Maybe.Just(BrightYellow))]);
-         case 94:
-         return _U.list([SetForeground($Maybe.Just(BrightBlue))]);
-         case 95:
-         return _U.list([SetForeground($Maybe.Just(BrightMagenta))]);
-         case 96:
-         return _U.list([SetForeground($Maybe.Just(BrightCyan))]);
-         case 97:
-         return _U.list([SetForeground($Maybe.Just(BrightWhite))]);
-         case 100:
-         return _U.list([SetBackground($Maybe.Just(BrightBlack))]);
-         case 101:
-         return _U.list([SetBackground($Maybe.Just(BrightRed))]);
-         case 102:
-         return _U.list([SetBackground($Maybe.Just(BrightGreen))]);
-         case 103:
-         return _U.list([SetBackground($Maybe.Just(BrightYellow))]);
-         case 104:
-         return _U.list([SetBackground($Maybe.Just(BrightBlue))]);
-         case 105:
-         return _U.list([SetBackground($Maybe.Just(BrightMagenta))]);
-         case 106:
-         return _U.list([SetBackground($Maybe.Just(BrightCyan))]);
-         case 107:
-         return _U.list([SetBackground($Maybe.Just(BrightWhite))]);
-         default: return _U.list([]);}
-   };
-   var Remainder = function (a) {
-      return {ctor: "Remainder",_0: a};
-   };
-   var Print = function (a) {    return {ctor: "Print",_0: a};};
-   var completeParsing = function (parser) {
-      var _p7 = parser;
-      switch (_p7._0.ctor)
-      {case "Escaped": return A2(_p7._2,Remainder(""),_p7._1);
-         case "CSI": return A2(_p7._2,
-           Remainder(A2($Basics._op["++"],
-           "[",
-           encodeCodes(A2($Basics._op["++"],
-           _p7._0._0,
-           _U.list([_p7._0._1]))))),
-           _p7._1);
-         default: if (_p7._0._0 === "") {
-                 return _p7._1;
-              } else {
-                 return A2(_p7._2,Print(_p7._0._0),_p7._1);
-              }}
-   };
-   var completeUnescaped = function (parser) {
-      var _p8 = parser;
-      if (_p8._0.ctor === "Unescaped") {
-            if (_p8._0._0 === "") {
-                  return _p8._1;
-               } else {
-                  return A2(_p8._2,Print(_p8._0._0),_p8._1);
-               }
-         } else {
-            return _p8._1;
-         }
-   };
-   var parseChar = F2(function ($char,parser) {
-      var _p9 = parser;
-      switch (_p9._0.ctor)
-      {case "Unescaped": var _p11 = _p9._2;
-           var _p10 = $char;
-           switch (_p10)
-           {case "\r": return A3(Parser,
-                Unescaped(""),
-                A2(_p11,CarriageReturn,completeUnescaped(parser)),
-                _p11);
-              case "\n": return A3(Parser,
-                Unescaped(""),
-                A2(_p11,Linebreak,completeUnescaped(parser)),
-                _p11);
-              case "": return A3(Parser,
-                Escaped,
-                completeUnescaped(parser),
-                _p11);
-              default: return A3(Parser,
-                Unescaped(A2($Basics._op["++"],_p9._0._0,$char)),
-                _p9._1,
-                _p11);}
-         case "Escaped": var _p14 = _p9._2;
-           var _p13 = _p9._1;
-           var _p12 = $char;
-           if (_p12 === "[") {
-                 return A3(Parser,
-                 A2(CSI,_U.list([]),$Maybe.Nothing),
-                 _p13,
-                 _p14);
-              } else {
-                 return A3(Parser,Unescaped($char),_p13,_p14);
-              }
-         default: var _p21 = _p9._2;
-           var _p20 = _p9._1;
-           var _p19 = _p9._0._1;
-           var _p18 = _p9._0._0;
-           var _p15 = $char;
-           switch (_p15)
-           {case "m": return A2(completeBracketed,
-                parser,
-                A2($List.concatMap,
-                function (_p16) {
-                   return codeActions(A2($Maybe.withDefault,0,_p16));
-                },
-                A2($Basics._op["++"],_p18,_U.list([_p19]))));
-              case "A": return A2(completeBracketed,
-                parser,
-                _U.list([CursorUp(A2($Maybe.withDefault,1,_p19))]));
-              case "B": return A2(completeBracketed,
-                parser,
-                _U.list([CursorDown(A2($Maybe.withDefault,1,_p19))]));
-              case "C": return A2(completeBracketed,
-                parser,
-                _U.list([CursorForward(A2($Maybe.withDefault,1,_p19))]));
-              case "D": return A2(completeBracketed,
-                parser,
-                _U.list([CursorBack(A2($Maybe.withDefault,1,_p19))]));
-              case "E": return A2(completeBracketed,
-                parser,
-                _U.list([CursorDown(A2($Maybe.withDefault,1,_p19))
-                        ,CursorColumn(0)]));
-              case "F": return A2(completeBracketed,
-                parser,
-                _U.list([CursorUp(A2($Maybe.withDefault,1,_p19))
-                        ,CursorColumn(0)]));
-              case "G": return A2(completeBracketed,
-                parser,
-                _U.list([CursorColumn(A2($Maybe.withDefault,0,_p19))]));
-              case "H": return A2(completeBracketed,
-                parser,
-                cursorPosition(A2($Basics._op["++"],_p18,_U.list([_p19]))));
-              case "J": return A2(completeBracketed,
-                parser,
-                _U.list([EraseDisplay(eraseMode(A2($Maybe.withDefault,
-                0,
-                _p19)))]));
-              case "K": return A2(completeBracketed,
-                parser,
-                _U.list([EraseLine(eraseMode(A2($Maybe.withDefault,0,_p19)))]));
-              case "f": return A2(completeBracketed,
-                parser,
-                cursorPosition(A2($Basics._op["++"],_p18,_U.list([_p19]))));
-              case "s": return A2(completeBracketed,
-                parser,
-                _U.list([SaveCursorPosition]));
-              case "u": return A2(completeBracketed,
-                parser,
-                _U.list([RestoreCursorPosition]));
-              case ";": return A3(Parser,
-                A2(CSI,
-                A2($Basics._op["++"],_p18,_U.list([_p19])),
-                $Maybe.Nothing),
-                _p20,
-                _p21);
-              default: var _p17 = $String.toInt(_p15);
-                if (_p17.ctor === "Ok") {
-                      return A3(Parser,
-                      A2(CSI,
-                      _p18,
-                      $Maybe.Just(A2($Maybe.withDefault,0,_p19) * 10 + _p17._0)),
-                      _p20,
-                      _p21);
-                   } else {
-                      return A2(completeBracketed,parser,_U.list([]));
-                   }}}
-   });
-   var parseInto = F3(function (model,update,ansi) {
-      return completeParsing(A3($List.foldl,
-      parseChar,
-      A2(emptyParser,model,update),
-      A2($String.split,"",ansi)));
-   });
-   var parse = function (_p22) {
-      return $List.reverse(A3(parseInto,
-      _U.list([]),
-      F2(function (x,y) {    return A2($List._op["::"],x,y);}),
-      _p22));
-   };
-   return _elm.Ansi.values = {_op: _op
-                             ,parse: parse
-                             ,parseInto: parseInto
-                             ,Black: Black
-                             ,Red: Red
-                             ,Green: Green
-                             ,Yellow: Yellow
-                             ,Blue: Blue
-                             ,Magenta: Magenta
-                             ,Cyan: Cyan
-                             ,White: White
-                             ,BrightBlack: BrightBlack
-                             ,BrightRed: BrightRed
-                             ,BrightGreen: BrightGreen
-                             ,BrightYellow: BrightYellow
-                             ,BrightBlue: BrightBlue
-                             ,BrightMagenta: BrightMagenta
-                             ,BrightCyan: BrightCyan
-                             ,BrightWhite: BrightWhite
-                             ,Print: Print
-                             ,Remainder: Remainder
-                             ,SetForeground: SetForeground
-                             ,SetBackground: SetBackground
-                             ,SetBold: SetBold
-                             ,SetFaint: SetFaint
-                             ,SetItalic: SetItalic
-                             ,SetUnderline: SetUnderline
-                             ,SetInverted: SetInverted
-                             ,Linebreak: Linebreak
-                             ,CarriageReturn: CarriageReturn
-                             ,CursorUp: CursorUp
-                             ,CursorDown: CursorDown
-                             ,CursorForward: CursorForward
-                             ,CursorBack: CursorBack
-                             ,CursorPosition: CursorPosition
-                             ,CursorColumn: CursorColumn
-                             ,EraseDisplay: EraseDisplay
-                             ,EraseLine: EraseLine
-                             ,SaveCursorPosition: SaveCursorPosition
-                             ,RestoreCursorPosition: RestoreCursorPosition
-                             ,EraseToBeginning: EraseToBeginning
-                             ,EraseToEnd: EraseToEnd
-                             ,EraseAll: EraseAll};
-};
 Elm.Native.Array = {};
 Elm.Native.Array.make = function(localRuntime) {
 
@@ -8006,6 +7078,934 @@ Elm.Array.make = function (_elm) {
                               ,filter: filter
                               ,foldl: foldl
                               ,foldr: foldr};
+};
+Elm.Native.String = {};
+
+Elm.Native.String.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.String = localRuntime.Native.String || {};
+	if (localRuntime.Native.String.values)
+	{
+		return localRuntime.Native.String.values;
+	}
+	if ('values' in Elm.Native.String)
+	{
+		return localRuntime.Native.String.values = Elm.Native.String.values;
+	}
+
+
+	var Char = Elm.Char.make(localRuntime);
+	var List = Elm.Native.List.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+	var Result = Elm.Result.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+
+	function isEmpty(str)
+	{
+		return str.length === 0;
+	}
+	function cons(chr, str)
+	{
+		return chr + str;
+	}
+	function uncons(str)
+	{
+		var hd = str[0];
+		if (hd)
+		{
+			return Maybe.Just(Utils.Tuple2(Utils.chr(hd), str.slice(1)));
+		}
+		return Maybe.Nothing;
+	}
+	function append(a, b)
+	{
+		return a + b;
+	}
+	function concat(strs)
+	{
+		return List.toArray(strs).join('');
+	}
+	function length(str)
+	{
+		return str.length;
+	}
+	function map(f, str)
+	{
+		var out = str.split('');
+		for (var i = out.length; i--; )
+		{
+			out[i] = f(Utils.chr(out[i]));
+		}
+		return out.join('');
+	}
+	function filter(pred, str)
+	{
+		return str.split('').map(Utils.chr).filter(pred).join('');
+	}
+	function reverse(str)
+	{
+		return str.split('').reverse().join('');
+	}
+	function foldl(f, b, str)
+	{
+		var len = str.length;
+		for (var i = 0; i < len; ++i)
+		{
+			b = A2(f, Utils.chr(str[i]), b);
+		}
+		return b;
+	}
+	function foldr(f, b, str)
+	{
+		for (var i = str.length; i--; )
+		{
+			b = A2(f, Utils.chr(str[i]), b);
+		}
+		return b;
+	}
+	function split(sep, str)
+	{
+		return List.fromArray(str.split(sep));
+	}
+	function join(sep, strs)
+	{
+		return List.toArray(strs).join(sep);
+	}
+	function repeat(n, str)
+	{
+		var result = '';
+		while (n > 0)
+		{
+			if (n & 1)
+			{
+				result += str;
+			}
+			n >>= 1, str += str;
+		}
+		return result;
+	}
+	function slice(start, end, str)
+	{
+		return str.slice(start, end);
+	}
+	function left(n, str)
+	{
+		return n < 1 ? '' : str.slice(0, n);
+	}
+	function right(n, str)
+	{
+		return n < 1 ? '' : str.slice(-n);
+	}
+	function dropLeft(n, str)
+	{
+		return n < 1 ? str : str.slice(n);
+	}
+	function dropRight(n, str)
+	{
+		return n < 1 ? str : str.slice(0, -n);
+	}
+	function pad(n, chr, str)
+	{
+		var half = (n - str.length) / 2;
+		return repeat(Math.ceil(half), chr) + str + repeat(half | 0, chr);
+	}
+	function padRight(n, chr, str)
+	{
+		return str + repeat(n - str.length, chr);
+	}
+	function padLeft(n, chr, str)
+	{
+		return repeat(n - str.length, chr) + str;
+	}
+
+	function trim(str)
+	{
+		return str.trim();
+	}
+	function trimLeft(str)
+	{
+		return str.replace(/^\s+/, '');
+	}
+	function trimRight(str)
+	{
+		return str.replace(/\s+$/, '');
+	}
+
+	function words(str)
+	{
+		return List.fromArray(str.trim().split(/\s+/g));
+	}
+	function lines(str)
+	{
+		return List.fromArray(str.split(/\r\n|\r|\n/g));
+	}
+
+	function toUpper(str)
+	{
+		return str.toUpperCase();
+	}
+	function toLower(str)
+	{
+		return str.toLowerCase();
+	}
+
+	function any(pred, str)
+	{
+		for (var i = str.length; i--; )
+		{
+			if (pred(Utils.chr(str[i])))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	function all(pred, str)
+	{
+		for (var i = str.length; i--; )
+		{
+			if (!pred(Utils.chr(str[i])))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	function contains(sub, str)
+	{
+		return str.indexOf(sub) > -1;
+	}
+	function startsWith(sub, str)
+	{
+		return str.indexOf(sub) === 0;
+	}
+	function endsWith(sub, str)
+	{
+		return str.length >= sub.length &&
+			str.lastIndexOf(sub) === str.length - sub.length;
+	}
+	function indexes(sub, str)
+	{
+		var subLen = sub.length;
+		var i = 0;
+		var is = [];
+		while ((i = str.indexOf(sub, i)) > -1)
+		{
+			is.push(i);
+			i = i + subLen;
+		}
+		return List.fromArray(is);
+	}
+
+	function toInt(s)
+	{
+		var len = s.length;
+		if (len === 0)
+		{
+			return Result.Err("could not convert string '" + s + "' to an Int" );
+		}
+		var start = 0;
+		if (s[0] === '-')
+		{
+			if (len === 1)
+			{
+				return Result.Err("could not convert string '" + s + "' to an Int" );
+			}
+			start = 1;
+		}
+		for (var i = start; i < len; ++i)
+		{
+			if (!Char.isDigit(s[i]))
+			{
+				return Result.Err("could not convert string '" + s + "' to an Int" );
+			}
+		}
+		return Result.Ok(parseInt(s, 10));
+	}
+
+	function toFloat(s)
+	{
+		var len = s.length;
+		if (len === 0)
+		{
+			return Result.Err("could not convert string '" + s + "' to a Float" );
+		}
+		var start = 0;
+		if (s[0] === '-')
+		{
+			if (len === 1)
+			{
+				return Result.Err("could not convert string '" + s + "' to a Float" );
+			}
+			start = 1;
+		}
+		var dotCount = 0;
+		for (var i = start; i < len; ++i)
+		{
+			if (Char.isDigit(s[i]))
+			{
+				continue;
+			}
+			if (s[i] === '.')
+			{
+				dotCount += 1;
+				if (dotCount <= 1)
+				{
+					continue;
+				}
+			}
+			return Result.Err("could not convert string '" + s + "' to a Float" );
+		}
+		return Result.Ok(parseFloat(s));
+	}
+
+	function toList(str)
+	{
+		return List.fromArray(str.split('').map(Utils.chr));
+	}
+	function fromList(chars)
+	{
+		return List.toArray(chars).join('');
+	}
+
+	return Elm.Native.String.values = {
+		isEmpty: isEmpty,
+		cons: F2(cons),
+		uncons: uncons,
+		append: F2(append),
+		concat: concat,
+		length: length,
+		map: F2(map),
+		filter: F2(filter),
+		reverse: reverse,
+		foldl: F3(foldl),
+		foldr: F3(foldr),
+
+		split: F2(split),
+		join: F2(join),
+		repeat: F2(repeat),
+
+		slice: F3(slice),
+		left: F2(left),
+		right: F2(right),
+		dropLeft: F2(dropLeft),
+		dropRight: F2(dropRight),
+
+		pad: F3(pad),
+		padLeft: F3(padLeft),
+		padRight: F3(padRight),
+
+		trim: trim,
+		trimLeft: trimLeft,
+		trimRight: trimRight,
+
+		words: words,
+		lines: lines,
+
+		toUpper: toUpper,
+		toLower: toLower,
+
+		any: F2(any),
+		all: F2(all),
+
+		contains: F2(contains),
+		startsWith: F2(startsWith),
+		endsWith: F2(endsWith),
+		indexes: F2(indexes),
+
+		toInt: toInt,
+		toFloat: toFloat,
+		toList: toList,
+		fromList: fromList
+	};
+};
+
+Elm.Native.Char = {};
+Elm.Native.Char.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Char = localRuntime.Native.Char || {};
+	if (localRuntime.Native.Char.values)
+	{
+		return localRuntime.Native.Char.values;
+	}
+
+	var Utils = Elm.Native.Utils.make(localRuntime);
+
+	return localRuntime.Native.Char.values = {
+		fromCode: function(c) { return Utils.chr(String.fromCharCode(c)); },
+		toCode: function(c) { return c.charCodeAt(0); },
+		toUpper: function(c) { return Utils.chr(c.toUpperCase()); },
+		toLower: function(c) { return Utils.chr(c.toLowerCase()); },
+		toLocaleUpper: function(c) { return Utils.chr(c.toLocaleUpperCase()); },
+		toLocaleLower: function(c) { return Utils.chr(c.toLocaleLowerCase()); }
+	};
+};
+
+Elm.Char = Elm.Char || {};
+Elm.Char.make = function (_elm) {
+   "use strict";
+   _elm.Char = _elm.Char || {};
+   if (_elm.Char.values) return _elm.Char.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Native$Char = Elm.Native.Char.make(_elm);
+   var _op = {};
+   var fromCode = $Native$Char.fromCode;
+   var toCode = $Native$Char.toCode;
+   var toLocaleLower = $Native$Char.toLocaleLower;
+   var toLocaleUpper = $Native$Char.toLocaleUpper;
+   var toLower = $Native$Char.toLower;
+   var toUpper = $Native$Char.toUpper;
+   var isBetween = F3(function (low,high,$char) {
+      var code = toCode($char);
+      return _U.cmp(code,toCode(low)) > -1 && _U.cmp(code,
+      toCode(high)) < 1;
+   });
+   var isUpper = A2(isBetween,_U.chr("A"),_U.chr("Z"));
+   var isLower = A2(isBetween,_U.chr("a"),_U.chr("z"));
+   var isDigit = A2(isBetween,_U.chr("0"),_U.chr("9"));
+   var isOctDigit = A2(isBetween,_U.chr("0"),_U.chr("7"));
+   var isHexDigit = function ($char) {
+      return isDigit($char) || (A3(isBetween,
+      _U.chr("a"),
+      _U.chr("f"),
+      $char) || A3(isBetween,_U.chr("A"),_U.chr("F"),$char));
+   };
+   return _elm.Char.values = {_op: _op
+                             ,isUpper: isUpper
+                             ,isLower: isLower
+                             ,isDigit: isDigit
+                             ,isOctDigit: isOctDigit
+                             ,isHexDigit: isHexDigit
+                             ,toUpper: toUpper
+                             ,toLower: toLower
+                             ,toLocaleUpper: toLocaleUpper
+                             ,toLocaleLower: toLocaleLower
+                             ,toCode: toCode
+                             ,fromCode: fromCode};
+};
+Elm.String = Elm.String || {};
+Elm.String.make = function (_elm) {
+   "use strict";
+   _elm.String = _elm.String || {};
+   if (_elm.String.values) return _elm.String.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$String = Elm.Native.String.make(_elm),
+   $Result = Elm.Result.make(_elm);
+   var _op = {};
+   var fromList = $Native$String.fromList;
+   var toList = $Native$String.toList;
+   var toFloat = $Native$String.toFloat;
+   var toInt = $Native$String.toInt;
+   var indices = $Native$String.indexes;
+   var indexes = $Native$String.indexes;
+   var endsWith = $Native$String.endsWith;
+   var startsWith = $Native$String.startsWith;
+   var contains = $Native$String.contains;
+   var all = $Native$String.all;
+   var any = $Native$String.any;
+   var toLower = $Native$String.toLower;
+   var toUpper = $Native$String.toUpper;
+   var lines = $Native$String.lines;
+   var words = $Native$String.words;
+   var trimRight = $Native$String.trimRight;
+   var trimLeft = $Native$String.trimLeft;
+   var trim = $Native$String.trim;
+   var padRight = $Native$String.padRight;
+   var padLeft = $Native$String.padLeft;
+   var pad = $Native$String.pad;
+   var dropRight = $Native$String.dropRight;
+   var dropLeft = $Native$String.dropLeft;
+   var right = $Native$String.right;
+   var left = $Native$String.left;
+   var slice = $Native$String.slice;
+   var repeat = $Native$String.repeat;
+   var join = $Native$String.join;
+   var split = $Native$String.split;
+   var foldr = $Native$String.foldr;
+   var foldl = $Native$String.foldl;
+   var reverse = $Native$String.reverse;
+   var filter = $Native$String.filter;
+   var map = $Native$String.map;
+   var length = $Native$String.length;
+   var concat = $Native$String.concat;
+   var append = $Native$String.append;
+   var uncons = $Native$String.uncons;
+   var cons = $Native$String.cons;
+   var fromChar = function ($char) {    return A2(cons,$char,"");};
+   var isEmpty = $Native$String.isEmpty;
+   return _elm.String.values = {_op: _op
+                               ,isEmpty: isEmpty
+                               ,length: length
+                               ,reverse: reverse
+                               ,repeat: repeat
+                               ,cons: cons
+                               ,uncons: uncons
+                               ,fromChar: fromChar
+                               ,append: append
+                               ,concat: concat
+                               ,split: split
+                               ,join: join
+                               ,words: words
+                               ,lines: lines
+                               ,slice: slice
+                               ,left: left
+                               ,right: right
+                               ,dropLeft: dropLeft
+                               ,dropRight: dropRight
+                               ,contains: contains
+                               ,startsWith: startsWith
+                               ,endsWith: endsWith
+                               ,indexes: indexes
+                               ,indices: indices
+                               ,toInt: toInt
+                               ,toFloat: toFloat
+                               ,toList: toList
+                               ,fromList: fromList
+                               ,toUpper: toUpper
+                               ,toLower: toLower
+                               ,pad: pad
+                               ,padLeft: padLeft
+                               ,padRight: padRight
+                               ,trim: trim
+                               ,trimLeft: trimLeft
+                               ,trimRight: trimRight
+                               ,map: map
+                               ,filter: filter
+                               ,foldl: foldl
+                               ,foldr: foldr
+                               ,any: any
+                               ,all: all};
+};
+Elm.Ansi = Elm.Ansi || {};
+Elm.Ansi.make = function (_elm) {
+   "use strict";
+   _elm.Ansi = _elm.Ansi || {};
+   if (_elm.Ansi.values) return _elm.Ansi.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var _op = {};
+   var encodeCode = function (code) {
+      var _p0 = code;
+      if (_p0.ctor === "Nothing") {
+            return "";
+         } else {
+            return $Basics.toString(_p0._0);
+         }
+   };
+   var encodeCodes = function (codes) {
+      return A2($String.join,";",A2($List.map,encodeCode,codes));
+   };
+   var Unescaped = function (a) {
+      return {ctor: "Unescaped",_0: a};
+   };
+   var CSI = F2(function (a,b) {
+      return {ctor: "CSI",_0: a,_1: b};
+   });
+   var Escaped = {ctor: "Escaped"};
+   var Parser = F3(function (a,b,c) {
+      return {ctor: "Parser",_0: a,_1: b,_2: c};
+   });
+   var emptyParser = Parser(Unescaped(""));
+   var completeBracketed = F2(function (_p1,actions) {
+      var _p2 = _p1;
+      var _p3 = _p2._2;
+      return A3(Parser,
+      Unescaped(""),
+      A3($List.foldl,_p3,_p2._1,actions),
+      _p3);
+   });
+   var EraseAll = {ctor: "EraseAll"};
+   var EraseToEnd = {ctor: "EraseToEnd"};
+   var EraseToBeginning = {ctor: "EraseToBeginning"};
+   var eraseMode = function (code) {
+      var _p4 = code;
+      switch (_p4)
+      {case 0: return EraseToEnd;
+         case 1: return EraseToBeginning;
+         default: return EraseAll;}
+   };
+   var BrightWhite = {ctor: "BrightWhite"};
+   var BrightCyan = {ctor: "BrightCyan"};
+   var BrightMagenta = {ctor: "BrightMagenta"};
+   var BrightBlue = {ctor: "BrightBlue"};
+   var BrightYellow = {ctor: "BrightYellow"};
+   var BrightGreen = {ctor: "BrightGreen"};
+   var BrightRed = {ctor: "BrightRed"};
+   var BrightBlack = {ctor: "BrightBlack"};
+   var White = {ctor: "White"};
+   var Cyan = {ctor: "Cyan"};
+   var Magenta = {ctor: "Magenta"};
+   var Blue = {ctor: "Blue"};
+   var Yellow = {ctor: "Yellow"};
+   var Green = {ctor: "Green"};
+   var Red = {ctor: "Red"};
+   var Black = {ctor: "Black"};
+   var RestoreCursorPosition = {ctor: "RestoreCursorPosition"};
+   var SaveCursorPosition = {ctor: "SaveCursorPosition"};
+   var EraseLine = function (a) {
+      return {ctor: "EraseLine",_0: a};
+   };
+   var EraseDisplay = function (a) {
+      return {ctor: "EraseDisplay",_0: a};
+   };
+   var CursorColumn = function (a) {
+      return {ctor: "CursorColumn",_0: a};
+   };
+   var CursorPosition = F2(function (a,b) {
+      return {ctor: "CursorPosition",_0: a,_1: b};
+   });
+   var cursorPosition = function (codes) {
+      var _p5 = codes;
+      _v3_5: do {
+         if (_p5.ctor === "::") {
+               if (_p5._0.ctor === "Nothing") {
+                     if (_p5._1.ctor === "[]") {
+                           return _U.list([A2(CursorPosition,1,1)]);
+                        } else {
+                           if (_p5._1._0.ctor === "Nothing") {
+                                 if (_p5._1._1.ctor === "[]") {
+                                       return _U.list([A2(CursorPosition,1,1)]);
+                                    } else {
+                                       break _v3_5;
+                                    }
+                              } else {
+                                 if (_p5._1._1.ctor === "[]") {
+                                       return _U.list([A2(CursorPosition,1,_p5._1._0._0)]);
+                                    } else {
+                                       break _v3_5;
+                                    }
+                              }
+                        }
+                  } else {
+                     if (_p5._1.ctor === "::") {
+                           if (_p5._1._0.ctor === "Nothing") {
+                                 if (_p5._1._1.ctor === "[]") {
+                                       return _U.list([A2(CursorPosition,_p5._0._0,1)]);
+                                    } else {
+                                       break _v3_5;
+                                    }
+                              } else {
+                                 if (_p5._1._1.ctor === "[]") {
+                                       return _U.list([A2(CursorPosition,_p5._0._0,_p5._1._0._0)]);
+                                    } else {
+                                       break _v3_5;
+                                    }
+                              }
+                        } else {
+                           break _v3_5;
+                        }
+                  }
+            } else {
+               break _v3_5;
+            }
+      } while (false);
+      return _U.list([]);
+   };
+   var CursorBack = function (a) {
+      return {ctor: "CursorBack",_0: a};
+   };
+   var CursorForward = function (a) {
+      return {ctor: "CursorForward",_0: a};
+   };
+   var CursorDown = function (a) {
+      return {ctor: "CursorDown",_0: a};
+   };
+   var CursorUp = function (a) {
+      return {ctor: "CursorUp",_0: a};
+   };
+   var CarriageReturn = {ctor: "CarriageReturn"};
+   var Linebreak = {ctor: "Linebreak"};
+   var SetInverted = function (a) {
+      return {ctor: "SetInverted",_0: a};
+   };
+   var SetUnderline = function (a) {
+      return {ctor: "SetUnderline",_0: a};
+   };
+   var SetItalic = function (a) {
+      return {ctor: "SetItalic",_0: a};
+   };
+   var SetFaint = function (a) {
+      return {ctor: "SetFaint",_0: a};
+   };
+   var SetBold = function (a) {
+      return {ctor: "SetBold",_0: a};
+   };
+   var SetBackground = function (a) {
+      return {ctor: "SetBackground",_0: a};
+   };
+   var SetForeground = function (a) {
+      return {ctor: "SetForeground",_0: a};
+   };
+   var reset = _U.list([SetForeground($Maybe.Nothing)
+                       ,SetBackground($Maybe.Nothing)
+                       ,SetBold(false)
+                       ,SetFaint(false)
+                       ,SetItalic(false)
+                       ,SetUnderline(false)
+                       ,SetInverted(false)]);
+   var codeActions = function (code) {
+      var _p6 = code;
+      switch (_p6)
+      {case 0: return reset;
+         case 1: return _U.list([SetBold(true)]);
+         case 2: return _U.list([SetFaint(true)]);
+         case 3: return _U.list([SetItalic(true)]);
+         case 4: return _U.list([SetUnderline(true)]);
+         case 7: return _U.list([SetInverted(true)]);
+         case 30: return _U.list([SetForeground($Maybe.Just(Black))]);
+         case 31: return _U.list([SetForeground($Maybe.Just(Red))]);
+         case 32: return _U.list([SetForeground($Maybe.Just(Green))]);
+         case 33: return _U.list([SetForeground($Maybe.Just(Yellow))]);
+         case 34: return _U.list([SetForeground($Maybe.Just(Blue))]);
+         case 35: return _U.list([SetForeground($Maybe.Just(Magenta))]);
+         case 36: return _U.list([SetForeground($Maybe.Just(Cyan))]);
+         case 37: return _U.list([SetForeground($Maybe.Just(White))]);
+         case 40: return _U.list([SetBackground($Maybe.Just(Black))]);
+         case 41: return _U.list([SetBackground($Maybe.Just(Red))]);
+         case 42: return _U.list([SetBackground($Maybe.Just(Green))]);
+         case 43: return _U.list([SetBackground($Maybe.Just(Yellow))]);
+         case 44: return _U.list([SetBackground($Maybe.Just(Blue))]);
+         case 45: return _U.list([SetBackground($Maybe.Just(Magenta))]);
+         case 46: return _U.list([SetBackground($Maybe.Just(Cyan))]);
+         case 47: return _U.list([SetBackground($Maybe.Just(White))]);
+         case 90:
+         return _U.list([SetForeground($Maybe.Just(BrightBlack))]);
+         case 91:
+         return _U.list([SetForeground($Maybe.Just(BrightRed))]);
+         case 92:
+         return _U.list([SetForeground($Maybe.Just(BrightGreen))]);
+         case 93:
+         return _U.list([SetForeground($Maybe.Just(BrightYellow))]);
+         case 94:
+         return _U.list([SetForeground($Maybe.Just(BrightBlue))]);
+         case 95:
+         return _U.list([SetForeground($Maybe.Just(BrightMagenta))]);
+         case 96:
+         return _U.list([SetForeground($Maybe.Just(BrightCyan))]);
+         case 97:
+         return _U.list([SetForeground($Maybe.Just(BrightWhite))]);
+         case 100:
+         return _U.list([SetBackground($Maybe.Just(BrightBlack))]);
+         case 101:
+         return _U.list([SetBackground($Maybe.Just(BrightRed))]);
+         case 102:
+         return _U.list([SetBackground($Maybe.Just(BrightGreen))]);
+         case 103:
+         return _U.list([SetBackground($Maybe.Just(BrightYellow))]);
+         case 104:
+         return _U.list([SetBackground($Maybe.Just(BrightBlue))]);
+         case 105:
+         return _U.list([SetBackground($Maybe.Just(BrightMagenta))]);
+         case 106:
+         return _U.list([SetBackground($Maybe.Just(BrightCyan))]);
+         case 107:
+         return _U.list([SetBackground($Maybe.Just(BrightWhite))]);
+         default: return _U.list([]);}
+   };
+   var Remainder = function (a) {
+      return {ctor: "Remainder",_0: a};
+   };
+   var Print = function (a) {    return {ctor: "Print",_0: a};};
+   var completeParsing = function (parser) {
+      var _p7 = parser;
+      switch (_p7._0.ctor)
+      {case "Escaped": return A2(_p7._2,Remainder(""),_p7._1);
+         case "CSI": return A2(_p7._2,
+           Remainder(A2($Basics._op["++"],
+           "[",
+           encodeCodes(A2($Basics._op["++"],
+           _p7._0._0,
+           _U.list([_p7._0._1]))))),
+           _p7._1);
+         default: if (_p7._0._0 === "") {
+                 return _p7._1;
+              } else {
+                 return A2(_p7._2,Print(_p7._0._0),_p7._1);
+              }}
+   };
+   var completeUnescaped = function (parser) {
+      var _p8 = parser;
+      if (_p8._0.ctor === "Unescaped") {
+            if (_p8._0._0 === "") {
+                  return _p8._1;
+               } else {
+                  return A2(_p8._2,Print(_p8._0._0),_p8._1);
+               }
+         } else {
+            return _p8._1;
+         }
+   };
+   var parseChar = F2(function ($char,parser) {
+      var _p9 = parser;
+      switch (_p9._0.ctor)
+      {case "Unescaped": var _p11 = _p9._2;
+           var _p10 = $char;
+           switch (_p10)
+           {case "\r": return A3(Parser,
+                Unescaped(""),
+                A2(_p11,CarriageReturn,completeUnescaped(parser)),
+                _p11);
+              case "\n": return A3(Parser,
+                Unescaped(""),
+                A2(_p11,Linebreak,completeUnescaped(parser)),
+                _p11);
+              case "": return A3(Parser,
+                Escaped,
+                completeUnescaped(parser),
+                _p11);
+              default: return A3(Parser,
+                Unescaped(A2($Basics._op["++"],_p9._0._0,$char)),
+                _p9._1,
+                _p11);}
+         case "Escaped": var _p14 = _p9._2;
+           var _p13 = _p9._1;
+           var _p12 = $char;
+           if (_p12 === "[") {
+                 return A3(Parser,
+                 A2(CSI,_U.list([]),$Maybe.Nothing),
+                 _p13,
+                 _p14);
+              } else {
+                 return A3(Parser,Unescaped($char),_p13,_p14);
+              }
+         default: var _p21 = _p9._2;
+           var _p20 = _p9._1;
+           var _p19 = _p9._0._1;
+           var _p18 = _p9._0._0;
+           var _p15 = $char;
+           switch (_p15)
+           {case "m": return A2(completeBracketed,
+                parser,
+                A2($List.concatMap,
+                function (_p16) {
+                   return codeActions(A2($Maybe.withDefault,0,_p16));
+                },
+                A2($Basics._op["++"],_p18,_U.list([_p19]))));
+              case "A": return A2(completeBracketed,
+                parser,
+                _U.list([CursorUp(A2($Maybe.withDefault,1,_p19))]));
+              case "B": return A2(completeBracketed,
+                parser,
+                _U.list([CursorDown(A2($Maybe.withDefault,1,_p19))]));
+              case "C": return A2(completeBracketed,
+                parser,
+                _U.list([CursorForward(A2($Maybe.withDefault,1,_p19))]));
+              case "D": return A2(completeBracketed,
+                parser,
+                _U.list([CursorBack(A2($Maybe.withDefault,1,_p19))]));
+              case "E": return A2(completeBracketed,
+                parser,
+                _U.list([CursorDown(A2($Maybe.withDefault,1,_p19))
+                        ,CursorColumn(0)]));
+              case "F": return A2(completeBracketed,
+                parser,
+                _U.list([CursorUp(A2($Maybe.withDefault,1,_p19))
+                        ,CursorColumn(0)]));
+              case "G": return A2(completeBracketed,
+                parser,
+                _U.list([CursorColumn(A2($Maybe.withDefault,0,_p19))]));
+              case "H": return A2(completeBracketed,
+                parser,
+                cursorPosition(A2($Basics._op["++"],_p18,_U.list([_p19]))));
+              case "J": return A2(completeBracketed,
+                parser,
+                _U.list([EraseDisplay(eraseMode(A2($Maybe.withDefault,
+                0,
+                _p19)))]));
+              case "K": return A2(completeBracketed,
+                parser,
+                _U.list([EraseLine(eraseMode(A2($Maybe.withDefault,0,_p19)))]));
+              case "f": return A2(completeBracketed,
+                parser,
+                cursorPosition(A2($Basics._op["++"],_p18,_U.list([_p19]))));
+              case "s": return A2(completeBracketed,
+                parser,
+                _U.list([SaveCursorPosition]));
+              case "u": return A2(completeBracketed,
+                parser,
+                _U.list([RestoreCursorPosition]));
+              case ";": return A3(Parser,
+                A2(CSI,
+                A2($Basics._op["++"],_p18,_U.list([_p19])),
+                $Maybe.Nothing),
+                _p20,
+                _p21);
+              default: var _p17 = $String.toInt(_p15);
+                if (_p17.ctor === "Ok") {
+                      return A3(Parser,
+                      A2(CSI,
+                      _p18,
+                      $Maybe.Just(A2($Maybe.withDefault,0,_p19) * 10 + _p17._0)),
+                      _p20,
+                      _p21);
+                   } else {
+                      return A2(completeBracketed,parser,_U.list([]));
+                   }}}
+   });
+   var parseInto = F3(function (model,update,ansi) {
+      return completeParsing(A3($List.foldl,
+      parseChar,
+      A2(emptyParser,model,update),
+      A2($String.split,"",ansi)));
+   });
+   var parse = function (_p22) {
+      return $List.reverse(A3(parseInto,
+      _U.list([]),
+      F2(function (x,y) {    return A2($List._op["::"],x,y);}),
+      _p22));
+   };
+   return _elm.Ansi.values = {_op: _op
+                             ,parse: parse
+                             ,parseInto: parseInto
+                             ,Black: Black
+                             ,Red: Red
+                             ,Green: Green
+                             ,Yellow: Yellow
+                             ,Blue: Blue
+                             ,Magenta: Magenta
+                             ,Cyan: Cyan
+                             ,White: White
+                             ,BrightBlack: BrightBlack
+                             ,BrightRed: BrightRed
+                             ,BrightGreen: BrightGreen
+                             ,BrightYellow: BrightYellow
+                             ,BrightBlue: BrightBlue
+                             ,BrightMagenta: BrightMagenta
+                             ,BrightCyan: BrightCyan
+                             ,BrightWhite: BrightWhite
+                             ,Print: Print
+                             ,Remainder: Remainder
+                             ,SetForeground: SetForeground
+                             ,SetBackground: SetBackground
+                             ,SetBold: SetBold
+                             ,SetFaint: SetFaint
+                             ,SetItalic: SetItalic
+                             ,SetUnderline: SetUnderline
+                             ,SetInverted: SetInverted
+                             ,Linebreak: Linebreak
+                             ,CarriageReturn: CarriageReturn
+                             ,CursorUp: CursorUp
+                             ,CursorDown: CursorDown
+                             ,CursorForward: CursorForward
+                             ,CursorBack: CursorBack
+                             ,CursorPosition: CursorPosition
+                             ,CursorColumn: CursorColumn
+                             ,EraseDisplay: EraseDisplay
+                             ,EraseLine: EraseLine
+                             ,SaveCursorPosition: SaveCursorPosition
+                             ,RestoreCursorPosition: RestoreCursorPosition
+                             ,EraseToBeginning: EraseToBeginning
+                             ,EraseToEnd: EraseToEnd
+                             ,EraseAll: EraseAll};
 };
 Elm.Ansi = Elm.Ansi || {};
 Elm.Ansi.Log = Elm.Ansi.Log || {};
@@ -12035,31 +12035,6 @@ Elm.Html.make = function (_elm) {
                              ,menu: menu};
 };
 Elm.Html = Elm.Html || {};
-Elm.Html.Lazy = Elm.Html.Lazy || {};
-Elm.Html.Lazy.make = function (_elm) {
-   "use strict";
-   _elm.Html = _elm.Html || {};
-   _elm.Html.Lazy = _elm.Html.Lazy || {};
-   if (_elm.Html.Lazy.values) return _elm.Html.Lazy.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $VirtualDom = Elm.VirtualDom.make(_elm);
-   var _op = {};
-   var lazy3 = $VirtualDom.lazy3;
-   var lazy2 = $VirtualDom.lazy2;
-   var lazy = $VirtualDom.lazy;
-   return _elm.Html.Lazy.values = {_op: _op
-                                  ,lazy: lazy
-                                  ,lazy2: lazy2
-                                  ,lazy3: lazy3};
-};
-Elm.Html = Elm.Html || {};
 Elm.Html.Attributes = Elm.Html.Attributes || {};
 Elm.Html.Attributes.make = function (_elm) {
    "use strict";
@@ -13171,12 +13146,38 @@ Elm.BuildPlan.make = function (_elm) {
                                   ,decodeTimeout: decodeTimeout
                                   ,lazy: lazy};
 };
+Elm.Html = Elm.Html || {};
+Elm.Html.Lazy = Elm.Html.Lazy || {};
+Elm.Html.Lazy.make = function (_elm) {
+   "use strict";
+   _elm.Html = _elm.Html || {};
+   _elm.Html.Lazy = _elm.Html.Lazy || {};
+   if (_elm.Html.Lazy.values) return _elm.Html.Lazy.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $VirtualDom = Elm.VirtualDom.make(_elm);
+   var _op = {};
+   var lazy3 = $VirtualDom.lazy3;
+   var lazy2 = $VirtualDom.lazy2;
+   var lazy = $VirtualDom.lazy;
+   return _elm.Html.Lazy.values = {_op: _op
+                                  ,lazy: lazy
+                                  ,lazy2: lazy2
+                                  ,lazy3: lazy3};
+};
 Elm.StepTree = Elm.StepTree || {};
 Elm.StepTree.make = function (_elm) {
    "use strict";
    _elm.StepTree = _elm.StepTree || {};
    if (_elm.StepTree.values) return _elm.StepTree.values;
    var _U = Elm.Native.Utils.make(_elm),
+   $Ansi = Elm.Ansi.make(_elm),
    $Ansi$Log = Elm.Ansi.Log.make(_elm),
    $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
@@ -13184,273 +13185,14 @@ Elm.StepTree.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Dict = Elm.Dict.make(_elm),
    $Focus = Elm.Focus.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Lazy = Elm.Html.Lazy.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var getAggIndex = F2(function (idx,tree) {
-      var _p0 = tree;
-      if (_p0.ctor === "Aggregate") {
-            var _p1 = A2($Array.get,idx,_p0._0);
-            if (_p1.ctor === "Just") {
-                  return _p1._0;
-               } else {
-                  return _U.crashCase("StepTree",
-                  {start: {line: 224,column: 7},end: {line: 229,column: 35}},
-                  _p1)("impossible");
-               }
-         } else {
-            return _U.crashCase("StepTree",
-            {start: {line: 222,column: 3},end: {line: 232,column: 31}},
-            _p0)("impossible");
-         }
-   });
-   var getHook = function (tree) {
-      var _p4 = tree;
-      switch (_p4.ctor)
-      {case "OnSuccess": return _p4._0.hook;
-         case "OnFailure": return _p4._0.hook;
-         case "Ensure": return _p4._0.hook;
-         default: return _U.crashCase("StepTree",
-           {start: {line: 192,column: 3},end: {line: 203,column: 31}},
-           _p4)("impossible");}
-   };
-   var getStep = function (tree) {
-      var _p6 = tree;
-      switch (_p6.ctor)
-      {case "OnSuccess": return _p6._0.step;
-         case "OnFailure": return _p6._0.step;
-         case "Ensure": return _p6._0.step;
-         case "Try": return _p6._0;
-         case "Timeout": return _p6._0;
-         default: return _U.crashCase("StepTree",
-           {start: {line: 146,column: 3},end: {line: 163,column: 31}},
-           _p6)("impossible");}
-   };
-   var Root = F2(function (a,b) {    return {tree: a,foci: b};});
-   var StepStateErrored = {ctor: "StepStateErrored"};
-   var StepStateFailed = {ctor: "StepStateFailed"};
-   var StepStateSucceeded = {ctor: "StepStateSucceeded"};
-   var StepStateRunning = {ctor: "StepStateRunning"};
-   var StepStatePending = {ctor: "StepStatePending"};
-   var initBottom = F3(function (create,id,name) {
-      var step = {name: name
-                 ,state: StepStatePending
-                 ,log: $Ansi$Log.init($Ansi$Log.Cooked)
-                 ,error: $Maybe.Nothing};
-      return {tree: create(step)
-             ,foci: A2($Dict.singleton,
-             id,
-             A2($Focus.create,$Basics.identity,$Basics.identity))};
-   });
-   var Step = F4(function (a,b,c,d) {
-      return {name: a,state: b,log: c,error: d};
-   });
-   var HookedStep = F2(function (a,b) {
-      return {step: a,hook: b};
-   });
-   var Timeout = function (a) {
-      return {ctor: "Timeout",_0: a};
-   };
-   var Try = function (a) {    return {ctor: "Try",_0: a};};
-   var Ensure = function (a) {    return {ctor: "Ensure",_0: a};};
-   var OnFailure = function (a) {
-      return {ctor: "OnFailure",_0: a};
-   };
-   var OnSuccess = function (a) {
-      return {ctor: "OnSuccess",_0: a};
-   };
-   var updateStep = F2(function (update,tree) {
-      var _p8 = tree;
-      switch (_p8.ctor)
-      {case "OnSuccess": var _p9 = _p8._0;
-           return OnSuccess(_U.update(_p9,{step: update(_p9.step)}));
-         case "OnFailure": var _p10 = _p8._0;
-           return OnFailure(_U.update(_p10,{step: update(_p10.step)}));
-         case "Ensure": var _p11 = _p8._0;
-           return Ensure(_U.update(_p11,{step: update(_p11.step)}));
-         case "Try": return Try(update(_p8._0));
-         case "Timeout": return Timeout(update(_p8._0));
-         default: return _U.crashCase("StepTree",
-           {start: {line: 167,column: 3},end: {line: 184,column: 31}},
-           _p8)("impossible");}
-   });
-   var wrapStep = F2(function (id,subFocus) {
-      return A2($Focus._op["=>"],
-      A2($Focus.create,getStep,updateStep),
-      subFocus);
-   });
-   var updateHook = F2(function (update,tree) {
-      var _p13 = tree;
-      switch (_p13.ctor)
-      {case "OnSuccess": var _p14 = _p13._0;
-           return OnSuccess(_U.update(_p14,{hook: update(_p14.hook)}));
-         case "OnFailure": var _p15 = _p13._0;
-           return OnFailure(_U.update(_p15,{hook: update(_p15.hook)}));
-         case "Ensure": var _p16 = _p13._0;
-           return Ensure(_U.update(_p16,{hook: update(_p16.hook)}));
-         default: return _U.crashCase("StepTree",
-           {start: {line: 207,column: 3},end: {line: 218,column: 31}},
-           _p13)("impossible");}
-   });
-   var wrapHook = F2(function (id,subFocus) {
-      return A2($Focus._op["=>"],
-      A2($Focus.create,getHook,updateHook),
-      subFocus);
-   });
-   var Aggregate = function (a) {
-      return {ctor: "Aggregate",_0: a};
-   };
-   var setAggIndex = F3(function (idx,update,tree) {
-      var _p18 = tree;
-      if (_p18.ctor === "Aggregate") {
-            return Aggregate(A3($Array.set,
-            idx,
-            update(A2(getAggIndex,idx,tree)),
-            _p18._0));
-         } else {
-            return _U.crashCase("StepTree",
-            {start: {line: 236,column: 3},end: {line: 241,column: 31}},
-            _p18)("impossible");
-         }
-   });
-   var wrapAgg = F3(function (subFoci,i,plan) {
-      var _p20 = A2($Dict.get,plan.id,subFoci);
-      if (_p20.ctor === "Nothing") {
-            return _U.crashCase("StepTree",
-            {start: {line: 133,column: 3},end: {line: 138,column: 74}},
-            _p20)("welp");
-         } else {
-            return {ctor: "_Tuple2"
-                   ,_0: plan.id
-                   ,_1: A2($Focus._op["=>"],
-                   A2($Focus.create,getAggIndex(i),setAggIndex(i)),
-                   _p20._0)};
-         }
-   });
-   var DependentGet = function (a) {
-      return {ctor: "DependentGet",_0: a};
-   };
-   var Put = function (a) {    return {ctor: "Put",_0: a};};
-   var Get = F2(function (a,b) {
-      return {ctor: "Get",_0: a,_1: b};
-   });
-   var Task = function (a) {    return {ctor: "Task",_0: a};};
-   var init = function (plan) {
-      var _p22 = plan.step;
-      switch (_p22.ctor)
-      {case "Task": return A3(initBottom,Task,plan.id,_p22._0);
-         case "Get": return A3(initBottom,
-           A2($Basics.flip,Get,_p22._1),
-           plan.id,
-           _p22._0);
-         case "Put": return A3(initBottom,Put,plan.id,_p22._0);
-         case "DependentGet": return A3(initBottom,
-           DependentGet,
-           plan.id,
-           _p22._0);
-         case "Aggregate": var _p23 = _p22._0;
-           var inited = A2($Array.map,init,_p23);
-           var trees = A2($Array.map,
-           function (_) {
-              return _.tree;
-           },
-           inited);
-           var subFoci = A3($Array.foldr,
-           $Dict.union,
-           $Dict.empty,
-           A2($Array.map,function (_) {    return _.foci;},inited));
-           var wrappedFoci = A2($Array.indexedMap,wrapAgg(subFoci),_p23);
-           var foci = $Dict.fromList($Array.toList(wrappedFoci));
-           return A2(Root,Aggregate(trees),foci);
-         case "OnSuccess": return A2(initHookedStep,OnSuccess,_p22._0);
-         case "OnFailure": return A2(initHookedStep,OnFailure,_p22._0);
-         case "Ensure": return A2(initHookedStep,Ensure,_p22._0);
-         case "Try": return A2(initWrappedStep,Try,_p22._0);
-         default: return A2(initWrappedStep,Timeout,_p22._0);}
-   };
-   var initHookedStep = F2(function (create,hookedPlan) {
-      var hookRoot = init(hookedPlan.hook);
-      var stepRoot = init(hookedPlan.step);
-      return {tree: create({step: stepRoot.tree,hook: hookRoot.tree})
-             ,foci: A2($Dict.union,
-             A2($Dict.map,wrapStep,stepRoot.foci),
-             A2($Dict.map,wrapHook,hookRoot.foci))};
-   });
-   var initWrappedStep = F2(function (create,plan) {
-      var _p24 = init(plan);
-      var tree = _p24.tree;
-      var foci = _p24.foci;
-      return {tree: create(tree),foci: A2($Dict.map,wrapStep,foci)};
-   });
-   return _elm.StepTree.values = {_op: _op
-                                 ,Task: Task
-                                 ,Get: Get
-                                 ,Put: Put
-                                 ,DependentGet: DependentGet
-                                 ,Aggregate: Aggregate
-                                 ,OnSuccess: OnSuccess
-                                 ,OnFailure: OnFailure
-                                 ,Ensure: Ensure
-                                 ,Try: Try
-                                 ,Timeout: Timeout
-                                 ,HookedStep: HookedStep
-                                 ,Step: Step
-                                 ,StepStatePending: StepStatePending
-                                 ,StepStateRunning: StepStateRunning
-                                 ,StepStateSucceeded: StepStateSucceeded
-                                 ,StepStateFailed: StepStateFailed
-                                 ,StepStateErrored: StepStateErrored
-                                 ,Root: Root
-                                 ,init: init
-                                 ,initBottom: initBottom
-                                 ,initWrappedStep: initWrappedStep
-                                 ,initHookedStep: initHookedStep
-                                 ,wrapAgg: wrapAgg
-                                 ,wrapStep: wrapStep
-                                 ,getStep: getStep
-                                 ,updateStep: updateStep
-                                 ,wrapHook: wrapHook
-                                 ,getHook: getHook
-                                 ,updateHook: updateHook
-                                 ,getAggIndex: getAggIndex
-                                 ,setAggIndex: setAggIndex};
-};
-Elm.Build = Elm.Build || {};
-Elm.Build.make = function (_elm) {
-   "use strict";
-   _elm.Build = _elm.Build || {};
-   if (_elm.Build.values) return _elm.Build.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Ansi = Elm.Ansi.make(_elm),
-   $Ansi$Log = Elm.Ansi.Log.make(_elm),
-   $Array = Elm.Array.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $BuildEvent = Elm.BuildEvent.make(_elm),
-   $BuildPlan = Elm.BuildPlan.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Dict = Elm.Dict.make(_elm),
-   $Effects = Elm.Effects.make(_elm),
-   $EventSource = Elm.EventSource.make(_elm),
-   $Focus = Elm.Focus.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $Html$Attributes = Elm.Html.Attributes.make(_elm),
-   $Html$Lazy = Elm.Html.Lazy.make(_elm),
-   $Http = Elm.Http.make(_elm),
-   $Json$Decode = Elm.Json.Decode.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $StepTree = Elm.StepTree.make(_elm),
-   $Task = Elm.Task.make(_elm);
-   var _op = {};
-   var parseEvent = function (e) {
-      return A2($Json$Decode.decodeString,
-      $BuildEvent.decode,
-      e.data);
-   };
    var colorClasses = F3(function (suffix,bold,mc) {
       var brightPrefix = "ansi-bright-";
       var prefix = bold ? brightPrefix : "ansi-";
@@ -13603,8 +13345,8 @@ Elm.Build.make = function (_elm) {
                     }
               }()]));
    });
-   var viewStepTree = function (tree) {
-      viewStepTree: while (true) {
+   var view = function (tree) {
+      view: while (true) {
          var _p6 = tree;
          switch (_p6.ctor)
          {case "Task": return A2(viewStep,_p6._0,"fa-terminal");
@@ -13613,126 +13355,378 @@ Elm.Build.make = function (_elm) {
             case "Put": return A2(viewStep,_p6._0,"fa-arrow-up");
             case "Try": var _v6 = _p6._0;
               tree = _v6;
-              continue viewStepTree;
+              continue view;
             case "Timeout": var _v7 = _p6._0;
               tree = _v7;
-              continue viewStepTree;
+              continue view;
             case "Aggregate": return A2($Html.div,
               _U.list([$Html$Attributes.$class("aggregate")]),
-              $Array.toList(A2($Array.map,viewStepTree,_p6._0)));
+              $Array.toList(A2($Array.map,view,_p6._0)));
             case "OnSuccess": return A2($Html.div,
               _U.list([$Html$Attributes.$class("on-success")]),
               _U.list([A2($Html.div,
                       _U.list([$Html$Attributes.$class("step")]),
-                      _U.list([viewStepTree(_p6._0.step)]))
+                      _U.list([view(_p6._0.step)]))
                       ,A2($Html.div,
                       _U.list([$Html$Attributes.$class("children hook-success")]),
-                      _U.list([viewStepTree(_p6._0.hook)]))]));
+                      _U.list([view(_p6._0.hook)]))]));
             case "OnFailure": return A2($Html.div,
               _U.list([$Html$Attributes.$class("on-failure")]),
               _U.list([A2($Html.div,
                       _U.list([$Html$Attributes.$class("step")]),
-                      _U.list([viewStepTree(_p6._0.step)]))
+                      _U.list([view(_p6._0.step)]))
                       ,A2($Html.div,
                       _U.list([$Html$Attributes.$class("children hook-failure")]),
-                      _U.list([viewStepTree(_p6._0.hook)]))]));
+                      _U.list([view(_p6._0.hook)]))]));
             default: return A2($Html.div,
               _U.list([$Html$Attributes.$class("ensure")]),
               _U.list([A2($Html.div,
                       _U.list([$Html$Attributes.$class("step")]),
-                      _U.list([viewStepTree(_p6._0.step)]))
+                      _U.list([view(_p6._0.step)]))
                       ,A2($Html.div,
                       _U.list([$Html$Attributes.$class("children hook-ensure")]),
-                      _U.list([viewStepTree(_p6._0.hook)]))]));}
+                      _U.list([view(_p6._0.hook)]))]));}
       }
    };
+   var getAggIndex = F2(function (idx,tree) {
+      var _p7 = tree;
+      if (_p7.ctor === "Aggregate") {
+            var _p8 = A2($Array.get,idx,_p7._0);
+            if (_p8.ctor === "Just") {
+                  return _p8._0;
+               } else {
+                  return _U.crashCase("StepTree",
+                  {start: {line: 256,column: 7},end: {line: 261,column: 35}},
+                  _p8)("impossible");
+               }
+         } else {
+            return _U.crashCase("StepTree",
+            {start: {line: 254,column: 3},end: {line: 264,column: 31}},
+            _p7)("impossible");
+         }
+   });
+   var getHook = function (tree) {
+      var _p11 = tree;
+      switch (_p11.ctor)
+      {case "OnSuccess": return _p11._0.hook;
+         case "OnFailure": return _p11._0.hook;
+         case "Ensure": return _p11._0.hook;
+         default: return _U.crashCase("StepTree",
+           {start: {line: 224,column: 3},end: {line: 235,column: 31}},
+           _p11)("impossible");}
+   };
+   var getStep = function (tree) {
+      var _p13 = tree;
+      switch (_p13.ctor)
+      {case "OnSuccess": return _p13._0.step;
+         case "OnFailure": return _p13._0.step;
+         case "Ensure": return _p13._0.step;
+         case "Try": return _p13._0;
+         case "Timeout": return _p13._0;
+         default: return _U.crashCase("StepTree",
+           {start: {line: 178,column: 3},end: {line: 195,column: 31}},
+           _p13)("impossible");}
+   };
+   var Root = F2(function (a,b) {    return {tree: a,foci: b};});
+   var StepStateErrored = {ctor: "StepStateErrored"};
+   var StepStateFailed = {ctor: "StepStateFailed"};
+   var StepStateSucceeded = {ctor: "StepStateSucceeded"};
+   var StepStateRunning = {ctor: "StepStateRunning"};
+   var StepStatePending = {ctor: "StepStatePending"};
+   var initBottom = F3(function (create,id,name) {
+      var step = {name: name
+                 ,state: StepStatePending
+                 ,log: $Ansi$Log.init($Ansi$Log.Cooked)
+                 ,error: $Maybe.Nothing};
+      return {tree: create(step)
+             ,foci: A2($Dict.singleton,
+             id,
+             A2($Focus.create,$Basics.identity,$Basics.identity))};
+   });
+   var Step = F4(function (a,b,c,d) {
+      return {name: a,state: b,log: c,error: d};
+   });
+   var HookedStep = F2(function (a,b) {
+      return {step: a,hook: b};
+   });
+   var Timeout = function (a) {
+      return {ctor: "Timeout",_0: a};
+   };
+   var Try = function (a) {    return {ctor: "Try",_0: a};};
+   var Ensure = function (a) {    return {ctor: "Ensure",_0: a};};
+   var OnFailure = function (a) {
+      return {ctor: "OnFailure",_0: a};
+   };
+   var OnSuccess = function (a) {
+      return {ctor: "OnSuccess",_0: a};
+   };
+   var updateStep = F2(function (update,tree) {
+      var _p15 = tree;
+      switch (_p15.ctor)
+      {case "OnSuccess": var _p16 = _p15._0;
+           return OnSuccess(_U.update(_p16,{step: update(_p16.step)}));
+         case "OnFailure": var _p17 = _p15._0;
+           return OnFailure(_U.update(_p17,{step: update(_p17.step)}));
+         case "Ensure": var _p18 = _p15._0;
+           return Ensure(_U.update(_p18,{step: update(_p18.step)}));
+         case "Try": return Try(update(_p15._0));
+         case "Timeout": return Timeout(update(_p15._0));
+         default: return _U.crashCase("StepTree",
+           {start: {line: 199,column: 3},end: {line: 216,column: 31}},
+           _p15)("impossible");}
+   });
+   var wrapStep = F2(function (id,subFocus) {
+      return A2($Focus._op["=>"],
+      A2($Focus.create,getStep,updateStep),
+      subFocus);
+   });
+   var updateHook = F2(function (update,tree) {
+      var _p20 = tree;
+      switch (_p20.ctor)
+      {case "OnSuccess": var _p21 = _p20._0;
+           return OnSuccess(_U.update(_p21,{hook: update(_p21.hook)}));
+         case "OnFailure": var _p22 = _p20._0;
+           return OnFailure(_U.update(_p22,{hook: update(_p22.hook)}));
+         case "Ensure": var _p23 = _p20._0;
+           return Ensure(_U.update(_p23,{hook: update(_p23.hook)}));
+         default: return _U.crashCase("StepTree",
+           {start: {line: 239,column: 3},end: {line: 250,column: 31}},
+           _p20)("impossible");}
+   });
+   var wrapHook = F2(function (id,subFocus) {
+      return A2($Focus._op["=>"],
+      A2($Focus.create,getHook,updateHook),
+      subFocus);
+   });
+   var Aggregate = function (a) {
+      return {ctor: "Aggregate",_0: a};
+   };
+   var setAggIndex = F3(function (idx,update,tree) {
+      var _p25 = tree;
+      if (_p25.ctor === "Aggregate") {
+            return Aggregate(A3($Array.set,
+            idx,
+            update(A2(getAggIndex,idx,tree)),
+            _p25._0));
+         } else {
+            return _U.crashCase("StepTree",
+            {start: {line: 268,column: 3},end: {line: 273,column: 31}},
+            _p25)("impossible");
+         }
+   });
+   var wrapAgg = F3(function (subFoci,i,plan) {
+      var _p27 = A2($Dict.get,plan.id,subFoci);
+      if (_p27.ctor === "Nothing") {
+            return _U.crashCase("StepTree",
+            {start: {line: 165,column: 3},end: {line: 170,column: 74}},
+            _p27)("welp");
+         } else {
+            return {ctor: "_Tuple2"
+                   ,_0: plan.id
+                   ,_1: A2($Focus._op["=>"],
+                   A2($Focus.create,getAggIndex(i),setAggIndex(i)),
+                   _p27._0)};
+         }
+   });
+   var DependentGet = function (a) {
+      return {ctor: "DependentGet",_0: a};
+   };
+   var Put = function (a) {    return {ctor: "Put",_0: a};};
+   var Get = F2(function (a,b) {
+      return {ctor: "Get",_0: a,_1: b};
+   });
+   var Task = function (a) {    return {ctor: "Task",_0: a};};
+   var init = function (plan) {
+      var _p29 = plan.step;
+      switch (_p29.ctor)
+      {case "Task": return A3(initBottom,Task,plan.id,_p29._0);
+         case "Get": return A3(initBottom,
+           A2($Basics.flip,Get,_p29._1),
+           plan.id,
+           _p29._0);
+         case "Put": return A3(initBottom,Put,plan.id,_p29._0);
+         case "DependentGet": return A3(initBottom,
+           DependentGet,
+           plan.id,
+           _p29._0);
+         case "Aggregate": var _p30 = _p29._0;
+           var inited = A2($Array.map,init,_p30);
+           var trees = A2($Array.map,
+           function (_) {
+              return _.tree;
+           },
+           inited);
+           var subFoci = A3($Array.foldr,
+           $Dict.union,
+           $Dict.empty,
+           A2($Array.map,function (_) {    return _.foci;},inited));
+           var wrappedFoci = A2($Array.indexedMap,wrapAgg(subFoci),_p30);
+           var foci = $Dict.fromList($Array.toList(wrappedFoci));
+           return A2(Root,Aggregate(trees),foci);
+         case "OnSuccess": return A2(initHookedStep,OnSuccess,_p29._0);
+         case "OnFailure": return A2(initHookedStep,OnFailure,_p29._0);
+         case "Ensure": return A2(initHookedStep,Ensure,_p29._0);
+         case "Try": return A2(initWrappedStep,Try,_p29._0);
+         default: return A2(initWrappedStep,Timeout,_p29._0);}
+   };
+   var initHookedStep = F2(function (create,hookedPlan) {
+      var hookRoot = init(hookedPlan.hook);
+      var stepRoot = init(hookedPlan.step);
+      return {tree: create({step: stepRoot.tree,hook: hookRoot.tree})
+             ,foci: A2($Dict.union,
+             A2($Dict.map,wrapStep,stepRoot.foci),
+             A2($Dict.map,wrapHook,hookRoot.foci))};
+   });
+   var initWrappedStep = F2(function (create,plan) {
+      var _p31 = init(plan);
+      var tree = _p31.tree;
+      var foci = _p31.foci;
+      return {tree: create(tree),foci: A2($Dict.map,wrapStep,foci)};
+   });
+   var map = F2(function (f,tree) {
+      var _p32 = tree;
+      switch (_p32.ctor)
+      {case "Task": return Task(f(_p32._0));
+         case "Get": return A2(Get,f(_p32._0),_p32._1);
+         case "Put": return Put(f(_p32._0));
+         case "DependentGet": return DependentGet(f(_p32._0));
+         default: return tree;}
+   });
+   return _elm.StepTree.values = {_op: _op
+                                 ,init: init
+                                 ,map: map
+                                 ,view: view
+                                 ,Root: Root
+                                 ,HookedStep: HookedStep
+                                 ,Step: Step
+                                 ,Task: Task
+                                 ,Get: Get
+                                 ,Put: Put
+                                 ,DependentGet: DependentGet
+                                 ,Aggregate: Aggregate
+                                 ,OnSuccess: OnSuccess
+                                 ,OnFailure: OnFailure
+                                 ,Ensure: Ensure
+                                 ,Try: Try
+                                 ,Timeout: Timeout
+                                 ,StepStatePending: StepStatePending
+                                 ,StepStateRunning: StepStateRunning
+                                 ,StepStateSucceeded: StepStateSucceeded
+                                 ,StepStateFailed: StepStateFailed
+                                 ,StepStateErrored: StepStateErrored};
+};
+Elm.Build = Elm.Build || {};
+Elm.Build.make = function (_elm) {
+   "use strict";
+   _elm.Build = _elm.Build || {};
+   if (_elm.Build.values) return _elm.Build.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Ansi$Log = Elm.Ansi.Log.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $BuildEvent = Elm.BuildEvent.make(_elm),
+   $BuildPlan = Elm.BuildPlan.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
+   $EventSource = Elm.EventSource.make(_elm),
+   $Focus = Elm.Focus.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Http = Elm.Http.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $StepTree = Elm.StepTree.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var parseEvent = function (e) {
+      return A2($Json$Decode.decodeString,
+      $BuildEvent.decode,
+      e.data);
+   };
    var view = F2(function (action,model) {
-      var _p7 = model.stepRoot;
-      if (_p7.ctor === "Nothing") {
+      var _p0 = model.stepRoot;
+      if (_p0.ctor === "Nothing") {
             return $Html.text("loading...");
          } else {
             return A2($Html.div,
             _U.list([$Html$Attributes.$class("steps")]),
-            _U.list([viewStepTree(_p7._0.tree)]));
+            _U.list([$StepTree.view(_p0._0.tree)]));
          }
    });
    var setStepState = F2(function (state,tree) {
-      var _p8 = tree;
-      switch (_p8.ctor)
-      {case "Task": return $StepTree.Task(_U.update(_p8._0,
-           {state: state}));
-         case "Get": return A2($StepTree.Get,
-           _U.update(_p8._0,{state: state}),
-           _p8._1);
-         default: return tree;}
+      return A2($StepTree.map,
+      function (step) {
+         return _U.update(step,{state: state});
+      },
+      tree);
    });
-   var finishStep = F3(function (id,exitStatus,_p9) {
-      var _p10 = _p9;
-      var _p13 = _p10.tree;
-      var _p12 = _p10.foci;
-      var _p11 = A2($Dict.get,id,_p12);
-      if (_p11.ctor === "Nothing") {
-            return {tree: _p13,foci: _p12};
+   var finishStep = F3(function (id,exitStatus,_p1) {
+      var _p2 = _p1;
+      var _p5 = _p2.tree;
+      var _p4 = _p2.foci;
+      var _p3 = A2($Dict.get,id,_p4);
+      if (_p3.ctor === "Nothing") {
+            return {tree: _p5,foci: _p4};
          } else {
             var stepState = _U.eq(exitStatus,
             0) ? $StepTree.StepStateSucceeded : $StepTree.StepStateFailed;
             return {tree: A3($Focus.update,
-                   _p11._0,
+                   _p3._0,
                    setStepState(stepState),
-                   _p13)
-                   ,foci: _p12};
+                   _p5)
+                   ,foci: _p4};
          }
    });
    var setStepError = F2(function (message,tree) {
-      var _p14 = tree;
-      switch (_p14.ctor)
-      {case "Task": return $StepTree.Task(_U.update(_p14._0,
-           {error: $Maybe.Just(message)}));
-         case "Get": return A2($StepTree.Get,
-           _U.update(_p14._0,{error: $Maybe.Just(message)}),
-           _p14._1);
-         default: return tree;}
+      return A2($StepTree.map,
+      function (step) {
+         return _U.update(step,{error: $Maybe.Just(message)});
+      },
+      tree);
    });
-   var setError = F3(function (id,message,_p15) {
-      var _p16 = _p15;
-      var _p19 = _p16.tree;
-      var _p18 = _p16.foci;
-      var _p17 = A2($Dict.get,id,_p18);
-      if (_p17.ctor === "Nothing") {
-            return {tree: _p19,foci: _p18};
+   var setError = F3(function (id,message,_p6) {
+      var _p7 = _p6;
+      var _p10 = _p7.tree;
+      var _p9 = _p7.foci;
+      var _p8 = A2($Dict.get,id,_p9);
+      if (_p8.ctor === "Nothing") {
+            return {tree: _p10,foci: _p9};
          } else {
             return {tree: A3($Focus.update,
-                   _p17._0,
+                   _p8._0,
                    setStepError(message),
-                   _p19)
-                   ,foci: _p18};
+                   _p10)
+                   ,foci: _p9};
          }
    });
    var appendStepLog = F2(function (output,tree) {
-      var _p20 = tree;
-      switch (_p20.ctor)
-      {case "Task": var _p21 = _p20._0;
-           return $StepTree.Task(_U.update(_p21,
-           {log: A2($Ansi$Log.update,output,_p21.log)}));
-         case "Get": var _p22 = _p20._0;
+      var _p11 = tree;
+      switch (_p11.ctor)
+      {case "Task": var _p12 = _p11._0;
+           return $StepTree.Task(_U.update(_p12,
+           {log: A2($Ansi$Log.update,output,_p12.log)}));
+         case "Get": var _p13 = _p11._0;
            return A2($StepTree.Get,
-           _U.update(_p22,{log: A2($Ansi$Log.update,output,_p22.log)}),
-           _p20._1);
+           _U.update(_p13,{log: A2($Ansi$Log.update,output,_p13.log)}),
+           _p11._1);
          default: return tree;}
    });
-   var appendLog = F3(function (id,output,_p23) {
-      var _p24 = _p23;
-      var _p27 = _p24.tree;
-      var _p26 = _p24.foci;
-      var _p25 = A2($Dict.get,id,_p26);
-      if (_p25.ctor === "Nothing") {
-            return {tree: _p27,foci: _p26};
+   var appendLog = F3(function (id,output,_p14) {
+      var _p15 = _p14;
+      var _p18 = _p15.tree;
+      var _p17 = _p15.foci;
+      var _p16 = A2($Dict.get,id,_p17);
+      if (_p16.ctor === "Nothing") {
+            return {tree: _p18,foci: _p17};
          } else {
             return {tree: A3($Focus.update,
-                   _p25._0,
+                   _p16._0,
                    appendStepLog(output),
-                   _p27)
-                   ,foci: _p26};
+                   _p18)
+                   ,foci: _p17};
          }
    });
    var Closed = {ctor: "Closed"};
@@ -13756,8 +13750,8 @@ Elm.Build.make = function (_elm) {
       "event",
       A2($Signal.forwardTo,
       actions,
-      function (_p28) {
-         return Event(parseEvent(_p28));
+      function (_p19) {
+         return Event(parseEvent(_p19));
       }));
       var settings = A2($EventSource.Settings,
       $Maybe.Just(A2($Signal.forwardTo,
@@ -13776,25 +13770,25 @@ Elm.Build.make = function (_elm) {
       A2($Task.andThen,A2($Task.andThen,connect,eventsSub),endSub)));
    });
    var update = F2(function (action,model) {
-      var _p29 = action;
-      switch (_p29.ctor)
+      var _p20 = action;
+      switch (_p20.ctor)
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
-         case "PlanFetched": if (_p29._0.ctor === "Err") {
+         case "PlanFetched": if (_p20._0.ctor === "Err") {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch plan: ",
-                 $Basics.toString(_p29._0._0)),
+                 $Basics.toString(_p20._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,
-                        {stepRoot: $Maybe.Just($StepTree.init(_p29._0._0))})
+                        {stepRoot: $Maybe.Just($StepTree.init(_p20._0._0))})
                         ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
               }
          case "Listening": return {ctor: "_Tuple2"
-                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p29._0)})
+                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p20._0)})
                                   ,_1: $Effects.none};
          case "Opened": return {ctor: "_Tuple2"
                                ,_0: model
@@ -13802,43 +13796,43 @@ Elm.Build.make = function (_elm) {
          case "Errored": return {ctor: "_Tuple2"
                                 ,_0: model
                                 ,_1: $Effects.none};
-         case "Event": if (_p29._0.ctor === "Ok") {
-                 switch (_p29._0._0.ctor)
+         case "Event": if (_p20._0.ctor === "Ok") {
+                 switch (_p20._0._0.ctor)
                  {case "Log": return {ctor: "_Tuple2"
                                      ,_0: _U.update(model,
                                      {stepRoot: A2($Maybe.map,
-                                     A2(appendLog,_p29._0._0._0.id,_p29._0._0._1),
+                                     A2(appendLog,_p20._0._0._0.id,_p20._0._0._1),
                                      model.stepRoot)})
                                      ,_1: $Effects.none};
                     case "Error": return {ctor: "_Tuple2"
                                          ,_0: _U.update(model,
                                          {stepRoot: A2($Maybe.map,
-                                         A2(setError,_p29._0._0._0.id,_p29._0._0._1),
+                                         A2(setError,_p20._0._0._0.id,_p20._0._0._1),
                                          model.stepRoot)})
                                          ,_1: $Effects.none};
                     case "FinishTask": return {ctor: "_Tuple2"
                                               ,_0: _U.update(model,
                                               {stepRoot: A2($Maybe.map,
-                                              A2(finishStep,_p29._0._0._0.id,_p29._0._0._1),
+                                              A2(finishStep,_p20._0._0._0.id,_p20._0._0._1),
                                               model.stepRoot)})
                                               ,_1: $Effects.none};
                     case "FinishGet": return {ctor: "_Tuple2"
                                              ,_0: _U.update(model,
                                              {stepRoot: A2($Maybe.map,
-                                             A2(finishStep,_p29._0._0._0.id,_p29._0._0._1),
+                                             A2(finishStep,_p20._0._0._0.id,_p20._0._0._1),
                                              model.stepRoot)})
                                              ,_1: $Effects.none};
                     default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: A2($Debug.log,_p29._0._0,$Effects.none)};
+                        ,_1: A2($Debug.log,_p20._0._0,$Effects.none)};
               }
-         case "EndOfEvents": var _p30 = model.eventSource;
-           if (_p30.ctor === "Just") {
+         case "EndOfEvents": var _p21 = model.eventSource;
+           if (_p21.ctor === "Just") {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{eventsLoaded: true})
-                        ,_1: closeEvents(_p30._0)};
+                        ,_1: closeEvents(_p21._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }
@@ -13893,16 +13887,6 @@ Elm.Build.make = function (_elm) {
                               ,finishStep: finishStep
                               ,setStepState: setStepState
                               ,view: view
-                              ,viewStepTree: viewStepTree
-                              ,viewStep: viewStep
-                              ,typeIcon: typeIcon
-                              ,viewStepState: viewStepState
-                              ,viewStepLog: viewStepLog
-                              ,lazyLine: lazyLine
-                              ,viewLine: viewLine
-                              ,viewChunk: viewChunk
-                              ,styleAttributes: styleAttributes
-                              ,colorClasses: colorClasses
                               ,fetchBuildPlan: fetchBuildPlan
                               ,subscribeToEvents: subscribeToEvents
                               ,closeEvents: closeEvents
