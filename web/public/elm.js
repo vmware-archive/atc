@@ -13870,7 +13870,7 @@ Elm.Build.make = function (_elm) {
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
          default: return _U.crashCase("Build",
-           {start: {line: 430,column: 3},end: {line: 436,column: 48}},
+           {start: {line: 468,column: 3},end: {line: 474,column: 48}},
            _p0)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {
@@ -13906,6 +13906,17 @@ Elm.Build.make = function (_elm) {
          case "BuildStatusFailed": return "failed";
          case "BuildStatusErrored": return "errored";
          default: return "aborted";}
+   };
+   var paddingClass = function (build) {
+      var _p4 = {ctor: "_Tuple2"
+                ,_0: build.pipelineName
+                ,_1: build.jobName};
+      if (_p4.ctor === "_Tuple2" && _p4._0.ctor === "Just" && _p4._1.ctor === "Just")
+      {
+            return _U.list([]);
+         } else {
+            return _U.list([$Html$Attributes.$class("build-body-noSubHeader")]);
+         }
    };
    var setStepState = F2(function (state,tree) {
       var expanded = !_U.eq(state,$StepTree.StepStateSucceeded);
@@ -13947,6 +13958,60 @@ Elm.Build.make = function (_elm) {
    build,
    status,
    history) {
+      var buildTitle = function () {
+         var _p5 = {ctor: "_Tuple2"
+                   ,_0: build.pipelineName
+                   ,_1: build.jobName};
+         if (_p5.ctor === "_Tuple2" && _p5._0.ctor === "Just" && _p5._1.ctor === "Just")
+         {
+               var _p6 = _p5._1._0;
+               return A2($Html.a,
+               _U.list([$Html$Attributes.href(A2($Basics._op["++"],
+               "/pipelines/",
+               A2($Basics._op["++"],
+               _p5._0._0,
+               A2($Basics._op["++"],"/jobs/",_p6))))]),
+               _U.list([$Html.text(A2($Basics._op["++"],
+               _p6,
+               A2($Basics._op["++"]," #",build.name)))]));
+            } else {
+               return $Html.text(A2($Basics._op["++"],
+               "build #",
+               $Basics.toString(build.id)));
+            }
+      }();
+      var abortButton = isRunning(status) ? A2($Html.span,
+      _U.list([$Html$Attributes.$class("build-action build-action-abort fr")
+              ,A2($Html$Events.onClick,actions,AbortBuild)]),
+      _U.list([A2($Html.i,
+      _U.list([$Html$Attributes.$class("fa fa-times-circle")]),
+      _U.list([]))])) : A2($Html.span,_U.list([]),_U.list([]));
+      var triggerButton = function () {
+         var _p7 = {ctor: "_Tuple2"
+                   ,_0: build.pipelineName
+                   ,_1: build.jobName};
+         if (_p7.ctor === "_Tuple2" && _p7._0.ctor === "Just" && _p7._1.ctor === "Just")
+         {
+               var actionUrl = A2($Basics._op["++"],
+               "/pipelines/",
+               A2($Basics._op["++"],
+               _p7._0._0,
+               A2($Basics._op["++"],
+               "/jobs/",
+               A2($Basics._op["++"],_p7._1._0,"/builds"))));
+               return A2($Html.form,
+               _U.list([$Html$Attributes.$class("trigger-build")
+                       ,$Html$Attributes.method("post")
+                       ,$Html$Attributes.action(actionUrl)]),
+               _U.list([A2($Html.button,
+               _U.list([$Html$Attributes.$class("build-action fr")]),
+               _U.list([A2($Html.i,
+               _U.list([$Html$Attributes.$class("fa fa-plus-circle")]),
+               _U.list([]))]))]));
+            } else {
+               return A2($Html.div,_U.list([]),_U.list([]));
+            }
+      }();
       return A2($Html.div,
       _U.list([$Html$Attributes.id("page-header")
               ,$Html$Attributes.$class(statusClass(status))]),
@@ -13954,38 +14019,8 @@ Elm.Build.make = function (_elm) {
               _U.list([$Html$Attributes.$class("build-header")]),
               _U.list([A2($Html.div,
                       _U.list([$Html$Attributes.$class("build-actions fr")]),
-                      _U.list([A2($Html.form,
-                              _U.list([$Html$Attributes.$class("trigger-build")
-                                      ,$Html$Attributes.method("post")
-                                      ,$Html$Attributes.action(A2($Basics._op["++"],
-                                      "/pipelines/",
-                                      A2($Basics._op["++"],
-                                      build.pipelineName,
-                                      A2($Basics._op["++"],
-                                      "/jobs/",
-                                      A2($Basics._op["++"],build.jobName,"/builds")))))]),
-                              _U.list([A2($Html.button,
-                              _U.list([$Html$Attributes.$class("build-action fr")]),
-                              _U.list([A2($Html.i,
-                              _U.list([$Html$Attributes.$class("fa fa-plus-circle")]),
-                              _U.list([]))]))]))
-                              ,isRunning(status) ? A2($Html.span,
-                              _U.list([$Html$Attributes.$class("build-action build-action-abort fr")
-                                      ,A2($Html$Events.onClick,actions,AbortBuild)]),
-                              _U.list([A2($Html.i,
-                              _U.list([$Html$Attributes.$class("fa fa-times-circle")]),
-                              _U.list([]))])) : A2($Html.span,_U.list([]),_U.list([]))]))
-                      ,A2($Html.h1,
-                      _U.list([]),
-                      _U.list([A2($Html.a,
-                      _U.list([$Html$Attributes.href(A2($Basics._op["++"],
-                      "/pipelines/",
-                      A2($Basics._op["++"],
-                      build.pipelineName,
-                      A2($Basics._op["++"],"/jobs/",build.jobName))))]),
-                      _U.list([$Html.text(A2($Basics._op["++"],
-                      build.jobName,
-                      A2($Basics._op["++"]," #",build.name)))]))]))
+                      _U.list([triggerButton,abortButton]))
+                      ,A2($Html.h1,_U.list([]),_U.list([buildTitle]))
                       ,A2($Html.dl,
                       _U.list([$Html$Attributes.$class("build-times")]),
                       _U.list([]))]))
@@ -13997,35 +14032,41 @@ Elm.Build.make = function (_elm) {
       return {ctor: "StepTreeAction",_0: a};
    };
    var view = F2(function (actions,model) {
-      var _p4 = {ctor: "_Tuple2"
+      var _p8 = {ctor: "_Tuple2"
                 ,_0: model.build
                 ,_1: model.stepRoot};
-      if (_p4.ctor === "_Tuple2" && _p4._0.ctor === "Just") {
-            if (_p4._1.ctor === "Just") {
+      if (_p8.ctor === "_Tuple2" && _p8._0.ctor === "Just") {
+            if (_p8._1.ctor === "Just") {
+                  var _p9 = _p8._0._0;
                   return A2($Html.div,
                   _U.list([]),
                   _U.list([A4(viewBuildHeader,
                           actions,
-                          _p4._0._0,
+                          _p9,
                           model.status,
                           A2($Maybe.withDefault,_U.list([]),model.history))
                           ,A2($Html.div,
-                          _U.list([$Html$Attributes.id("build-body")]),
+                          A2($List._op["::"],
+                          $Html$Attributes.id("build-body"),
+                          paddingClass(_p9)),
                           _U.list([model.buildRunning || model.eventsLoaded ? A2($Html.div,
                           _U.list([$Html$Attributes.$class("steps")]),
                           _U.list([A2($StepTree.view,
                           A2($Signal.forwardTo,actions,StepTreeAction),
-                          _p4._1._0.tree)])) : $Html.text("loading...")]))]));
+                          _p8._1._0.tree)])) : $Html.text("loading...")]))]));
                } else {
+                  var _p10 = _p8._0._0;
                   return A2($Html.div,
                   _U.list([]),
                   _U.list([A4(viewBuildHeader,
                           actions,
-                          _p4._0._0,
+                          _p10,
                           model.status,
                           A2($Maybe.withDefault,_U.list([]),model.history))
                           ,A2($Html.div,
-                          _U.list([$Html$Attributes.id("build-body")]),
+                          A2($List._op["::"],
+                          $Html$Attributes.id("build-body"),
+                          paddingClass(_p10)),
                           _U.list([]))]));
                }
          } else {
@@ -14058,8 +14099,8 @@ Elm.Build.make = function (_elm) {
       "event",
       A2($Signal.forwardTo,
       actions,
-      function (_p5) {
-         return Event(parseEvent(_p5));
+      function (_p11) {
+         return Event(parseEvent(_p11));
       }));
       var settings = A2($EventSource.Settings,
       $Maybe.Just(A2($Signal.forwardTo,
@@ -14096,7 +14137,7 @@ Elm.Build.make = function (_elm) {
       A2($Basics._op["++"],$Basics.toString(buildId),"/plan")))));
       return $Effects.task(A2($Task.andThen,
       $Task.sleep(delay),
-      function (_p6) {
+      function (_p12) {
          return fetchPlan;
       }));
    });
@@ -14129,8 +14170,12 @@ Elm.Build.make = function (_elm) {
    A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
    A2($Json$Decode._op[":="],"name",$Json$Decode.string),
    A2($Json$Decode._op[":="],"status",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"job_name",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"pipeline_name",$Json$Decode.string),
+   $Json$Decode.maybe(A2($Json$Decode._op[":="],
+   "job_name",
+   $Json$Decode.string)),
+   $Json$Decode.maybe(A2($Json$Decode._op[":="],
+   "pipeline_name",
+   $Json$Decode.string)),
    A2($Json$Decode._op[":="],"url",$Json$Decode.string));
    var fetchBuild = function (buildId) {
       return $Effects.task(A2($Task.map,
@@ -14173,8 +14218,8 @@ Elm.Build.make = function (_elm) {
       A2($Basics._op["++"],jobName,"/builds"))))))));
    });
    var update = F2(function (action,model) {
-      var _p7 = action;
-      switch (_p7.ctor)
+      var _p13 = action;
+      switch (_p13.ctor)
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
@@ -14185,7 +14230,7 @@ Elm.Build.make = function (_elm) {
                                                                                                   ,scrollToBottom]))} : {ctor: "_Tuple2"
                                                                                                                         ,_0: model
                                                                                                                         ,_1: $Effects.none};
-         case "ScrollFromBottom": return _U.eq(_p7._0,
+         case "ScrollFromBottom": return _U.eq(_p13._0,
            0) ? {ctor: "_Tuple2"
                 ,_0: _U.update(model,{autoScroll: true})
                 ,_1: $Effects.tick($Basics.always(ScrollTick))} : {ctor: "_Tuple2"
@@ -14194,8 +14239,8 @@ Elm.Build.make = function (_elm) {
          case "AbortBuild": return {ctor: "_Tuple2"
                                    ,_0: model
                                    ,_1: abortBuild(model.buildId)};
-         case "PlanFetched": if (_p7._0.ctor === "Err") {
-                 if (_p7._0._0.ctor === "BadResponse" && _p7._0._0._0 === 404)
+         case "PlanFetched": if (_p13._0.ctor === "Err") {
+                 if (_p13._0._0.ctor === "BadResponse" && _p13._0._0._0 === 404)
                  {
                        return {ctor: "_Tuple2"
                               ,_0: model
@@ -14204,49 +14249,59 @@ Elm.Build.make = function (_elm) {
                        return A2($Debug.log,
                        A2($Basics._op["++"],
                        "failed to fetch plan: ",
-                       $Basics.toString(_p7._0._0)),
+                       $Basics.toString(_p13._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,
-                        {stepRoot: $Maybe.Just($StepTree.init(_p7._0._0))})
+                        {stepRoot: $Maybe.Just($StepTree.init(_p13._0._0))})
                         ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
               }
-         case "BuildFetched": if (_p7._0.ctor === "Err") {
+         case "BuildFetched": if (_p13._0.ctor === "Err") {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch build: ",
-                 $Basics.toString(_p7._0._0)),
+                 $Basics.toString(_p13._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
-                 var _p9 = _p7._0._0;
-                 var status = toStatus(_p9.status);
+                 var _p16 = _p13._0._0;
+                 var status = toStatus(_p16.status);
                  var running = function () {
-                    var _p8 = status;
-                    switch (_p8.ctor)
+                    var _p14 = status;
+                    switch (_p14.ctor)
                     {case "BuildStatusPending": return true;
                        case "BuildStatusStarted": return true;
                        default: return false;}
                  }();
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,
-                        {build: $Maybe.Just(_p9),status: status,buildRunning: running})
-                        ,_1: A2(fetchBuildHistory,_p9.pipelineName,_p9.jobName)};
+                        {build: $Maybe.Just(_p16),status: status,buildRunning: running})
+                        ,_1: function () {
+                           var _p15 = {ctor: "_Tuple2"
+                                      ,_0: _p16.pipelineName
+                                      ,_1: _p16.jobName};
+                           if (_p15.ctor === "_Tuple2" && _p15._0.ctor === "Just" && _p15._1.ctor === "Just")
+                           {
+                                 return A2(fetchBuildHistory,_p15._0._0,_p15._1._0);
+                              } else {
+                                 return $Effects.none;
+                              }
+                        }()};
               }
-         case "BuildHistoryFetched": if (_p7._0.ctor === "Err") {
+         case "BuildHistoryFetched": if (_p13._0.ctor === "Err") {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch build history: ",
-                 $Basics.toString(_p7._0._0)),
+                 $Basics.toString(_p13._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
                  return {ctor: "_Tuple2"
-                        ,_0: _U.update(model,{history: $Maybe.Just(_p7._0._0)})
+                        ,_0: _U.update(model,{history: $Maybe.Just(_p13._0._0)})
                         ,_1: $Effects.none};
               }
          case "Listening": return {ctor: "_Tuple2"
-                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p7._0)})
+                                  ,_0: _U.update(model,{eventSource: $Maybe.Just(_p13._0)})
                                   ,_1: $Effects.none};
          case "Opened": return {ctor: "_Tuple2"
                                ,_0: model
@@ -14254,68 +14309,68 @@ Elm.Build.make = function (_elm) {
          case "Errored": return {ctor: "_Tuple2"
                                 ,_0: model
                                 ,_1: $Effects.none};
-         case "Event": if (_p7._0.ctor === "Ok") {
-                 switch (_p7._0._0.ctor)
+         case "Event": if (_p13._0.ctor === "Ok") {
+                 switch (_p13._0._0.ctor)
                  {case "Log": return {ctor: "_Tuple2"
                                      ,_0: A3(updateStep,
-                                     _p7._0._0._0.id,
-                                     function (_p10) {
-                                        return setRunning(A2(appendStepLog,_p7._0._0._1,_p10));
+                                     _p13._0._0._0.id,
+                                     function (_p17) {
+                                        return setRunning(A2(appendStepLog,_p13._0._0._1,_p17));
                                      },
                                      model)
                                      ,_1: $Effects.none};
                     case "Error": return {ctor: "_Tuple2"
                                          ,_0: A3(updateStep,
-                                         _p7._0._0._0.id,
-                                         function (_p11) {
-                                            return setRunning(A2(setStepError,_p7._0._0._1,_p11));
+                                         _p13._0._0._0.id,
+                                         function (_p18) {
+                                            return setRunning(A2(setStepError,_p13._0._0._1,_p18));
                                          },
                                          model)
                                          ,_1: $Effects.none};
                     case "InitializeTask": return {ctor: "_Tuple2"
-                                                  ,_0: A3(updateStep,_p7._0._0._0.id,setRunning,model)
+                                                  ,_0: A3(updateStep,_p13._0._0._0.id,setRunning,model)
                                                   ,_1: $Effects.none};
                     case "StartTask": return {ctor: "_Tuple2"
-                                             ,_0: A3(updateStep,_p7._0._0._0.id,setRunning,model)
+                                             ,_0: A3(updateStep,_p13._0._0._0.id,setRunning,model)
                                              ,_1: $Effects.none};
                     case "FinishTask": return {ctor: "_Tuple2"
                                               ,_0: A3(updateStep,
-                                              _p7._0._0._0.id,
-                                              finishStep(_p7._0._0._1),
+                                              _p13._0._0._0.id,
+                                              finishStep(_p13._0._0._1),
                                               model)
                                               ,_1: $Effects.none};
                     case "FinishGet": return {ctor: "_Tuple2"
                                              ,_0: A3(updateStep,
-                                             _p7._0._0._0.id,
-                                             finishStep(_p7._0._0._1),
+                                             _p13._0._0._0.id,
+                                             finishStep(_p13._0._0._1),
                                              model)
                                              ,_1: $Effects.none};
                     case "FinishPut": return {ctor: "_Tuple2"
                                              ,_0: A3(updateStep,
-                                             _p7._0._0._0.id,
-                                             finishStep(_p7._0._0._1),
+                                             _p13._0._0._0.id,
+                                             finishStep(_p13._0._0._1),
                                              model)
                                              ,_1: $Effects.none};
                     default: return {ctor: "_Tuple2"
                                     ,_0: model.buildRunning ? _U.update(model,
-                                    {status: _p7._0._0._0}) : model
+                                    {status: _p13._0._0._0}) : model
                                     ,_1: $Effects.none};}
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: A2($Debug.log,_p7._0._0,$Effects.none)};
+                        ,_1: A2($Debug.log,_p13._0._0,$Effects.none)};
               }
          case "StepTreeAction": return {ctor: "_Tuple2"
                                        ,_0: _U.update(model,
                                        {stepRoot: A2($Maybe.map,
-                                       $StepTree.update(_p7._0),
+                                       $StepTree.update(_p13._0),
                                        model.stepRoot)})
                                        ,_1: $Effects.none};
-         case "EndOfEvents": var _p12 = model.eventSource;
-           if (_p12.ctor === "Just") {
+         case "EndOfEvents": var _p19 = model.eventSource;
+           if (_p19.ctor === "Just") {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{eventsLoaded: true})
-                        ,_1: closeEvents(_p12._0)};
+                        ,_1: closeEvents(_p19._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }
@@ -14381,6 +14436,7 @@ Elm.Build.make = function (_elm) {
                               ,finishStep: finishStep
                               ,setStepState: setStepState
                               ,view: view
+                              ,paddingClass: paddingClass
                               ,statusClass: statusClass
                               ,isRunning: isRunning
                               ,viewBuildHeader: viewBuildHeader
