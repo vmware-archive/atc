@@ -13870,7 +13870,7 @@ Elm.Build.make = function (_elm) {
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
          default: return _U.crashCase("Build",
-           {start: {line: 468,column: 3},end: {line: 474,column: 48}},
+           {start: {line: 473,column: 3},end: {line: 479,column: 48}},
            _p0)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {
@@ -13908,11 +13908,8 @@ Elm.Build.make = function (_elm) {
          default: return "aborted";}
    };
    var paddingClass = function (build) {
-      var _p4 = {ctor: "_Tuple2"
-                ,_0: build.pipelineName
-                ,_1: build.jobName};
-      if (_p4.ctor === "_Tuple2" && _p4._0.ctor === "Just" && _p4._1.ctor === "Just")
-      {
+      var _p4 = build.job;
+      if (_p4.ctor === "Just") {
             return _U.list([]);
          } else {
             return _U.list([$Html$Attributes.$class("build-body-noSubHeader")]);
@@ -13959,17 +13956,14 @@ Elm.Build.make = function (_elm) {
    status,
    history) {
       var buildTitle = function () {
-         var _p5 = {ctor: "_Tuple2"
-                   ,_0: build.pipelineName
-                   ,_1: build.jobName};
-         if (_p5.ctor === "_Tuple2" && _p5._0.ctor === "Just" && _p5._1.ctor === "Just")
-         {
-               var _p6 = _p5._1._0;
+         var _p5 = build.job;
+         if (_p5.ctor === "Just") {
+               var _p6 = _p5._0.name;
                return A2($Html.a,
                _U.list([$Html$Attributes.href(A2($Basics._op["++"],
                "/pipelines/",
                A2($Basics._op["++"],
-               _p5._0._0,
+               _p5._0.pipelineName,
                A2($Basics._op["++"],"/jobs/",_p6))))]),
                _U.list([$Html.text(A2($Basics._op["++"],
                _p6,
@@ -13987,18 +13981,15 @@ Elm.Build.make = function (_elm) {
       _U.list([$Html$Attributes.$class("fa fa-times-circle")]),
       _U.list([]))])) : A2($Html.span,_U.list([]),_U.list([]));
       var triggerButton = function () {
-         var _p7 = {ctor: "_Tuple2"
-                   ,_0: build.pipelineName
-                   ,_1: build.jobName};
-         if (_p7.ctor === "_Tuple2" && _p7._0.ctor === "Just" && _p7._1.ctor === "Just")
-         {
+         var _p7 = build.job;
+         if (_p7.ctor === "Just") {
                var actionUrl = A2($Basics._op["++"],
                "/pipelines/",
                A2($Basics._op["++"],
-               _p7._0._0,
+               _p7._0.pipelineName,
                A2($Basics._op["++"],
                "/jobs/",
-               A2($Basics._op["++"],_p7._1._0,"/builds"))));
+               A2($Basics._op["++"],_p7._0.name,"/builds"))));
                return A2($Html.form,
                _U.list([$Html$Attributes.$class("trigger-build")
                        ,$Html$Attributes.method("post")
@@ -14157,25 +14148,23 @@ Elm.Build.make = function (_elm) {
    var scrollToBottom = $Effects.task(A2($Task.map,
    $Basics.always(Noop),
    $Scroll.toBottom));
-   var Build = F6(function (a,b,c,d,e,f) {
-      return {id: a
-             ,name: b
-             ,status: c
-             ,jobName: d
-             ,pipelineName: e
-             ,url: f};
+   var Job = F2(function (a,b) {
+      return {name: a,pipelineName: b};
    });
-   var decode = A7($Json$Decode.object6,
+   var Build = F5(function (a,b,c,d,e) {
+      return {id: a,name: b,status: c,job: d,url: e};
+   });
+   var decode = A6($Json$Decode.object5,
    Build,
    A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
    A2($Json$Decode._op[":="],"name",$Json$Decode.string),
    A2($Json$Decode._op[":="],"status",$Json$Decode.string),
-   $Json$Decode.maybe(A2($Json$Decode._op[":="],
-   "job_name",
-   $Json$Decode.string)),
-   $Json$Decode.maybe(A2($Json$Decode._op[":="],
+   $Json$Decode.maybe(A3($Json$Decode.object2,
+   Job,
+   A2($Json$Decode._op[":="],"job_name",$Json$Decode.string),
+   A2($Json$Decode._op[":="],
    "pipeline_name",
-   $Json$Decode.string)),
+   $Json$Decode.string))),
    A2($Json$Decode._op[":="],"url",$Json$Decode.string));
    var fetchBuild = function (buildId) {
       return $Effects.task(A2($Task.map,
@@ -14204,7 +14193,7 @@ Elm.Build.make = function (_elm) {
                                          ,fetchBuild(buildId)]))};
    });
    var decodeBuilds = $Json$Decode.list(decode);
-   var fetchBuildHistory = F2(function (pipelineName,jobName) {
+   var fetchBuildHistory = function (job) {
       return $Effects.task(A2($Task.map,
       BuildHistoryFetched,
       $Task.toResult(A2($Http.get,
@@ -14212,11 +14201,11 @@ Elm.Build.make = function (_elm) {
       A2($Basics._op["++"],
       "/api/v1/pipelines/",
       A2($Basics._op["++"],
-      pipelineName,
+      job.pipelineName,
       A2($Basics._op["++"],
       "/jobs/",
-      A2($Basics._op["++"],jobName,"/builds"))))))));
-   });
+      A2($Basics._op["++"],job.name,"/builds"))))))));
+   };
    var update = F2(function (action,model) {
       var _p13 = action;
       switch (_p13.ctor)
@@ -14278,12 +14267,9 @@ Elm.Build.make = function (_elm) {
                         ,_0: _U.update(model,
                         {build: $Maybe.Just(_p16),status: status,buildRunning: running})
                         ,_1: function () {
-                           var _p15 = {ctor: "_Tuple2"
-                                      ,_0: _p16.pipelineName
-                                      ,_1: _p16.jobName};
-                           if (_p15.ctor === "_Tuple2" && _p15._0.ctor === "Just" && _p15._1.ctor === "Just")
-                           {
-                                 return A2(fetchBuildHistory,_p15._0._0,_p15._1._0);
+                           var _p15 = _p16.job;
+                           if (_p15.ctor === "Just") {
+                                 return fetchBuildHistory(_p15._0);
                               } else {
                                  return $Effects.none;
                               }
@@ -14411,6 +14397,7 @@ Elm.Build.make = function (_elm) {
    return _elm.Build.values = {_op: _op
                               ,Model: Model
                               ,Build: Build
+                              ,Job: Job
                               ,Noop: Noop
                               ,PlanFetched: PlanFetched
                               ,BuildFetched: BuildFetched
