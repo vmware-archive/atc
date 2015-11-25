@@ -13870,7 +13870,7 @@ Elm.Build.make = function (_elm) {
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
          default: return _U.crashCase("Build",
-           {start: {line: 402,column: 3},end: {line: 408,column: 48}},
+           {start: {line: 430,column: 3},end: {line: 436,column: 48}},
            _p0)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {
@@ -13878,6 +13878,18 @@ Elm.Build.make = function (_elm) {
       $BuildEvent.decode,
       e.data);
    };
+   var renderHistory = F2(function (currentBuild,build) {
+      return A2($Html.li,
+      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2"
+                                                   ,_0: build.status
+                                                   ,_1: true}
+                                                  ,{ctor: "_Tuple2"
+                                                   ,_0: "current"
+                                                   ,_1: _U.eq(build.name,currentBuild.name)}]))]),
+      _U.list([A2($Html.a,
+      _U.list([$Html$Attributes.href(build.url)]),
+      _U.list([$Html.text(A2($Basics._op["++"],"#",build.name))]))]));
+   });
    var isRunning = function (status) {
       var _p2 = status;
       switch (_p2.ctor)
@@ -13931,7 +13943,10 @@ Elm.Build.make = function (_elm) {
       model.stepRoot)});
    });
    var AbortBuild = {ctor: "AbortBuild"};
-   var viewBuildHeader = F3(function (actions,build,status) {
+   var viewBuildHeader = F4(function (actions,
+   build,
+   status,
+   history) {
       return A2($Html.div,
       _U.list([$Html$Attributes.id("page-header")
               ,$Html$Attributes.$class(statusClass(status))]),
@@ -13976,21 +13991,7 @@ Elm.Build.make = function (_elm) {
                       _U.list([]))]))
               ,A2($Html.ul,
               _U.list([$Html$Attributes.id("builds")]),
-              _U.list([A2($Html.li,
-                      _U.list([$Html$Attributes.$class("succeeded current")]),
-                      _U.list([A2($Html.a,
-                      _U.list([$Html$Attributes.href("")]),
-                      _U.list([$Html.text("#3")]))]))
-                      ,A2($Html.li,
-                      _U.list([$Html$Attributes.$class("failed")]),
-                      _U.list([A2($Html.a,
-                      _U.list([$Html$Attributes.href("")]),
-                      _U.list([$Html.text("#2")]))]))
-                      ,A2($Html.li,
-                      _U.list([$Html$Attributes.$class("succeeded")]),
-                      _U.list([A2($Html.a,
-                      _U.list([$Html$Attributes.href("")]),
-                      _U.list([$Html.text("#1")]))]))]))]));
+              A2($List.map,renderHistory(build),history))]));
    });
    var StepTreeAction = function (a) {
       return {ctor: "StepTreeAction",_0: a};
@@ -14003,7 +14004,11 @@ Elm.Build.make = function (_elm) {
             if (_p4._1.ctor === "Just") {
                   return A2($Html.div,
                   _U.list([]),
-                  _U.list([A3(viewBuildHeader,actions,_p4._0._0,model.status)
+                  _U.list([A4(viewBuildHeader,
+                          actions,
+                          _p4._0._0,
+                          model.status,
+                          A2($Maybe.withDefault,_U.list([]),model.history))
                           ,A2($Html.div,
                           _U.list([$Html$Attributes.id("build-body")]),
                           _U.list([model.buildRunning || model.eventsLoaded ? A2($Html.div,
@@ -14014,7 +14019,11 @@ Elm.Build.make = function (_elm) {
                } else {
                   return A2($Html.div,
                   _U.list([]),
-                  _U.list([A3(viewBuildHeader,actions,_p4._0._0,model.status)
+                  _U.list([A4(viewBuildHeader,
+                          actions,
+                          _p4._0._0,
+                          model.status,
+                          A2($Maybe.withDefault,_U.list([]),model.history))
                           ,A2($Html.div,
                           _U.list([$Html$Attributes.id("build-body")]),
                           _U.list([]))]));
@@ -14068,6 +14077,9 @@ Elm.Build.make = function (_elm) {
       Listening,
       A2($Task.andThen,A2($Task.andThen,connect,eventsSub),endSub)));
    });
+   var BuildHistoryFetched = function (a) {
+      return {ctor: "BuildHistoryFetched",_0: a};
+   };
    var BuildFetched = function (a) {
       return {ctor: "BuildFetched",_0: a};
    };
@@ -14104,6 +14116,62 @@ Elm.Build.make = function (_elm) {
    var scrollToBottom = $Effects.task(A2($Task.map,
    $Basics.always(Noop),
    $Scroll.toBottom));
+   var Build = F6(function (a,b,c,d,e,f) {
+      return {id: a
+             ,name: b
+             ,status: c
+             ,jobName: d
+             ,pipelineName: e
+             ,url: f};
+   });
+   var decode = A7($Json$Decode.object6,
+   Build,
+   A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
+   A2($Json$Decode._op[":="],"name",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"status",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"job_name",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"pipeline_name",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"url",$Json$Decode.string));
+   var fetchBuild = function (buildId) {
+      return $Effects.task(A2($Task.map,
+      BuildFetched,
+      $Task.toResult(A2($Http.get,
+      decode,
+      A2($Basics._op["++"],
+      "/api/v1/builds/",
+      $Basics.toString(buildId))))));
+   };
+   var init = F2(function (actions,buildId) {
+      var model = {actions: actions
+                  ,buildId: buildId
+                  ,stepRoot: $Maybe.Nothing
+                  ,build: $Maybe.Nothing
+                  ,history: $Maybe.Nothing
+                  ,eventSource: $Maybe.Nothing
+                  ,eventsLoaded: false
+                  ,autoScroll: true
+                  ,status: $BuildEvent.BuildStatusPending
+                  ,buildRunning: false};
+      return {ctor: "_Tuple2"
+             ,_0: model
+             ,_1: $Effects.batch(_U.list([keepScrolling
+                                         ,A2(fetchBuildPlan,0,buildId)
+                                         ,fetchBuild(buildId)]))};
+   });
+   var decodeBuilds = $Json$Decode.list(decode);
+   var fetchBuildHistory = F2(function (pipelineName,jobName) {
+      return $Effects.task(A2($Task.map,
+      BuildHistoryFetched,
+      $Task.toResult(A2($Http.get,
+      decodeBuilds,
+      A2($Basics._op["++"],
+      "/api/v1/pipelines/",
+      A2($Basics._op["++"],
+      pipelineName,
+      A2($Basics._op["++"],
+      "/jobs/",
+      A2($Basics._op["++"],jobName,"/builds"))))))));
+   });
    var update = F2(function (action,model) {
       var _p7 = action;
       switch (_p7.ctor)
@@ -14164,6 +14232,17 @@ Elm.Build.make = function (_elm) {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,
                         {build: $Maybe.Just(_p9),status: status,buildRunning: running})
+                        ,_1: A2(fetchBuildHistory,_p9.pipelineName,_p9.jobName)};
+              }
+         case "BuildHistoryFetched": if (_p7._0.ctor === "Err") {
+                 return A2($Debug.log,
+                 A2($Basics._op["++"],
+                 "failed to fetch build history: ",
+                 $Basics.toString(_p7._0._0)),
+                 {ctor: "_Tuple2",_0: model,_1: $Effects.none});
+              } else {
+                 return {ctor: "_Tuple2"
+                        ,_0: _U.update(model,{history: $Maybe.Just(_p7._0._0)})
                         ,_1: $Effects.none};
               }
          case "Listening": return {ctor: "_Tuple2"
@@ -14244,58 +14323,43 @@ Elm.Build.make = function (_elm) {
                          ,_0: _U.update(model,{eventSource: $Maybe.Nothing})
                          ,_1: $Effects.none};}
    });
-   var Build = F5(function (a,b,c,d,e) {
-      return {id: a,name: b,status: c,jobName: d,pipelineName: e};
-   });
-   var decode = A6($Json$Decode.object5,
-   Build,
-   A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
-   A2($Json$Decode._op[":="],"name",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"status",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"job_name",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"pipeline_name",$Json$Decode.string));
-   var fetchBuild = function (buildId) {
-      return $Effects.task(A2($Task.map,
-      BuildFetched,
-      $Task.toResult(A2($Http.get,
-      decode,
-      A2($Basics._op["++"],
-      "/api/v1/builds/",
-      $Basics.toString(buildId))))));
+   var Model = function (a) {
+      return function (b) {
+         return function (c) {
+            return function (d) {
+               return function (e) {
+                  return function (f) {
+                     return function (g) {
+                        return function (h) {
+                           return function (i) {
+                              return function (j) {
+                                 return {actions: a
+                                        ,buildId: b
+                                        ,stepRoot: c
+                                        ,build: d
+                                        ,history: e
+                                        ,eventSource: f
+                                        ,status: g
+                                        ,autoScroll: h
+                                        ,buildRunning: i
+                                        ,eventsLoaded: j};
+                              };
+                           };
+                        };
+                     };
+                  };
+               };
+            };
+         };
+      };
    };
-   var init = F2(function (actions,buildId) {
-      var model = {actions: actions
-                  ,buildId: buildId
-                  ,stepRoot: $Maybe.Nothing
-                  ,build: $Maybe.Nothing
-                  ,eventSource: $Maybe.Nothing
-                  ,eventsLoaded: false
-                  ,autoScroll: true
-                  ,status: $BuildEvent.BuildStatusPending
-                  ,buildRunning: false};
-      return {ctor: "_Tuple2"
-             ,_0: model
-             ,_1: $Effects.batch(_U.list([keepScrolling
-                                         ,A2(fetchBuildPlan,0,buildId)
-                                         ,fetchBuild(buildId)]))};
-   });
-   var Model = F9(function (a,b,c,d,e,f,g,h,i) {
-      return {actions: a
-             ,buildId: b
-             ,stepRoot: c
-             ,build: d
-             ,eventSource: e
-             ,status: f
-             ,autoScroll: g
-             ,buildRunning: h
-             ,eventsLoaded: i};
-   });
    return _elm.Build.values = {_op: _op
                               ,Model: Model
                               ,Build: Build
                               ,Noop: Noop
                               ,PlanFetched: PlanFetched
                               ,BuildFetched: BuildFetched
+                              ,BuildHistoryFetched: BuildHistoryFetched
                               ,Listening: Listening
                               ,Opened: Opened
                               ,Errored: Errored
@@ -14320,9 +14384,12 @@ Elm.Build.make = function (_elm) {
                               ,statusClass: statusClass
                               ,isRunning: isRunning
                               ,viewBuildHeader: viewBuildHeader
+                              ,renderHistory: renderHistory
                               ,fetchBuildPlan: fetchBuildPlan
                               ,fetchBuild: fetchBuild
+                              ,fetchBuildHistory: fetchBuildHistory
                               ,decode: decode
+                              ,decodeBuilds: decodeBuilds
                               ,subscribeToEvents: subscribeToEvents
                               ,closeEvents: closeEvents
                               ,parseEvent: parseEvent
