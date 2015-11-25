@@ -13963,7 +13963,11 @@ Elm.Build.make = function (_elm) {
                       ,A2($Html.h1,
                       _U.list([]),
                       _U.list([A2($Html.a,
-                      _U.list([$Html$Attributes.href("")]),
+                      _U.list([$Html$Attributes.href(A2($Basics._op["++"],
+                      "/pipelines/",
+                      A2($Basics._op["++"],
+                      build.pipelineName,
+                      A2($Basics._op["++"],"/jobs/",build.jobName))))]),
                       _U.list([$Html.text(A2($Basics._op["++"],
                       build.jobName,
                       A2($Basics._op["++"]," #",build.name)))]))]))
