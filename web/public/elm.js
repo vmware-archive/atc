@@ -11955,21 +11955,21 @@ Elm.StepTree.make = function (_elm) {
               actions = _v13;
               tree = _v14;
               continue view;
-            case "Aggregate": return A2($Html.div,_U.list([$Html$Attributes.$class("aggregate")]),$Array.toList(A2($Array.map,view(actions),_p15._0)));
-            case "OnSuccess": return A2($Html.div,
-              _U.list([$Html$Attributes.$class("on-success")]),
-              _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("step")]),_U.list([A2(view,actions,_p15._0.step)]))
-                      ,A2($Html.div,_U.list([$Html$Attributes.$class("children hook-success")]),_U.list([A2(view,actions,_p15._0.hook)]))]));
-            case "OnFailure": return A2($Html.div,
-              _U.list([$Html$Attributes.$class("on-failure")]),
-              _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("step")]),_U.list([A2(view,actions,_p15._0.step)]))
-                      ,A2($Html.div,_U.list([$Html$Attributes.$class("children hook-failure")]),_U.list([A2(view,actions,_p15._0.hook)]))]));
-            default: return A2($Html.div,
-              _U.list([$Html$Attributes.$class("ensure")]),
-              _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("step")]),_U.list([A2(view,actions,_p15._0.step)]))
-                      ,A2($Html.div,_U.list([$Html$Attributes.$class("children hook-ensure")]),_U.list([A2(view,actions,_p15._0.hook)]))]));}
+            case "Aggregate": return A2($Html.div,_U.list([$Html$Attributes.$class("aggregate")]),$Array.toList(A2($Array.map,viewSeq(actions),_p15._0)));
+            case "OnSuccess": return A4(viewHooked,"success",actions,_p15._0.step,_p15._0.hook);
+            case "OnFailure": return A4(viewHooked,"failure",actions,_p15._0.step,_p15._0.hook);
+            default: return A4(viewHooked,"ensure",actions,_p15._0.step,_p15._0.hook);}
       }
    });
+   var viewHooked = F4(function (name,actions,step,hook) {
+      return A2($Html.div,
+      _U.list([$Html$Attributes.$class("hooked")]),
+      _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("step")]),_U.list([A2(view,actions,step)]))
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.$class("children")]),
+              _U.list([A2($Html.div,_U.list([$Html$Attributes.$class(A2($Basics._op["++"],"hook hook-",name))]),_U.list([A2(view,actions,hook)]))]))]));
+   });
+   var viewSeq = F2(function (actions,tree) {    return A2($Html.div,_U.list([$Html$Attributes.$class("seq")]),_U.list([A2(view,actions,tree)]));});
    var Timeout = function (a) {    return {ctor: "Timeout",_0: a};};
    var Try = function (a) {    return {ctor: "Try",_0: a};};
    var Ensure = function (a) {    return {ctor: "Ensure",_0: a};};
