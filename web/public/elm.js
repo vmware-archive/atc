@@ -12669,7 +12669,7 @@ Elm.Build.make = function (_elm) {
          case "failed": return $BuildEvent.BuildStatusFailed;
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
-         default: return _U.crashCase("Build",{start: {line: 615,column: 3},end: {line: 622,column: 48}},_p0)(A2($Basics._op["++"],"unknown state: ",str));}
+         default: return _U.crashCase("Build",{start: {line: 619,column: 3},end: {line: 626,column: 48}},_p0)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {    return A2($Json$Decode.decodeString,$BuildEvent.decode,e.data);};
    var promoteError = function (rawError) {
@@ -12690,16 +12690,10 @@ Elm.Build.make = function (_elm) {
                }
          } else return $Result.Err(A2($Http.BadResponse,response.status,response.statusText));
    };
-   var renderHistory = F2(function (currentBuild,build) {
-      return A2($Html.li,
-      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: build.status,_1: true}
-                                                  ,{ctor: "_Tuple2",_0: "current",_1: _U.eq(build.name,currentBuild.name)}]))]),
-      _U.list([A2($Html.a,_U.list([$Html$Attributes.href(build.url)]),_U.list([$Html.text(A2($Basics._op["++"],"#",build.name))]))]));
-   });
    var decodeScrollEvent = A3($Json$Decode.object2,
    F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),
-   A2($Json$Decode.map,$Maybe.withDefault(0),$Json$Decode.maybe(A2($Json$Decode._op[":="],"deltaX",$Json$Decode.$float))),
-   A2($Json$Decode.map,$Maybe.withDefault(0),$Json$Decode.maybe(A2($Json$Decode._op[":="],"deltaY",$Json$Decode.$float))));
+   A2($Json$Decode._op[":="],"deltaX",$Json$Decode.$float),
+   A2($Json$Decode._op[":="],"deltaY",$Json$Decode.$float));
    var labeledDuration = F3(function (label,duration,suffix) {
       return _U.list([A2($Html.dt,_U.list([]),_U.list([$Html.text(label)]))
                      ,A2($Html.dd,
@@ -12745,6 +12739,14 @@ Elm.Build.make = function (_elm) {
          case "BuildStatusErrored": return "errored";
          default: return "aborted";}
    };
+   var renderHistory = F3(function (currentBuild,currentStatus,build) {
+      return A2($Html.li,
+      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2"
+                                                   ,_0: _U.eq(build.name,currentBuild.name) ? statusClass(currentStatus) : build.status
+                                                   ,_1: true}
+                                                  ,{ctor: "_Tuple2",_0: "current",_1: _U.eq(build.name,currentBuild.name)}]))]),
+      _U.list([A2($Html.a,_U.list([$Html$Attributes.href(build.url)]),_U.list([$Html.text(A2($Basics._op["++"],"#",build.name))]))]));
+   });
    var paddingClass = function (build) {
       var _p9 = build.job;
       if (_p9.ctor === "Just") {
@@ -12825,7 +12827,7 @@ Elm.Build.make = function (_elm) {
                       ,A2(viewBuildDuration,now,duration)]))
               ,A2($Html.ul,
               _U.list([A3($Html$Events.on,"mousewheel",decodeScrollEvent,scrollEvent(actions)),$Html$Attributes.id("builds")]),
-              A2($List.map,renderHistory(build),history))]));
+              A2($List.map,A2(renderHistory,build,status),history))]));
    });
    var view = F2(function (actions,model) {
       var _p14 = {ctor: "_Tuple2",_0: model.build,_1: model.stepRoot};
