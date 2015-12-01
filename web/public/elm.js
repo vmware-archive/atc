@@ -12208,17 +12208,15 @@ Elm.StepTree.make = function (_elm) {
               ,A2($Html.div,
               _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "step-body",_1: true}
                                                           ,{ctor: "_Tuple2",_0: "step-collapsed",_1: isInactive(_p14) || $Basics.not(_p12.expanded)}]))]),
-              _U.list([viewStepLog(_p12.log)]))
-              ,function () {
-                 var _p13 = _p12.error;
-                 if (_p13.ctor === "Nothing") {
-                       return A2($Html.div,_U.list([]),_U.list([]));
-                    } else {
-                       return A2($Html.div,
-                       _U.list([$Html$Attributes.$class("step-error")]),
-                       _U.list([A2($Html.span,_U.list([$Html$Attributes.$class("error")]),_U.list([$Html.text(_p13._0)]))]));
-                    }
-              }()]));
+              _U.list([viewStepLog(_p12.log)
+                      ,function () {
+                         var _p13 = _p12.error;
+                         if (_p13.ctor === "Nothing") {
+                               return A2($Html.span,_U.list([]),_U.list([]));
+                            } else {
+                               return A2($Html.span,_U.list([$Html$Attributes.$class("error")]),_U.list([$Html.text(_p13._0)]));
+                            }
+                      }()]))]));
    });
    var view = F2(function (actions,tree) {
       view: while (true) {
