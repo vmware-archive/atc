@@ -11848,7 +11848,9 @@ Elm.BuildEvent.make = function (_elm) {
    var Origin = F2(function (a,b) {    return {source: a,id: b};});
    var decodeOrigin = A3($Json$Decode.object2,
    Origin,
-   A2($Json$Decode._op[":="],"source",$Json$Decode.string),
+   function (_p3) {
+      return A2($Json$Decode.map,$Maybe.withDefault(""),$Json$Decode.maybe(_p3));
+   }(A2($Json$Decode._op[":="],"source",$Json$Decode.string)),
    A2($Json$Decode._op[":="],"id",$Json$Decode.string));
    var BuildEventEnvelope = F3(function (a,b,c) {    return {event: a,version: b,value: c};});
    var decodeEnvelope = A4($Json$Decode.object3,
@@ -11871,8 +11873,8 @@ Elm.BuildEvent.make = function (_elm) {
    var FinishGet = F2(function (a,b) {    return {ctor: "FinishGet",_0: a,_1: b};});
    var BuildStatus = F2(function (a,b) {    return {ctor: "BuildStatus",_0: a,_1: b};});
    var decodeEvent = function (e) {
-      var _p3 = e.event;
-      switch (_p3)
+      var _p4 = e.event;
+      switch (_p4)
       {case "status": return A2($Json$Decode.decodeValue,
            A3($Json$Decode.object2,BuildStatus,decodeStatus,A2($Json$Decode._op[":="],"time",A2($Json$Decode.map,dateFromSeconds,$Json$Decode.$float))),
            e.value);
@@ -11893,7 +11895,7 @@ Elm.BuildEvent.make = function (_elm) {
          case "finish-put": return A2($Json$Decode.decodeValue,
            A3($Json$Decode.object2,FinishPut,A2($Json$Decode._op[":="],"origin",decodeOrigin),A2($Json$Decode._op[":="],"exit_status",$Json$Decode.$int)),
            e.value);
-         default: return $Result.Err(A2($Basics._op["++"],"unknown event type: ",_p3));}
+         default: return $Result.Err(A2($Basics._op["++"],"unknown event type: ",_p4));}
    };
    var decode = A2($Json$Decode.customDecoder,decodeEnvelope,decodeEvent);
    return _elm.BuildEvent.values = {_op: _op
