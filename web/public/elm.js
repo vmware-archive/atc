@@ -10894,7 +10894,7 @@ Elm.Ansi.Log.make = function (_elm) {
                      }()]);
    };
    var viewChunk = function (chunk) {    return A2($Html.span,styleAttributes(chunk.style),_U.list([$Html.text(chunk.text)]));};
-   var viewLine = function (line) {    return A2($Html.div,_U.list([]),A2($List.map,viewChunk,line));};
+   var viewLine = function (line) {    return A2($Html.div,_U.list([]),A2($Basics._op["++"],A2($List.map,viewChunk,line),_U.list([$Html.text("\n")])));};
    var lazyLine = $Html$Lazy.lazy(viewLine);
    var view = function (model) {    return A2($Html.pre,_U.list([]),$Array.toList(A2($Array.map,lazyLine,model.lines)));};
    var lineLen = function (line) {    var _p1 = line;if (_p1.ctor === "[]") {    return 0;} else {    return $String.length(_p1._0.text) + lineLen(_p1._1);}};
