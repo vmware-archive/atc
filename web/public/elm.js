@@ -12749,13 +12749,13 @@ Elm.Duration.make = function (_elm) {
                   if (_p0._2 === 0) {
                         return A2($Basics._op["++"],$Basics.toString(_p0._3),"s");
                      } else {
-                        return A2($Basics._op["++"],$Basics.toString(_p0._2),A2($Basics._op["++"],"m",A2($Basics._op["++"],$Basics.toString(_p0._3),"s")));
+                        return A2($Basics._op["++"],$Basics.toString(_p0._2),A2($Basics._op["++"],"m ",A2($Basics._op["++"],$Basics.toString(_p0._3),"s")));
                      }
                } else {
-                  return A2($Basics._op["++"],$Basics.toString(_p0._1),A2($Basics._op["++"],"h",A2($Basics._op["++"],$Basics.toString(_p0._2),"m")));
+                  return A2($Basics._op["++"],$Basics.toString(_p0._1),A2($Basics._op["++"],"h ",A2($Basics._op["++"],$Basics.toString(_p0._2),"m")));
                }
          } else {
-            return A2($Basics._op["++"],$Basics.toString(_p0._0),A2($Basics._op["++"],"d",A2($Basics._op["++"],$Basics.toString(_p0._1),"h")));
+            return A2($Basics._op["++"],$Basics.toString(_p0._0),A2($Basics._op["++"],"d ",A2($Basics._op["++"],$Basics.toString(_p0._1),"h")));
          }
    };
    var between = F2(function (a,b) {    return b - a;});
