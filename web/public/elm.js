@@ -12892,7 +12892,7 @@ Elm.Build.make = function (_elm) {
          case "failed": return $BuildEvent.BuildStatusFailed;
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
-         default: return _U.crashCase("Build",{start: {line: 794,column: 3},end: {line: 801,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
+         default: return _U.crashCase("Build",{start: {line: 807,column: 3},end: {line: 814,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {    return A2($Json$Decode.decodeString,$BuildEvent.decode,e.data);};
    var promoteError = function (rawError) {
@@ -13175,6 +13175,14 @@ Elm.Build.make = function (_elm) {
       PlanAndResourcesFetched,
       $Task.toResult(A3($Task.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),getPlan,getResources))));
    };
+   var fetchBuildPlan = function (buildId) {
+      var getPlan = A2($Http.get,$BuildPlan.decode,A2($Basics._op["++"],"/api/v1/builds/",A2($Basics._op["++"],$Basics.toString(buildId),"/plan")));
+      return $Effects.task(A2($Task.map,
+      PlanAndResourcesFetched,
+      $Task.toResult(A2($Task.map,
+      A2($Basics.flip,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),{inputs: _U.list([]),outputs: _U.list([])}),
+      getPlan))));
+   };
    var Noop = {ctor: "Noop"};
    var scrollToBottom = $Effects.task(A2($Task.map,$Basics.always(Noop),$Scroll.toBottom));
    var scrollBuilds = function (delta) {    return $Effects.task(A2($Task.map,$Basics.always(Noop),A2($Scroll.scroll,"builds",delta)));};
@@ -13275,7 +13283,8 @@ Elm.Build.make = function (_elm) {
                                     return $Effects.none;
                                  }
                            }();
-                           var fetch = pending ? A2(fetchBuild,$Time.second,model.buildId) : fetchBuildPlanAndResources(model.buildId);
+                           var fetch = pending ? A2(fetchBuild,$Time.second,model.buildId) : !_U.eq(_p31.job,
+                           $Maybe.Nothing) ? fetchBuildPlanAndResources(model.buildId) : fetchBuildPlan(model.buildId);
                            var _p30 = _p31.job;
                            if (_p30.ctor === "Just") {
                                  return $Effects.batch(_U.list([fetchHistory,fetch]));
@@ -13312,7 +13321,7 @@ Elm.Build.make = function (_elm) {
                        if (_p32._1.ctor === "Just") {
                              return {ctor: "_Tuple2",_0: withBuilds,_1: A2(fetchBuildHistory,_p32._1._0,$Maybe.Just(_p32._0._0))};
                           } else {
-                             return _U.crashCase("Build",{start: {line: 216,column: 9},end: {line: 224,column: 37}},_p32)("impossible");
+                             return _U.crashCase("Build",{start: {line: 218,column: 9},end: {line: 226,column: 37}},_p32)("impossible");
                           }
                     }
               }
@@ -13504,6 +13513,7 @@ Elm.Build.make = function (_elm) {
                               ,decodeScrollEvent: decodeScrollEvent
                               ,renderHistory: renderHistory
                               ,fetchBuildPlanAndResources: fetchBuildPlanAndResources
+                              ,fetchBuildPlan: fetchBuildPlan
                               ,fetchBuild: fetchBuild
                               ,fetchBuildHistory: fetchBuildHistory
                               ,parseBuildHistory: parseBuildHistory
