@@ -12887,7 +12887,7 @@ Elm.Build.make = function (_elm) {
          case "failed": return $BuildEvent.BuildStatusFailed;
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
-         default: return _U.crashCase("Build",{start: {line: 775,column: 3},end: {line: 782,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
+         default: return _U.crashCase("Build",{start: {line: 783,column: 3},end: {line: 790,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {    return A2($Json$Decode.decodeString,$BuildEvent.decode,e.data);};
    var promoteError = function (rawError) {
@@ -13310,11 +13310,11 @@ Elm.Build.make = function (_elm) {
          case "EventSourceOpened": return {ctor: "_Tuple2",_0: model,_1: scrollToBottom};
          case "EventSourceErrored": var newState = function () {
               var _p35 = model.stepState;
-              if (_p35.ctor === "StepsComplete") {
-                    return StepsComplete;
-                 } else {
-                    return LoginRequired;
-                 }
+              switch (_p35.ctor)
+              {case "StepsLoading": return LoginRequired;
+                 case "StepsComplete": return model.stepState;
+                 case "StepsLiveUpdating": return model.stepState;
+                 default: return model.stepState;}
            }();
            return {ctor: "_Tuple2",_0: _U.update(model,{stepState: newState}),_1: $Effects.none};
          case "Event": if (_p26._0.ctor === "Ok") {
