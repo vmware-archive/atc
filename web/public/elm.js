@@ -12549,13 +12549,13 @@ Elm.StepTree.make = function (_elm) {
                  ,state: StepStatePending
                  ,log: $Ansi$Log.init($Ansi$Log.Cooked)
                  ,error: $Maybe.Nothing
-                 ,expanded: true
+                 ,expanded: $Maybe.Nothing
                  ,version: $Maybe.Nothing
                  ,metadata: _U.list([])
                  ,firstOccurrence: false};
       return {tree: create(step),foci: A2($Dict.singleton,id,A2($Focus.create,$Basics.identity,$Basics.identity))};
    });
-   var isInactive = F2(function (x,y) {    return _U.eq(x,y);})(StepStatePending);
+   var isActive = F2(function (x,y) {    return !_U.eq(x,y);})(StepStatePending);
    var Step = F9(function (a,b,c,d,e,f,g,h,i) {    return {id: a,name: b,state: c,log: d,error: e,expanded: f,version: g,metadata: h,firstOccurrence: i};});
    var HookedStep = F2(function (a,b) {    return {step: a,hook: b};});
    var ToggleStep = function (a) {    return {ctor: "ToggleStep",_0: a};};
@@ -12564,7 +12564,7 @@ Elm.StepTree.make = function (_elm) {
       var _p17 = _p12.state;
       return A2($Html.div,
       _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "build-step",_1: true}
-                                                  ,{ctor: "_Tuple2",_0: "inactive",_1: isInactive(_p17)}
+                                                  ,{ctor: "_Tuple2",_0: "inactive",_1: $Basics.not(isActive(_p17))}
                                                   ,{ctor: "_Tuple2",_0: "first-occurrence",_1: _p12.firstOccurrence}]))]),
       _U.list([A2($Html.div,
               _U.list([$Html$Attributes.$class("header"),A2($Html$Events.onClick,actions,ToggleStep(_p12.id))]),
@@ -12578,7 +12578,9 @@ Elm.StepTree.make = function (_elm) {
                       ,A2($Html.h3,_U.list([]),_U.list([$Html.text(_p12.name)]))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "step-body",_1: true}
-                                                          ,{ctor: "_Tuple2",_0: "step-collapsed",_1: isInactive(_p17) || $Basics.not(_p12.expanded)}]))]),
+                                                          ,{ctor: "_Tuple2"
+                                                           ,_0: "step-collapsed"
+                                                           ,_1: $Basics.not(A2($Maybe.withDefault,isActive(_p17),_p12.expanded))}]))]),
               _U.list([A2($Html.dl,
                       _U.list([$Html$Attributes.$class("build-metadata fr")]),
                       A2($List.concatMap,function (_p14) {    var _p15 = _p14;return A2(viewPair,_p15.name,_p15.value);},_p12.metadata))
@@ -12713,7 +12715,10 @@ Elm.StepTree.make = function (_elm) {
    });
    var update = F2(function (action,root) {
       var _p37 = action;
-      return A3(updateAt,_p37._0,map(function (step) {    return _U.update(step,{expanded: $Basics.not(step.expanded)});}),root);
+      return A3(updateAt,
+      _p37._0,
+      map(function (step) {    return _U.update(step,{expanded: $Maybe.Just($Basics.not(A2($Maybe.withDefault,true,step.expanded)))});}),
+      root);
    });
    return _elm.StepTree.values = {_op: _op
                                  ,init: init
@@ -12887,7 +12892,7 @@ Elm.Build.make = function (_elm) {
          case "failed": return $BuildEvent.BuildStatusFailed;
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
-         default: return _U.crashCase("Build",{start: {line: 783,column: 3},end: {line: 790,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
+         default: return _U.crashCase("Build",{start: {line: 794,column: 3},end: {line: 801,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {    return A2($Json$Decode.decodeString,$BuildEvent.decode,e.data);};
    var promoteError = function (rawError) {
@@ -13010,8 +13015,13 @@ Elm.Build.make = function (_elm) {
    _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("left fa fa-fw fa-spin fa-circle-o-notch")]),_U.list([]))
            ,A2($Html.h3,_U.list([]),_U.list([$Html.text("loading")]))]))]))]));
    var setStepState = F2(function (state,tree) {
-      var expanded = !_U.eq(state,$StepTree.StepStateSucceeded);
-      return A2($StepTree.map,function (step) {    return _U.update(step,{state: state,expanded: expanded});},tree);
+      var autoCollapse = _U.eq(state,$StepTree.StepStateSucceeded);
+      return A2($StepTree.map,
+      function (step) {
+         var expanded = autoCollapse ? $Maybe.Just(A2($Maybe.withDefault,false,step.expanded)) : step.expanded;
+         return _U.update(step,{state: state,expanded: expanded});
+      },
+      tree);
    });
    var setResourceInfo = F3(function (version,metadata,tree) {
       return A2($StepTree.map,function (step) {    return _U.update(step,{version: $Maybe.Just(version),metadata: metadata});},tree);
