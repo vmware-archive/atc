@@ -12301,6 +12301,56 @@ Elm.BuildPlan.make = function (_elm) {
                                   ,decodeTimeout: decodeTimeout
                                   ,lazy: lazy};
 };
+Elm.BuildResources = Elm.BuildResources || {};
+Elm.BuildResources.make = function (_elm) {
+   "use strict";
+   _elm.BuildResources = _elm.BuildResources || {};
+   if (_elm.BuildResources.values) return _elm.BuildResources.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var MetadataField = F2(function (a,b) {    return {name: a,value: b};});
+   var decodeMetadataField = A3($Json$Decode.object2,
+   MetadataField,
+   A2($Json$Decode._op[":="],"name",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"value",$Json$Decode.string));
+   var BuildOutput = F2(function (a,b) {    return {resource: a,version: b};});
+   var decodeOutput = A3($Json$Decode.object2,
+   BuildOutput,
+   A2($Json$Decode._op[":="],"resource",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"version",$Json$Decode.dict($Json$Decode.string)));
+   var BuildInput = F7(function (a,b,c,d,e,f,g) {    return {name: a,resource: b,type$: c,version: d,metadata: e,pipelineName: f,firstOccurrence: g};});
+   var decodeInput = A8($Json$Decode.object7,
+   BuildInput,
+   A2($Json$Decode._op[":="],"name",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"resource",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"type",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"version",$Json$Decode.dict($Json$Decode.string)),
+   A2($Json$Decode._op[":="],"metadata",$Json$Decode.list(decodeMetadataField)),
+   A2($Json$Decode._op[":="],"pipeline_name",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"first_occurrence",$Json$Decode.bool));
+   var BuildResources = F2(function (a,b) {    return {inputs: a,outputs: b};});
+   var decode = A3($Json$Decode.object2,
+   BuildResources,
+   A2($Json$Decode._op[":="],"inputs",$Json$Decode.list(decodeInput)),
+   A2($Json$Decode._op[":="],"outputs",$Json$Decode.list(decodeOutput)));
+   return _elm.BuildResources.values = {_op: _op
+                                       ,BuildResources: BuildResources
+                                       ,BuildInput: BuildInput
+                                       ,BuildOutput: BuildOutput
+                                       ,MetadataField: MetadataField
+                                       ,decode: decode
+                                       ,decodeInput: decodeInput
+                                       ,decodeMetadataField: decodeMetadataField
+                                       ,decodeOutput: decodeOutput};
+};
 Elm.Native.Scroll = {};
 Elm.Native.Scroll.make = function(localRuntime) {
   localRuntime.Native = localRuntime.Native || {};
@@ -12404,6 +12454,7 @@ Elm.StepTree.make = function (_elm) {
    $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $BuildPlan = Elm.BuildPlan.make(_elm),
+   $BuildResources = Elm.BuildResources.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Dict = Elm.Dict.make(_elm),
    $Focus = Elm.Focus.make(_elm),
@@ -12435,10 +12486,10 @@ Elm.StepTree.make = function (_elm) {
             if (_p2.ctor === "Just") {
                   return _p2._0;
                } else {
-                  return _U.crashCase("StepTree",{start: {line: 285,column: 7},end: {line: 290,column: 35}},_p2)("impossible");
+                  return _U.crashCase("StepTree",{start: {line: 308,column: 7},end: {line: 313,column: 35}},_p2)("impossible");
                }
          } else {
-            return _U.crashCase("StepTree",{start: {line: 283,column: 3},end: {line: 293,column: 31}},_p1)("impossible");
+            return _U.crashCase("StepTree",{start: {line: 306,column: 3},end: {line: 316,column: 31}},_p1)("impossible");
          }
    });
    var getHook = function (tree) {
@@ -12447,7 +12498,7 @@ Elm.StepTree.make = function (_elm) {
       {case "OnSuccess": return _p5._0.hook;
          case "OnFailure": return _p5._0.hook;
          case "Ensure": return _p5._0.hook;
-         default: return _U.crashCase("StepTree",{start: {line: 253,column: 3},end: {line: 264,column: 31}},_p5)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 276,column: 3},end: {line: 287,column: 31}},_p5)("impossible");}
    };
    var getStep = function (tree) {
       var _p7 = tree;
@@ -12457,7 +12508,7 @@ Elm.StepTree.make = function (_elm) {
          case "Ensure": return _p7._0.step;
          case "Try": return _p7._0;
          case "Timeout": return _p7._0;
-         default: return _U.crashCase("StepTree",{start: {line: 207,column: 3},end: {line: 224,column: 31}},_p7)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 230,column: 3},end: {line: 247,column: 31}},_p7)("impossible");}
    };
    var updateAt = F3(function (id,update,root) {
       var _p9 = A2($Dict.get,id,root.foci);
@@ -12466,6 +12517,24 @@ Elm.StepTree.make = function (_elm) {
          } else {
             return _U.update(root,{tree: A3($Focus.update,_p9._0,update,root.tree)});
          }
+   });
+   var isFirstOccurrence = F2(function (resources,step) {
+      isFirstOccurrence: while (true) {
+         var _p10 = resources;
+         if (_p10.ctor === "[]") {
+               return false;
+            } else {
+               if (_U.eq(_p10._0.name,step)) return _p10._0.firstOccurrence; else {
+                     var _v7 = _p10._1,_v8 = step;
+                     resources = _v7;
+                     step = _v8;
+                     continue isFirstOccurrence;
+                  }
+            }
+      }
+   });
+   var setupGetStep = F4(function (resources,name,version,step) {
+      return _U.update(step,{version: version,firstOccurrence: A2(isFirstOccurrence,resources.inputs,name)});
    });
    var MetadataField = F2(function (a,b) {    return {name: a,value: b};});
    var Root = F2(function (a,b) {    return {tree: a,foci: b};});
@@ -12482,64 +12551,67 @@ Elm.StepTree.make = function (_elm) {
                  ,error: $Maybe.Nothing
                  ,expanded: true
                  ,version: $Maybe.Nothing
-                 ,metadata: _U.list([])};
+                 ,metadata: _U.list([])
+                 ,firstOccurrence: false};
       return {tree: create(step),foci: A2($Dict.singleton,id,A2($Focus.create,$Basics.identity,$Basics.identity))};
    });
    var isInactive = F2(function (x,y) {    return _U.eq(x,y);})(StepStatePending);
-   var Step = F8(function (a,b,c,d,e,f,g,h) {    return {id: a,name: b,state: c,log: d,error: e,expanded: f,version: g,metadata: h};});
+   var Step = F9(function (a,b,c,d,e,f,g,h,i) {    return {id: a,name: b,state: c,log: d,error: e,expanded: f,version: g,metadata: h,firstOccurrence: i};});
    var HookedStep = F2(function (a,b) {    return {step: a,hook: b};});
    var ToggleStep = function (a) {    return {ctor: "ToggleStep",_0: a};};
-   var viewStep = F3(function (actions,_p10,icon) {
-      var _p11 = _p10;
-      var _p16 = _p11.state;
+   var viewStep = F3(function (actions,_p11,icon) {
+      var _p12 = _p11;
+      var _p17 = _p12.state;
       return A2($Html.div,
-      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "build-step",_1: true},{ctor: "_Tuple2",_0: "inactive",_1: isInactive(_p16)}]))]),
+      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "build-step",_1: true}
+                                                  ,{ctor: "_Tuple2",_0: "inactive",_1: isInactive(_p17)}
+                                                  ,{ctor: "_Tuple2",_0: "first-occurrence",_1: _p12.firstOccurrence}]))]),
       _U.list([A2($Html.div,
-              _U.list([$Html$Attributes.$class("header"),A2($Html$Events.onClick,actions,ToggleStep(_p11.id))]),
-              _U.list([viewStepState(_p16)
+              _U.list([$Html$Attributes.$class("header"),A2($Html$Events.onClick,actions,ToggleStep(_p12.id))]),
+              _U.list([viewStepState(_p17)
                       ,typeIcon(icon)
                       ,A2($Html.dl,
                       _U.list([$Html$Attributes.$class("version")]),
-                      function (_p12) {
-                         return A2($List.concatMap,$Basics.uncurry(viewPair),$Dict.toList(_p12));
-                      }(A2($Maybe.withDefault,$Dict.empty,_p11.version)))
-                      ,A2($Html.h3,_U.list([]),_U.list([$Html.text(_p11.name)]))]))
+                      function (_p13) {
+                         return A2($List.concatMap,$Basics.uncurry(viewPair),$Dict.toList(_p13));
+                      }(A2($Maybe.withDefault,$Dict.empty,_p12.version)))
+                      ,A2($Html.h3,_U.list([]),_U.list([$Html.text(_p12.name)]))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "step-body",_1: true}
-                                                          ,{ctor: "_Tuple2",_0: "step-collapsed",_1: isInactive(_p16) || $Basics.not(_p11.expanded)}]))]),
+                                                          ,{ctor: "_Tuple2",_0: "step-collapsed",_1: isInactive(_p17) || $Basics.not(_p12.expanded)}]))]),
               _U.list([A2($Html.dl,
                       _U.list([$Html$Attributes.$class("build-metadata fr")]),
-                      A2($List.concatMap,function (_p13) {    var _p14 = _p13;return A2(viewPair,_p14.name,_p14.value);},_p11.metadata))
-                      ,$Ansi$Log.view(_p11.log)
+                      A2($List.concatMap,function (_p14) {    var _p15 = _p14;return A2(viewPair,_p15.name,_p15.value);},_p12.metadata))
+                      ,$Ansi$Log.view(_p12.log)
                       ,function () {
-                         var _p15 = _p11.error;
-                         if (_p15.ctor === "Nothing") {
+                         var _p16 = _p12.error;
+                         if (_p16.ctor === "Nothing") {
                                return A2($Html.span,_U.list([]),_U.list([]));
                             } else {
-                               return A2($Html.span,_U.list([$Html$Attributes.$class("error")]),_U.list([$Html.text(_p15._0)]));
+                               return A2($Html.span,_U.list([$Html$Attributes.$class("error")]),_U.list([$Html.text(_p16._0)]));
                             }
                       }()]))]));
    });
    var view = F2(function (actions,tree) {
       view: while (true) {
-         var _p17 = tree;
-         switch (_p17.ctor)
-         {case "Task": return A3(viewStep,actions,_p17._0,"fa-terminal");
-            case "Get": return A3(viewStep,actions,_p17._0,"fa-arrow-down");
-            case "DependentGet": return A3(viewStep,actions,_p17._0,"fa-arrow-down");
-            case "Put": return A3(viewStep,actions,_p17._0,"fa-arrow-up");
-            case "Try": var _v10 = actions,_v11 = _p17._0;
-              actions = _v10;
-              tree = _v11;
+         var _p18 = tree;
+         switch (_p18.ctor)
+         {case "Task": return A3(viewStep,actions,_p18._0,"fa-terminal");
+            case "Get": return A3(viewStep,actions,_p18._0,"fa-arrow-down");
+            case "DependentGet": return A3(viewStep,actions,_p18._0,"fa-arrow-down");
+            case "Put": return A3(viewStep,actions,_p18._0,"fa-arrow-up");
+            case "Try": var _v13 = actions,_v14 = _p18._0;
+              actions = _v13;
+              tree = _v14;
               continue view;
-            case "Timeout": var _v12 = actions,_v13 = _p17._0;
-              actions = _v12;
-              tree = _v13;
+            case "Timeout": var _v15 = actions,_v16 = _p18._0;
+              actions = _v15;
+              tree = _v16;
               continue view;
-            case "Aggregate": return A2($Html.div,_U.list([$Html$Attributes.$class("aggregate")]),$Array.toList(A2($Array.map,viewSeq(actions),_p17._0)));
-            case "OnSuccess": return A4(viewHooked,"success",actions,_p17._0.step,_p17._0.hook);
-            case "OnFailure": return A4(viewHooked,"failure",actions,_p17._0.step,_p17._0.hook);
-            default: return A4(viewHooked,"ensure",actions,_p17._0.step,_p17._0.hook);}
+            case "Aggregate": return A2($Html.div,_U.list([$Html$Attributes.$class("aggregate")]),$Array.toList(A2($Array.map,viewSeq(actions),_p18._0)));
+            case "OnSuccess": return A4(viewHooked,"success",actions,_p18._0.step,_p18._0.hook);
+            case "OnFailure": return A4(viewHooked,"failure",actions,_p18._0.step,_p18._0.hook);
+            default: return A4(viewHooked,"ensure",actions,_p18._0.step,_p18._0.hook);}
       }
    });
    var viewHooked = F4(function (name,actions,step,hook) {
@@ -12557,90 +12629,91 @@ Elm.StepTree.make = function (_elm) {
    var OnFailure = function (a) {    return {ctor: "OnFailure",_0: a};};
    var OnSuccess = function (a) {    return {ctor: "OnSuccess",_0: a};};
    var updateStep = F2(function (update,tree) {
-      var _p18 = tree;
-      switch (_p18.ctor)
-      {case "OnSuccess": var _p19 = _p18._0;
-           return OnSuccess(_U.update(_p19,{step: update(_p19.step)}));
-         case "OnFailure": var _p20 = _p18._0;
-           return OnFailure(_U.update(_p20,{step: update(_p20.step)}));
-         case "Ensure": var _p21 = _p18._0;
-           return Ensure(_U.update(_p21,{step: update(_p21.step)}));
-         case "Try": return Try(update(_p18._0));
-         case "Timeout": return Timeout(update(_p18._0));
-         default: return _U.crashCase("StepTree",{start: {line: 228,column: 3},end: {line: 245,column: 31}},_p18)("impossible");}
+      var _p19 = tree;
+      switch (_p19.ctor)
+      {case "OnSuccess": var _p20 = _p19._0;
+           return OnSuccess(_U.update(_p20,{step: update(_p20.step)}));
+         case "OnFailure": var _p21 = _p19._0;
+           return OnFailure(_U.update(_p21,{step: update(_p21.step)}));
+         case "Ensure": var _p22 = _p19._0;
+           return Ensure(_U.update(_p22,{step: update(_p22.step)}));
+         case "Try": return Try(update(_p19._0));
+         case "Timeout": return Timeout(update(_p19._0));
+         default: return _U.crashCase("StepTree",{start: {line: 251,column: 3},end: {line: 268,column: 31}},_p19)("impossible");}
    });
    var wrapStep = F2(function (id,subFocus) {    return A2($Focus._op["=>"],A2($Focus.create,getStep,updateStep),subFocus);});
    var updateHook = F2(function (update,tree) {
-      var _p23 = tree;
-      switch (_p23.ctor)
-      {case "OnSuccess": var _p24 = _p23._0;
-           return OnSuccess(_U.update(_p24,{hook: update(_p24.hook)}));
-         case "OnFailure": var _p25 = _p23._0;
-           return OnFailure(_U.update(_p25,{hook: update(_p25.hook)}));
-         case "Ensure": var _p26 = _p23._0;
-           return Ensure(_U.update(_p26,{hook: update(_p26.hook)}));
-         default: return _U.crashCase("StepTree",{start: {line: 268,column: 3},end: {line: 279,column: 31}},_p23)("impossible");}
+      var _p24 = tree;
+      switch (_p24.ctor)
+      {case "OnSuccess": var _p25 = _p24._0;
+           return OnSuccess(_U.update(_p25,{hook: update(_p25.hook)}));
+         case "OnFailure": var _p26 = _p24._0;
+           return OnFailure(_U.update(_p26,{hook: update(_p26.hook)}));
+         case "Ensure": var _p27 = _p24._0;
+           return Ensure(_U.update(_p27,{hook: update(_p27.hook)}));
+         default: return _U.crashCase("StepTree",{start: {line: 291,column: 3},end: {line: 302,column: 31}},_p24)("impossible");}
    });
    var wrapHook = F2(function (id,subFocus) {    return A2($Focus._op["=>"],A2($Focus.create,getHook,updateHook),subFocus);});
    var Aggregate = function (a) {    return {ctor: "Aggregate",_0: a};};
    var setAggIndex = F3(function (idx,update,tree) {
-      var _p28 = tree;
-      if (_p28.ctor === "Aggregate") {
-            return Aggregate(A3($Array.set,idx,update(A2(getAggIndex,idx,tree)),_p28._0));
+      var _p29 = tree;
+      if (_p29.ctor === "Aggregate") {
+            return Aggregate(A3($Array.set,idx,update(A2(getAggIndex,idx,tree)),_p29._0));
          } else {
-            return _U.crashCase("StepTree",{start: {line: 297,column: 3},end: {line: 302,column: 31}},_p28)("impossible");
+            return _U.crashCase("StepTree",{start: {line: 320,column: 3},end: {line: 325,column: 31}},_p29)("impossible");
          }
    });
    var wrapAgg = function (i) {
-      return $Dict.map(F2(function (_p30,focus) {    return A2($Focus._op["=>"],A2($Focus.create,getAggIndex(i),setAggIndex(i)),focus);}));
+      return $Dict.map(F2(function (_p31,focus) {    return A2($Focus._op["=>"],A2($Focus.create,getAggIndex(i),setAggIndex(i)),focus);}));
    };
    var DependentGet = function (a) {    return {ctor: "DependentGet",_0: a};};
    var Put = function (a) {    return {ctor: "Put",_0: a};};
    var Get = function (a) {    return {ctor: "Get",_0: a};};
    var Task = function (a) {    return {ctor: "Task",_0: a};};
-   var init = function (plan) {
-      var _p31 = plan.step;
-      switch (_p31.ctor)
-      {case "Task": return A3(initBottom,Task,plan.id,_p31._0);
-         case "Get": return A3(initBottom,function (step) {    return Get(_U.update(step,{version: _p31._1}));},plan.id,_p31._0);
-         case "Put": return A3(initBottom,Put,plan.id,_p31._0);
-         case "DependentGet": return A3(initBottom,DependentGet,plan.id,_p31._0);
-         case "Aggregate": var inited = A2($Array.map,init,_p31._0);
+   var init = F2(function (resources,plan) {
+      var _p32 = plan.step;
+      switch (_p32.ctor)
+      {case "Task": return A3(initBottom,Task,plan.id,_p32._0);
+         case "Get": var _p34 = _p32._0;
+           return A3(initBottom,function (_p33) {    return Get(A4(setupGetStep,resources,_p34,_p32._1,_p33));},plan.id,_p34);
+         case "Put": return A3(initBottom,Put,plan.id,_p32._0);
+         case "DependentGet": return A3(initBottom,DependentGet,plan.id,_p32._0);
+         case "Aggregate": var inited = A2($Array.map,init(resources),_p32._0);
            var trees = A2($Array.map,function (_) {    return _.tree;},inited);
            var subFoci = A2($Array.map,function (_) {    return _.foci;},inited);
            var wrappedSubFoci = A2($Array.indexedMap,wrapAgg,subFoci);
            var foci = A3($Array.foldr,$Dict.union,$Dict.empty,wrappedSubFoci);
            return A2(Root,Aggregate(trees),foci);
-         case "OnSuccess": return A2(initHookedStep,OnSuccess,_p31._0);
-         case "OnFailure": return A2(initHookedStep,OnFailure,_p31._0);
-         case "Ensure": return A2(initHookedStep,Ensure,_p31._0);
-         case "Try": return A2(initWrappedStep,Try,_p31._0);
-         default: return A2(initWrappedStep,Timeout,_p31._0);}
-   };
-   var initHookedStep = F2(function (create,hookedPlan) {
-      var hookRoot = init(hookedPlan.hook);
-      var stepRoot = init(hookedPlan.step);
+         case "OnSuccess": return A3(initHookedStep,resources,OnSuccess,_p32._0);
+         case "OnFailure": return A3(initHookedStep,resources,OnFailure,_p32._0);
+         case "Ensure": return A3(initHookedStep,resources,Ensure,_p32._0);
+         case "Try": return A3(initWrappedStep,resources,Try,_p32._0);
+         default: return A3(initWrappedStep,resources,Timeout,_p32._0);}
+   });
+   var initHookedStep = F3(function (resources,create,hookedPlan) {
+      var hookRoot = A2(init,resources,hookedPlan.hook);
+      var stepRoot = A2(init,resources,hookedPlan.step);
       return {tree: create({step: stepRoot.tree,hook: hookRoot.tree})
              ,foci: A2($Dict.union,A2($Dict.map,wrapStep,stepRoot.foci),A2($Dict.map,wrapHook,hookRoot.foci))};
    });
-   var initWrappedStep = F2(function (create,plan) {
-      var _p32 = init(plan);
-      var tree = _p32.tree;
-      var foci = _p32.foci;
+   var initWrappedStep = F3(function (resources,create,plan) {
+      var _p35 = A2(init,resources,plan);
+      var tree = _p35.tree;
+      var foci = _p35.foci;
       return {tree: create(tree),foci: A2($Dict.map,wrapStep,foci)};
    });
    var map = F2(function (f,tree) {
-      var _p33 = tree;
-      switch (_p33.ctor)
-      {case "Task": return Task(f(_p33._0));
-         case "Get": return Get(f(_p33._0));
-         case "Put": return Put(f(_p33._0));
-         case "DependentGet": return DependentGet(f(_p33._0));
+      var _p36 = tree;
+      switch (_p36.ctor)
+      {case "Task": return Task(f(_p36._0));
+         case "Get": return Get(f(_p36._0));
+         case "Put": return Put(f(_p36._0));
+         case "DependentGet": return DependentGet(f(_p36._0));
          default: return tree;}
    });
    var update = F2(function (action,root) {
-      var _p34 = action;
-      return A3(updateAt,_p34._0,map(function (step) {    return _U.update(step,{expanded: $Basics.not(step.expanded)});}),root);
+      var _p37 = action;
+      return A3(updateAt,_p37._0,map(function (step) {    return _U.update(step,{expanded: $Basics.not(step.expanded)});}),root);
    });
    return _elm.StepTree.values = {_op: _op
                                  ,init: init
@@ -12771,6 +12844,7 @@ Elm.Build.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $BuildEvent = Elm.BuildEvent.make(_elm),
    $BuildPlan = Elm.BuildPlan.make(_elm),
+   $BuildResources = Elm.BuildResources.make(_elm),
    $Date = Elm.Date.make(_elm),
    $Date$Format = Elm.Date.Format.make(_elm),
    $Debug = Elm.Debug.make(_elm),
@@ -12813,7 +12887,7 @@ Elm.Build.make = function (_elm) {
          case "failed": return $BuildEvent.BuildStatusFailed;
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
-         default: return _U.crashCase("Build",{start: {line: 753,column: 3},end: {line: 760,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
+         default: return _U.crashCase("Build",{start: {line: 760,column: 3},end: {line: 767,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {    return A2($Json$Decode.decodeString,$BuildEvent.decode,e.data);};
    var promoteError = function (rawError) {
@@ -13070,11 +13144,15 @@ Elm.Build.make = function (_elm) {
    });
    var BuildHistoryFetched = function (a) {    return {ctor: "BuildHistoryFetched",_0: a};};
    var BuildFetched = function (a) {    return {ctor: "BuildFetched",_0: a};};
-   var PlanFetched = function (a) {    return {ctor: "PlanFetched",_0: a};};
-   var fetchBuildPlan = function (buildId) {
+   var PlanAndResourcesFetched = function (a) {    return {ctor: "PlanAndResourcesFetched",_0: a};};
+   var fetchBuildPlanAndResources = function (buildId) {
+      var getResources = A2($Http.get,
+      $BuildResources.decode,
+      A2($Basics._op["++"],"/api/v1/builds/",A2($Basics._op["++"],$Basics.toString(buildId),"/resources")));
+      var getPlan = A2($Http.get,$BuildPlan.decode,A2($Basics._op["++"],"/api/v1/builds/",A2($Basics._op["++"],$Basics.toString(buildId),"/plan")));
       return $Effects.task(A2($Task.map,
-      PlanFetched,
-      $Task.toResult(A2($Http.get,$BuildPlan.decode,A2($Basics._op["++"],"/api/v1/builds/",A2($Basics._op["++"],$Basics.toString(buildId),"/plan"))))));
+      PlanAndResourcesFetched,
+      $Task.toResult(A3($Task.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),getPlan,getResources))));
    };
    var Noop = {ctor: "Noop"};
    var abortBuild = function (buildId) {
@@ -13173,7 +13251,7 @@ Elm.Build.make = function (_elm) {
                                     return $Effects.none;
                                  }
                            }();
-                           var fetch = pending ? A2(fetchBuild,$Time.second,model.buildId) : fetchBuildPlan(model.buildId);
+                           var fetch = pending ? A2(fetchBuild,$Time.second,model.buildId) : fetchBuildPlanAndResources(model.buildId);
                            var _p29 = _p30.job;
                            if (_p29.ctor === "Just") {
                                  return $Effects.batch(_U.list([fetchHistory,fetch]));
@@ -13182,7 +13260,7 @@ Elm.Build.make = function (_elm) {
                               }
                         }()};
               }
-         case "PlanFetched": if (_p26._0.ctor === "Err") {
+         case "PlanAndResourcesFetched": if (_p26._0.ctor === "Err") {
                  if (_p26._0._0.ctor === "BadResponse" && _p26._0._0._0 === 404) {
                        return {ctor: "_Tuple2",_0: model,_1: A2(subscribeToEvents,model.buildId,model.actions)};
                     } else {
@@ -13192,7 +13270,7 @@ Elm.Build.make = function (_elm) {
                     }
               } else {
                  return {ctor: "_Tuple2"
-                        ,_0: _U.update(model,{stepRoot: $Maybe.Just($StepTree.init(_p26._0._0))})
+                        ,_0: _U.update(model,{stepRoot: $Maybe.Just(A2($StepTree.init,_p26._0._0._1,_p26._0._0._0))})
                         ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
               }
          case "BuildHistoryFetched": if (_p26._0.ctor === "Err") {
@@ -13210,7 +13288,7 @@ Elm.Build.make = function (_elm) {
                        if (_p31._1.ctor === "Just") {
                              return {ctor: "_Tuple2",_0: withBuilds,_1: A2(fetchBuildHistory,_p31._1._0,$Maybe.Just(_p31._0._0))};
                           } else {
-                             return _U.crashCase("Build",{start: {line: 200,column: 9},end: {line: 208,column: 37}},_p31)("impossible");
+                             return _U.crashCase("Build",{start: {line: 201,column: 9},end: {line: 209,column: 37}},_p31)("impossible");
                           }
                     }
               }
@@ -13352,7 +13430,7 @@ Elm.Build.make = function (_elm) {
                               ,StepsComplete: StepsComplete
                               ,LoginRequired: LoginRequired
                               ,Noop: Noop
-                              ,PlanFetched: PlanFetched
+                              ,PlanAndResourcesFetched: PlanAndResourcesFetched
                               ,BuildFetched: BuildFetched
                               ,BuildHistoryFetched: BuildHistoryFetched
                               ,Listening: Listening
@@ -13396,7 +13474,7 @@ Elm.Build.make = function (_elm) {
                               ,scrollEvent: scrollEvent
                               ,decodeScrollEvent: decodeScrollEvent
                               ,renderHistory: renderHistory
-                              ,fetchBuildPlan: fetchBuildPlan
+                              ,fetchBuildPlanAndResources: fetchBuildPlanAndResources
                               ,fetchBuild: fetchBuild
                               ,fetchBuildHistory: fetchBuildHistory
                               ,parseBuildHistory: parseBuildHistory
