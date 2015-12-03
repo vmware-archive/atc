@@ -11145,6 +11145,260 @@ Elm.Date.make = function (_elm) {
                              ,Sat: Sat
                              ,Sun: Sun};
 };
+Elm.Native.Regex = {};
+Elm.Native.Regex.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Regex = localRuntime.Native.Regex || {};
+	if (localRuntime.Native.Regex.values)
+	{
+		return localRuntime.Native.Regex.values;
+	}
+	if ('values' in Elm.Native.Regex)
+	{
+		return localRuntime.Native.Regex.values = Elm.Native.Regex.values;
+	}
+
+	var List = Elm.Native.List.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+
+	function escape(str)
+	{
+		return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+	}
+	function caseInsensitive(re)
+	{
+		return new RegExp(re.source, 'gi');
+	}
+	function regex(raw)
+	{
+		return new RegExp(raw, 'g');
+	}
+
+	function contains(re, string)
+	{
+		return string.match(re) !== null;
+	}
+
+	function find(n, re, str)
+	{
+		n = n.ctor === 'All' ? Infinity : n._0;
+		var out = [];
+		var number = 0;
+		var string = str;
+		var lastIndex = re.lastIndex;
+		var prevLastIndex = -1;
+		var result;
+		while (number++ < n && (result = re.exec(string)))
+		{
+			if (prevLastIndex === re.lastIndex) break;
+			var i = result.length - 1;
+			var subs = new Array(i);
+			while (i > 0)
+			{
+				var submatch = result[i];
+				subs[--i] = submatch === undefined
+					? Maybe.Nothing
+					: Maybe.Just(submatch);
+			}
+			out.push({
+				match: result[0],
+				submatches: List.fromArray(subs),
+				index: result.index,
+				number: number
+			});
+			prevLastIndex = re.lastIndex;
+		}
+		re.lastIndex = lastIndex;
+		return List.fromArray(out);
+	}
+
+	function replace(n, re, replacer, string)
+	{
+		n = n.ctor === 'All' ? Infinity : n._0;
+		var count = 0;
+		function jsReplacer(match)
+		{
+			if (count++ >= n)
+			{
+				return match;
+			}
+			var i = arguments.length - 3;
+			var submatches = new Array(i);
+			while (i > 0)
+			{
+				var submatch = arguments[i];
+				submatches[--i] = submatch === undefined
+					? Maybe.Nothing
+					: Maybe.Just(submatch);
+			}
+			return replacer({
+				match: match,
+				submatches: List.fromArray(submatches),
+				index: arguments[i - 1],
+				number: count
+			});
+		}
+		return string.replace(re, jsReplacer);
+	}
+
+	function split(n, re, str)
+	{
+		n = n.ctor === 'All' ? Infinity : n._0;
+		if (n === Infinity)
+		{
+			return List.fromArray(str.split(re));
+		}
+		var string = str;
+		var result;
+		var out = [];
+		var start = re.lastIndex;
+		while (n--)
+		{
+			if (!(result = re.exec(string))) break;
+			out.push(string.slice(start, result.index));
+			start = re.lastIndex;
+		}
+		out.push(string.slice(start));
+		return List.fromArray(out);
+	}
+
+	return Elm.Native.Regex.values = {
+		regex: regex,
+		caseInsensitive: caseInsensitive,
+		escape: escape,
+
+		contains: F2(contains),
+		find: F3(find),
+		replace: F4(replace),
+		split: F3(split)
+	};
+};
+
+Elm.Regex = Elm.Regex || {};
+Elm.Regex.make = function (_elm) {
+   "use strict";
+   _elm.Regex = _elm.Regex || {};
+   if (_elm.Regex.values) return _elm.Regex.values;
+   var _U = Elm.Native.Utils.make(_elm),$Maybe = Elm.Maybe.make(_elm),$Native$Regex = Elm.Native.Regex.make(_elm);
+   var _op = {};
+   var split = $Native$Regex.split;
+   var replace = $Native$Regex.replace;
+   var find = $Native$Regex.find;
+   var AtMost = function (a) {    return {ctor: "AtMost",_0: a};};
+   var All = {ctor: "All"};
+   var Match = F4(function (a,b,c,d) {    return {match: a,submatches: b,index: c,number: d};});
+   var contains = $Native$Regex.contains;
+   var caseInsensitive = $Native$Regex.caseInsensitive;
+   var regex = $Native$Regex.regex;
+   var escape = $Native$Regex.escape;
+   var Regex = {ctor: "Regex"};
+   return _elm.Regex.values = {_op: _op
+                              ,regex: regex
+                              ,escape: escape
+                              ,caseInsensitive: caseInsensitive
+                              ,contains: contains
+                              ,find: find
+                              ,replace: replace
+                              ,split: split
+                              ,Match: Match
+                              ,All: All
+                              ,AtMost: AtMost};
+};
+Elm.Date = Elm.Date || {};
+Elm.Date.Format = Elm.Date.Format || {};
+Elm.Date.Format.make = function (_elm) {
+   "use strict";
+   _elm.Date = _elm.Date || {};
+   _elm.Date.Format = _elm.Date.Format || {};
+   if (_elm.Date.Format.values) return _elm.Date.Format.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Date = Elm.Date.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Regex = Elm.Regex.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var _op = {};
+   var padWith = function (c) {    return function (_p0) {    return A3($String.padLeft,2,c,$Basics.toString(_p0));};};
+   var mod12 = function (h) {    return A2($Basics._op["%"],h,12);};
+   var fullDayOfWeek = function (dow) {
+      var _p1 = dow;
+      switch (_p1.ctor)
+      {case "Mon": return "Monday";
+         case "Tue": return "Tuesday";
+         case "Wed": return "Wednesday";
+         case "Thu": return "Thursday";
+         case "Fri": return "Friday";
+         case "Sat": return "Saturday";
+         default: return "Sunday";}
+   };
+   var monthToFullName = function (m) {
+      var _p2 = m;
+      switch (_p2.ctor)
+      {case "Jan": return "January";
+         case "Feb": return "February";
+         case "Mar": return "March";
+         case "Apr": return "April";
+         case "May": return "May";
+         case "Jun": return "June";
+         case "Jul": return "July";
+         case "Aug": return "August";
+         case "Sep": return "September";
+         case "Oct": return "October";
+         case "Nov": return "November";
+         default: return "December";}
+   };
+   var monthToInt = function (m) {
+      var _p3 = m;
+      switch (_p3.ctor)
+      {case "Jan": return 1;
+         case "Feb": return 2;
+         case "Mar": return 3;
+         case "Apr": return 4;
+         case "May": return 5;
+         case "Jun": return 6;
+         case "Jul": return 7;
+         case "Aug": return 8;
+         case "Sep": return 9;
+         case "Oct": return 10;
+         case "Nov": return 11;
+         default: return 12;}
+   };
+   var collapse = function (m) {    return A2($Maybe.andThen,m,$Basics.identity);};
+   var formatToken = F2(function (d,m) {
+      var symbol = A2($Maybe.withDefault," ",collapse(A2($Maybe.andThen,$List.tail(m.submatches),$List.head)));
+      var prefix = A2($Maybe.withDefault," ",collapse($List.head(m.submatches)));
+      return A2($Basics._op["++"],
+      prefix,
+      function () {
+         var _p4 = symbol;
+         switch (_p4)
+         {case "Y": return $Basics.toString($Date.year(d));
+            case "m": return A3($String.padLeft,2,_U.chr("0"),$Basics.toString(monthToInt($Date.month(d))));
+            case "B": return monthToFullName($Date.month(d));
+            case "b": return $Basics.toString($Date.month(d));
+            case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
+            case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
+            case "a": return $Basics.toString($Date.dayOfWeek(d));
+            case "A": return fullDayOfWeek($Date.dayOfWeek(d));
+            case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
+            case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
+            case "I": return A2(padWith,_U.chr("0"),mod12($Date.hour(d)));
+            case "l": return A2(padWith,_U.chr(" "),mod12($Date.hour(d)));
+            case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
+            case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
+            case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
+            case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
+            default: return "";}
+      }());
+   });
+   var re = $Regex.regex("(^|[^%])%(Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
+   var format = F2(function (s,d) {    return A4($Regex.replace,$Regex.All,re,formatToken(d),s);});
+   return _elm.Date.Format.values = {_op: _op,format: format};
+};
 Elm.Native.Effects = {};
 Elm.Native.Effects.make = function(localRuntime) {
 
@@ -12413,165 +12667,6 @@ Elm.StepTree.make = function (_elm) {
                                  ,StepStateFailed: StepStateFailed
                                  ,StepStateErrored: StepStateErrored};
 };
-Elm.Native.Regex = {};
-Elm.Native.Regex.make = function(localRuntime) {
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Regex = localRuntime.Native.Regex || {};
-	if (localRuntime.Native.Regex.values)
-	{
-		return localRuntime.Native.Regex.values;
-	}
-	if ('values' in Elm.Native.Regex)
-	{
-		return localRuntime.Native.Regex.values = Elm.Native.Regex.values;
-	}
-
-	var List = Elm.Native.List.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-
-	function escape(str)
-	{
-		return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-	}
-	function caseInsensitive(re)
-	{
-		return new RegExp(re.source, 'gi');
-	}
-	function regex(raw)
-	{
-		return new RegExp(raw, 'g');
-	}
-
-	function contains(re, string)
-	{
-		return string.match(re) !== null;
-	}
-
-	function find(n, re, str)
-	{
-		n = n.ctor === 'All' ? Infinity : n._0;
-		var out = [];
-		var number = 0;
-		var string = str;
-		var lastIndex = re.lastIndex;
-		var prevLastIndex = -1;
-		var result;
-		while (number++ < n && (result = re.exec(string)))
-		{
-			if (prevLastIndex === re.lastIndex) break;
-			var i = result.length - 1;
-			var subs = new Array(i);
-			while (i > 0)
-			{
-				var submatch = result[i];
-				subs[--i] = submatch === undefined
-					? Maybe.Nothing
-					: Maybe.Just(submatch);
-			}
-			out.push({
-				match: result[0],
-				submatches: List.fromArray(subs),
-				index: result.index,
-				number: number
-			});
-			prevLastIndex = re.lastIndex;
-		}
-		re.lastIndex = lastIndex;
-		return List.fromArray(out);
-	}
-
-	function replace(n, re, replacer, string)
-	{
-		n = n.ctor === 'All' ? Infinity : n._0;
-		var count = 0;
-		function jsReplacer(match)
-		{
-			if (count++ >= n)
-			{
-				return match;
-			}
-			var i = arguments.length - 3;
-			var submatches = new Array(i);
-			while (i > 0)
-			{
-				var submatch = arguments[i];
-				submatches[--i] = submatch === undefined
-					? Maybe.Nothing
-					: Maybe.Just(submatch);
-			}
-			return replacer({
-				match: match,
-				submatches: List.fromArray(submatches),
-				index: arguments[i - 1],
-				number: count
-			});
-		}
-		return string.replace(re, jsReplacer);
-	}
-
-	function split(n, re, str)
-	{
-		n = n.ctor === 'All' ? Infinity : n._0;
-		if (n === Infinity)
-		{
-			return List.fromArray(str.split(re));
-		}
-		var string = str;
-		var result;
-		var out = [];
-		var start = re.lastIndex;
-		while (n--)
-		{
-			if (!(result = re.exec(string))) break;
-			out.push(string.slice(start, result.index));
-			start = re.lastIndex;
-		}
-		out.push(string.slice(start));
-		return List.fromArray(out);
-	}
-
-	return Elm.Native.Regex.values = {
-		regex: regex,
-		caseInsensitive: caseInsensitive,
-		escape: escape,
-
-		contains: F2(contains),
-		find: F3(find),
-		replace: F4(replace),
-		split: F3(split)
-	};
-};
-
-Elm.Regex = Elm.Regex || {};
-Elm.Regex.make = function (_elm) {
-   "use strict";
-   _elm.Regex = _elm.Regex || {};
-   if (_elm.Regex.values) return _elm.Regex.values;
-   var _U = Elm.Native.Utils.make(_elm),$Maybe = Elm.Maybe.make(_elm),$Native$Regex = Elm.Native.Regex.make(_elm);
-   var _op = {};
-   var split = $Native$Regex.split;
-   var replace = $Native$Regex.replace;
-   var find = $Native$Regex.find;
-   var AtMost = function (a) {    return {ctor: "AtMost",_0: a};};
-   var All = {ctor: "All"};
-   var Match = F4(function (a,b,c,d) {    return {match: a,submatches: b,index: c,number: d};});
-   var contains = $Native$Regex.contains;
-   var caseInsensitive = $Native$Regex.caseInsensitive;
-   var regex = $Native$Regex.regex;
-   var escape = $Native$Regex.escape;
-   var Regex = {ctor: "Regex"};
-   return _elm.Regex.values = {_op: _op
-                              ,regex: regex
-                              ,escape: escape
-                              ,caseInsensitive: caseInsensitive
-                              ,contains: contains
-                              ,find: find
-                              ,replace: replace
-                              ,split: split
-                              ,Match: Match
-                              ,All: All
-                              ,AtMost: AtMost};
-};
 Elm.Pagination = Elm.Pagination || {};
 Elm.Pagination.make = function (_elm) {
    "use strict";
@@ -12657,22 +12752,10 @@ Elm.Duration.make = function (_elm) {
                         return A2($Basics._op["++"],$Basics.toString(_p0._2),A2($Basics._op["++"],"m",A2($Basics._op["++"],$Basics.toString(_p0._3),"s")));
                      }
                } else {
-                  return A2($Basics._op["++"],
-                  $Basics.toString(_p0._1),
-                  A2($Basics._op["++"],
-                  "h",
-                  A2($Basics._op["++"],$Basics.toString(_p0._2),A2($Basics._op["++"],"m",A2($Basics._op["++"],$Basics.toString(_p0._3),"s")))));
+                  return A2($Basics._op["++"],$Basics.toString(_p0._1),A2($Basics._op["++"],"h",A2($Basics._op["++"],$Basics.toString(_p0._2),"m")));
                }
          } else {
-            return A2($Basics._op["++"],
-            $Basics.toString(_p0._0),
-            A2($Basics._op["++"],
-            "d",
-            A2($Basics._op["++"],
-            $Basics.toString(_p0._1),
-            A2($Basics._op["++"],
-            "h",
-            A2($Basics._op["++"],$Basics.toString(_p0._2),A2($Basics._op["++"],"m",A2($Basics._op["++"],$Basics.toString(_p0._3),"s")))))));
+            return A2($Basics._op["++"],$Basics.toString(_p0._0),A2($Basics._op["++"],"d",A2($Basics._op["++"],$Basics.toString(_p0._1),"h")));
          }
    };
    var between = F2(function (a,b) {    return b - a;});
@@ -12689,6 +12772,7 @@ Elm.Build.make = function (_elm) {
    $BuildEvent = Elm.BuildEvent.make(_elm),
    $BuildPlan = Elm.BuildPlan.make(_elm),
    $Date = Elm.Date.make(_elm),
+   $Date$Format = Elm.Date.Format.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Duration = Elm.Duration.make(_elm),
    $Effects = Elm.Effects.make(_elm),
@@ -12729,7 +12813,7 @@ Elm.Build.make = function (_elm) {
          case "failed": return $BuildEvent.BuildStatusFailed;
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
-         default: return _U.crashCase("Build",{start: {line: 726,column: 3},end: {line: 733,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
+         default: return _U.crashCase("Build",{start: {line: 751,column: 3},end: {line: 758,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {    return A2($Json$Decode.decodeString,$BuildEvent.decode,e.data);};
    var promoteError = function (rawError) {
@@ -12754,30 +12838,36 @@ Elm.Build.make = function (_elm) {
    F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),
    A2($Json$Decode._op[":="],"deltaX",$Json$Decode.$float),
    A2($Json$Decode._op[":="],"deltaY",$Json$Decode.$float));
-   var labeledDuration = F3(function (label,duration,suffix) {
+   var labeledDuration = F2(function (label,duration) {
+      return _U.list([A2($Html.dt,_U.list([]),_U.list([$Html.text(label)]))
+                     ,A2($Html.dd,_U.list([]),_U.list([A2($Html.span,_U.list([]),_U.list([$Html.text($Duration.format(duration))]))]))]);
+   });
+   var labeledRelativeDate = F3(function (label,now,date) {
+      var ago = A2($Duration.between,$Date.toTime(date),now);
       return _U.list([A2($Html.dt,_U.list([]),_U.list([$Html.text(label)]))
                      ,A2($Html.dd,
-                     _U.list([]),
-                     _U.list([A2($Html.span,_U.list([]),_U.list([$Html.text(A2($Basics._op["++"],$Duration.format(duration),suffix))]))]))]);
+                     _U.list([$Html$Attributes.title(A2($Date$Format.format,"%b %d %Y %I:%M:%S %p",date))]),
+                     _U.list([A2($Html.span,_U.list([]),_U.list([$Html.text(A2($Basics._op["++"],$Duration.format(ago)," ago"))]))]))]);
    });
+   var durationTitle = F2(function (date,content) {    return A2($Html.div,_U.list([$Html$Attributes.title(A2($Date$Format.format,"%b",date))]),content);});
    var viewBuildDuration = F2(function (now,duration) {
       return A2($Html.dl,
       _U.list([$Html$Attributes.$class("build-times")]),
       function () {
-         var _p5 = {ctor: "_Tuple2",_0: A2($Maybe.map,$Date.toTime,duration.startedAt),_1: A2($Maybe.map,$Date.toTime,duration.finishedAt)};
+         var _p5 = {ctor: "_Tuple2",_0: duration.startedAt,_1: duration.finishedAt};
          if (_p5._0.ctor === "Nothing") {
                return _U.list([]);
             } else {
                if (_p5._1.ctor === "Nothing") {
-                     return A3(labeledDuration,"started",A2($Duration.between,_p5._0._0,now)," ago");
+                     return A3(labeledRelativeDate,"started",now,_p5._0._0);
                   } else {
                      var _p7 = _p5._0._0;
                      var _p6 = _p5._1._0;
                      return A2($Basics._op["++"],
-                     A3(labeledDuration,"started",A2($Duration.between,_p7,now)," ago"),
+                     A3(labeledRelativeDate,"started",now,_p7),
                      A2($Basics._op["++"],
-                     A3(labeledDuration,"finished",A2($Duration.between,_p6,now)," ago"),
-                     A3(labeledDuration,"duration",A2($Duration.between,_p7,_p6),"")));
+                     A3(labeledRelativeDate,"finished",now,_p6),
+                     A2(labeledDuration,"duration",A2($Duration.between,$Date.toTime(_p7),$Date.toTime(_p6)))));
                   }
             }
       }());
@@ -12837,6 +12927,12 @@ Elm.Build.make = function (_elm) {
                     ,A2($Html.div,_U.list([$Html$Attributes.$class("step-body build-errors-body")]),_U.list([$Ansi$Log.view(_p11._0)]))]));
          }
    };
+   var loadingIndicator = A2($Html.div,
+   _U.list([$Html$Attributes.$class("build-step")]),
+   _U.list([A2($Html.div,
+   _U.list([$Html$Attributes.$class("header")]),
+   _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("left fa fa-fw fa-spin fa-circle-o-notch")]),_U.list([]))
+           ,A2($Html.h3,_U.list([]),_U.list([$Html.text("loading")]))]))]));
    var setStepState = F2(function (state,tree) {
       var expanded = !_U.eq(state,$StepTree.StepStateSucceeded);
       return A2($StepTree.map,function (step) {    return _U.update(step,{state: state,expanded: expanded});},tree);
@@ -12933,7 +13029,7 @@ Elm.Build.make = function (_elm) {
                           _U.list([function () {
                              var _p17 = model.stepState;
                              switch (_p17.ctor)
-                             {case "StepsLoading": return $Html.text("loading...");
+                             {case "StepsLoading": return loadingIndicator;
                                 case "StepsLiveUpdating": return A4(viewSteps,actions,model.errors,_p18,_p19);
                                 case "StepsComplete": return A4(viewSteps,actions,model.errors,_p18,_p19);
                                 default: return viewLoginButton(_p18);}
@@ -12948,7 +13044,7 @@ Elm.Build.make = function (_elm) {
                           _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("steps")]),_U.list([viewErrors(model.errors)]))]))]));
                }
          } else {
-            return $Html.text("loading...");
+            return loadingIndicator;
          }
    });
    var ScrollFromBottom = function (a) {    return {ctor: "ScrollFromBottom",_0: a};};
@@ -13112,7 +13208,7 @@ Elm.Build.make = function (_elm) {
                        if (_p31._1.ctor === "Just") {
                              return {ctor: "_Tuple2",_0: withBuilds,_1: A2(fetchBuildHistory,_p31._1._0,$Maybe.Just(_p31._0._0))};
                           } else {
-                             return _U.crashCase("Build",{start: {line: 199,column: 9},end: {line: 207,column: 37}},_p31)("impossible");
+                             return _U.crashCase("Build",{start: {line: 200,column: 9},end: {line: 208,column: 37}},_p31)("impossible");
                           }
                     }
               }
@@ -13283,6 +13379,7 @@ Elm.Build.make = function (_elm) {
                               ,setResourceInfo: setResourceInfo
                               ,setStepState: setStepState
                               ,view: view
+                              ,loadingIndicator: loadingIndicator
                               ,viewSteps: viewSteps
                               ,viewErrors: viewErrors
                               ,viewLoginButton: viewLoginButton
@@ -13291,6 +13388,8 @@ Elm.Build.make = function (_elm) {
                               ,isRunning: isRunning
                               ,viewBuildHeader: viewBuildHeader
                               ,viewBuildDuration: viewBuildDuration
+                              ,durationTitle: durationTitle
+                              ,labeledRelativeDate: labeledRelativeDate
                               ,labeledDuration: labeledDuration
                               ,scrollEvent: scrollEvent
                               ,decodeScrollEvent: decodeScrollEvent
