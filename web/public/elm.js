@@ -12727,7 +12727,7 @@ Elm.Build.make = function (_elm) {
          case "failed": return $BuildEvent.BuildStatusFailed;
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
-         default: return _U.crashCase("Build",{start: {line: 718,column: 3},end: {line: 725,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
+         default: return _U.crashCase("Build",{start: {line: 726,column: 3},end: {line: 733,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {    return A2($Json$Decode.decodeString,$BuildEvent.decode,e.data);};
    var promoteError = function (rawError) {
@@ -13052,8 +13052,8 @@ Elm.Build.make = function (_elm) {
                  A2($Basics._op["++"],"failed to fetch build: ",$Basics.toString(_p26._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
-                 var _p29 = _p26._0._0;
-                 var status = toStatus(_p29.status);
+                 var _p30 = _p26._0._0;
+                 var status = toStatus(_p30.status);
                  var pending = _U.eq(status,$BuildEvent.BuildStatusPending);
                  var stepState = function () {
                     var _p27 = status;
@@ -13063,12 +13063,20 @@ Elm.Build.make = function (_elm) {
                        default: return StepsLoading;}
                  }();
                  return {ctor: "_Tuple2"
-                        ,_0: _U.update(model,{build: $Maybe.Just(_p29),status: status,stepState: stepState})
+                        ,_0: _U.update(model,{build: $Maybe.Just(_p30),status: status,stepState: stepState})
                         ,_1: function () {
+                           var fetchHistory = function () {
+                              var _p28 = {ctor: "_Tuple2",_0: model.build,_1: _p30.job};
+                              if (_p28.ctor === "_Tuple2" && _p28._0.ctor === "Nothing" && _p28._1.ctor === "Just") {
+                                    return A2(fetchBuildHistory,_p28._1._0,$Maybe.Nothing);
+                                 } else {
+                                    return $Effects.none;
+                                 }
+                           }();
                            var fetch = pending ? A2(fetchBuild,$Time.second,model.buildId) : fetchBuildPlan(model.buildId);
-                           var _p28 = _p29.job;
-                           if (_p28.ctor === "Just") {
-                                 return $Effects.batch(_U.list([A2(fetchBuildHistory,_p28._0,$Maybe.Nothing),fetch]));
+                           var _p29 = _p30.job;
+                           if (_p29.ctor === "Just") {
+                                 return $Effects.batch(_U.list([fetchHistory,fetch]));
                               } else {
                                  return fetch;
                               }
@@ -13092,25 +13100,25 @@ Elm.Build.make = function (_elm) {
                  A2($Basics._op["++"],"failed to fetch build history: ",$Basics.toString(_p26._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
-                 var _p32 = _p26._0._0;
-                 var builds = A2($List.append,A2($Maybe.withDefault,_U.list([]),model.history),_p32.builds);
+                 var _p33 = _p26._0._0;
+                 var builds = A2($List.append,A2($Maybe.withDefault,_U.list([]),model.history),_p33.builds);
                  var withBuilds = _U.update(model,{history: $Maybe.Just(builds)});
-                 var _p30 = {ctor: "_Tuple2",_0: _p32.pagination.nextPage,_1: A2($Maybe.andThen,model.build,function (_) {    return _.job;})};
-                 if (_p30._0.ctor === "Nothing") {
+                 var _p31 = {ctor: "_Tuple2",_0: _p33.pagination.nextPage,_1: A2($Maybe.andThen,model.build,function (_) {    return _.job;})};
+                 if (_p31._0.ctor === "Nothing") {
                        return {ctor: "_Tuple2",_0: withBuilds,_1: $Effects.none};
                     } else {
-                       if (_p30._1.ctor === "Just") {
-                             return {ctor: "_Tuple2",_0: withBuilds,_1: A2(fetchBuildHistory,_p30._1._0,$Maybe.Just(_p30._0._0))};
+                       if (_p31._1.ctor === "Just") {
+                             return {ctor: "_Tuple2",_0: withBuilds,_1: A2(fetchBuildHistory,_p31._1._0,$Maybe.Just(_p31._0._0))};
                           } else {
-                             return _U.crashCase("Build",{start: {line: 191,column: 9},end: {line: 199,column: 37}},_p30)("impossible");
+                             return _U.crashCase("Build",{start: {line: 199,column: 9},end: {line: 207,column: 37}},_p31)("impossible");
                           }
                     }
               }
          case "Listening": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Just(_p26._0)}),_1: $Effects.none};
          case "EventSourceOpened": return {ctor: "_Tuple2",_0: model,_1: scrollToBottom};
          case "EventSourceErrored": var newState = function () {
-              var _p33 = model.stepState;
-              if (_p33.ctor === "StepsComplete") {
+              var _p34 = model.stepState;
+              if (_p34.ctor === "StepsComplete") {
                     return StepsComplete;
                  } else {
                     return LoginRequired;
@@ -13120,7 +13128,7 @@ Elm.Build.make = function (_elm) {
          case "Event": if (_p26._0.ctor === "Ok") {
                  switch (_p26._0._0.ctor)
                  {case "Log": return {ctor: "_Tuple2"
-                                     ,_0: A3(updateStep,_p26._0._0._0.id,function (_p34) {    return setRunning(A2(appendStepLog,_p26._0._0._1,_p34));},model)
+                                     ,_0: A3(updateStep,_p26._0._0._0.id,function (_p35) {    return setRunning(A2(appendStepLog,_p26._0._0._1,_p35));},model)
                                      ,_1: $Effects.none};
                     case "Error": return {ctor: "_Tuple2",_0: A3(updateStep,_p26._0._0._0.id,setStepError(_p26._0._0._1),model),_1: $Effects.none};
                     case "InitializeTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p26._0._0._0.id,setRunning,model),_1: $Effects.none};
@@ -13129,28 +13137,28 @@ Elm.Build.make = function (_elm) {
                     case "FinishGet": return {ctor: "_Tuple2"
                                              ,_0: A3(updateStep,
                                              _p26._0._0._0.id,
-                                             function (_p35) {
-                                                return A2(finishStep,_p26._0._0._1,A3(setResourceInfo,_p26._0._0._2,_p26._0._0._3,_p35));
+                                             function (_p36) {
+                                                return A2(finishStep,_p26._0._0._1,A3(setResourceInfo,_p26._0._0._2,_p26._0._0._3,_p36));
                                              },
                                              model)
                                              ,_1: $Effects.none};
                     case "FinishPut": return {ctor: "_Tuple2"
                                              ,_0: A3(updateStep,
                                              _p26._0._0._0.id,
-                                             function (_p36) {
-                                                return A2(finishStep,_p26._0._0._1,A3(setResourceInfo,_p26._0._0._2,_p26._0._0._3,_p36));
+                                             function (_p37) {
+                                                return A2(finishStep,_p26._0._0._1,A3(setResourceInfo,_p26._0._0._2,_p26._0._0._3,_p37));
                                              },
                                              model)
                                              ,_1: $Effects.none};
-                    case "BuildStatus": var _p38 = _p26._0._0._0;
+                    case "BuildStatus": var _p39 = _p26._0._0._0;
                       return {ctor: "_Tuple2"
                              ,_0: A3(updateStartFinishAt,
-                             _p38,
+                             _p39,
                              _p26._0._0._1,
                              function () {
-                                var _p37 = model.stepState;
-                                if (_p37.ctor === "StepsLiveUpdating") {
-                                      return _U.update(model,{status: _p38});
+                                var _p38 = model.stepState;
+                                if (_p38.ctor === "StepsLiveUpdating") {
+                                      return _U.update(model,{status: _p39});
                                    } else {
                                       return model;
                                    }
@@ -13174,9 +13182,9 @@ Elm.Build.make = function (_elm) {
                  return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(0 - _p26._0._0)};
               }
          case "ClockTick": return {ctor: "_Tuple2",_0: _U.update(model,{now: _p26._0}),_1: $Effects.none};
-         case "EndOfEvents": var _p39 = model.eventSource;
-           if (_p39.ctor === "Just") {
-                 return {ctor: "_Tuple2",_0: _U.update(model,{stepState: StepsComplete}),_1: closeEvents(_p39._0)};
+         case "EndOfEvents": var _p40 = model.eventSource;
+           if (_p40.ctor === "Just") {
+                 return {ctor: "_Tuple2",_0: _U.update(model,{stepState: StepsComplete}),_1: closeEvents(_p40._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }
