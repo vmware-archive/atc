@@ -12813,7 +12813,7 @@ Elm.Build.make = function (_elm) {
          case "failed": return $BuildEvent.BuildStatusFailed;
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
-         default: return _U.crashCase("Build",{start: {line: 751,column: 3},end: {line: 758,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
+         default: return _U.crashCase("Build",{start: {line: 753,column: 3},end: {line: 760,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {    return A2($Json$Decode.decodeString,$BuildEvent.decode,e.data);};
    var promoteError = function (rawError) {
@@ -12928,11 +12928,13 @@ Elm.Build.make = function (_elm) {
          }
    };
    var loadingIndicator = A2($Html.div,
+   _U.list([$Html$Attributes.$class("steps")]),
+   _U.list([A2($Html.div,
    _U.list([$Html$Attributes.$class("build-step")]),
    _U.list([A2($Html.div,
    _U.list([$Html$Attributes.$class("header")]),
    _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("left fa fa-fw fa-spin fa-circle-o-notch")]),_U.list([]))
-           ,A2($Html.h3,_U.list([]),_U.list([$Html.text("loading")]))]))]));
+           ,A2($Html.h3,_U.list([]),_U.list([$Html.text("loading")]))]))]))]));
    var setStepState = F2(function (state,tree) {
       var expanded = !_U.eq(state,$StepTree.StepStateSucceeded);
       return A2($StepTree.map,function (step) {    return _U.update(step,{state: state,expanded: expanded});},tree);
