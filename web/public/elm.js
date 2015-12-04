@@ -12587,6 +12587,7 @@ Elm.StepTree.make = function (_elm) {
                       ,A2($Html.h3,_U.list([]),_U.list([$Html.text(_p12.name)]))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "step-body",_1: true}
+                                                          ,{ctor: "_Tuple2",_0: "clearfix",_1: true}
                                                           ,{ctor: "_Tuple2"
                                                            ,_0: "step-collapsed"
                                                            ,_1: $Basics.not(A2($Maybe.withDefault,isActive(_p17),_p12.expanded))}]))]),
