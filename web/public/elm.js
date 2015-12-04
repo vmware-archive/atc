@@ -12901,7 +12901,7 @@ Elm.Build.make = function (_elm) {
          case "failed": return $BuildEvent.BuildStatusFailed;
          case "errored": return $BuildEvent.BuildStatusErrored;
          case "aborted": return $BuildEvent.BuildStatusAborted;
-         default: return _U.crashCase("Build",{start: {line: 817,column: 3},end: {line: 824,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
+         default: return _U.crashCase("Build",{start: {line: 809,column: 3},end: {line: 816,column: 48}},_p1)(A2($Basics._op["++"],"unknown state: ",str));}
    };
    var parseEvent = function (e) {    return A2($Json$Decode.decodeString,$BuildEvent.decode,e.data);};
    var promoteError = function (rawError) {
@@ -13156,7 +13156,6 @@ Elm.Build.make = function (_elm) {
    });
    var ScrollFromBottom = function (a) {    return {ctor: "ScrollFromBottom",_0: a};};
    var ScrollTick = {ctor: "ScrollTick"};
-   var keepScrolling = $Effects.tick($Basics.always(ScrollTick));
    var EventSourceClosed = {ctor: "EventSourceClosed"};
    var closeEvents = function (eventSource) {    return $Effects.task(A2($Task.map,$Basics.always(EventSourceClosed),$EventSource.close(eventSource)));};
    var EndOfEvents = {ctor: "EndOfEvents"};
@@ -13246,15 +13245,13 @@ Elm.Build.make = function (_elm) {
       {case "Noop": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          case "ScrollTick": return _U.eq(model.stepState,StepsLiveUpdating) && model.autoScroll ? {ctor: "_Tuple2"
                                                                                                   ,_0: model
-                                                                                                  ,_1: $Effects.batch(_U.list([keepScrolling
-                                                                                                                              ,scrollToBottom]))} : {ctor: "_Tuple2"
-                                                                                                                                                    ,_0: model
-                                                                                                                                                    ,_1: $Effects.none};
-         case "ScrollFromBottom": return _U.eq(_p26._0,0) ? {ctor: "_Tuple2"
-                                                            ,_0: _U.update(model,{autoScroll: true})
-                                                            ,_1: $Effects.tick($Basics.always(ScrollTick))} : {ctor: "_Tuple2"
-                                                                                                              ,_0: _U.update(model,{autoScroll: false})
-                                                                                                              ,_1: $Effects.none};
+                                                                                                  ,_1: scrollToBottom} : {ctor: "_Tuple2"
+                                                                                                                         ,_0: model
+                                                                                                                         ,_1: $Effects.none};
+         case "ScrollFromBottom": return _U.eq(_p26._0,0) ? {ctor: "_Tuple2",_0: _U.update(model,{autoScroll: true}),_1: $Effects.none} : {ctor: "_Tuple2"
+                                                                                                                                          ,_0: _U.update(model,
+                                                                                                                                          {autoScroll: false})
+                                                                                                                                          ,_1: $Effects.none};
          case "AbortBuild": return {ctor: "_Tuple2",_0: model,_1: abortBuild(model.buildId)};
          case "BuildAborted": if (_p26._0.ctor === "Err") {
                  return A2($Debug.log,
@@ -13340,7 +13337,7 @@ Elm.Build.make = function (_elm) {
                                     ,_0: withBuilds
                                     ,_1: $Effects.batch(_U.list([A2(fetchBuildHistory,_p33._1._0,$Maybe.Just(_p33._0._0)),scrollToCurrent]))};
                           } else {
-                             return _U.crashCase("Build",{start: {line: 225,column: 9},end: {line: 233,column: 37}},_p33)("impossible");
+                             return _U.crashCase("Build",{start: {line: 220,column: 9},end: {line: 228,column: 37}},_p33)("impossible");
                           }
                     }
               }
@@ -13360,7 +13357,7 @@ Elm.Build.make = function (_elm) {
                  switch (_p26._0._0.ctor)
                  {case "Log": return {ctor: "_Tuple2"
                                      ,_0: A3(updateStep,_p26._0._0._0.id,function (_p37) {    return setRunning(A2(appendStepLog,_p26._0._0._1,_p37));},model)
-                                     ,_1: $Effects.none};
+                                     ,_1: $Effects.tick($Basics.always(ScrollTick))};
                     case "Error": return {ctor: "_Tuple2",_0: A3(updateStep,_p26._0._0._0.id,setStepError(_p26._0._0._1),model),_1: $Effects.none};
                     case "InitializeTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p26._0._0._0.id,setRunning,model),_1: $Effects.none};
                     case "StartTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p26._0._0._0.id,setRunning,model),_1: $Effects.none};
@@ -13436,7 +13433,7 @@ Elm.Build.make = function (_elm) {
                   ,status: $BuildEvent.BuildStatusPending
                   ,now: 0
                   ,duration: A2(BuildDuration,$Maybe.Nothing,$Maybe.Nothing)};
-      return {ctor: "_Tuple2",_0: model,_1: $Effects.batch(_U.list([keepScrolling,A2(fetchBuild,0,buildId)]))};
+      return {ctor: "_Tuple2",_0: model,_1: A2(fetchBuild,0,buildId)};
    });
    var Model = function (a) {
       return function (b) {
@@ -13509,7 +13506,6 @@ Elm.Build.make = function (_elm) {
                               ,update: update
                               ,updateStartFinishAt: updateStartFinishAt
                               ,abortBuild: abortBuild
-                              ,keepScrolling: keepScrolling
                               ,updateStep: updateStep
                               ,setRunning: setRunning
                               ,appendStepLog: appendStepLog
@@ -13640,5 +13636,5 @@ Elm.Main.make = function (_elm) {
    }();
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
-   return _elm.Main.values = {_op: _op,app: app,main: main,redirects: redirects};
+   return _elm.Main.values = {_op: _op,main: main,app: app,redirects: redirects};
 };
