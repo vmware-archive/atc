@@ -12226,6 +12226,7 @@ Elm.BuildPlan.make = function (_elm) {
    var Ensure = function (a) {    return {ctor: "Ensure",_0: a};};
    var OnFailure = function (a) {    return {ctor: "OnFailure",_0: a};};
    var OnSuccess = function (a) {    return {ctor: "OnSuccess",_0: a};};
+   var Do = function (a) {    return {ctor: "Do",_0: a};};
    var Aggregate = function (a) {    return {ctor: "Aggregate",_0: a};};
    var DependentGet = function (a) {    return {ctor: "DependentGet",_0: a};};
    var decodeDependentGet = A2($Json$Decode.object1,DependentGet,A2($Json$Decode._op[":="],"name",$Json$Decode.string));
@@ -12247,32 +12248,34 @@ Elm.BuildPlan.make = function (_elm) {
                               ,A2($Json$Decode._op[":="],"put",lazy(function (_p2) {    return decodePut;}))
                               ,A2($Json$Decode._op[":="],"dependent_get",lazy(function (_p3) {    return decodeDependentGet;}))
                               ,A2($Json$Decode._op[":="],"aggregate",lazy(function (_p4) {    return decodeAggregate;}))
-                              ,A2($Json$Decode._op[":="],"on_success",lazy(function (_p5) {    return decodeOnSuccess;}))
-                              ,A2($Json$Decode._op[":="],"on_failure",lazy(function (_p6) {    return decodeOnFailure;}))
-                              ,A2($Json$Decode._op[":="],"ensure",lazy(function (_p7) {    return decodeEnsure;}))
-                              ,A2($Json$Decode._op[":="],"try",lazy(function (_p8) {    return decodeTry;}))
-                              ,A2($Json$Decode._op[":="],"timeout",lazy(function (_p9) {    return decodeTimeout;}))])));
-   var decodeAggregate = A2($Json$Decode.object1,Aggregate,$Json$Decode.array(lazy(function (_p10) {    return decodePlan;})));
+                              ,A2($Json$Decode._op[":="],"do",lazy(function (_p5) {    return decodeDo;}))
+                              ,A2($Json$Decode._op[":="],"on_success",lazy(function (_p6) {    return decodeOnSuccess;}))
+                              ,A2($Json$Decode._op[":="],"on_failure",lazy(function (_p7) {    return decodeOnFailure;}))
+                              ,A2($Json$Decode._op[":="],"ensure",lazy(function (_p8) {    return decodeEnsure;}))
+                              ,A2($Json$Decode._op[":="],"try",lazy(function (_p9) {    return decodeTry;}))
+                              ,A2($Json$Decode._op[":="],"timeout",lazy(function (_p10) {    return decodeTimeout;}))])));
+   var decodeAggregate = A2($Json$Decode.object1,Aggregate,$Json$Decode.array(lazy(function (_p11) {    return decodePlan;})));
+   var decodeDo = A2($Json$Decode.object1,Do,$Json$Decode.array(lazy(function (_p12) {    return decodePlan;})));
    var decodeEnsure = A2($Json$Decode.map,
    Ensure,
    A3($Json$Decode.object2,
    HookedPlan,
-   A2($Json$Decode._op[":="],"step",lazy(function (_p11) {    return decodePlan;})),
-   A2($Json$Decode._op[":="],"ensure",lazy(function (_p12) {    return decodePlan;}))));
+   A2($Json$Decode._op[":="],"step",lazy(function (_p13) {    return decodePlan;})),
+   A2($Json$Decode._op[":="],"ensure",lazy(function (_p14) {    return decodePlan;}))));
    var decodeOnFailure = A2($Json$Decode.map,
    OnFailure,
    A3($Json$Decode.object2,
    HookedPlan,
-   A2($Json$Decode._op[":="],"step",lazy(function (_p13) {    return decodePlan;})),
-   A2($Json$Decode._op[":="],"on_failure",lazy(function (_p14) {    return decodePlan;}))));
+   A2($Json$Decode._op[":="],"step",lazy(function (_p15) {    return decodePlan;})),
+   A2($Json$Decode._op[":="],"on_failure",lazy(function (_p16) {    return decodePlan;}))));
    var decodeOnSuccess = A2($Json$Decode.map,
    OnSuccess,
    A3($Json$Decode.object2,
    HookedPlan,
-   A2($Json$Decode._op[":="],"step",lazy(function (_p15) {    return decodePlan;})),
-   A2($Json$Decode._op[":="],"on_success",lazy(function (_p16) {    return decodePlan;}))));
-   var decodeTimeout = A2($Json$Decode.object1,Timeout,A2($Json$Decode._op[":="],"step",lazy(function (_p17) {    return decodePlan;})));
-   var decodeTry = A2($Json$Decode.object1,Try,A2($Json$Decode._op[":="],"step",lazy(function (_p18) {    return decodePlan;})));
+   A2($Json$Decode._op[":="],"step",lazy(function (_p17) {    return decodePlan;})),
+   A2($Json$Decode._op[":="],"on_success",lazy(function (_p18) {    return decodePlan;}))));
+   var decodeTimeout = A2($Json$Decode.object1,Timeout,A2($Json$Decode._op[":="],"step",lazy(function (_p19) {    return decodePlan;})));
+   var decodeTry = A2($Json$Decode.object1,Try,A2($Json$Decode._op[":="],"step",lazy(function (_p20) {    return decodePlan;})));
    var decode = A2($Json$Decode.at,_U.list(["plan"]),decodePlan);
    return _elm.BuildPlan.values = {_op: _op
                                   ,BuildPlan: BuildPlan
@@ -12281,6 +12284,7 @@ Elm.BuildPlan.make = function (_elm) {
                                   ,Put: Put
                                   ,DependentGet: DependentGet
                                   ,Aggregate: Aggregate
+                                  ,Do: Do
                                   ,OnSuccess: OnSuccess
                                   ,OnFailure: OnFailure
                                   ,Ensure: Ensure
@@ -12294,6 +12298,7 @@ Elm.BuildPlan.make = function (_elm) {
                                   ,decodePut: decodePut
                                   ,decodeDependentGet: decodeDependentGet
                                   ,decodeAggregate: decodeAggregate
+                                  ,decodeDo: decodeDo
                                   ,decodeOnSuccess: decodeOnSuccess
                                   ,decodeOnFailure: decodeOnFailure
                                   ,decodeEnsure: decodeEnsure
@@ -12488,17 +12493,19 @@ Elm.StepTree.make = function (_elm) {
    var viewPair = F2(function (name,value) {
       return _U.list([A2($Html.dt,_U.list([]),_U.list([$Html.text(name)])),A2($Html.dd,_U.list([]),_U.list([$Html.text(value)]))]);
    });
-   var getAggIndex = F2(function (idx,tree) {
-      var _p1 = tree;
-      if (_p1.ctor === "Aggregate") {
-            var _p2 = A2($Array.get,idx,_p1._0);
-            if (_p2.ctor === "Just") {
-                  return _p2._0;
-               } else {
-                  return _U.crashCase("StepTree",{start: {line: 308,column: 7},end: {line: 313,column: 35}},_p2)("impossible");
-               }
+   var getMultiStepIndex = F2(function (idx,tree) {
+      var steps = function () {
+         var _p1 = tree;
+         switch (_p1.ctor)
+         {case "Aggregate": return _p1._0;
+            case "Do": return _p1._0;
+            default: return _U.crashCase("StepTree",{start: {line: 319,column: 7},end: {line: 327,column: 35}},_p1)("impossible");}
+      }();
+      var _p3 = A2($Array.get,idx,steps);
+      if (_p3.ctor === "Just") {
+            return _p3._0;
          } else {
-            return _U.crashCase("StepTree",{start: {line: 306,column: 3},end: {line: 316,column: 31}},_p1)("impossible");
+            return _U.crashCase("StepTree",{start: {line: 329,column: 5},end: {line: 334,column: 33}},_p3)("impossible");
          }
    });
    var getHook = function (tree) {
@@ -12507,7 +12514,7 @@ Elm.StepTree.make = function (_elm) {
       {case "OnSuccess": return _p5._0.hook;
          case "OnFailure": return _p5._0.hook;
          case "Ensure": return _p5._0.hook;
-         default: return _U.crashCase("StepTree",{start: {line: 276,column: 3},end: {line: 287,column: 31}},_p5)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 287,column: 3},end: {line: 298,column: 31}},_p5)("impossible");}
    };
    var getStep = function (tree) {
       var _p7 = tree;
@@ -12517,7 +12524,7 @@ Elm.StepTree.make = function (_elm) {
          case "Ensure": return _p7._0.step;
          case "Try": return _p7._0;
          case "Timeout": return _p7._0;
-         default: return _U.crashCase("StepTree",{start: {line: 230,column: 3},end: {line: 247,column: 31}},_p7)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 241,column: 3},end: {line: 258,column: 31}},_p7)("impossible");}
    };
    var updateAt = F3(function (id,update,root) {
       var _p9 = A2($Dict.get,id,root.foci);
@@ -12621,6 +12628,7 @@ Elm.StepTree.make = function (_elm) {
               tree = _v16;
               continue view;
             case "Aggregate": return A2($Html.div,_U.list([$Html$Attributes.$class("aggregate")]),$Array.toList(A2($Array.map,viewSeq(actions),_p18._0)));
+            case "Do": return A2($Html.div,_U.list([$Html$Attributes.$class("do")]),$Array.toList(A2($Array.map,viewSeq(actions),_p18._0)));
             case "OnSuccess": return A4(viewHooked,"success",actions,_p18._0.step,_p18._0.hook);
             case "OnFailure": return A4(viewHooked,"failure",actions,_p18._0.step,_p18._0.hook);
             default: return A4(viewHooked,"ensure",actions,_p18._0.step,_p18._0.hook);}
@@ -12651,7 +12659,7 @@ Elm.StepTree.make = function (_elm) {
            return Ensure(_U.update(_p22,{step: update(_p22.step)}));
          case "Try": return Try(update(_p19._0));
          case "Timeout": return Timeout(update(_p19._0));
-         default: return _U.crashCase("StepTree",{start: {line: 251,column: 3},end: {line: 268,column: 31}},_p19)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 262,column: 3},end: {line: 279,column: 31}},_p19)("impossible");}
    });
    var wrapStep = F2(function (id,subFocus) {    return A2($Focus._op["=>"],A2($Focus.create,getStep,updateStep),subFocus);});
    var updateHook = F2(function (update,tree) {
@@ -12663,20 +12671,20 @@ Elm.StepTree.make = function (_elm) {
            return OnFailure(_U.update(_p26,{hook: update(_p26.hook)}));
          case "Ensure": var _p27 = _p24._0;
            return Ensure(_U.update(_p27,{hook: update(_p27.hook)}));
-         default: return _U.crashCase("StepTree",{start: {line: 291,column: 3},end: {line: 302,column: 31}},_p24)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 302,column: 3},end: {line: 313,column: 31}},_p24)("impossible");}
    });
    var wrapHook = F2(function (id,subFocus) {    return A2($Focus._op["=>"],A2($Focus.create,getHook,updateHook),subFocus);});
+   var Do = function (a) {    return {ctor: "Do",_0: a};};
    var Aggregate = function (a) {    return {ctor: "Aggregate",_0: a};};
-   var setAggIndex = F3(function (idx,update,tree) {
+   var setMultiStepIndex = F3(function (idx,update,tree) {
       var _p29 = tree;
-      if (_p29.ctor === "Aggregate") {
-            return Aggregate(A3($Array.set,idx,update(A2(getAggIndex,idx,tree)),_p29._0));
-         } else {
-            return _U.crashCase("StepTree",{start: {line: 320,column: 3},end: {line: 325,column: 31}},_p29)("impossible");
-         }
+      switch (_p29.ctor)
+      {case "Aggregate": return Aggregate(A3($Array.set,idx,update(A2(getMultiStepIndex,idx,tree)),_p29._0));
+         case "Do": return Do(A3($Array.set,idx,update(A2(getMultiStepIndex,idx,tree)),_p29._0));
+         default: return _U.crashCase("StepTree",{start: {line: 338,column: 3},end: {line: 346,column: 31}},_p29)("impossible");}
    });
-   var wrapAgg = function (i) {
-      return $Dict.map(F2(function (_p31,focus) {    return A2($Focus._op["=>"],A2($Focus.create,getAggIndex(i),setAggIndex(i)),focus);}));
+   var wrapMultiStep = function (i) {
+      return $Dict.map(F2(function (_p31,focus) {    return A2($Focus._op["=>"],A2($Focus.create,getMultiStepIndex(i),setMultiStepIndex(i)),focus);}));
    };
    var DependentGet = function (a) {    return {ctor: "DependentGet",_0: a};};
    var Put = function (a) {    return {ctor: "Put",_0: a};};
@@ -12693,9 +12701,15 @@ Elm.StepTree.make = function (_elm) {
          case "Aggregate": var inited = A2($Array.map,init(resources),_p32._0);
            var trees = A2($Array.map,function (_) {    return _.tree;},inited);
            var subFoci = A2($Array.map,function (_) {    return _.foci;},inited);
-           var wrappedSubFoci = A2($Array.indexedMap,wrapAgg,subFoci);
+           var wrappedSubFoci = A2($Array.indexedMap,wrapMultiStep,subFoci);
            var foci = A3($Array.foldr,$Dict.union,$Dict.empty,wrappedSubFoci);
            return A2(Root,Aggregate(trees),foci);
+         case "Do": var inited = A2($Array.map,init(resources),_p32._0);
+           var trees = A2($Array.map,function (_) {    return _.tree;},inited);
+           var subFoci = A2($Array.map,function (_) {    return _.foci;},inited);
+           var wrappedSubFoci = A2($Array.indexedMap,wrapMultiStep,subFoci);
+           var foci = A3($Array.foldr,$Dict.union,$Dict.empty,wrappedSubFoci);
+           return A2(Root,Do(trees),foci);
          case "OnSuccess": return A3(initHookedStep,resources,OnSuccess,_p32._0);
          case "OnFailure": return A3(initHookedStep,resources,OnFailure,_p32._0);
          case "Ensure": return A3(initHookedStep,resources,Ensure,_p32._0);
@@ -12744,6 +12758,7 @@ Elm.StepTree.make = function (_elm) {
                                  ,Put: Put
                                  ,DependentGet: DependentGet
                                  ,Aggregate: Aggregate
+                                 ,Do: Do
                                  ,OnSuccess: OnSuccess
                                  ,OnFailure: OnFailure
                                  ,Ensure: Ensure
