@@ -12335,6 +12335,176 @@ Elm.Concourse.Build.make = function (_elm) {
                                         ,promoteHttpError: promoteHttpError};
 };
 Elm.Concourse = Elm.Concourse || {};
+Elm.Concourse.Metadata = Elm.Concourse.Metadata || {};
+Elm.Concourse.Metadata.make = function (_elm) {
+   "use strict";
+   _elm.Concourse = _elm.Concourse || {};
+   _elm.Concourse.Metadata = _elm.Concourse.Metadata || {};
+   if (_elm.Concourse.Metadata.values) return _elm.Concourse.Metadata.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var MetadataField = F2(function (a,b) {    return {name: a,value: b};});
+   var decodeMetadataField = A3($Json$Decode.object2,
+   MetadataField,
+   A2($Json$Decode._op[":="],"name",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"value",$Json$Decode.string));
+   var decode = $Json$Decode.list(decodeMetadataField);
+   return _elm.Concourse.Metadata.values = {_op: _op,MetadataField: MetadataField,decode: decode,decodeMetadataField: decodeMetadataField};
+};
+Elm.Concourse = Elm.Concourse || {};
+Elm.Concourse.Version = Elm.Concourse.Version || {};
+Elm.Concourse.Version.make = function (_elm) {
+   "use strict";
+   _elm.Concourse = _elm.Concourse || {};
+   _elm.Concourse.Version = _elm.Concourse.Version || {};
+   if (_elm.Concourse.Version.values) return _elm.Concourse.Version.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var decode = $Json$Decode.dict($Json$Decode.string);
+   return _elm.Concourse.Version.values = {_op: _op,decode: decode};
+};
+Elm.Concourse = Elm.Concourse || {};
+Elm.Concourse.BuildEvents = Elm.Concourse.BuildEvents || {};
+Elm.Concourse.BuildEvents.make = function (_elm) {
+   "use strict";
+   _elm.Concourse = _elm.Concourse || {};
+   _elm.Concourse.BuildEvents = _elm.Concourse.BuildEvents || {};
+   if (_elm.Concourse.BuildEvents.values) return _elm.Concourse.BuildEvents.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Concourse$BuildStatus = Elm.Concourse.BuildStatus.make(_elm),
+   $Concourse$Metadata = Elm.Concourse.Metadata.make(_elm),
+   $Concourse$Version = Elm.Concourse.Version.make(_elm),
+   $Date = Elm.Date.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $EventSource = Elm.EventSource.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var dateFromSeconds = function (_p0) {    return $Date.fromTime(A2(F2(function (x,y) {    return x * y;}),1000,_p0));};
+   var Origin = F2(function (a,b) {    return {source: a,id: b};});
+   var decodeOrigin = A3($Json$Decode.object2,
+   Origin,
+   function (_p1) {
+      return A2($Json$Decode.map,$Maybe.withDefault(""),$Json$Decode.maybe(_p1));
+   }(A2($Json$Decode._op[":="],"source",$Json$Decode.string)),
+   A2($Json$Decode._op[":="],"id",$Json$Decode.string));
+   var decodeFinishResource = function (cons) {
+      return A5($Json$Decode.object4,
+      cons,
+      A2($Json$Decode._op[":="],"origin",decodeOrigin),
+      A2($Json$Decode._op[":="],"exit_status",$Json$Decode.$int),
+      A2($Json$Decode._op[":="],"version",$Concourse$Version.decode),
+      function (_p2) {
+         return A2($Json$Decode.map,$Maybe.withDefault(_U.list([])),$Json$Decode.maybe(_p2));
+      }(A2($Json$Decode._op[":="],"metadata",$Concourse$Metadata.decode)));
+   };
+   var BuildEventEnvelope = F3(function (a,b,c) {    return {event: a,version: b,value: c};});
+   var decodeEnvelope = A4($Json$Decode.object3,
+   BuildEventEnvelope,
+   A2($Json$Decode._op[":="],"event",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"version",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"data",$Json$Decode.value));
+   var End = {ctor: "End"};
+   var Event = function (a) {    return {ctor: "Event",_0: a};};
+   var Errored = {ctor: "Errored"};
+   var Opened = {ctor: "Opened"};
+   var BuildError = function (a) {    return {ctor: "BuildError",_0: a};};
+   var Error = F2(function (a,b) {    return {ctor: "Error",_0: a,_1: b};});
+   var decodeErrorEvent = $Json$Decode.oneOf(_U.list([A3($Json$Decode.object2,
+                                                     Error,
+                                                     A2($Json$Decode._op[":="],"origin",decodeOrigin),
+                                                     A2($Json$Decode._op[":="],"message",$Json$Decode.string))
+                                                     ,A2($Json$Decode.object1,BuildError,A2($Json$Decode._op[":="],"message",$Json$Decode.string))]));
+   var Log = F2(function (a,b) {    return {ctor: "Log",_0: a,_1: b};});
+   var FinishTask = F2(function (a,b) {    return {ctor: "FinishTask",_0: a,_1: b};});
+   var StartTask = function (a) {    return {ctor: "StartTask",_0: a};};
+   var InitializeTask = function (a) {    return {ctor: "InitializeTask",_0: a};};
+   var FinishPut = F4(function (a,b,c,d) {    return {ctor: "FinishPut",_0: a,_1: b,_2: c,_3: d};});
+   var FinishGet = F4(function (a,b,c,d) {    return {ctor: "FinishGet",_0: a,_1: b,_2: c,_3: d};});
+   var BuildStatus = F2(function (a,b) {    return {ctor: "BuildStatus",_0: a,_1: b};});
+   var decodeEvent = function (e) {
+      var _p3 = e.event;
+      switch (_p3)
+      {case "status": return A2($Json$Decode.decodeValue,
+           A3($Json$Decode.object2,
+           BuildStatus,
+           A2($Json$Decode._op[":="],"status",$Concourse$BuildStatus.decode),
+           A2($Json$Decode._op[":="],"time",A2($Json$Decode.map,dateFromSeconds,$Json$Decode.$float))),
+           e.value);
+         case "log": return A2($Json$Decode.decodeValue,
+           A3($Json$Decode.object2,Log,A2($Json$Decode._op[":="],"origin",decodeOrigin),A2($Json$Decode._op[":="],"payload",$Json$Decode.string)),
+           e.value);
+         case "error": return A2($Json$Decode.decodeValue,decodeErrorEvent,e.value);
+         case "initialize-task": return A2($Json$Decode.decodeValue,
+           A2($Json$Decode.object1,InitializeTask,A2($Json$Decode._op[":="],"origin",decodeOrigin)),
+           e.value);
+         case "start-task": return A2($Json$Decode.decodeValue,A2($Json$Decode.object1,StartTask,A2($Json$Decode._op[":="],"origin",decodeOrigin)),e.value);
+         case "finish-task": return A2($Json$Decode.decodeValue,
+           A3($Json$Decode.object2,FinishTask,A2($Json$Decode._op[":="],"origin",decodeOrigin),A2($Json$Decode._op[":="],"exit_status",$Json$Decode.$int)),
+           e.value);
+         case "finish-get": return A2($Json$Decode.decodeValue,decodeFinishResource(FinishGet),e.value);
+         case "finish-put": return A2($Json$Decode.decodeValue,decodeFinishResource(FinishPut),e.value);
+         default: return $Result.Err(A2($Basics._op["++"],"unknown event type: ",_p3));}
+   };
+   var decode = A2($Json$Decode.customDecoder,decodeEnvelope,decodeEvent);
+   var parseEvent = function (e) {    return A2($Json$Decode.decodeString,decode,e.data);};
+   var subscribe = F2(function (build,actions) {
+      var endSub = A2($EventSource.on,"end",A2($Signal.forwardTo,actions,$Basics.always(End)));
+      var eventsSub = A2($EventSource.on,"event",A2($Signal.forwardTo,actions,function (_p4) {    return Event(parseEvent(_p4));}));
+      var settings = A2($EventSource.Settings,
+      $Maybe.Just(A2($Signal.forwardTo,actions,$Basics.always(Opened))),
+      $Maybe.Just(A2($Signal.forwardTo,actions,$Basics.always(Errored))));
+      var connect = A2($EventSource.connect,A2($Basics._op["++"],"/api/v1/builds/",A2($Basics._op["++"],$Basics.toString(build),"/events")),settings);
+      return A2($Task.andThen,A2($Task.andThen,connect,eventsSub),endSub);
+   });
+   return _elm.Concourse.BuildEvents.values = {_op: _op
+                                              ,BuildStatus: BuildStatus
+                                              ,FinishGet: FinishGet
+                                              ,FinishPut: FinishPut
+                                              ,InitializeTask: InitializeTask
+                                              ,StartTask: StartTask
+                                              ,FinishTask: FinishTask
+                                              ,Log: Log
+                                              ,Error: Error
+                                              ,BuildError: BuildError
+                                              ,Opened: Opened
+                                              ,Errored: Errored
+                                              ,Event: Event
+                                              ,End: End
+                                              ,BuildEventEnvelope: BuildEventEnvelope
+                                              ,Origin: Origin
+                                              ,subscribe: subscribe
+                                              ,parseEvent: parseEvent
+                                              ,decode: decode
+                                              ,decodeEnvelope: decodeEnvelope
+                                              ,dateFromSeconds: dateFromSeconds
+                                              ,decodeEvent: decodeEvent
+                                              ,decodeFinishResource: decodeFinishResource
+                                              ,decodeErrorEvent: decodeErrorEvent
+                                              ,decodeOrigin: decodeOrigin};
+};
+Elm.Concourse = Elm.Concourse || {};
 Elm.Concourse.BuildPlan = Elm.Concourse.BuildPlan || {};
 Elm.Concourse.BuildPlan.make = function (_elm) {
    "use strict";
@@ -12344,8 +12514,8 @@ Elm.Concourse.BuildPlan.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $Concourse$Version = Elm.Concourse.Version.make(_elm),
    $Debug = Elm.Debug.make(_elm),
-   $Dict = Elm.Dict.make(_elm),
    $Http = Elm.Http.make(_elm),
    $Json$Decode = Elm.Json.Decode.make(_elm),
    $List = Elm.List.make(_elm),
@@ -12373,7 +12543,7 @@ Elm.Concourse.BuildPlan.make = function (_elm) {
    var decodeGet = A3($Json$Decode.object2,
    Get,
    A2($Json$Decode._op[":="],"name",$Json$Decode.string),
-   $Json$Decode.maybe(A2($Json$Decode._op[":="],"version",$Json$Decode.dict($Json$Decode.string))));
+   $Json$Decode.maybe(A2($Json$Decode._op[":="],"version",$Concourse$Version.decode)));
    var Task = function (a) {    return {ctor: "Task",_0: a};};
    var decodeTask = A2($Json$Decode.object1,Task,A2($Json$Decode._op[":="],"name",$Json$Decode.string));
    var BuildPlan = F2(function (a,b) {    return {id: a,step: b};});
@@ -12456,8 +12626,9 @@ Elm.Concourse.BuildResources.make = function (_elm) {
    if (_elm.Concourse.BuildResources.values) return _elm.Concourse.BuildResources.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $Concourse$Metadata = Elm.Concourse.Metadata.make(_elm),
+   $Concourse$Version = Elm.Concourse.Version.make(_elm),
    $Debug = Elm.Debug.make(_elm),
-   $Dict = Elm.Dict.make(_elm),
    $Http = Elm.Http.make(_elm),
    $Json$Decode = Elm.Json.Decode.make(_elm),
    $List = Elm.List.make(_elm),
@@ -12466,11 +12637,6 @@ Elm.Concourse.BuildResources.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
-   var MetadataField = F2(function (a,b) {    return {name: a,value: b};});
-   var decodeMetadataField = A3($Json$Decode.object2,
-   MetadataField,
-   A2($Json$Decode._op[":="],"name",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"value",$Json$Decode.string));
    var BuildOutput = F2(function (a,b) {    return {resource: a,version: b};});
    var decodeOutput = A3($Json$Decode.object2,
    BuildOutput,
@@ -12482,8 +12648,8 @@ Elm.Concourse.BuildResources.make = function (_elm) {
    A2($Json$Decode._op[":="],"name",$Json$Decode.string),
    A2($Json$Decode._op[":="],"resource",$Json$Decode.string),
    A2($Json$Decode._op[":="],"type",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"version",$Json$Decode.dict($Json$Decode.string)),
-   A2($Json$Decode._op[":="],"metadata",$Json$Decode.list(decodeMetadataField)),
+   A2($Json$Decode._op[":="],"version",$Concourse$Version.decode),
+   A2($Json$Decode._op[":="],"metadata",$Concourse$Metadata.decode),
    A2($Json$Decode._op[":="],"pipeline_name",$Json$Decode.string),
    A2($Json$Decode._op[":="],"first_occurrence",$Json$Decode.bool));
    var BuildResources = F2(function (a,b) {    return {inputs: a,outputs: b};});
@@ -12498,164 +12664,50 @@ Elm.Concourse.BuildResources.make = function (_elm) {
                                                  ,BuildResources: BuildResources
                                                  ,BuildInput: BuildInput
                                                  ,BuildOutput: BuildOutput
-                                                 ,MetadataField: MetadataField
                                                  ,fetch: fetch
                                                  ,decode: decode
                                                  ,decodeInput: decodeInput
-                                                 ,decodeMetadataField: decodeMetadataField
                                                  ,decodeOutput: decodeOutput};
 };
-Elm.Concourse = Elm.Concourse || {};
-Elm.Concourse.BuildEvents = Elm.Concourse.BuildEvents || {};
-Elm.Concourse.BuildEvents.make = function (_elm) {
+Elm.Duration = Elm.Duration || {};
+Elm.Duration.make = function (_elm) {
    "use strict";
-   _elm.Concourse = _elm.Concourse || {};
-   _elm.Concourse.BuildEvents = _elm.Concourse.BuildEvents || {};
-   if (_elm.Concourse.BuildEvents.values) return _elm.Concourse.BuildEvents.values;
+   _elm.Duration = _elm.Duration || {};
+   if (_elm.Duration.values) return _elm.Duration.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
-   $Concourse$BuildStatus = Elm.Concourse.BuildStatus.make(_elm),
-   $Date = Elm.Date.make(_elm),
    $Debug = Elm.Debug.make(_elm),
-   $Dict = Elm.Dict.make(_elm),
-   $EventSource = Elm.EventSource.make(_elm),
-   $Json$Decode = Elm.Json.Decode.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $Task = Elm.Task.make(_elm);
+   $Time = Elm.Time.make(_elm);
    var _op = {};
-   var decodeVersion = $Json$Decode.dict($Json$Decode.string);
-   var dateFromSeconds = function (_p0) {    return $Date.fromTime(A2(F2(function (x,y) {    return x * y;}),1000,_p0));};
-   var MetadataField = F2(function (a,b) {    return {name: a,value: b};});
-   var decodeMetadataField = A3($Json$Decode.object2,
-   MetadataField,
-   A2($Json$Decode._op[":="],"name",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"value",$Json$Decode.string));
-   var decodeMetadata = $Json$Decode.list(decodeMetadataField);
-   var StepTypePut = {ctor: "StepTypePut"};
-   var StepTypeGet = {ctor: "StepTypeGet"};
-   var StepTypeTask = {ctor: "StepTypeTask"};
-   var decodeStepType = A2($Json$Decode.customDecoder,
-   A2($Json$Decode._op[":="],"type",$Json$Decode.string),
-   function (t) {
-      var _p1 = t;
-      switch (_p1)
-      {case "task": return $Result.Ok(StepTypeTask);
-         case "get": return $Result.Ok(StepTypeGet);
-         case "put": return $Result.Ok(StepTypePut);
-         default: return $Result.Err(A2($Basics._op["++"],"unknown step type: ",_p1));}
-   });
-   var Origin = F2(function (a,b) {    return {source: a,id: b};});
-   var decodeOrigin = A3($Json$Decode.object2,
-   Origin,
-   function (_p2) {
-      return A2($Json$Decode.map,$Maybe.withDefault(""),$Json$Decode.maybe(_p2));
-   }(A2($Json$Decode._op[":="],"source",$Json$Decode.string)),
-   A2($Json$Decode._op[":="],"id",$Json$Decode.string));
-   var decodeFinishResource = function (cons) {
-      return A5($Json$Decode.object4,
-      cons,
-      A2($Json$Decode._op[":="],"origin",decodeOrigin),
-      A2($Json$Decode._op[":="],"exit_status",$Json$Decode.$int),
-      A2($Json$Decode._op[":="],"version",decodeVersion),
-      function (_p3) {
-         return A2($Json$Decode.map,$Maybe.withDefault(_U.list([])),$Json$Decode.maybe(_p3));
-      }(A2($Json$Decode._op[":="],"metadata",decodeMetadata)));
+   var format = function (duration) {
+      var seconds = $Basics.truncate(duration / 1000);
+      var remainingSeconds = A2($Basics.rem,seconds,60);
+      var minutes = seconds / 60 | 0;
+      var remainingMinutes = A2($Basics.rem,minutes,60);
+      var hours = minutes / 60 | 0;
+      var remainingHours = A2($Basics.rem,hours,24);
+      var days = hours / 24 | 0;
+      var _p0 = {ctor: "_Tuple4",_0: days,_1: remainingHours,_2: remainingMinutes,_3: remainingSeconds};
+      if (_p0._0 === 0) {
+            if (_p0._1 === 0) {
+                  if (_p0._2 === 0) {
+                        return A2($Basics._op["++"],$Basics.toString(_p0._3),"s");
+                     } else {
+                        return A2($Basics._op["++"],$Basics.toString(_p0._2),A2($Basics._op["++"],"m ",A2($Basics._op["++"],$Basics.toString(_p0._3),"s")));
+                     }
+               } else {
+                  return A2($Basics._op["++"],$Basics.toString(_p0._1),A2($Basics._op["++"],"h ",A2($Basics._op["++"],$Basics.toString(_p0._2),"m")));
+               }
+         } else {
+            return A2($Basics._op["++"],$Basics.toString(_p0._0),A2($Basics._op["++"],"d ",A2($Basics._op["++"],$Basics.toString(_p0._1),"h")));
+         }
    };
-   var BuildEventEnvelope = F3(function (a,b,c) {    return {event: a,version: b,value: c};});
-   var decodeEnvelope = A4($Json$Decode.object3,
-   BuildEventEnvelope,
-   A2($Json$Decode._op[":="],"event",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"version",$Json$Decode.string),
-   A2($Json$Decode._op[":="],"data",$Json$Decode.value));
-   var End = {ctor: "End"};
-   var Event = function (a) {    return {ctor: "Event",_0: a};};
-   var Errored = {ctor: "Errored"};
-   var Opened = {ctor: "Opened"};
-   var BuildError = function (a) {    return {ctor: "BuildError",_0: a};};
-   var Error = F2(function (a,b) {    return {ctor: "Error",_0: a,_1: b};});
-   var decodeErrorEvent = $Json$Decode.oneOf(_U.list([A3($Json$Decode.object2,
-                                                     Error,
-                                                     A2($Json$Decode._op[":="],"origin",decodeOrigin),
-                                                     A2($Json$Decode._op[":="],"message",$Json$Decode.string))
-                                                     ,A2($Json$Decode.object1,BuildError,A2($Json$Decode._op[":="],"message",$Json$Decode.string))]));
-   var Log = F2(function (a,b) {    return {ctor: "Log",_0: a,_1: b};});
-   var FinishTask = F2(function (a,b) {    return {ctor: "FinishTask",_0: a,_1: b};});
-   var StartTask = function (a) {    return {ctor: "StartTask",_0: a};};
-   var InitializeTask = function (a) {    return {ctor: "InitializeTask",_0: a};};
-   var FinishPut = F4(function (a,b,c,d) {    return {ctor: "FinishPut",_0: a,_1: b,_2: c,_3: d};});
-   var FinishGet = F4(function (a,b,c,d) {    return {ctor: "FinishGet",_0: a,_1: b,_2: c,_3: d};});
-   var BuildStatus = F2(function (a,b) {    return {ctor: "BuildStatus",_0: a,_1: b};});
-   var decodeEvent = function (e) {
-      var _p4 = e.event;
-      switch (_p4)
-      {case "status": return A2($Json$Decode.decodeValue,
-           A3($Json$Decode.object2,
-           BuildStatus,
-           A2($Json$Decode._op[":="],"status",$Concourse$BuildStatus.decode),
-           A2($Json$Decode._op[":="],"time",A2($Json$Decode.map,dateFromSeconds,$Json$Decode.$float))),
-           e.value);
-         case "log": return A2($Json$Decode.decodeValue,
-           A3($Json$Decode.object2,Log,A2($Json$Decode._op[":="],"origin",decodeOrigin),A2($Json$Decode._op[":="],"payload",$Json$Decode.string)),
-           e.value);
-         case "error": return A2($Json$Decode.decodeValue,decodeErrorEvent,e.value);
-         case "initialize-task": return A2($Json$Decode.decodeValue,
-           A2($Json$Decode.object1,InitializeTask,A2($Json$Decode._op[":="],"origin",decodeOrigin)),
-           e.value);
-         case "start-task": return A2($Json$Decode.decodeValue,A2($Json$Decode.object1,StartTask,A2($Json$Decode._op[":="],"origin",decodeOrigin)),e.value);
-         case "finish-task": return A2($Json$Decode.decodeValue,
-           A3($Json$Decode.object2,FinishTask,A2($Json$Decode._op[":="],"origin",decodeOrigin),A2($Json$Decode._op[":="],"exit_status",$Json$Decode.$int)),
-           e.value);
-         case "finish-get": return A2($Json$Decode.decodeValue,decodeFinishResource(FinishGet),e.value);
-         case "finish-put": return A2($Json$Decode.decodeValue,decodeFinishResource(FinishPut),e.value);
-         default: return $Result.Err(A2($Basics._op["++"],"unknown event type: ",_p4));}
-   };
-   var decode = A2($Json$Decode.customDecoder,decodeEnvelope,decodeEvent);
-   var parseEvent = function (e) {    return A2($Json$Decode.decodeString,decode,e.data);};
-   var subscribe = F2(function (build,actions) {
-      var endSub = A2($EventSource.on,"end",A2($Signal.forwardTo,actions,$Basics.always(End)));
-      var eventsSub = A2($EventSource.on,"event",A2($Signal.forwardTo,actions,function (_p5) {    return Event(parseEvent(_p5));}));
-      var settings = A2($EventSource.Settings,
-      $Maybe.Just(A2($Signal.forwardTo,actions,$Basics.always(Opened))),
-      $Maybe.Just(A2($Signal.forwardTo,actions,$Basics.always(Errored))));
-      var connect = A2($EventSource.connect,A2($Basics._op["++"],"/api/v1/builds/",A2($Basics._op["++"],$Basics.toString(build),"/events")),settings);
-      return A2($Task.andThen,A2($Task.andThen,connect,eventsSub),endSub);
-   });
-   return _elm.Concourse.BuildEvents.values = {_op: _op
-                                              ,BuildStatus: BuildStatus
-                                              ,FinishGet: FinishGet
-                                              ,FinishPut: FinishPut
-                                              ,InitializeTask: InitializeTask
-                                              ,StartTask: StartTask
-                                              ,FinishTask: FinishTask
-                                              ,Log: Log
-                                              ,Error: Error
-                                              ,BuildError: BuildError
-                                              ,Opened: Opened
-                                              ,Errored: Errored
-                                              ,Event: Event
-                                              ,End: End
-                                              ,BuildEventEnvelope: BuildEventEnvelope
-                                              ,Origin: Origin
-                                              ,StepTypeTask: StepTypeTask
-                                              ,StepTypeGet: StepTypeGet
-                                              ,StepTypePut: StepTypePut
-                                              ,MetadataField: MetadataField
-                                              ,subscribe: subscribe
-                                              ,parseEvent: parseEvent
-                                              ,decode: decode
-                                              ,decodeEnvelope: decodeEnvelope
-                                              ,dateFromSeconds: dateFromSeconds
-                                              ,decodeEvent: decodeEvent
-                                              ,decodeFinishResource: decodeFinishResource
-                                              ,decodeVersion: decodeVersion
-                                              ,decodeMetadata: decodeMetadata
-                                              ,decodeMetadataField: decodeMetadataField
-                                              ,decodeErrorEvent: decodeErrorEvent
-                                              ,decodeOrigin: decodeOrigin
-                                              ,decodeStepType: decodeStepType};
+   var between = F2(function (a,b) {    return b - a;});
+   return _elm.Duration.values = {_op: _op,between: between,format: format};
 };
 Elm.Native.Scroll = {};
 Elm.Native.Scroll.make = function(localRuntime) {
@@ -13071,46 +13123,6 @@ Elm.StepTree.make = function (_elm) {
                                  ,StepStateFailed: StepStateFailed
                                  ,StepStateErrored: StepStateErrored};
 };
-Elm.Duration = Elm.Duration || {};
-Elm.Duration.make = function (_elm) {
-   "use strict";
-   _elm.Duration = _elm.Duration || {};
-   if (_elm.Duration.values) return _elm.Duration.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Time = Elm.Time.make(_elm);
-   var _op = {};
-   var format = function (duration) {
-      var seconds = $Basics.truncate(duration / 1000);
-      var remainingSeconds = A2($Basics.rem,seconds,60);
-      var minutes = seconds / 60 | 0;
-      var remainingMinutes = A2($Basics.rem,minutes,60);
-      var hours = minutes / 60 | 0;
-      var remainingHours = A2($Basics.rem,hours,24);
-      var days = hours / 24 | 0;
-      var _p0 = {ctor: "_Tuple4",_0: days,_1: remainingHours,_2: remainingMinutes,_3: remainingSeconds};
-      if (_p0._0 === 0) {
-            if (_p0._1 === 0) {
-                  if (_p0._2 === 0) {
-                        return A2($Basics._op["++"],$Basics.toString(_p0._3),"s");
-                     } else {
-                        return A2($Basics._op["++"],$Basics.toString(_p0._2),A2($Basics._op["++"],"m ",A2($Basics._op["++"],$Basics.toString(_p0._3),"s")));
-                     }
-               } else {
-                  return A2($Basics._op["++"],$Basics.toString(_p0._1),A2($Basics._op["++"],"h ",A2($Basics._op["++"],$Basics.toString(_p0._2),"m")));
-               }
-         } else {
-            return A2($Basics._op["++"],$Basics.toString(_p0._0),A2($Basics._op["++"],"d ",A2($Basics._op["++"],$Basics.toString(_p0._1),"h")));
-         }
-   };
-   var between = F2(function (a,b) {    return b - a;});
-   return _elm.Duration.values = {_op: _op,between: between,format: format};
-};
 Elm.Build = Elm.Build || {};
 Elm.Build.make = function (_elm) {
    "use strict";
@@ -13124,7 +13136,9 @@ Elm.Build.make = function (_elm) {
    $Concourse$BuildPlan = Elm.Concourse.BuildPlan.make(_elm),
    $Concourse$BuildResources = Elm.Concourse.BuildResources.make(_elm),
    $Concourse$BuildStatus = Elm.Concourse.BuildStatus.make(_elm),
+   $Concourse$Metadata = Elm.Concourse.Metadata.make(_elm),
    $Concourse$Pagination = Elm.Concourse.Pagination.make(_elm),
+   $Concourse$Version = Elm.Concourse.Version.make(_elm),
    $Date = Elm.Date.make(_elm),
    $Date$Format = Elm.Date.Format.make(_elm),
    $Debug = Elm.Debug.make(_elm),
@@ -13563,7 +13577,7 @@ Elm.Build.make = function (_elm) {
                                     ,_0: withBuilds
                                     ,_1: $Effects.batch(_U.list([A2(fetchBuildHistory,_p30._1._0,$Maybe.Just(_p30._0._0)),scrollToCurrent]))};
                           } else {
-                             return _U.crashCase("Build",{start: {line: 200,column: 9},end: {line: 208,column: 37}},_p30)("impossible");
+                             return _U.crashCase("Build",{start: {line: 199,column: 9},end: {line: 207,column: 37}},_p30)("impossible");
                           }
                     }
               }
