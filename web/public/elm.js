@@ -13203,10 +13203,10 @@ Elm.Build.make = function (_elm) {
                   } else {
                      var _p2 = _p0._0._0;
                      var _p1 = _p0._1._0;
-                     var duration = A2($Duration.between,$Date.toTime(_p2),$Date.toTime(_p1));
+                     var durationElmIssue = A2($Duration.between,$Date.toTime(_p2),$Date.toTime(_p1));
                      return A2($Basics._op["++"],
                      A3(labeledRelativeDate,"started",now,_p2),
-                     A2($Basics._op["++"],A3(labeledRelativeDate,"finished",now,_p1),A2(labeledDuration,"duration",duration)));
+                     A2($Basics._op["++"],A3(labeledRelativeDate,"finished",now,_p1),A2(labeledDuration,"duration",durationElmIssue)));
                   }
             }
       }());
