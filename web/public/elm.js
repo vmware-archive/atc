@@ -10897,7 +10897,19 @@ Elm.Ansi.Log.make = function (_elm) {
    var viewLine = function (line) {    return A2($Html.div,_U.list([]),A2($Basics._op["++"],A2($List.map,viewChunk,line),_U.list([$Html.text("\n")])));};
    var lazyLine = $Html$Lazy.lazy(viewLine);
    var view = function (model) {    return A2($Html.pre,_U.list([]),$Array.toList(A2($Array.map,lazyLine,model.lines)));};
-   var lineLen = function (line) {    var _p1 = line;if (_p1.ctor === "[]") {    return 0;} else {    return $String.length(_p1._0.text) + lineLen(_p1._1);}};
+   var lineLen = F2(function (acc,line) {
+      lineLen: while (true) {
+         var _p1 = line;
+         if (_p1.ctor === "[]") {
+               return acc;
+            } else {
+               var _v2 = acc + $String.length(_p1._0.text),_v3 = _p1._1;
+               acc = _v2;
+               line = _v3;
+               continue lineLen;
+            }
+      }
+   });
    var takeLen = F3(function (acc,len,line) {
       takeLen: while (true) if (_U.eq(len,0)) return acc; else {
             var _p2 = line;
@@ -10905,10 +10917,10 @@ Elm.Ansi.Log.make = function (_elm) {
                   var _p3 = _p2._0;
                   var chunkLen = $String.length(_p3.text);
                   if (_U.cmp(chunkLen,len) < 0) {
-                        var _v3 = A2($Basics._op["++"],acc,_U.list([_p3])),_v4 = len - chunkLen,_v5 = _p2._1;
-                        acc = _v3;
-                        len = _v4;
-                        line = _v5;
+                        var _v5 = A2($Basics._op["++"],acc,_U.list([_p3])),_v6 = len - chunkLen,_v7 = _p2._1;
+                        acc = _v5;
+                        len = _v6;
+                        line = _v7;
                         continue takeLen;
                      } else return A2($Basics._op["++"],acc,_U.list([_U.update(_p3,{text: A2($String.left,len,_p3.text)})]));
                } else {
@@ -10924,9 +10936,9 @@ Elm.Ansi.Log.make = function (_elm) {
                var _p5 = _p4._0;
                var chunkLen = $String.length(_p5.text);
                if (_U.cmp(chunkLen,len) > 0) return A2($List._op["::"],_U.update(_p5,{text: A2($String.dropLeft,len,_p5.text)}),_p6); else {
-                     var _v7 = len - chunkLen,_v8 = _p6;
-                     len = _v7;
-                     line = _v8;
+                     var _v9 = len - chunkLen,_v10 = _p6;
+                     len = _v9;
+                     line = _v10;
                      continue dropLen;
                   }
             } else {
@@ -10937,7 +10949,7 @@ Elm.Ansi.Log.make = function (_elm) {
    var writeChunk = F3(function (pos,chunk,line) {
       var after = A2(dropLen,pos + $String.length(chunk.text),line);
       var chunksBefore = A3(takeLen,_U.list([]),pos,line);
-      var chunksLen = lineLen(chunksBefore);
+      var chunksLen = A2(lineLen,0,chunksBefore);
       var before = _U.cmp(chunksLen,pos) < 0 ? A2($Basics._op["++"],
       chunksBefore,
       _U.list([{style: chunk.style,text: A2($String.repeat,pos - chunksLen," ")}])) : chunksBefore;
@@ -10957,10 +10969,10 @@ Elm.Ansi.Log.make = function (_elm) {
    });
    var appendLine = F3(function (after,line,lines) {
       appendLine: while (true) if (_U.eq(after,0)) return A2($Array.push,line,lines); else {
-            var _v10 = after - 1,_v11 = line,_v12 = A2($Array.push,_U.list([]),lines);
-            after = _v10;
-            line = _v11;
-            lines = _v12;
+            var _v12 = after - 1,_v13 = line,_v14 = A2($Array.push,_U.list([]),lines);
+            after = _v12;
+            line = _v13;
+            lines = _v14;
             continue appendLine;
          }
    });
@@ -10993,8 +11005,8 @@ Elm.Ansi.Log.make = function (_elm) {
               return _U.update(model,
               {lines: A3(updateLine,model.position.row,update,model.lines),position: A3(moveCursor,0,$String.length(_p9),model.position)});
             case "CarriageReturn": return _U.update(model,{position: A2(CursorPosition,model.position.row,0)});
-            case "Linebreak": var _v15 = $Ansi.Print(""),
-              _v16 = function () {
+            case "Linebreak": var _v17 = $Ansi.Print(""),
+              _v18 = function () {
                  var _p10 = model.lineDiscipline;
                  if (_p10.ctor === "Raw") {
                        return _U.update(model,{position: A3(moveCursor,1,0,model.position)});
@@ -11002,8 +11014,8 @@ Elm.Ansi.Log.make = function (_elm) {
                        return _U.update(model,{position: A2(CursorPosition,model.position.row + 1,0)});
                     }
               }();
-              action = _v15;
-              model = _v16;
+              action = _v17;
+              model = _v18;
               continue handleAction;
             case "Remainder": return _U.update(model,{remainder: _p8._0});
             case "CursorUp": return _U.update(model,{position: A3(moveCursor,0 - _p8._0,0,model.position)});
@@ -13525,13 +13537,16 @@ Elm.Build.make = function (_elm) {
            }();
            return {ctor: "_Tuple2",_0: _U.update(model,{stepState: newState}),_1: $Effects.none};
          case "Event": if (_p23._0.ctor === "Ok") {
-                 return A2(handleEvent,_p23._0._0,model);
+                 var _p25 = A2(handleEvent,_p23._0._0,model);
+                 var returnedModel = _p25._0;
+                 var returnedEvent = _p25._1;
+                 return {ctor: "_Tuple2",_0: returnedModel,_1: $Effects.batch(_U.list([returnedEvent,scrollToBottom]))};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: A2($Debug.log,_p23._0._0,$Effects.none)};
               }
-         default: var _p25 = model.eventSource;
-           if (_p25.ctor === "Just") {
-                 return {ctor: "_Tuple2",_0: _U.update(model,{stepState: StepsComplete}),_1: closeEvents(_p25._0)};
+         default: var _p26 = model.eventSource;
+           if (_p26.ctor === "Just") {
+                 return {ctor: "_Tuple2",_0: _U.update(model,{stepState: StepsComplete}),_1: closeEvents(_p26._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }}
@@ -13540,9 +13555,9 @@ Elm.Build.make = function (_elm) {
    var StepsLoading = {ctor: "StepsLoading"};
    var handleBuildFetched = F2(function (build,model) {
       var fetchHistory = function () {
-         var _p26 = {ctor: "_Tuple2",_0: model.build,_1: build.job};
-         if (_p26.ctor === "_Tuple2" && _p26._0.ctor === "Nothing" && _p26._1.ctor === "Just") {
-               return A2(fetchBuildHistory,_p26._1._0,$Maybe.Nothing);
+         var _p27 = {ctor: "_Tuple2",_0: model.build,_1: build.job};
+         if (_p27.ctor === "_Tuple2" && _p27._0.ctor === "Nothing" && _p27._1.ctor === "Just") {
+               return A2(fetchBuildHistory,_p27._1._0,$Maybe.Nothing);
             } else {
                return $Effects.none;
             }
@@ -13556,65 +13571,65 @@ Elm.Build.make = function (_elm) {
              ,_1: $Effects.batch(_U.list([fetch,fetchHistory]))};
    });
    var update = F2(function (action,model) {
-      var _p27 = action;
-      switch (_p27.ctor)
+      var _p28 = action;
+      switch (_p28.ctor)
       {case "Noop": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          case "ScrollTick": return _U.eq(model.stepState,StepsLiveUpdating) && model.autoScroll ? {ctor: "_Tuple2"
                                                                                                   ,_0: model
                                                                                                   ,_1: scrollToBottom} : {ctor: "_Tuple2"
                                                                                                                          ,_0: model
                                                                                                                          ,_1: $Effects.none};
-         case "ScrollFromBottom": return {ctor: "_Tuple2",_0: _U.update(model,{autoScroll: _U.eq(_p27._0,0)}),_1: $Effects.none};
+         case "ScrollFromBottom": return {ctor: "_Tuple2",_0: _U.update(model,{autoScroll: _U.eq(_p28._0,0)}),_1: $Effects.none};
          case "AbortBuild": return {ctor: "_Tuple2",_0: model,_1: abortBuild(model.buildId)};
-         case "BuildAborted": if (_p27._0.ctor === "Ok") {
+         case "BuildAborted": if (_p28._0.ctor === "Ok") {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               } else {
-                 if (_p27._0._0.ctor === "BadResponse" && _p27._0._0._0 === 401) {
+                 if (_p28._0._0.ctor === "BadResponse" && _p28._0._0._0 === 401) {
                        return {ctor: "_Tuple2",_0: model,_1: redirectToLogin(model)};
                     } else {
                        return A2($Debug.log,
-                       A2($Basics._op["++"],"failed to abort build: ",$Basics.toString(_p27._0._0)),
+                       A2($Basics._op["++"],"failed to abort build: ",$Basics.toString(_p28._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               }
-         case "BuildFetched": if (_p27._0.ctor === "Ok") {
-                 return A2(handleBuildFetched,_p27._0._0,model);
+         case "BuildFetched": if (_p28._0.ctor === "Ok") {
+                 return A2(handleBuildFetched,_p28._0._0,model);
               } else {
                  return A2($Debug.log,
-                 A2($Basics._op["++"],"failed to fetch build: ",$Basics.toString(_p27._0._0)),
+                 A2($Basics._op["++"],"failed to fetch build: ",$Basics.toString(_p28._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
-         case "PlanAndResourcesFetched": if (_p27._0.ctor === "Err") {
-                 if (_p27._0._0.ctor === "BadResponse" && _p27._0._0._0 === 404) {
+         case "PlanAndResourcesFetched": if (_p28._0.ctor === "Err") {
+                 if (_p28._0._0.ctor === "BadResponse" && _p28._0._0._0 === 404) {
                        return {ctor: "_Tuple2",_0: model,_1: A2(subscribeToEvents,model.buildId,model.actions)};
                     } else {
                        return A2($Debug.log,
-                       A2($Basics._op["++"],"failed to fetch plan: ",$Basics.toString(_p27._0._0)),
+                       A2($Basics._op["++"],"failed to fetch plan: ",$Basics.toString(_p28._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               } else {
                  return {ctor: "_Tuple2"
-                        ,_0: _U.update(model,{steps: $Maybe.Just(A2($StepTree.init,_p27._0._0._1,_p27._0._0._0))})
+                        ,_0: _U.update(model,{steps: $Maybe.Just(A2($StepTree.init,_p28._0._0._1,_p28._0._0._0))})
                         ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
               }
-         case "BuildHistoryFetched": if (_p27._0.ctor === "Err") {
+         case "BuildHistoryFetched": if (_p28._0.ctor === "Err") {
                  return A2($Debug.log,
-                 A2($Basics._op["++"],"failed to fetch build history: ",$Basics.toString(_p27._0._0)),
+                 A2($Basics._op["++"],"failed to fetch build history: ",$Basics.toString(_p28._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
-                 return A2(handleHistoryFetched,_p27._0._0,model);
+                 return A2(handleHistoryFetched,_p28._0._0,model);
               }
          case "RevealCurrentBuildInHistory": return {ctor: "_Tuple2",_0: model,_1: scrollToCurrentBuildInHistory};
-         case "BuildEventsListening": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Just(_p27._0)}),_1: $Effects.none};
-         case "BuildEventsAction": return A2(handleEventsAction,_p27._0,model);
+         case "BuildEventsListening": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Just(_p28._0)}),_1: $Effects.none};
+         case "BuildEventsAction": return A2(handleEventsAction,_p28._0,model);
          case "BuildEventsClosed": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Nothing}),_1: $Effects.none};
-         case "StepTreeAction": return {ctor: "_Tuple2",_0: _U.update(model,{steps: A2($Maybe.map,$StepTree.update(_p27._0),model.steps)}),_1: $Effects.none};
-         case "ScrollBuilds": if (_p27._0._0 === 0) {
-                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(_p27._0._1)};
+         case "StepTreeAction": return {ctor: "_Tuple2",_0: _U.update(model,{steps: A2($Maybe.map,$StepTree.update(_p28._0),model.steps)}),_1: $Effects.none};
+         case "ScrollBuilds": if (_p28._0._0 === 0) {
+                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(_p28._0._1)};
               } else {
-                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(0 - _p27._0._0)};
+                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(0 - _p28._0._0)};
               }
-         default: return {ctor: "_Tuple2",_0: _U.update(model,{now: _p27._0}),_1: $Effects.none};}
+         default: return {ctor: "_Tuple2",_0: _U.update(model,{now: _p28._0}),_1: $Effects.none};}
    });
    var BuildDuration = F2(function (a,b) {    return {startedAt: a,finishedAt: b};});
    var init = F3(function (redirect,actions,buildId) {
