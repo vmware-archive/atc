@@ -12867,13 +12867,13 @@ Elm.StepTree.make = function (_elm) {
          switch (_p1.ctor)
          {case "Aggregate": return _p1._0;
             case "Do": return _p1._0;
-            default: return _U.crashCase("StepTree",{start: {line: 319,column: 7},end: {line: 327,column: 35}},_p1)("impossible");}
+            default: return _U.crashCase("StepTree",{start: {line: 328,column: 7},end: {line: 336,column: 35}},_p1)("impossible");}
       }();
       var _p3 = A2($Array.get,idx,steps);
       if (_p3.ctor === "Just") {
             return _p3._0;
          } else {
-            return _U.crashCase("StepTree",{start: {line: 329,column: 5},end: {line: 334,column: 33}},_p3)("impossible");
+            return _U.crashCase("StepTree",{start: {line: 338,column: 5},end: {line: 343,column: 33}},_p3)("impossible");
          }
    });
    var getHook = function (tree) {
@@ -12882,7 +12882,7 @@ Elm.StepTree.make = function (_elm) {
       {case "OnSuccess": return _p5._0.hook;
          case "OnFailure": return _p5._0.hook;
          case "Ensure": return _p5._0.hook;
-         default: return _U.crashCase("StepTree",{start: {line: 287,column: 3},end: {line: 298,column: 31}},_p5)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 296,column: 3},end: {line: 307,column: 31}},_p5)("impossible");}
    };
    var getStep = function (tree) {
       var _p7 = tree;
@@ -12892,7 +12892,7 @@ Elm.StepTree.make = function (_elm) {
          case "Ensure": return _p7._0.step;
          case "Try": return _p7._0;
          case "Timeout": return _p7._0;
-         default: return _U.crashCase("StepTree",{start: {line: 241,column: 3},end: {line: 258,column: 31}},_p7)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 250,column: 3},end: {line: 267,column: 31}},_p7)("impossible");}
    };
    var updateAt = F3(function (id,update,root) {
       var _p9 = A2($Dict.get,id,root.foci);
@@ -12921,7 +12921,7 @@ Elm.StepTree.make = function (_elm) {
       return _U.update(step,{version: version,firstOccurrence: A2(isFirstOccurrence,resources.inputs,name)});
    });
    var MetadataField = F2(function (a,b) {    return {name: a,value: b};});
-   var Root = F2(function (a,b) {    return {tree: a,foci: b};});
+   var Model = F3(function (a,b,c) {    return {tree: a,foci: b,finished: c};});
    var StepStateErrored = {ctor: "StepStateErrored"};
    var StepStateFailed = {ctor: "StepStateFailed"};
    var StepStateSucceeded = {ctor: "StepStateSucceeded"};
@@ -12937,19 +12937,21 @@ Elm.StepTree.make = function (_elm) {
                  ,version: $Maybe.Nothing
                  ,metadata: _U.list([])
                  ,firstOccurrence: false};
-      return {tree: create(step),foci: A2($Dict.singleton,id,A2($Focus.create,$Basics.identity,$Basics.identity))};
+      return {tree: create(step),foci: A2($Dict.singleton,id,A2($Focus.create,$Basics.identity,$Basics.identity)),finished: false};
    });
    var isActive = F2(function (x,y) {    return !_U.eq(x,y);})(StepStatePending);
    var Step = F9(function (a,b,c,d,e,f,g,h,i) {    return {id: a,name: b,state: c,log: d,error: e,expanded: f,version: g,metadata: h,firstOccurrence: i};});
    var HookedStep = F2(function (a,b) {    return {step: a,hook: b};});
+   var Finished = {ctor: "Finished"};
    var ToggleStep = function (a) {    return {ctor: "ToggleStep",_0: a};};
-   var viewStep = F3(function (actions,_p11,icon) {
+   var viewStep = F4(function (actions,model,_p11,icon) {
       var _p12 = _p11;
       var _p17 = _p12.state;
       return A2($Html.div,
       _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "build-step",_1: true}
                                                   ,{ctor: "_Tuple2",_0: "inactive",_1: $Basics.not(isActive(_p17))}
-                                                  ,{ctor: "_Tuple2",_0: "first-occurrence",_1: _p12.firstOccurrence}]))]),
+                                                  ,{ctor: "_Tuple2",_0: "first-occurrence",_1: _p12.firstOccurrence}
+                                                  ,{ctor: "_Tuple2",_0: "hidden",_1: $Basics.not(isActive(_p17)) && model.finished}]))]),
       _U.list([A2($Html.div,
               _U.list([$Html$Attributes.$class("header"),A2($Html$Events.onClick,actions,ToggleStep(_p12.id))]),
               _U.list([viewStepState(_p17)
@@ -12979,38 +12981,47 @@ Elm.StepTree.make = function (_elm) {
                             }
                       }()]))]));
    });
-   var view = F2(function (actions,tree) {
-      view: while (true) {
+   var viewTree = F3(function (actions,model,tree) {
+      viewTree: while (true) {
          var _p18 = tree;
          switch (_p18.ctor)
-         {case "Task": return A3(viewStep,actions,_p18._0,"fa-terminal");
-            case "Get": return A3(viewStep,actions,_p18._0,"fa-arrow-down");
-            case "DependentGet": return A3(viewStep,actions,_p18._0,"fa-arrow-down");
-            case "Put": return A3(viewStep,actions,_p18._0,"fa-arrow-up");
-            case "Try": var _v13 = actions,_v14 = _p18._0;
+         {case "Task": return A4(viewStep,actions,model,_p18._0,"fa-terminal");
+            case "Get": return A4(viewStep,actions,model,_p18._0,"fa-arrow-down");
+            case "DependentGet": return A4(viewStep,actions,model,_p18._0,"fa-arrow-down");
+            case "Put": return A4(viewStep,actions,model,_p18._0,"fa-arrow-up");
+            case "Try": var _v13 = actions,_v14 = model,_v15 = _p18._0;
               actions = _v13;
-              tree = _v14;
-              continue view;
-            case "Timeout": var _v15 = actions,_v16 = _p18._0;
-              actions = _v15;
-              tree = _v16;
-              continue view;
-            case "Aggregate": return A2($Html.div,_U.list([$Html$Attributes.$class("aggregate")]),$Array.toList(A2($Array.map,viewSeq(actions),_p18._0)));
-            case "Do": return A2($Html.div,_U.list([$Html$Attributes.$class("do")]),$Array.toList(A2($Array.map,viewSeq(actions),_p18._0)));
-            case "OnSuccess": return A4(viewHooked,"success",actions,_p18._0.step,_p18._0.hook);
-            case "OnFailure": return A4(viewHooked,"failure",actions,_p18._0.step,_p18._0.hook);
-            default: return A4(viewHooked,"ensure",actions,_p18._0.step,_p18._0.hook);}
+              model = _v14;
+              tree = _v15;
+              continue viewTree;
+            case "Timeout": var _v16 = actions,_v17 = model,_v18 = _p18._0;
+              actions = _v16;
+              model = _v17;
+              tree = _v18;
+              continue viewTree;
+            case "Aggregate": return A2($Html.div,
+              _U.list([$Html$Attributes.$class("aggregate")]),
+              $Array.toList(A2($Array.map,A2(viewSeq,actions,model),_p18._0)));
+            case "Do": return A2($Html.div,_U.list([$Html$Attributes.$class("do")]),$Array.toList(A2($Array.map,A2(viewSeq,actions,model),_p18._0)));
+            case "OnSuccess": return A5(viewHooked,"success",actions,model,_p18._0.step,_p18._0.hook);
+            case "OnFailure": return A5(viewHooked,"failure",actions,model,_p18._0.step,_p18._0.hook);
+            default: return A5(viewHooked,"ensure",actions,model,_p18._0.step,_p18._0.hook);}
       }
    });
-   var viewHooked = F4(function (name,actions,step,hook) {
+   var viewHooked = F5(function (name,actions,model,step,hook) {
       return A2($Html.div,
       _U.list([$Html$Attributes.$class("hooked")]),
-      _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("step")]),_U.list([A2(view,actions,step)]))
+      _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("step")]),_U.list([A3(viewTree,actions,model,step)]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("children")]),
-              _U.list([A2($Html.div,_U.list([$Html$Attributes.$class(A2($Basics._op["++"],"hook hook-",name))]),_U.list([A2(view,actions,hook)]))]))]));
+              _U.list([A2($Html.div,
+              _U.list([$Html$Attributes.$class(A2($Basics._op["++"],"hook hook-",name))]),
+              _U.list([A3(viewTree,actions,model,hook)]))]))]));
    });
-   var viewSeq = F2(function (actions,tree) {    return A2($Html.div,_U.list([$Html$Attributes.$class("seq")]),_U.list([A2(view,actions,tree)]));});
+   var viewSeq = F3(function (actions,model,tree) {
+      return A2($Html.div,_U.list([$Html$Attributes.$class("seq")]),_U.list([A3(viewTree,actions,model,tree)]));
+   });
+   var view = F2(function (actions,model) {    return A3(viewTree,actions,model,model.tree);});
    var Timeout = function (a) {    return {ctor: "Timeout",_0: a};};
    var Try = function (a) {    return {ctor: "Try",_0: a};};
    var Ensure = function (a) {    return {ctor: "Ensure",_0: a};};
@@ -13027,7 +13038,7 @@ Elm.StepTree.make = function (_elm) {
            return Ensure(_U.update(_p22,{step: update(_p22.step)}));
          case "Try": return Try(update(_p19._0));
          case "Timeout": return Timeout(update(_p19._0));
-         default: return _U.crashCase("StepTree",{start: {line: 262,column: 3},end: {line: 279,column: 31}},_p19)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 271,column: 3},end: {line: 288,column: 31}},_p19)("impossible");}
    });
    var wrapStep = F2(function (id,subFocus) {    return A2($Focus._op["=>"],A2($Focus.create,getStep,updateStep),subFocus);});
    var updateHook = F2(function (update,tree) {
@@ -13039,7 +13050,7 @@ Elm.StepTree.make = function (_elm) {
            return OnFailure(_U.update(_p26,{hook: update(_p26.hook)}));
          case "Ensure": var _p27 = _p24._0;
            return Ensure(_U.update(_p27,{hook: update(_p27.hook)}));
-         default: return _U.crashCase("StepTree",{start: {line: 302,column: 3},end: {line: 313,column: 31}},_p24)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 311,column: 3},end: {line: 322,column: 31}},_p24)("impossible");}
    });
    var wrapHook = F2(function (id,subFocus) {    return A2($Focus._op["=>"],A2($Focus.create,getHook,updateHook),subFocus);});
    var Do = function (a) {    return {ctor: "Do",_0: a};};
@@ -13049,7 +13060,7 @@ Elm.StepTree.make = function (_elm) {
       switch (_p29.ctor)
       {case "Aggregate": return Aggregate(A3($Array.set,idx,update(A2(getMultiStepIndex,idx,tree)),_p29._0));
          case "Do": return Do(A3($Array.set,idx,update(A2(getMultiStepIndex,idx,tree)),_p29._0));
-         default: return _U.crashCase("StepTree",{start: {line: 338,column: 3},end: {line: 346,column: 31}},_p29)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 347,column: 3},end: {line: 355,column: 31}},_p29)("impossible");}
    });
    var wrapMultiStep = function (i) {
       return $Dict.map(F2(function (_p31,focus) {    return A2($Focus._op["=>"],A2($Focus.create,getMultiStepIndex(i),setMultiStepIndex(i)),focus);}));
@@ -13071,13 +13082,13 @@ Elm.StepTree.make = function (_elm) {
            var subFoci = A2($Array.map,function (_) {    return _.foci;},inited);
            var wrappedSubFoci = A2($Array.indexedMap,wrapMultiStep,subFoci);
            var foci = A3($Array.foldr,$Dict.union,$Dict.empty,wrappedSubFoci);
-           return A2(Root,Aggregate(trees),foci);
+           return A3(Model,Aggregate(trees),foci,false);
          case "Do": var inited = A2($Array.map,init(resources),_p32._0);
            var trees = A2($Array.map,function (_) {    return _.tree;},inited);
            var subFoci = A2($Array.map,function (_) {    return _.foci;},inited);
            var wrappedSubFoci = A2($Array.indexedMap,wrapMultiStep,subFoci);
            var foci = A3($Array.foldr,$Dict.union,$Dict.empty,wrappedSubFoci);
-           return A2(Root,Do(trees),foci);
+           return A3(Model,Do(trees),foci,false);
          case "OnSuccess": return A3(initHookedStep,resources,OnSuccess,_p32._0);
          case "OnFailure": return A3(initHookedStep,resources,OnFailure,_p32._0);
          case "Ensure": return A3(initHookedStep,resources,Ensure,_p32._0);
@@ -13085,16 +13096,17 @@ Elm.StepTree.make = function (_elm) {
          default: return A3(initWrappedStep,resources,Timeout,_p32._0);}
    });
    var initHookedStep = F3(function (resources,create,hookedPlan) {
-      var hookRoot = A2(init,resources,hookedPlan.hook);
-      var stepRoot = A2(init,resources,hookedPlan.step);
-      return {tree: create({step: stepRoot.tree,hook: hookRoot.tree})
-             ,foci: A2($Dict.union,A2($Dict.map,wrapStep,stepRoot.foci),A2($Dict.map,wrapHook,hookRoot.foci))};
+      var hookModel = A2(init,resources,hookedPlan.hook);
+      var stepModel = A2(init,resources,hookedPlan.step);
+      return {tree: create({step: stepModel.tree,hook: hookModel.tree})
+             ,foci: A2($Dict.union,A2($Dict.map,wrapStep,stepModel.foci),A2($Dict.map,wrapHook,hookModel.foci))
+             ,finished: stepModel.finished};
    });
    var initWrappedStep = F3(function (resources,create,plan) {
       var _p35 = A2(init,resources,plan);
       var tree = _p35.tree;
       var foci = _p35.foci;
-      return {tree: create(tree),foci: A2($Dict.map,wrapStep,foci)};
+      return {tree: create(tree),foci: A2($Dict.map,wrapStep,foci),finished: false};
    });
    var map = F2(function (f,tree) {
       var _p36 = tree;
@@ -13107,10 +13119,14 @@ Elm.StepTree.make = function (_elm) {
    });
    var update = F2(function (action,root) {
       var _p37 = action;
-      return A3(updateAt,
-      _p37._0,
-      map(function (step) {    return _U.update(step,{expanded: $Maybe.Just($Basics.not(A2($Maybe.withDefault,true,step.expanded)))});}),
-      root);
+      if (_p37.ctor === "ToggleStep") {
+            return A3(updateAt,
+            _p37._0,
+            map(function (step) {    return _U.update(step,{expanded: $Maybe.Just($Basics.not(A2($Maybe.withDefault,true,step.expanded)))});}),
+            root);
+         } else {
+            return _U.update(root,{finished: true});
+         }
    });
    return _elm.StepTree.values = {_op: _op
                                  ,init: init
@@ -13118,7 +13134,7 @@ Elm.StepTree.make = function (_elm) {
                                  ,view: view
                                  ,update: update
                                  ,updateAt: updateAt
-                                 ,Root: Root
+                                 ,Model: Model
                                  ,HookedStep: HookedStep
                                  ,Step: Step
                                  ,Task: Task
@@ -13136,7 +13152,9 @@ Elm.StepTree.make = function (_elm) {
                                  ,StepStateRunning: StepStateRunning
                                  ,StepStateSucceeded: StepStateSucceeded
                                  ,StepStateFailed: StepStateFailed
-                                 ,StepStateErrored: StepStateErrored};
+                                 ,StepStateErrored: StepStateErrored
+                                 ,ToggleStep: ToggleStep
+                                 ,Finished: Finished};
 };
 Elm.Build = Elm.Build || {};
 Elm.Build.make = function (_elm) {
@@ -13218,7 +13236,7 @@ Elm.Build.make = function (_elm) {
                                                    currentBuild.name) ? $Concourse$BuildStatus.show(currentStatus) : $Concourse$BuildStatus.show(build.status)
                                                    ,_1: true}
                                                   ,{ctor: "_Tuple2",_0: "current",_1: _U.eq(build.name,currentBuild.name)}]))]),
-      _U.list([A2($Html.a,_U.list([$Html$Attributes.href($Concourse$Build.url(build))]),_U.list([$Html.text(A2($Basics._op["++"],"#",build.name))]))]));
+      _U.list([A2($Html.a,_U.list([$Html$Attributes.href($Concourse$Build.url(build))]),_U.list([$Html.text(build.name)]))]));
    });
    var paddingClass = function (build) {
       var _p3 = build.job;
@@ -13281,7 +13299,7 @@ Elm.Build.make = function (_elm) {
       return A2($StepTree.map,function (step) {    return _U.update(step,{log: A2($Ansi$Log.update,output,step.log)});},tree);
    });
    var setRunning = setStepState($StepTree.StepStateRunning);
-   var updateStep = F3(function (id,update,model) {    return _U.update(model,{stepRoot: A2($Maybe.map,A2($StepTree.updateAt,id,update),model.stepRoot)});});
+   var updateStep = F3(function (id,update,model) {    return _U.update(model,{steps: A2($Maybe.map,A2($StepTree.updateAt,id,update),model.steps)});});
    var updateStartFinishAt = F3(function (status,date,model) {
       var duration = model.duration;
       var _p5 = status;
@@ -13300,7 +13318,7 @@ Elm.Build.make = function (_elm) {
    var viewSteps = F4(function (actions,errors,build,root) {
       return A2($Html.div,
       _U.list([$Html$Attributes.$class("steps")]),
-      _U.list([viewErrors(errors),A2($StepTree.view,A2($Signal.forwardTo,actions,StepTreeAction),root.tree)]));
+      _U.list([viewErrors(errors),A2($StepTree.view,A2($Signal.forwardTo,actions,StepTreeAction),root)]));
    });
    var ScrollBuilds = function (a) {    return {ctor: "ScrollBuilds",_0: a};};
    var scrollEvent = F2(function (actions,delta) {    return A2($Signal.message,actions,ScrollBuilds(delta));});
@@ -13348,7 +13366,7 @@ Elm.Build.make = function (_elm) {
               A2($List.map,A2(viewHistory,build,status),history))]));
    });
    var view = F2(function (actions,model) {
-      var _p9 = {ctor: "_Tuple2",_0: model.build,_1: model.stepRoot};
+      var _p9 = {ctor: "_Tuple2",_0: model.build,_1: model.steps};
       if (_p9.ctor === "_Tuple2" && _p9._0.ctor === "Just") {
             if (_p9._1.ctor === "Just") {
                   var _p12 = _p9._1._0;
@@ -13408,16 +13426,18 @@ Elm.Build.make = function (_elm) {
                                   model)
                                   ,_1: $Effects.none};
          case "BuildStatus": var _p19 = _p14._0;
+           var updated = $Basics.not($Concourse$BuildStatus.isRunning(_p19)) ? _U.update(model,
+           {steps: A2($Maybe.map,$StepTree.update($StepTree.Finished),model.steps)}) : model;
            return {ctor: "_Tuple2"
                   ,_0: A3(updateStartFinishAt,
                   _p19,
                   _p14._1,
                   function () {
-                     var _p18 = model.stepState;
+                     var _p18 = updated.stepState;
                      if (_p18.ctor === "StepsLiveUpdating") {
-                           return _U.update(model,{status: _p19});
+                           return _U.update(updated,{status: _p19});
                         } else {
-                           return model;
+                           return updated;
                         }
                   }())
                   ,_1: $Effects.none};
@@ -13569,7 +13589,7 @@ Elm.Build.make = function (_elm) {
                     }
               } else {
                  return {ctor: "_Tuple2"
-                        ,_0: _U.update(model,{stepRoot: $Maybe.Just(A2($StepTree.init,_p27._0._0._1,_p27._0._0._0))})
+                        ,_0: _U.update(model,{steps: $Maybe.Just(A2($StepTree.init,_p27._0._0._1,_p27._0._0._0))})
                         ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
               }
          case "BuildHistoryFetched": if (_p27._0.ctor === "Err") {
@@ -13583,9 +13603,7 @@ Elm.Build.make = function (_elm) {
          case "BuildEventsListening": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Just(_p27._0)}),_1: $Effects.none};
          case "BuildEventsAction": return A2(handleEventsAction,_p27._0,model);
          case "BuildEventsClosed": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Nothing}),_1: $Effects.none};
-         case "StepTreeAction": return {ctor: "_Tuple2"
-                                       ,_0: _U.update(model,{stepRoot: A2($Maybe.map,$StepTree.update(_p27._0),model.stepRoot)})
-                                       ,_1: $Effects.none};
+         case "StepTreeAction": return {ctor: "_Tuple2",_0: _U.update(model,{steps: A2($Maybe.map,$StepTree.update(_p27._0),model.steps)}),_1: $Effects.none};
          case "ScrollBuilds": if (_p27._0._0 === 0) {
                  return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(_p27._0._1)};
               } else {
@@ -13599,7 +13617,7 @@ Elm.Build.make = function (_elm) {
                   ,actions: actions
                   ,buildId: buildId
                   ,errors: $Maybe.Nothing
-                  ,stepRoot: $Maybe.Nothing
+                  ,steps: $Maybe.Nothing
                   ,build: $Maybe.Nothing
                   ,history: $Maybe.Nothing
                   ,eventSource: $Maybe.Nothing
@@ -13627,7 +13645,7 @@ Elm.Build.make = function (_elm) {
                                                  ,actions: b
                                                  ,buildId: c
                                                  ,errors: d
-                                                 ,stepRoot: e
+                                                 ,steps: e
                                                  ,build: f
                                                  ,history: g
                                                  ,eventSource: h
