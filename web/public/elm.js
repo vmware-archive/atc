@@ -10898,16 +10898,21 @@ Elm.Ansi.Log.make = function (_elm) {
    var lazyLine = $Html$Lazy.lazy(viewLine);
    var view = function (model) {    return A2($Html.pre,_U.list([]),$Array.toList(A2($Array.map,lazyLine,model.lines)));};
    var lineLen = function (line) {    var _p1 = line;if (_p1.ctor === "[]") {    return 0;} else {    return $String.length(_p1._0.text) + lineLen(_p1._1);}};
-   var takeLen = F2(function (len,line) {
-      if (_U.eq(len,0)) return _U.list([]); else {
+   var takeLen = F3(function (acc,len,line) {
+      takeLen: while (true) if (_U.eq(len,0)) return acc; else {
             var _p2 = line;
             if (_p2.ctor === "::") {
                   var _p3 = _p2._0;
                   var chunkLen = $String.length(_p3.text);
-                  return _U.cmp(chunkLen,len) < 0 ? A2($List._op["::"],_p3,A2(takeLen,len - chunkLen,_p2._1)) : _U.list([_U.update(_p3,
-                  {text: A2($String.left,len,_p3.text)})]);
+                  if (_U.cmp(chunkLen,len) < 0) {
+                        var _v3 = A2($Basics._op["++"],acc,_U.list([_p3])),_v4 = len - chunkLen,_v5 = _p2._1;
+                        acc = _v3;
+                        len = _v4;
+                        line = _v5;
+                        continue takeLen;
+                     } else return A2($Basics._op["++"],acc,_U.list([_U.update(_p3,{text: A2($String.left,len,_p3.text)})]));
                } else {
-                  return _U.list([]);
+                  return acc;
                }
          }
    });
@@ -10919,9 +10924,9 @@ Elm.Ansi.Log.make = function (_elm) {
                var _p5 = _p4._0;
                var chunkLen = $String.length(_p5.text);
                if (_U.cmp(chunkLen,len) > 0) return A2($List._op["::"],_U.update(_p5,{text: A2($String.dropLeft,len,_p5.text)}),_p6); else {
-                     var _v4 = len - chunkLen,_v5 = _p6;
-                     len = _v4;
-                     line = _v5;
+                     var _v7 = len - chunkLen,_v8 = _p6;
+                     len = _v7;
+                     line = _v8;
                      continue dropLen;
                   }
             } else {
@@ -10931,7 +10936,7 @@ Elm.Ansi.Log.make = function (_elm) {
    });
    var writeChunk = F3(function (pos,chunk,line) {
       var after = A2(dropLen,pos + $String.length(chunk.text),line);
-      var chunksBefore = A2(takeLen,pos,line);
+      var chunksBefore = A3(takeLen,_U.list([]),pos,line);
       var chunksLen = lineLen(chunksBefore);
       var before = _U.cmp(chunksLen,pos) < 0 ? A2($Basics._op["++"],
       chunksBefore,
@@ -10952,10 +10957,10 @@ Elm.Ansi.Log.make = function (_elm) {
    });
    var appendLine = F3(function (after,line,lines) {
       appendLine: while (true) if (_U.eq(after,0)) return A2($Array.push,line,lines); else {
-            var _v7 = after - 1,_v8 = line,_v9 = A2($Array.push,_U.list([]),lines);
-            after = _v7;
-            line = _v8;
-            lines = _v9;
+            var _v10 = after - 1,_v11 = line,_v12 = A2($Array.push,_U.list([]),lines);
+            after = _v10;
+            line = _v11;
+            lines = _v12;
             continue appendLine;
          }
    });
@@ -10988,8 +10993,8 @@ Elm.Ansi.Log.make = function (_elm) {
               return _U.update(model,
               {lines: A3(updateLine,model.position.row,update,model.lines),position: A3(moveCursor,0,$String.length(_p9),model.position)});
             case "CarriageReturn": return _U.update(model,{position: A2(CursorPosition,model.position.row,0)});
-            case "Linebreak": var _v12 = $Ansi.Print(""),
-              _v13 = function () {
+            case "Linebreak": var _v15 = $Ansi.Print(""),
+              _v16 = function () {
                  var _p10 = model.lineDiscipline;
                  if (_p10.ctor === "Raw") {
                        return _U.update(model,{position: A3(moveCursor,1,0,model.position)});
@@ -10997,8 +11002,8 @@ Elm.Ansi.Log.make = function (_elm) {
                        return _U.update(model,{position: A2(CursorPosition,model.position.row + 1,0)});
                     }
               }();
-              action = _v12;
-              model = _v13;
+              action = _v15;
+              model = _v16;
               continue handleAction;
             case "Remainder": return _U.update(model,{remainder: _p8._0});
             case "CursorUp": return _U.update(model,{position: A3(moveCursor,0 - _p8._0,0,model.position)});
@@ -11014,7 +11019,7 @@ Elm.Ansi.Log.make = function (_elm) {
               {case "EraseToBeginning": var chunk = A2(Chunk,A2($String.repeat,model.position.column," "),model.style);
                    var update = A2(writeChunk,0,chunk);
                    return _U.update(model,{lines: A3(updateLine,model.position.row,update,model.lines)});
-                 case "EraseToEnd": var update = takeLen(model.position.column);
+                 case "EraseToEnd": var update = A2(takeLen,_U.list([]),model.position.column);
                    return _U.update(model,{lines: A3(updateLine,model.position.row,update,model.lines)});
                  default: return _U.update(model,{lines: A3(updateLine,model.position.row,$Basics.always(_U.list([])),model.lines)});}
             default: return _U.update(model,{style: A2(updateStyle,action,model.style)});}
