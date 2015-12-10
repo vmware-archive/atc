@@ -12444,9 +12444,11 @@ Elm.Concourse.BuildEvents.make = function (_elm) {
       cons,
       A2($Json$Decode._op[":="],"origin",decodeOrigin),
       A2($Json$Decode._op[":="],"exit_status",$Json$Decode.$int),
-      A2($Json$Decode._op[":="],"version",$Concourse$Version.decode),
       function (_p2) {
-         return A2($Json$Decode.map,$Maybe.withDefault(_U.list([])),$Json$Decode.maybe(_p2));
+         return A2($Json$Decode.map,$Maybe.withDefault($Dict.empty),$Json$Decode.maybe(_p2));
+      }(A2($Json$Decode._op[":="],"version",$Concourse$Version.decode)),
+      function (_p3) {
+         return A2($Json$Decode.map,$Maybe.withDefault(_U.list([])),$Json$Decode.maybe(_p3));
       }(A2($Json$Decode._op[":="],"metadata",$Concourse$Metadata.decode)));
    };
    var BuildEventEnvelope = F3(function (a,b,c) {    return {event: a,version: b,value: c};});
@@ -12474,8 +12476,8 @@ Elm.Concourse.BuildEvents.make = function (_elm) {
    var FinishGet = F4(function (a,b,c,d) {    return {ctor: "FinishGet",_0: a,_1: b,_2: c,_3: d};});
    var BuildStatus = F2(function (a,b) {    return {ctor: "BuildStatus",_0: a,_1: b};});
    var decodeEvent = function (e) {
-      var _p3 = e.event;
-      switch (_p3)
+      var _p4 = e.event;
+      switch (_p4)
       {case "status": return A2($Json$Decode.decodeValue,
            A3($Json$Decode.object2,
            BuildStatus,
@@ -12495,13 +12497,13 @@ Elm.Concourse.BuildEvents.make = function (_elm) {
            e.value);
          case "finish-get": return A2($Json$Decode.decodeValue,decodeFinishResource(FinishGet),e.value);
          case "finish-put": return A2($Json$Decode.decodeValue,decodeFinishResource(FinishPut),e.value);
-         default: return $Result.Err(A2($Basics._op["++"],"unknown event type: ",_p3));}
+         default: return $Result.Err(A2($Basics._op["++"],"unknown event type: ",_p4));}
    };
    var decode = A2($Json$Decode.customDecoder,decodeEnvelope,decodeEvent);
    var parseEvent = function (e) {    return A2($Json$Decode.decodeString,decode,e.data);};
    var subscribe = F2(function (build,actions) {
       var endSub = A2($EventSource.on,"end",A2($Signal.forwardTo,actions,$Basics.always(End)));
-      var eventsSub = A2($EventSource.on,"event",A2($Signal.forwardTo,actions,function (_p4) {    return Event(parseEvent(_p4));}));
+      var eventsSub = A2($EventSource.on,"event",A2($Signal.forwardTo,actions,function (_p5) {    return Event(parseEvent(_p5));}));
       var settings = A2($EventSource.Settings,
       $Maybe.Just(A2($Signal.forwardTo,actions,$Basics.always(Opened))),
       $Maybe.Just(A2($Signal.forwardTo,actions,$Basics.always(Errored))));
