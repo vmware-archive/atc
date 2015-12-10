@@ -12865,15 +12865,16 @@ Elm.StepTree.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var viewStepState = function (state) {
+   var viewStepState = F2(function (state,finished) {
       var _p0 = state;
       switch (_p0.ctor)
-      {case "StepStatePending": return A2($Html.i,_U.list([$Html$Attributes.$class("right fa fa-fw fa-circle-o-notch")]),_U.list([]));
+      {case "StepStatePending": var icon = finished ? "fa-circle" : "fa-circle-o-notch";
+           return A2($Html.i,_U.list([$Html$Attributes.$class(A2($Basics._op["++"],"right fa fa-fw ",icon))]),_U.list([]));
          case "StepStateRunning": return A2($Html.i,_U.list([$Html$Attributes.$class("right fa fa-fw fa-spin fa-circle-o-notch")]),_U.list([]));
          case "StepStateSucceeded": return A2($Html.i,_U.list([$Html$Attributes.$class("right succeeded fa fa-fw fa-check")]),_U.list([]));
          case "StepStateFailed": return A2($Html.i,_U.list([$Html$Attributes.$class("right failed fa fa-fw fa-times")]),_U.list([]));
          default: return A2($Html.i,_U.list([$Html$Attributes.$class("right errored fa fa-fw fa-exclamation-triangle")]),_U.list([]));}
-   };
+   });
    var typeIcon = function (fa) {    return A2($Html.i,_U.list([$Html$Attributes.$class(A2($Basics._op["++"],"left fa fa-fw ",fa))]),_U.list([]));};
    var viewPair = F2(function (name,value) {
       return _U.list([A2($Html.dt,_U.list([]),_U.list([$Html.text(name)])),A2($Html.dd,_U.list([]),_U.list([$Html.text(value)]))]);
@@ -12967,11 +12968,10 @@ Elm.StepTree.make = function (_elm) {
       return A2($Html.div,
       _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "build-step",_1: true}
                                                   ,{ctor: "_Tuple2",_0: "inactive",_1: $Basics.not(isActive(_p17))}
-                                                  ,{ctor: "_Tuple2",_0: "first-occurrence",_1: _p12.firstOccurrence}
-                                                  ,{ctor: "_Tuple2",_0: "hidden",_1: $Basics.not(isActive(_p17)) && model.finished}]))]),
+                                                  ,{ctor: "_Tuple2",_0: "first-occurrence",_1: _p12.firstOccurrence}]))]),
       _U.list([A2($Html.div,
               _U.list([$Html$Attributes.$class("header"),A2($Html$Events.onClick,actions,ToggleStep(_p12.id))]),
-              _U.list([viewStepState(_p17)
+              _U.list([A2(viewStepState,_p17,model.finished)
                       ,typeIcon(icon)
                       ,A2($Html.dl,
                       _U.list([$Html$Attributes.$class("version")]),
