@@ -12469,11 +12469,13 @@ Elm.Concourse.BuildEvents.make = function (_elm) {
                                                      A2($Json$Decode._op[":="],"message",$Json$Decode.string))
                                                      ,A2($Json$Decode.object1,BuildError,A2($Json$Decode._op[":="],"message",$Json$Decode.string))]));
    var Log = F2(function (a,b) {    return {ctor: "Log",_0: a,_1: b};});
+   var FinishPut = F4(function (a,b,c,d) {    return {ctor: "FinishPut",_0: a,_1: b,_2: c,_3: d};});
+   var InitializePut = function (a) {    return {ctor: "InitializePut",_0: a};};
+   var FinishGet = F4(function (a,b,c,d) {    return {ctor: "FinishGet",_0: a,_1: b,_2: c,_3: d};});
+   var InitializeGet = function (a) {    return {ctor: "InitializeGet",_0: a};};
    var FinishTask = F2(function (a,b) {    return {ctor: "FinishTask",_0: a,_1: b};});
    var StartTask = function (a) {    return {ctor: "StartTask",_0: a};};
    var InitializeTask = function (a) {    return {ctor: "InitializeTask",_0: a};};
-   var FinishPut = F4(function (a,b,c,d) {    return {ctor: "FinishPut",_0: a,_1: b,_2: c,_3: d};});
-   var FinishGet = F4(function (a,b,c,d) {    return {ctor: "FinishGet",_0: a,_1: b,_2: c,_3: d};});
    var BuildStatus = F2(function (a,b) {    return {ctor: "BuildStatus",_0: a,_1: b};});
    var decodeEvent = function (e) {
       var _p4 = e.event;
@@ -12495,7 +12497,13 @@ Elm.Concourse.BuildEvents.make = function (_elm) {
          case "finish-task": return A2($Json$Decode.decodeValue,
            A3($Json$Decode.object2,FinishTask,A2($Json$Decode._op[":="],"origin",decodeOrigin),A2($Json$Decode._op[":="],"exit_status",$Json$Decode.$int)),
            e.value);
+         case "initialize-get": return A2($Json$Decode.decodeValue,
+           A2($Json$Decode.object1,InitializeGet,A2($Json$Decode._op[":="],"origin",decodeOrigin)),
+           e.value);
          case "finish-get": return A2($Json$Decode.decodeValue,decodeFinishResource(FinishGet),e.value);
+         case "initialize-put": return A2($Json$Decode.decodeValue,
+           A2($Json$Decode.object1,InitializePut,A2($Json$Decode._op[":="],"origin",decodeOrigin)),
+           e.value);
          case "finish-put": return A2($Json$Decode.decodeValue,decodeFinishResource(FinishPut),e.value);
          default: return $Result.Err(A2($Basics._op["++"],"unknown event type: ",_p4));}
    };
@@ -12512,11 +12520,13 @@ Elm.Concourse.BuildEvents.make = function (_elm) {
    });
    return _elm.Concourse.BuildEvents.values = {_op: _op
                                               ,BuildStatus: BuildStatus
-                                              ,FinishGet: FinishGet
-                                              ,FinishPut: FinishPut
                                               ,InitializeTask: InitializeTask
                                               ,StartTask: StartTask
                                               ,FinishTask: FinishTask
+                                              ,InitializeGet: InitializeGet
+                                              ,FinishGet: FinishGet
+                                              ,InitializePut: InitializePut
+                                              ,FinishPut: FinishPut
                                               ,Log: Log
                                               ,Error: Error
                                               ,BuildError: BuildError
@@ -13428,6 +13438,7 @@ Elm.Build.make = function (_elm) {
          case "InitializeTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p14._0.id,setRunning,model),_1: $Effects.none};
          case "StartTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p14._0.id,setRunning,model),_1: $Effects.none};
          case "FinishTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p14._0.id,finishStep(_p14._1),model),_1: $Effects.none};
+         case "InitializeGet": return {ctor: "_Tuple2",_0: A3(updateStep,_p14._0.id,setRunning,model),_1: $Effects.none};
          case "FinishGet": return {ctor: "_Tuple2"
                                   ,_0: A3(updateStep,
                                   _p14._0.id,
@@ -13436,6 +13447,7 @@ Elm.Build.make = function (_elm) {
                                   },
                                   model)
                                   ,_1: $Effects.none};
+         case "InitializePut": return {ctor: "_Tuple2",_0: A3(updateStep,_p14._0.id,setRunning,model),_1: $Effects.none};
          case "FinishPut": return {ctor: "_Tuple2"
                                   ,_0: A3(updateStep,
                                   _p14._0.id,
