@@ -10911,20 +10911,20 @@ Elm.Ansi.Log.make = function (_elm) {
       }
    });
    var takeLen = F3(function (acc,len,line) {
-      takeLen: while (true) if (_U.eq(len,0)) return acc; else {
+      takeLen: while (true) if (_U.eq(len,0)) return $Array.toList(acc); else {
             var _p2 = line;
             if (_p2.ctor === "::") {
                   var _p3 = _p2._0;
                   var chunkLen = $String.length(_p3.text);
                   if (_U.cmp(chunkLen,len) < 0) {
-                        var _v5 = A2($Basics._op["++"],acc,_U.list([_p3])),_v6 = len - chunkLen,_v7 = _p2._1;
+                        var _v5 = A2($Array.push,_p3,acc),_v6 = len - chunkLen,_v7 = _p2._1;
                         acc = _v5;
                         len = _v6;
                         line = _v7;
                         continue takeLen;
-                     } else return A2($Basics._op["++"],acc,_U.list([_U.update(_p3,{text: A2($String.left,len,_p3.text)})]));
+                     } else return $Array.toList(A2($Array.push,_U.update(_p3,{text: A2($String.left,len,_p3.text)}),acc));
                } else {
-                  return acc;
+                  return $Array.toList(acc);
                }
          }
    });
@@ -10948,7 +10948,7 @@ Elm.Ansi.Log.make = function (_elm) {
    });
    var writeChunk = F3(function (pos,chunk,line) {
       var after = A2(dropLen,pos + $String.length(chunk.text),line);
-      var chunksBefore = A3(takeLen,_U.list([]),pos,line);
+      var chunksBefore = A3(takeLen,$Array.empty,pos,line);
       var chunksLen = A2(lineLen,0,chunksBefore);
       var before = _U.cmp(chunksLen,pos) < 0 ? A2($Basics._op["++"],
       chunksBefore,
@@ -11031,7 +11031,7 @@ Elm.Ansi.Log.make = function (_elm) {
               {case "EraseToBeginning": var chunk = A2(Chunk,A2($String.repeat,model.position.column," "),model.style);
                    var update = A2(writeChunk,0,chunk);
                    return _U.update(model,{lines: A3(updateLine,model.position.row,update,model.lines)});
-                 case "EraseToEnd": var update = A2(takeLen,_U.list([]),model.position.column);
+                 case "EraseToEnd": var update = A2(takeLen,$Array.empty,model.position.column);
                    return _U.update(model,{lines: A3(updateLine,model.position.row,update,model.lines)});
                  default: return _U.update(model,{lines: A3(updateLine,model.position.row,$Basics.always(_U.list([])),model.lines)});}
             default: return _U.update(model,{style: A2(updateStyle,action,model.style)});}
