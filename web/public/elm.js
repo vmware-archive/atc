@@ -10946,7 +10946,7 @@ Elm.Ansi.Log.make = function (_elm) {
             }
       }
    });
-   var writeChunk = F3(function (pos,chunk,line) {
+   var insertChunkAt = F3(function (pos,chunk,line) {
       var after = A2(dropLen,pos + $String.length(chunk.text),line);
       var chunksBefore = A3(takeLen,$Array.empty,pos,line);
       var chunksLen = A2(lineLen,0,chunksBefore);
@@ -10954,6 +10954,9 @@ Elm.Ansi.Log.make = function (_elm) {
       chunksBefore,
       _U.list([{style: chunk.style,text: A2($String.repeat,pos - chunksLen," ")}])) : chunksBefore;
       return A2($Basics._op["++"],before,A2($Basics._op["++"],_U.list([chunk]),after));
+   });
+   var writeChunk = F3(function (pos,chunk,line) {
+      return _U.eq(pos,A2(lineLen,0,line)) ? A2($Basics._op["++"],line,_U.list([chunk])) : A3(insertChunkAt,pos,chunk,line);
    });
    var updateStyle = F2(function (action,style) {
       var _p7 = action;
