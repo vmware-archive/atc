@@ -12906,13 +12906,13 @@ Elm.StepTree.make = function (_elm) {
          {case "Aggregate": return _p1._0;
             case "Do": return _p1._0;
             case "Retry": return _p1._1;
-            default: return _U.crashCase("StepTree",{start: {line: 399,column: 7},end: {line: 410,column: 35}},_p1)("impossible");}
+            default: return _U.crashCase("StepTree",{start: {line: 403,column: 7},end: {line: 414,column: 35}},_p1)("impossible");}
       }();
       var _p3 = A2($Array.get,idx,steps);
       if (_p3.ctor === "Just") {
             return _p3._0;
          } else {
-            return _U.crashCase("StepTree",{start: {line: 412,column: 5},end: {line: 417,column: 33}},_p3)("impossible");
+            return _U.crashCase("StepTree",{start: {line: 416,column: 5},end: {line: 421,column: 33}},_p3)("impossible");
          }
    });
    var getHook = function (tree) {
@@ -12921,7 +12921,7 @@ Elm.StepTree.make = function (_elm) {
       {case "OnSuccess": return _p5._0.hook;
          case "OnFailure": return _p5._0.hook;
          case "Ensure": return _p5._0.hook;
-         default: return _U.crashCase("StepTree",{start: {line: 367,column: 3},end: {line: 378,column: 31}},_p5)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 371,column: 3},end: {line: 382,column: 31}},_p5)("impossible");}
    };
    var getStep = function (tree) {
       var _p7 = tree;
@@ -12931,12 +12931,12 @@ Elm.StepTree.make = function (_elm) {
          case "Ensure": return _p7._0.step;
          case "Try": return _p7._0;
          case "Timeout": return _p7._0;
-         default: return _U.crashCase("StepTree",{start: {line: 321,column: 3},end: {line: 338,column: 31}},_p7)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 325,column: 3},end: {line: 342,column: 31}},_p7)("impossible");}
    };
    var updateAt = F3(function (id,update,root) {
       var _p9 = A2($Dict.get,id,root.foci);
       if (_p9.ctor === "Nothing") {
-            return _U.crashCase("StepTree",{start: {line: 243,column: 3},end: {line: 248,column: 60}},_p9)(A2($Basics._op["++"],
+            return _U.crashCase("StepTree",{start: {line: 247,column: 3},end: {line: 252,column: 60}},_p9)(A2($Basics._op["++"],
             "updateAt: id ",
             A2($Basics._op["++"],id," not found")));
          } else {
@@ -12968,7 +12968,20 @@ Elm.StepTree.make = function (_elm) {
    var StepStateSucceeded = {ctor: "StepStateSucceeded"};
    var StepStateRunning = {ctor: "StepStateRunning"};
    var StepStatePending = {ctor: "StepStatePending"};
-   var stepIsActive = function (_p12) {    return A2(F2(function (x,y) {    return !_U.eq(x,y);}),StepStatePending,function (_) {    return _.state;}(_p12));};
+   var initBottom = F3(function (create,id,name) {
+      var step = {id: id
+                 ,name: name
+                 ,state: StepStatePending
+                 ,log: $Ansi$Log.init($Ansi$Log.Cooked)
+                 ,error: $Maybe.Nothing
+                 ,expanded: $Maybe.Nothing
+                 ,version: $Maybe.Nothing
+                 ,metadata: _U.list([])
+                 ,firstOccurrence: false};
+      return {tree: create(step),foci: A2($Dict.singleton,id,A2($Focus.create,$Basics.identity,$Basics.identity)),finished: false};
+   });
+   var isActive = F2(function (x,y) {    return !_U.eq(x,y);})(StepStatePending);
+   var stepIsActive = function (_p12) {    return isActive(function (_) {    return _.state;}(_p12));};
    var treeIsActive = function (tree) {
       treeIsActive: while (true) {
          var _p13 = tree;
@@ -12997,19 +13010,8 @@ Elm.StepTree.make = function (_elm) {
             default: return stepIsActive(_p13._0);}
       }
    };
-   var initBottom = F3(function (create,id,name) {
-      var step = {id: id
-                 ,name: name
-                 ,state: StepStatePending
-                 ,log: $Ansi$Log.init($Ansi$Log.Cooked)
-                 ,error: $Maybe.Nothing
-                 ,expanded: $Maybe.Nothing
-                 ,version: $Maybe.Nothing
-                 ,metadata: _U.list([])
-                 ,firstOccurrence: false};
-      return {tree: create(step),foci: A2($Dict.singleton,id,A2($Focus.create,$Basics.identity,$Basics.identity)),finished: false};
-   });
-   var isActive = F2(function (x,y) {    return !_U.eq(x,y);})(StepStatePending);
+   var autoExpanded = function (state) {    return isActive(state) && !_U.eq(state,StepStateSucceeded);};
+   var toggleExpanded = function (_p14) {    var _p15 = _p14;return $Maybe.Just($Basics.not(A2($Maybe.withDefault,autoExpanded(_p15.state),_p15.expanded)));};
    var Step = F9(function (a,b,c,d,e,f,g,h,i) {    return {id: a,name: b,state: c,log: d,error: e,expanded: f,version: g,metadata: h,firstOccurrence: i};});
    var HookedStep = F2(function (a,b) {    return {step: a,hook: b};});
    var SwitchTab = F2(function (a,b) {    return {ctor: "SwitchTab",_0: a,_1: b};});
@@ -13022,82 +13024,92 @@ Elm.StepTree.make = function (_elm) {
    });
    var Finished = {ctor: "Finished"};
    var ToggleStep = function (a) {    return {ctor: "ToggleStep",_0: a};};
-   var viewStep = F4(function (actions,model,_p14,icon) {
-      var _p15 = _p14;
-      var _p20 = _p15.state;
+   var viewStep = F4(function (actions,model,_p16,icon) {
+      var _p17 = _p16;
+      var _p23 = _p17.state;
+      var _p22 = _p17.expanded;
       return A2($Html.div,
       _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "build-step",_1: true}
-                                                  ,{ctor: "_Tuple2",_0: "inactive",_1: $Basics.not(isActive(_p20))}
-                                                  ,{ctor: "_Tuple2",_0: "first-occurrence",_1: _p15.firstOccurrence}]))]),
+                                                  ,{ctor: "_Tuple2",_0: "inactive",_1: $Basics.not(isActive(_p23))}
+                                                  ,{ctor: "_Tuple2",_0: "first-occurrence",_1: _p17.firstOccurrence}]))]),
       _U.list([A2($Html.div,
-              _U.list([$Html$Attributes.$class("header"),A2($Html$Events.onClick,actions,ToggleStep(_p15.id))]),
-              _U.list([A2(viewStepState,_p20,model.finished)
+              _U.list([$Html$Attributes.$class("header"),A2($Html$Events.onClick,actions,ToggleStep(_p17.id))]),
+              _U.list([A2(viewStepState,_p23,model.finished)
                       ,typeIcon(icon)
                       ,A2($Html.dl,
                       _U.list([$Html$Attributes.$class("version")]),
-                      function (_p16) {
-                         return A2($List.concatMap,$Basics.uncurry(viewPair),$Dict.toList(_p16));
-                      }(A2($Maybe.withDefault,$Dict.empty,_p15.version)))
-                      ,A2($Html.h3,_U.list([]),_U.list([$Html.text(_p15.name)]))]))
+                      function (_p18) {
+                         return A2($List.concatMap,$Basics.uncurry(viewPair),$Dict.toList(_p18));
+                      }(A2($Maybe.withDefault,$Dict.empty,_p17.version)))
+                      ,A2($Html.h3,_U.list([]),_U.list([$Html.text(_p17.name)]))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "step-body",_1: true}
                                                           ,{ctor: "_Tuple2",_0: "clearfix",_1: true}
                                                           ,{ctor: "_Tuple2"
                                                            ,_0: "step-collapsed"
-                                                           ,_1: $Basics.not(A2($Maybe.withDefault,isActive(_p20),_p15.expanded))}]))]),
-              _U.list([A2($Html.dl,
-                      _U.list([$Html$Attributes.$class("build-metadata fr")]),
-                      A2($List.concatMap,function (_p17) {    var _p18 = _p17;return A2(viewPair,_p18.name,_p18.value);},_p15.metadata))
-                      ,$Ansi$Log.view(_p15.log)
-                      ,function () {
-                         var _p19 = _p15.error;
-                         if (_p19.ctor === "Nothing") {
-                               return A2($Html.span,_U.list([]),_U.list([]));
-                            } else {
-                               return A2($Html.span,_U.list([$Html$Attributes.$class("error")]),_U.list([$Html.text(_p19._0)]));
-                            }
-                      }()]))]));
+                                                           ,_1: $Basics.not(A2($Maybe.withDefault,autoExpanded(_p23),_p22))}]))]),
+              A2($Maybe.withDefault,autoExpanded(_p23),A2($Maybe.map,$Basics.always(true),_p22)) ? _U.list([A2($Html.dl,
+                                                                                                           _U.list([$Html$Attributes.$class("build-metadata fr")]),
+                                                                                                           A2($List.concatMap,
+                                                                                                           function (_p19) {
+                                                                                                              var _p20 = _p19;
+                                                                                                              return A2(viewPair,_p20.name,_p20.value);
+                                                                                                           },
+                                                                                                           _p17.metadata))
+                                                                                                           ,$Ansi$Log.view(_p17.log)
+                                                                                                           ,function () {
+                                                                                                              var _p21 = _p17.error;
+                                                                                                              if (_p21.ctor === "Nothing") {
+                                                                                                                    return A2($Html.span,
+                                                                                                                    _U.list([]),
+                                                                                                                    _U.list([]));
+                                                                                                                 } else {
+                                                                                                                    return A2($Html.span,
+                                                                                                                    _U.list([$Html$Attributes.$class("error")]),
+                                                                                                                    _U.list([$Html.text(_p21._0)]));
+                                                                                                                 }
+                                                                                                           }()]) : _U.list([]))]));
    });
    var viewTree = F3(function (actions,model,tree) {
       viewTree: while (true) {
-         var _p21 = tree;
-         switch (_p21.ctor)
-         {case "Task": return A4(viewStep,actions,model,_p21._0,"fa-terminal");
-            case "Get": return A4(viewStep,actions,model,_p21._0,"fa-arrow-down");
-            case "DependentGet": return A4(viewStep,actions,model,_p21._0,"fa-arrow-down");
-            case "Put": return A4(viewStep,actions,model,_p21._0,"fa-arrow-up");
-            case "Try": var _v19 = actions,_v20 = model,_v21 = _p21._0;
-              actions = _v19;
-              model = _v20;
-              tree = _v21;
+         var _p24 = tree;
+         switch (_p24.ctor)
+         {case "Task": return A4(viewStep,actions,model,_p24._0,"fa-terminal");
+            case "Get": return A4(viewStep,actions,model,_p24._0,"fa-arrow-down");
+            case "DependentGet": return A4(viewStep,actions,model,_p24._0,"fa-arrow-down");
+            case "Put": return A4(viewStep,actions,model,_p24._0,"fa-arrow-up");
+            case "Try": var _v20 = actions,_v21 = model,_v22 = _p24._0;
+              actions = _v20;
+              model = _v21;
+              tree = _v22;
               continue viewTree;
-            case "Retry": var _p25 = _p21._2;
-              var _p24 = _p21._1;
+            case "Retry": var _p28 = _p24._2;
+              var _p27 = _p24._1;
               return A2($Html.div,
               _U.list([$Html$Attributes.$class("retry")]),
-              _U.list([A2($Html.ul,_U.list([$Html$Attributes.$class("retry-tabs")]),$Array.toList(A2($Array.indexedMap,A3(viewTab,actions,_p21._0,_p25),_p24)))
+              _U.list([A2($Html.ul,_U.list([$Html$Attributes.$class("retry-tabs")]),$Array.toList(A2($Array.indexedMap,A3(viewTab,actions,_p24._0,_p28),_p27)))
                       ,function () {
-                         var _p22 = A2($Array.get,_p25 - 1,_p24);
-                         if (_p22.ctor === "Just") {
-                               return A3(viewTree,actions,model,_p22._0);
+                         var _p25 = A2($Array.get,_p28 - 1,_p27);
+                         if (_p25.ctor === "Just") {
+                               return A3(viewTree,actions,model,_p25._0);
                             } else {
                                return _U.crashCase("StepTree",
-                               {start: {line: 466,column: 11},end: {line: 470,column: 60}},
-                               _p22)("impossible (bogus tab selected)");
+                               {start: {line: 470,column: 11},end: {line: 474,column: 60}},
+                               _p25)("impossible (bogus tab selected)");
                             }
                       }()]));
-            case "Timeout": var _v23 = actions,_v24 = model,_v25 = _p21._0;
-              actions = _v23;
-              model = _v24;
-              tree = _v25;
+            case "Timeout": var _v24 = actions,_v25 = model,_v26 = _p24._0;
+              actions = _v24;
+              model = _v25;
+              tree = _v26;
               continue viewTree;
             case "Aggregate": return A2($Html.div,
               _U.list([$Html$Attributes.$class("aggregate")]),
-              $Array.toList(A2($Array.map,A2(viewSeq,actions,model),_p21._0)));
-            case "Do": return A2($Html.div,_U.list([$Html$Attributes.$class("do")]),$Array.toList(A2($Array.map,A2(viewSeq,actions,model),_p21._0)));
-            case "OnSuccess": return A5(viewHooked,"success",actions,model,_p21._0.step,_p21._0.hook);
-            case "OnFailure": return A5(viewHooked,"failure",actions,model,_p21._0.step,_p21._0.hook);
-            default: return A5(viewHooked,"ensure",actions,model,_p21._0.step,_p21._0.hook);}
+              $Array.toList(A2($Array.map,A2(viewSeq,actions,model),_p24._0)));
+            case "Do": return A2($Html.div,_U.list([$Html$Attributes.$class("do")]),$Array.toList(A2($Array.map,A2(viewSeq,actions,model),_p24._0)));
+            case "OnSuccess": return A5(viewHooked,"success",actions,model,_p24._0.step,_p24._0.hook);
+            case "OnFailure": return A5(viewHooked,"failure",actions,model,_p24._0.step,_p24._0.hook);
+            default: return A5(viewHooked,"ensure",actions,model,_p24._0.step,_p24._0.hook);}
       }
    });
    var viewHooked = F5(function (name,actions,model,step,hook) {
@@ -13119,11 +13131,11 @@ Elm.StepTree.make = function (_elm) {
    var Timeout = function (a) {    return {ctor: "Timeout",_0: a};};
    var Retry = F4(function (a,b,c,d) {    return {ctor: "Retry",_0: a,_1: b,_2: c,_3: d};});
    var focusRetry = F2(function (tab,tree) {
-      var _p26 = tree;
-      if (_p26.ctor === "Retry") {
-            return A4(Retry,_p26._0,_p26._1,tab,User);
+      var _p29 = tree;
+      if (_p29.ctor === "Retry") {
+            return A4(Retry,_p29._0,_p29._1,tab,User);
          } else {
-            return _U.crashCase("StepTree",{start: {line: 234,column: 3},end: {line: 239,column: 53}},_p26)("impossible (non-retry tab focus)");
+            return _U.crashCase("StepTree",{start: {line: 238,column: 3},end: {line: 243,column: 53}},_p29)("impossible (non-retry tab focus)");
          }
    });
    var Try = function (a) {    return {ctor: "Try",_0: a};};
@@ -13131,87 +13143,87 @@ Elm.StepTree.make = function (_elm) {
    var OnFailure = function (a) {    return {ctor: "OnFailure",_0: a};};
    var OnSuccess = function (a) {    return {ctor: "OnSuccess",_0: a};};
    var updateStep = F2(function (update,tree) {
-      var _p28 = tree;
-      switch (_p28.ctor)
-      {case "OnSuccess": var _p29 = _p28._0;
-           return OnSuccess(_U.update(_p29,{step: update(_p29.step)}));
-         case "OnFailure": var _p30 = _p28._0;
-           return OnFailure(_U.update(_p30,{step: update(_p30.step)}));
-         case "Ensure": var _p31 = _p28._0;
-           return Ensure(_U.update(_p31,{step: update(_p31.step)}));
-         case "Try": return Try(update(_p28._0));
-         case "Timeout": return Timeout(update(_p28._0));
-         default: return _U.crashCase("StepTree",{start: {line: 342,column: 3},end: {line: 359,column: 31}},_p28)("impossible");}
+      var _p31 = tree;
+      switch (_p31.ctor)
+      {case "OnSuccess": var _p32 = _p31._0;
+           return OnSuccess(_U.update(_p32,{step: update(_p32.step)}));
+         case "OnFailure": var _p33 = _p31._0;
+           return OnFailure(_U.update(_p33,{step: update(_p33.step)}));
+         case "Ensure": var _p34 = _p31._0;
+           return Ensure(_U.update(_p34,{step: update(_p34.step)}));
+         case "Try": return Try(update(_p31._0));
+         case "Timeout": return Timeout(update(_p31._0));
+         default: return _U.crashCase("StepTree",{start: {line: 346,column: 3},end: {line: 363,column: 31}},_p31)("impossible");}
    });
    var wrapStep = F2(function (id,subFocus) {    return A2($Focus._op["=>"],A2($Focus.create,getStep,updateStep),subFocus);});
    var updateHook = F2(function (update,tree) {
-      var _p33 = tree;
-      switch (_p33.ctor)
-      {case "OnSuccess": var _p34 = _p33._0;
-           return OnSuccess(_U.update(_p34,{hook: update(_p34.hook)}));
-         case "OnFailure": var _p35 = _p33._0;
-           return OnFailure(_U.update(_p35,{hook: update(_p35.hook)}));
-         case "Ensure": var _p36 = _p33._0;
-           return Ensure(_U.update(_p36,{hook: update(_p36.hook)}));
-         default: return _U.crashCase("StepTree",{start: {line: 382,column: 3},end: {line: 393,column: 31}},_p33)("impossible");}
+      var _p36 = tree;
+      switch (_p36.ctor)
+      {case "OnSuccess": var _p37 = _p36._0;
+           return OnSuccess(_U.update(_p37,{hook: update(_p37.hook)}));
+         case "OnFailure": var _p38 = _p36._0;
+           return OnFailure(_U.update(_p38,{hook: update(_p38.hook)}));
+         case "Ensure": var _p39 = _p36._0;
+           return Ensure(_U.update(_p39,{hook: update(_p39.hook)}));
+         default: return _U.crashCase("StepTree",{start: {line: 386,column: 3},end: {line: 397,column: 31}},_p36)("impossible");}
    });
    var wrapHook = F2(function (id,subFocus) {    return A2($Focus._op["=>"],A2($Focus.create,getHook,updateHook),subFocus);});
    var Do = function (a) {    return {ctor: "Do",_0: a};};
    var Aggregate = function (a) {    return {ctor: "Aggregate",_0: a};};
    var setMultiStepIndex = F3(function (idx,update,tree) {
-      var _p38 = tree;
-      switch (_p38.ctor)
-      {case "Aggregate": return Aggregate(A3($Array.set,idx,update(A2(getMultiStepIndex,idx,tree)),_p38._0));
-         case "Do": return Do(A3($Array.set,idx,update(A2(getMultiStepIndex,idx,tree)),_p38._0));
-         case "Retry": var _p40 = _p38._0;
-           var updatedSteps = A3($Array.set,idx,update(A2(getMultiStepIndex,idx,tree)),_p38._1);
-           var _p39 = _p38._3;
-           if (_p39.ctor === "Auto") {
-                 return A4(Retry,_p40,updatedSteps,idx + 1,Auto);
+      var _p41 = tree;
+      switch (_p41.ctor)
+      {case "Aggregate": return Aggregate(A3($Array.set,idx,update(A2(getMultiStepIndex,idx,tree)),_p41._0));
+         case "Do": return Do(A3($Array.set,idx,update(A2(getMultiStepIndex,idx,tree)),_p41._0));
+         case "Retry": var _p43 = _p41._0;
+           var updatedSteps = A3($Array.set,idx,update(A2(getMultiStepIndex,idx,tree)),_p41._1);
+           var _p42 = _p41._3;
+           if (_p42.ctor === "Auto") {
+                 return A4(Retry,_p43,updatedSteps,idx + 1,Auto);
               } else {
-                 return A4(Retry,_p40,updatedSteps,_p38._2,User);
+                 return A4(Retry,_p43,updatedSteps,_p41._2,User);
               }
-         default: return _U.crashCase("StepTree",{start: {line: 421,column: 3},end: {line: 439,column: 31}},_p38)("impossible");}
+         default: return _U.crashCase("StepTree",{start: {line: 425,column: 3},end: {line: 443,column: 31}},_p41)("impossible");}
    });
    var wrapMultiStep = function (i) {
-      return $Dict.map(F2(function (_p42,focus) {    return A2($Focus._op["=>"],A2($Focus.create,getMultiStepIndex(i),setMultiStepIndex(i)),focus);}));
+      return $Dict.map(F2(function (_p45,focus) {    return A2($Focus._op["=>"],A2($Focus.create,getMultiStepIndex(i),setMultiStepIndex(i)),focus);}));
    };
    var DependentGet = function (a) {    return {ctor: "DependentGet",_0: a};};
    var Put = function (a) {    return {ctor: "Put",_0: a};};
    var Get = function (a) {    return {ctor: "Get",_0: a};};
    var Task = function (a) {    return {ctor: "Task",_0: a};};
    var init = F2(function (resources,plan) {
-      var _p43 = plan.step;
-      switch (_p43.ctor)
-      {case "Task": return A3(initBottom,Task,plan.id,_p43._0);
-         case "Get": var _p45 = _p43._0;
-           return A3(initBottom,function (_p44) {    return Get(A4(setupGetStep,resources,_p45,_p43._1,_p44));},plan.id,_p45);
-         case "Put": return A3(initBottom,Put,plan.id,_p43._0);
-         case "DependentGet": return A3(initBottom,DependentGet,plan.id,_p43._0);
-         case "Aggregate": var inited = A2($Array.map,init(resources),_p43._0);
+      var _p46 = plan.step;
+      switch (_p46.ctor)
+      {case "Task": return A3(initBottom,Task,plan.id,_p46._0);
+         case "Get": var _p48 = _p46._0;
+           return A3(initBottom,function (_p47) {    return Get(A4(setupGetStep,resources,_p48,_p46._1,_p47));},plan.id,_p48);
+         case "Put": return A3(initBottom,Put,plan.id,_p46._0);
+         case "DependentGet": return A3(initBottom,DependentGet,plan.id,_p46._0);
+         case "Aggregate": var inited = A2($Array.map,init(resources),_p46._0);
            var trees = A2($Array.map,function (_) {    return _.tree;},inited);
            var subFoci = A2($Array.map,function (_) {    return _.foci;},inited);
            var wrappedSubFoci = A2($Array.indexedMap,wrapMultiStep,subFoci);
            var foci = A3($Array.foldr,$Dict.union,$Dict.empty,wrappedSubFoci);
            return A3(Model,Aggregate(trees),foci,false);
-         case "Do": var inited = A2($Array.map,init(resources),_p43._0);
+         case "Do": var inited = A2($Array.map,init(resources),_p46._0);
            var trees = A2($Array.map,function (_) {    return _.tree;},inited);
            var subFoci = A2($Array.map,function (_) {    return _.foci;},inited);
            var wrappedSubFoci = A2($Array.indexedMap,wrapMultiStep,subFoci);
            var foci = A3($Array.foldr,$Dict.union,$Dict.empty,wrappedSubFoci);
            return A3(Model,Do(trees),foci,false);
-         case "OnSuccess": return A3(initHookedStep,resources,OnSuccess,_p43._0);
-         case "OnFailure": return A3(initHookedStep,resources,OnFailure,_p43._0);
-         case "Ensure": return A3(initHookedStep,resources,Ensure,_p43._0);
-         case "Try": return A3(initWrappedStep,resources,Try,_p43._0);
+         case "OnSuccess": return A3(initHookedStep,resources,OnSuccess,_p46._0);
+         case "OnFailure": return A3(initHookedStep,resources,OnFailure,_p46._0);
+         case "Ensure": return A3(initHookedStep,resources,Ensure,_p46._0);
+         case "Try": return A3(initWrappedStep,resources,Try,_p46._0);
          case "Retry": var selfFoci = A2($Dict.singleton,plan.id,A2($Focus.create,$Basics.identity,$Basics.identity));
-           var inited = A2($Array.map,init(resources),_p43._0);
+           var inited = A2($Array.map,init(resources),_p46._0);
            var trees = A2($Array.map,function (_) {    return _.tree;},inited);
            var subFoci = A2($Array.map,function (_) {    return _.foci;},inited);
            var wrappedSubFoci = A2($Array.indexedMap,wrapMultiStep,subFoci);
            var foci = A3($Array.foldr,$Dict.union,selfFoci,wrappedSubFoci);
            return A3(Model,A4(Retry,plan.id,trees,1,Auto),foci,false);
-         default: return A3(initWrappedStep,resources,Timeout,_p43._0);}
+         default: return A3(initWrappedStep,resources,Timeout,_p46._0);}
    });
    var initHookedStep = F3(function (resources,create,hookedPlan) {
       var hookModel = A2(init,resources,hookedPlan.hook);
@@ -13221,29 +13233,26 @@ Elm.StepTree.make = function (_elm) {
              ,finished: stepModel.finished};
    });
    var initWrappedStep = F3(function (resources,create,plan) {
-      var _p46 = A2(init,resources,plan);
-      var tree = _p46.tree;
-      var foci = _p46.foci;
+      var _p49 = A2(init,resources,plan);
+      var tree = _p49.tree;
+      var foci = _p49.foci;
       return {tree: create(tree),foci: A2($Dict.map,wrapStep,foci),finished: false};
    });
    var map = F2(function (f,tree) {
-      var _p47 = tree;
-      switch (_p47.ctor)
-      {case "Task": return Task(f(_p47._0));
-         case "Get": return Get(f(_p47._0));
-         case "Put": return Put(f(_p47._0));
-         case "DependentGet": return DependentGet(f(_p47._0));
+      var _p50 = tree;
+      switch (_p50.ctor)
+      {case "Task": return Task(f(_p50._0));
+         case "Get": return Get(f(_p50._0));
+         case "Put": return Put(f(_p50._0));
+         case "DependentGet": return DependentGet(f(_p50._0));
          default: return tree;}
    });
    var update = F2(function (action,root) {
-      var _p48 = action;
-      switch (_p48.ctor)
-      {case "ToggleStep": return A3(updateAt,
-           _p48._0,
-           map(function (step) {    return _U.update(step,{expanded: $Maybe.Just($Basics.not(A2($Maybe.withDefault,true,step.expanded)))});}),
-           root);
+      var _p51 = action;
+      switch (_p51.ctor)
+      {case "ToggleStep": return A3(updateAt,_p51._0,map(function (step) {    return _U.update(step,{expanded: toggleExpanded(step)});}),root);
          case "Finished": return _U.update(root,{finished: true});
-         default: return A3(updateAt,_p48._0,focusRetry(_p48._1),root);}
+         default: return A3(updateAt,_p51._0,focusRetry(_p51._1),root);}
    });
    return _elm.StepTree.values = {_op: _op
                                  ,init: init
@@ -13395,15 +13404,7 @@ Elm.Build.make = function (_elm) {
    _U.list([$Html$Attributes.$class("header")]),
    _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("left fa fa-fw fa-spin fa-circle-o-notch")]),_U.list([]))
            ,A2($Html.h3,_U.list([]),_U.list([$Html.text("loading")]))]))]))]));
-   var setStepState = F2(function (state,tree) {
-      var autoCollapse = _U.eq(state,$StepTree.StepStateSucceeded);
-      return A2($StepTree.map,
-      function (step) {
-         var expanded = autoCollapse ? $Maybe.Just(A2($Maybe.withDefault,false,step.expanded)) : step.expanded;
-         return _U.update(step,{state: state,expanded: expanded});
-      },
-      tree);
-   });
+   var setStepState = F2(function (state,tree) {    return A2($StepTree.map,function (step) {    return _U.update(step,{state: state});},tree);});
    var setResourceInfo = F3(function (version,metadata,tree) {
       return A2($StepTree.map,function (step) {    return _U.update(step,{version: $Maybe.Just(version),metadata: metadata});},tree);
    });
