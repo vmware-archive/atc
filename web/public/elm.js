@@ -13715,13 +13715,18 @@ Elm.Build.make = function (_elm) {
       var outputEffects = _p10._1;
       return {ctor: "_Tuple2",_0: _U.update(model,{output: $Maybe.Just(output)}),_1: A2($Effects.map,BuildOutputAction,outputEffects)};
    });
+   var viewBuildOutput = F2(function (actions,output) {
+      var _p11 = output;
+      if (_p11.ctor === "Just") {
+            return A2($BuildOutput.view,A2($Signal.forwardTo,actions,BuildOutputAction),_p11._0);
+         } else {
+            return $LoadingIndicator.view;
+         }
+   });
    var view = F2(function (actions,model) {
-      var _p11 = {ctor: "_Tuple2",_0: model.build,_1: model.output};
-      if (_p11.ctor === "_Tuple2" && _p11._0.ctor === "Just" && _p11._1.ctor === "Just") {
-            return A2($Html.div,
-            _U.list([]),
-            _U.list([A3(viewBuildHeader,actions,_p11._0._0,model)
-                    ,A2($Html$Lazy.lazy,$BuildOutput.view(A2($Signal.forwardTo,actions,BuildOutputAction)),_p11._1._0)]));
+      var _p12 = model.build;
+      if (_p12.ctor === "Just") {
+            return A2($Html.div,_U.list([]),_U.list([A3(viewBuildHeader,actions,_p12._0,model),A2($Html$Lazy.lazy,viewBuildOutput(actions),model.output)]));
          } else {
             return $LoadingIndicator.view;
          }
@@ -13732,22 +13737,22 @@ Elm.Build.make = function (_elm) {
    });
    var handleHistoryFetched = F2(function (history,model) {
       var loadedCurrentBuild = A2($List.any,
-      function (_p12) {
-         return A2(F2(function (x,y) {    return _U.eq(x,y);}),model.buildId,function (_) {    return _.id;}(_p12));
+      function (_p13) {
+         return A2(F2(function (x,y) {    return _U.eq(x,y);}),model.buildId,function (_) {    return _.id;}(_p13));
       },
       history.content);
       var scrollToCurrent = loadedCurrentBuild ? $Effects.tick($Basics.always(RevealCurrentBuildInHistory)) : $Effects.none;
-      var withBuilds = _U.update(model,{history: A2($List.append,model.history,history.content)});
-      var _p13 = {ctor: "_Tuple2",_0: history.pagination.nextPage,_1: A2($Maybe.andThen,model.build,function (_) {    return _.job;})};
-      if (_p13._0.ctor === "Nothing") {
+      var withBuilds = _U.update(model,{history: A2($List.append,model.history,A2($Debug.log,"history",history.content))});
+      var _p14 = {ctor: "_Tuple2",_0: history.pagination.nextPage,_1: A2($Maybe.andThen,model.build,function (_) {    return _.job;})};
+      if (_p14._0.ctor === "Nothing") {
             return {ctor: "_Tuple2",_0: withBuilds,_1: scrollToCurrent};
          } else {
-            if (_p13._1.ctor === "Just") {
+            if (_p14._1.ctor === "Just") {
                   return {ctor: "_Tuple2"
                          ,_0: withBuilds
-                         ,_1: $Effects.batch(_U.list([A2(fetchBuildHistory,_p13._1._0,$Maybe.Just(_p13._0._0)),scrollToCurrent]))};
+                         ,_1: $Effects.batch(_U.list([A2(fetchBuildHistory,_p14._1._0,$Maybe.Just(_p14._0._0)),scrollToCurrent]))};
                } else {
-                  return _U.crashCase("Build",{start: {line: 195,column: 5},end: {line: 203,column: 33}},_p13)("impossible");
+                  return _U.crashCase("Build",{start: {line: 195,column: 5},end: {line: 203,column: 33}},_p14)("impossible");
                }
          }
    });
@@ -13775,10 +13780,6 @@ Elm.Build.make = function (_elm) {
       return {ctor: "_Tuple2",_0: model,_1: A2(fetchBuild,0,buildId)};
    });
    var handleBuildFetched = F2(function (build,model) {
-      var withBuild = _U.update(model,{build: $Maybe.Just(build),status: build.status,duration: A2(BuildDuration,build.startedAt,build.finishedAt)});
-      var _p15 = _U.eq(build.status,$Concourse$BuildStatus.Pending) ? pollUntilStarted(withBuild) : A2(initBuildOutput,build,withBuild);
-      var model = _p15._0;
-      var effects = _p15._1;
       var fetchHistory = function () {
          var _p16 = {ctor: "_Tuple2",_0: model.build,_1: build.job};
          if (_p16.ctor === "_Tuple2" && _p16._0.ctor === "Nothing" && _p16._1.ctor === "Just") {
@@ -13787,60 +13788,64 @@ Elm.Build.make = function (_elm) {
                return $Effects.none;
             }
       }();
-      return {ctor: "_Tuple2",_0: model,_1: $Effects.batch(_U.list([effects,fetchHistory]))};
+      var withBuild = _U.update(model,{build: $Maybe.Just(build),status: build.status,duration: A2(BuildDuration,build.startedAt,build.finishedAt)});
+      var _p17 = _U.eq(build.status,$Concourse$BuildStatus.Pending) ? pollUntilStarted(withBuild) : A2(initBuildOutput,build,withBuild);
+      var newModel = _p17._0;
+      var effects = _p17._1;
+      return {ctor: "_Tuple2",_0: newModel,_1: $Effects.batch(_U.list([effects,fetchHistory]))};
    });
    var update = F2(function (action,model) {
-      var _p17 = action;
-      switch (_p17.ctor)
+      var _p18 = action;
+      switch (_p18.ctor)
       {case "Noop": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          case "AbortBuild": return {ctor: "_Tuple2",_0: model,_1: abortBuild(model.buildId)};
-         case "BuildAborted": if (_p17._0.ctor === "Ok") {
+         case "BuildAborted": if (_p18._0.ctor === "Ok") {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               } else {
-                 if (_p17._0._0.ctor === "BadResponse" && _p17._0._0._0 === 401) {
+                 if (_p18._0._0.ctor === "BadResponse" && _p18._0._0._0 === 401) {
                        return {ctor: "_Tuple2",_0: model,_1: redirectToLogin(model)};
                     } else {
                        return A2($Debug.log,
-                       A2($Basics._op["++"],"failed to abort build: ",$Basics.toString(_p17._0._0)),
+                       A2($Basics._op["++"],"failed to abort build: ",$Basics.toString(_p18._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               }
-         case "BuildFetched": if (_p17._0.ctor === "Ok") {
-                 return A2(handleBuildFetched,_p17._0._0,model);
+         case "BuildFetched": if (_p18._0.ctor === "Ok") {
+                 return A2(handleBuildFetched,_p18._0._0,model);
               } else {
                  return A2($Debug.log,
-                 A2($Basics._op["++"],"failed to fetch build: ",$Basics.toString(_p17._0._0)),
+                 A2($Basics._op["++"],"failed to fetch build: ",$Basics.toString(_p18._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
-         case "BuildOutputAction": var _p18 = model.output;
-           if (_p18.ctor === "Just") {
-                 var _p19 = A2($BuildOutput.update,_p17._0,_p18._0);
-                 var newOutput = _p19._0;
-                 var effects = _p19._1;
+         case "BuildOutputAction": var _p19 = model.output;
+           if (_p19.ctor === "Just") {
+                 var _p20 = A2($BuildOutput.update,_p18._0,_p19._0);
+                 var newOutput = _p20._0;
+                 var effects = _p20._1;
                  return {ctor: "_Tuple2",_0: _U.update(model,{output: $Maybe.Just(newOutput)}),_1: A2($Effects.map,BuildOutputAction,effects)};
               } else {
                  return _U.crashCase("Build",
                  {start: {line: 99,column: 7},end: {line: 107,column: 77}},
-                 _p18)("impossible (received action for missing BuildOutput)");
+                 _p19)("impossible (received action for missing BuildOutput)");
               }
-         case "BuildStatus": var _p21 = _p17._0;
+         case "BuildStatus": var _p22 = _p18._0;
            return {ctor: "_Tuple2"
-                  ,_0: A3(updateStartFinishAt,_p21,_p17._1,$Concourse$BuildStatus.isRunning(model.status) ? _U.update(model,{status: _p21}) : model)
+                  ,_0: A3(updateStartFinishAt,_p22,_p18._1,$Concourse$BuildStatus.isRunning(model.status) ? _U.update(model,{status: _p22}) : model)
                   ,_1: $Effects.none};
-         case "BuildHistoryFetched": if (_p17._0.ctor === "Err") {
+         case "BuildHistoryFetched": if (_p18._0.ctor === "Err") {
                  return A2($Debug.log,
-                 A2($Basics._op["++"],"failed to fetch build history: ",$Basics.toString(_p17._0._0)),
+                 A2($Basics._op["++"],"failed to fetch build history: ",$Basics.toString(_p18._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
-                 return A2(handleHistoryFetched,_p17._0._0,model);
+                 return A2(handleHistoryFetched,_p18._0._0,model);
               }
          case "RevealCurrentBuildInHistory": return {ctor: "_Tuple2",_0: model,_1: scrollToCurrentBuildInHistory};
-         case "ScrollBuilds": if (_p17._0._0 === 0) {
-                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(_p17._0._1)};
+         case "ScrollBuilds": if (_p18._0._0 === 0) {
+                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(_p18._0._1)};
               } else {
-                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(0 - _p17._0._0)};
+                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(0 - _p18._0._0)};
               }
-         default: return {ctor: "_Tuple2",_0: _U.update(model,{now: _p17._0}),_1: $Effects.none};}
+         default: return {ctor: "_Tuple2",_0: _U.update(model,{now: _p18._0}),_1: $Effects.none};}
    });
    var Model = function (a) {
       return function (b) {
@@ -13885,6 +13890,7 @@ Elm.Build.make = function (_elm) {
                               ,updateStartFinishAt: updateStartFinishAt
                               ,abortBuild: abortBuild
                               ,view: view
+                              ,viewBuildOutput: viewBuildOutput
                               ,viewBuildHeader: viewBuildHeader
                               ,viewHistory: viewHistory
                               ,viewBuildDuration: viewBuildDuration
