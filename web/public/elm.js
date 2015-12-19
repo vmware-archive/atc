@@ -13295,7 +13295,7 @@ Elm.BuildOutput.make = function (_elm) {
                     break _v2_4;
                  }}
       } while (false);
-      return $LoadingIndicator.view;
+      return A2($Html.div,_U.list([]),_U.list([]));
    });
    var view = F2(function (actions,_p3) {
       var _p4 = _p3;
@@ -13742,7 +13742,7 @@ Elm.Build.make = function (_elm) {
       },
       history.content);
       var scrollToCurrent = loadedCurrentBuild ? $Effects.tick($Basics.always(RevealCurrentBuildInHistory)) : $Effects.none;
-      var withBuilds = _U.update(model,{history: A2($List.append,model.history,A2($Debug.log,"history",history.content))});
+      var withBuilds = _U.update(model,{history: A2($List.append,model.history,history.content)});
       var _p14 = {ctor: "_Tuple2",_0: history.pagination.nextPage,_1: A2($Maybe.andThen,model.build,function (_) {    return _.job;})};
       if (_p14._0.ctor === "Nothing") {
             return {ctor: "_Tuple2",_0: withBuilds,_1: scrollToCurrent};
