@@ -5732,6 +5732,1551 @@ Elm.Time.make = function (_elm) {
                              ,delay: delay
                              ,since: since};
 };
+Elm.Native.Date = {};
+Elm.Native.Date.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Date = localRuntime.Native.Date || {};
+	if (localRuntime.Native.Date.values)
+	{
+		return localRuntime.Native.Date.values;
+	}
+
+	var Result = Elm.Result.make(localRuntime);
+
+	function readDate(str)
+	{
+		var date = new Date(str);
+		return isNaN(date.getTime())
+			? Result.Err('unable to parse \'' + str + '\' as a date')
+			: Result.Ok(date);
+	}
+
+	var dayTable = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+	var monthTable =
+		['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+		 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+
+	return localRuntime.Native.Date.values = {
+		read: readDate,
+		year: function(d) { return d.getFullYear(); },
+		month: function(d) { return { ctor: monthTable[d.getMonth()] }; },
+		day: function(d) { return d.getDate(); },
+		hour: function(d) { return d.getHours(); },
+		minute: function(d) { return d.getMinutes(); },
+		second: function(d) { return d.getSeconds(); },
+		millisecond: function(d) { return d.getMilliseconds(); },
+		toTime: function(d) { return d.getTime(); },
+		fromTime: function(t) { return new Date(t); },
+		dayOfWeek: function(d) { return { ctor: dayTable[d.getDay()] }; }
+	};
+};
+
+Elm.Date = Elm.Date || {};
+Elm.Date.make = function (_elm) {
+   "use strict";
+   _elm.Date = _elm.Date || {};
+   if (_elm.Date.values) return _elm.Date.values;
+   var _U = Elm.Native.Utils.make(_elm),$Native$Date = Elm.Native.Date.make(_elm),$Result = Elm.Result.make(_elm),$Time = Elm.Time.make(_elm);
+   var _op = {};
+   var millisecond = $Native$Date.millisecond;
+   var second = $Native$Date.second;
+   var minute = $Native$Date.minute;
+   var hour = $Native$Date.hour;
+   var dayOfWeek = $Native$Date.dayOfWeek;
+   var day = $Native$Date.day;
+   var month = $Native$Date.month;
+   var year = $Native$Date.year;
+   var fromTime = $Native$Date.fromTime;
+   var toTime = $Native$Date.toTime;
+   var fromString = $Native$Date.read;
+   var Dec = {ctor: "Dec"};
+   var Nov = {ctor: "Nov"};
+   var Oct = {ctor: "Oct"};
+   var Sep = {ctor: "Sep"};
+   var Aug = {ctor: "Aug"};
+   var Jul = {ctor: "Jul"};
+   var Jun = {ctor: "Jun"};
+   var May = {ctor: "May"};
+   var Apr = {ctor: "Apr"};
+   var Mar = {ctor: "Mar"};
+   var Feb = {ctor: "Feb"};
+   var Jan = {ctor: "Jan"};
+   var Sun = {ctor: "Sun"};
+   var Sat = {ctor: "Sat"};
+   var Fri = {ctor: "Fri"};
+   var Thu = {ctor: "Thu"};
+   var Wed = {ctor: "Wed"};
+   var Tue = {ctor: "Tue"};
+   var Mon = {ctor: "Mon"};
+   var Date = {ctor: "Date"};
+   return _elm.Date.values = {_op: _op
+                             ,fromString: fromString
+                             ,toTime: toTime
+                             ,fromTime: fromTime
+                             ,year: year
+                             ,month: month
+                             ,day: day
+                             ,dayOfWeek: dayOfWeek
+                             ,hour: hour
+                             ,minute: minute
+                             ,second: second
+                             ,millisecond: millisecond
+                             ,Jan: Jan
+                             ,Feb: Feb
+                             ,Mar: Mar
+                             ,Apr: Apr
+                             ,May: May
+                             ,Jun: Jun
+                             ,Jul: Jul
+                             ,Aug: Aug
+                             ,Sep: Sep
+                             ,Oct: Oct
+                             ,Nov: Nov
+                             ,Dec: Dec
+                             ,Mon: Mon
+                             ,Tue: Tue
+                             ,Wed: Wed
+                             ,Thu: Thu
+                             ,Fri: Fri
+                             ,Sat: Sat
+                             ,Sun: Sun};
+};
+Elm.Native.Regex = {};
+Elm.Native.Regex.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Regex = localRuntime.Native.Regex || {};
+	if (localRuntime.Native.Regex.values)
+	{
+		return localRuntime.Native.Regex.values;
+	}
+	if ('values' in Elm.Native.Regex)
+	{
+		return localRuntime.Native.Regex.values = Elm.Native.Regex.values;
+	}
+
+	var List = Elm.Native.List.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+
+	function escape(str)
+	{
+		return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+	}
+	function caseInsensitive(re)
+	{
+		return new RegExp(re.source, 'gi');
+	}
+	function regex(raw)
+	{
+		return new RegExp(raw, 'g');
+	}
+
+	function contains(re, string)
+	{
+		return string.match(re) !== null;
+	}
+
+	function find(n, re, str)
+	{
+		n = n.ctor === 'All' ? Infinity : n._0;
+		var out = [];
+		var number = 0;
+		var string = str;
+		var lastIndex = re.lastIndex;
+		var prevLastIndex = -1;
+		var result;
+		while (number++ < n && (result = re.exec(string)))
+		{
+			if (prevLastIndex === re.lastIndex) break;
+			var i = result.length - 1;
+			var subs = new Array(i);
+			while (i > 0)
+			{
+				var submatch = result[i];
+				subs[--i] = submatch === undefined
+					? Maybe.Nothing
+					: Maybe.Just(submatch);
+			}
+			out.push({
+				match: result[0],
+				submatches: List.fromArray(subs),
+				index: result.index,
+				number: number
+			});
+			prevLastIndex = re.lastIndex;
+		}
+		re.lastIndex = lastIndex;
+		return List.fromArray(out);
+	}
+
+	function replace(n, re, replacer, string)
+	{
+		n = n.ctor === 'All' ? Infinity : n._0;
+		var count = 0;
+		function jsReplacer(match)
+		{
+			if (count++ >= n)
+			{
+				return match;
+			}
+			var i = arguments.length - 3;
+			var submatches = new Array(i);
+			while (i > 0)
+			{
+				var submatch = arguments[i];
+				submatches[--i] = submatch === undefined
+					? Maybe.Nothing
+					: Maybe.Just(submatch);
+			}
+			return replacer({
+				match: match,
+				submatches: List.fromArray(submatches),
+				index: arguments[i - 1],
+				number: count
+			});
+		}
+		return string.replace(re, jsReplacer);
+	}
+
+	function split(n, re, str)
+	{
+		n = n.ctor === 'All' ? Infinity : n._0;
+		if (n === Infinity)
+		{
+			return List.fromArray(str.split(re));
+		}
+		var string = str;
+		var result;
+		var out = [];
+		var start = re.lastIndex;
+		while (n--)
+		{
+			if (!(result = re.exec(string))) break;
+			out.push(string.slice(start, result.index));
+			start = re.lastIndex;
+		}
+		out.push(string.slice(start));
+		return List.fromArray(out);
+	}
+
+	return Elm.Native.Regex.values = {
+		regex: regex,
+		caseInsensitive: caseInsensitive,
+		escape: escape,
+
+		contains: F2(contains),
+		find: F3(find),
+		replace: F4(replace),
+		split: F3(split)
+	};
+};
+
+Elm.Regex = Elm.Regex || {};
+Elm.Regex.make = function (_elm) {
+   "use strict";
+   _elm.Regex = _elm.Regex || {};
+   if (_elm.Regex.values) return _elm.Regex.values;
+   var _U = Elm.Native.Utils.make(_elm),$Maybe = Elm.Maybe.make(_elm),$Native$Regex = Elm.Native.Regex.make(_elm);
+   var _op = {};
+   var split = $Native$Regex.split;
+   var replace = $Native$Regex.replace;
+   var find = $Native$Regex.find;
+   var AtMost = function (a) {    return {ctor: "AtMost",_0: a};};
+   var All = {ctor: "All"};
+   var Match = F4(function (a,b,c,d) {    return {match: a,submatches: b,index: c,number: d};});
+   var contains = $Native$Regex.contains;
+   var caseInsensitive = $Native$Regex.caseInsensitive;
+   var regex = $Native$Regex.regex;
+   var escape = $Native$Regex.escape;
+   var Regex = {ctor: "Regex"};
+   return _elm.Regex.values = {_op: _op
+                              ,regex: regex
+                              ,escape: escape
+                              ,caseInsensitive: caseInsensitive
+                              ,contains: contains
+                              ,find: find
+                              ,replace: replace
+                              ,split: split
+                              ,Match: Match
+                              ,All: All
+                              ,AtMost: AtMost};
+};
+Elm.Native.String = {};
+
+Elm.Native.String.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.String = localRuntime.Native.String || {};
+	if (localRuntime.Native.String.values)
+	{
+		return localRuntime.Native.String.values;
+	}
+	if ('values' in Elm.Native.String)
+	{
+		return localRuntime.Native.String.values = Elm.Native.String.values;
+	}
+
+
+	var Char = Elm.Char.make(localRuntime);
+	var List = Elm.Native.List.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+	var Result = Elm.Result.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+
+	function isEmpty(str)
+	{
+		return str.length === 0;
+	}
+	function cons(chr, str)
+	{
+		return chr + str;
+	}
+	function uncons(str)
+	{
+		var hd = str[0];
+		if (hd)
+		{
+			return Maybe.Just(Utils.Tuple2(Utils.chr(hd), str.slice(1)));
+		}
+		return Maybe.Nothing;
+	}
+	function append(a, b)
+	{
+		return a + b;
+	}
+	function concat(strs)
+	{
+		return List.toArray(strs).join('');
+	}
+	function length(str)
+	{
+		return str.length;
+	}
+	function map(f, str)
+	{
+		var out = str.split('');
+		for (var i = out.length; i--; )
+		{
+			out[i] = f(Utils.chr(out[i]));
+		}
+		return out.join('');
+	}
+	function filter(pred, str)
+	{
+		return str.split('').map(Utils.chr).filter(pred).join('');
+	}
+	function reverse(str)
+	{
+		return str.split('').reverse().join('');
+	}
+	function foldl(f, b, str)
+	{
+		var len = str.length;
+		for (var i = 0; i < len; ++i)
+		{
+			b = A2(f, Utils.chr(str[i]), b);
+		}
+		return b;
+	}
+	function foldr(f, b, str)
+	{
+		for (var i = str.length; i--; )
+		{
+			b = A2(f, Utils.chr(str[i]), b);
+		}
+		return b;
+	}
+	function split(sep, str)
+	{
+		return List.fromArray(str.split(sep));
+	}
+	function join(sep, strs)
+	{
+		return List.toArray(strs).join(sep);
+	}
+	function repeat(n, str)
+	{
+		var result = '';
+		while (n > 0)
+		{
+			if (n & 1)
+			{
+				result += str;
+			}
+			n >>= 1, str += str;
+		}
+		return result;
+	}
+	function slice(start, end, str)
+	{
+		return str.slice(start, end);
+	}
+	function left(n, str)
+	{
+		return n < 1 ? '' : str.slice(0, n);
+	}
+	function right(n, str)
+	{
+		return n < 1 ? '' : str.slice(-n);
+	}
+	function dropLeft(n, str)
+	{
+		return n < 1 ? str : str.slice(n);
+	}
+	function dropRight(n, str)
+	{
+		return n < 1 ? str : str.slice(0, -n);
+	}
+	function pad(n, chr, str)
+	{
+		var half = (n - str.length) / 2;
+		return repeat(Math.ceil(half), chr) + str + repeat(half | 0, chr);
+	}
+	function padRight(n, chr, str)
+	{
+		return str + repeat(n - str.length, chr);
+	}
+	function padLeft(n, chr, str)
+	{
+		return repeat(n - str.length, chr) + str;
+	}
+
+	function trim(str)
+	{
+		return str.trim();
+	}
+	function trimLeft(str)
+	{
+		return str.replace(/^\s+/, '');
+	}
+	function trimRight(str)
+	{
+		return str.replace(/\s+$/, '');
+	}
+
+	function words(str)
+	{
+		return List.fromArray(str.trim().split(/\s+/g));
+	}
+	function lines(str)
+	{
+		return List.fromArray(str.split(/\r\n|\r|\n/g));
+	}
+
+	function toUpper(str)
+	{
+		return str.toUpperCase();
+	}
+	function toLower(str)
+	{
+		return str.toLowerCase();
+	}
+
+	function any(pred, str)
+	{
+		for (var i = str.length; i--; )
+		{
+			if (pred(Utils.chr(str[i])))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	function all(pred, str)
+	{
+		for (var i = str.length; i--; )
+		{
+			if (!pred(Utils.chr(str[i])))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	function contains(sub, str)
+	{
+		return str.indexOf(sub) > -1;
+	}
+	function startsWith(sub, str)
+	{
+		return str.indexOf(sub) === 0;
+	}
+	function endsWith(sub, str)
+	{
+		return str.length >= sub.length &&
+			str.lastIndexOf(sub) === str.length - sub.length;
+	}
+	function indexes(sub, str)
+	{
+		var subLen = sub.length;
+		var i = 0;
+		var is = [];
+		while ((i = str.indexOf(sub, i)) > -1)
+		{
+			is.push(i);
+			i = i + subLen;
+		}
+		return List.fromArray(is);
+	}
+
+	function toInt(s)
+	{
+		var len = s.length;
+		if (len === 0)
+		{
+			return Result.Err("could not convert string '" + s + "' to an Int" );
+		}
+		var start = 0;
+		if (s[0] === '-')
+		{
+			if (len === 1)
+			{
+				return Result.Err("could not convert string '" + s + "' to an Int" );
+			}
+			start = 1;
+		}
+		for (var i = start; i < len; ++i)
+		{
+			if (!Char.isDigit(s[i]))
+			{
+				return Result.Err("could not convert string '" + s + "' to an Int" );
+			}
+		}
+		return Result.Ok(parseInt(s, 10));
+	}
+
+	function toFloat(s)
+	{
+		var len = s.length;
+		if (len === 0)
+		{
+			return Result.Err("could not convert string '" + s + "' to a Float" );
+		}
+		var start = 0;
+		if (s[0] === '-')
+		{
+			if (len === 1)
+			{
+				return Result.Err("could not convert string '" + s + "' to a Float" );
+			}
+			start = 1;
+		}
+		var dotCount = 0;
+		for (var i = start; i < len; ++i)
+		{
+			if (Char.isDigit(s[i]))
+			{
+				continue;
+			}
+			if (s[i] === '.')
+			{
+				dotCount += 1;
+				if (dotCount <= 1)
+				{
+					continue;
+				}
+			}
+			return Result.Err("could not convert string '" + s + "' to a Float" );
+		}
+		return Result.Ok(parseFloat(s));
+	}
+
+	function toList(str)
+	{
+		return List.fromArray(str.split('').map(Utils.chr));
+	}
+	function fromList(chars)
+	{
+		return List.toArray(chars).join('');
+	}
+
+	return Elm.Native.String.values = {
+		isEmpty: isEmpty,
+		cons: F2(cons),
+		uncons: uncons,
+		append: F2(append),
+		concat: concat,
+		length: length,
+		map: F2(map),
+		filter: F2(filter),
+		reverse: reverse,
+		foldl: F3(foldl),
+		foldr: F3(foldr),
+
+		split: F2(split),
+		join: F2(join),
+		repeat: F2(repeat),
+
+		slice: F3(slice),
+		left: F2(left),
+		right: F2(right),
+		dropLeft: F2(dropLeft),
+		dropRight: F2(dropRight),
+
+		pad: F3(pad),
+		padLeft: F3(padLeft),
+		padRight: F3(padRight),
+
+		trim: trim,
+		trimLeft: trimLeft,
+		trimRight: trimRight,
+
+		words: words,
+		lines: lines,
+
+		toUpper: toUpper,
+		toLower: toLower,
+
+		any: F2(any),
+		all: F2(all),
+
+		contains: F2(contains),
+		startsWith: F2(startsWith),
+		endsWith: F2(endsWith),
+		indexes: F2(indexes),
+
+		toInt: toInt,
+		toFloat: toFloat,
+		toList: toList,
+		fromList: fromList
+	};
+};
+
+Elm.Native.Char = {};
+Elm.Native.Char.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Char = localRuntime.Native.Char || {};
+	if (localRuntime.Native.Char.values)
+	{
+		return localRuntime.Native.Char.values;
+	}
+
+	var Utils = Elm.Native.Utils.make(localRuntime);
+
+	return localRuntime.Native.Char.values = {
+		fromCode: function(c) { return Utils.chr(String.fromCharCode(c)); },
+		toCode: function(c) { return c.charCodeAt(0); },
+		toUpper: function(c) { return Utils.chr(c.toUpperCase()); },
+		toLower: function(c) { return Utils.chr(c.toLowerCase()); },
+		toLocaleUpper: function(c) { return Utils.chr(c.toLocaleUpperCase()); },
+		toLocaleLower: function(c) { return Utils.chr(c.toLocaleLowerCase()); }
+	};
+};
+
+Elm.Char = Elm.Char || {};
+Elm.Char.make = function (_elm) {
+   "use strict";
+   _elm.Char = _elm.Char || {};
+   if (_elm.Char.values) return _elm.Char.values;
+   var _U = Elm.Native.Utils.make(_elm),$Basics = Elm.Basics.make(_elm),$Native$Char = Elm.Native.Char.make(_elm);
+   var _op = {};
+   var fromCode = $Native$Char.fromCode;
+   var toCode = $Native$Char.toCode;
+   var toLocaleLower = $Native$Char.toLocaleLower;
+   var toLocaleUpper = $Native$Char.toLocaleUpper;
+   var toLower = $Native$Char.toLower;
+   var toUpper = $Native$Char.toUpper;
+   var isBetween = F3(function (low,high,$char) {    var code = toCode($char);return _U.cmp(code,toCode(low)) > -1 && _U.cmp(code,toCode(high)) < 1;});
+   var isUpper = A2(isBetween,_U.chr("A"),_U.chr("Z"));
+   var isLower = A2(isBetween,_U.chr("a"),_U.chr("z"));
+   var isDigit = A2(isBetween,_U.chr("0"),_U.chr("9"));
+   var isOctDigit = A2(isBetween,_U.chr("0"),_U.chr("7"));
+   var isHexDigit = function ($char) {
+      return isDigit($char) || (A3(isBetween,_U.chr("a"),_U.chr("f"),$char) || A3(isBetween,_U.chr("A"),_U.chr("F"),$char));
+   };
+   return _elm.Char.values = {_op: _op
+                             ,isUpper: isUpper
+                             ,isLower: isLower
+                             ,isDigit: isDigit
+                             ,isOctDigit: isOctDigit
+                             ,isHexDigit: isHexDigit
+                             ,toUpper: toUpper
+                             ,toLower: toLower
+                             ,toLocaleUpper: toLocaleUpper
+                             ,toLocaleLower: toLocaleLower
+                             ,toCode: toCode
+                             ,fromCode: fromCode};
+};
+Elm.String = Elm.String || {};
+Elm.String.make = function (_elm) {
+   "use strict";
+   _elm.String = _elm.String || {};
+   if (_elm.String.values) return _elm.String.values;
+   var _U = Elm.Native.Utils.make(_elm),$Maybe = Elm.Maybe.make(_elm),$Native$String = Elm.Native.String.make(_elm),$Result = Elm.Result.make(_elm);
+   var _op = {};
+   var fromList = $Native$String.fromList;
+   var toList = $Native$String.toList;
+   var toFloat = $Native$String.toFloat;
+   var toInt = $Native$String.toInt;
+   var indices = $Native$String.indexes;
+   var indexes = $Native$String.indexes;
+   var endsWith = $Native$String.endsWith;
+   var startsWith = $Native$String.startsWith;
+   var contains = $Native$String.contains;
+   var all = $Native$String.all;
+   var any = $Native$String.any;
+   var toLower = $Native$String.toLower;
+   var toUpper = $Native$String.toUpper;
+   var lines = $Native$String.lines;
+   var words = $Native$String.words;
+   var trimRight = $Native$String.trimRight;
+   var trimLeft = $Native$String.trimLeft;
+   var trim = $Native$String.trim;
+   var padRight = $Native$String.padRight;
+   var padLeft = $Native$String.padLeft;
+   var pad = $Native$String.pad;
+   var dropRight = $Native$String.dropRight;
+   var dropLeft = $Native$String.dropLeft;
+   var right = $Native$String.right;
+   var left = $Native$String.left;
+   var slice = $Native$String.slice;
+   var repeat = $Native$String.repeat;
+   var join = $Native$String.join;
+   var split = $Native$String.split;
+   var foldr = $Native$String.foldr;
+   var foldl = $Native$String.foldl;
+   var reverse = $Native$String.reverse;
+   var filter = $Native$String.filter;
+   var map = $Native$String.map;
+   var length = $Native$String.length;
+   var concat = $Native$String.concat;
+   var append = $Native$String.append;
+   var uncons = $Native$String.uncons;
+   var cons = $Native$String.cons;
+   var fromChar = function ($char) {    return A2(cons,$char,"");};
+   var isEmpty = $Native$String.isEmpty;
+   return _elm.String.values = {_op: _op
+                               ,isEmpty: isEmpty
+                               ,length: length
+                               ,reverse: reverse
+                               ,repeat: repeat
+                               ,cons: cons
+                               ,uncons: uncons
+                               ,fromChar: fromChar
+                               ,append: append
+                               ,concat: concat
+                               ,split: split
+                               ,join: join
+                               ,words: words
+                               ,lines: lines
+                               ,slice: slice
+                               ,left: left
+                               ,right: right
+                               ,dropLeft: dropLeft
+                               ,dropRight: dropRight
+                               ,contains: contains
+                               ,startsWith: startsWith
+                               ,endsWith: endsWith
+                               ,indexes: indexes
+                               ,indices: indices
+                               ,toInt: toInt
+                               ,toFloat: toFloat
+                               ,toList: toList
+                               ,fromList: fromList
+                               ,toUpper: toUpper
+                               ,toLower: toLower
+                               ,pad: pad
+                               ,padLeft: padLeft
+                               ,padRight: padRight
+                               ,trim: trim
+                               ,trimLeft: trimLeft
+                               ,trimRight: trimRight
+                               ,map: map
+                               ,filter: filter
+                               ,foldl: foldl
+                               ,foldr: foldr
+                               ,any: any
+                               ,all: all};
+};
+Elm.Date = Elm.Date || {};
+Elm.Date.Format = Elm.Date.Format || {};
+Elm.Date.Format.make = function (_elm) {
+   "use strict";
+   _elm.Date = _elm.Date || {};
+   _elm.Date.Format = _elm.Date.Format || {};
+   if (_elm.Date.Format.values) return _elm.Date.Format.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Date = Elm.Date.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Regex = Elm.Regex.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var _op = {};
+   var padWith = function (c) {    return function (_p0) {    return A3($String.padLeft,2,c,$Basics.toString(_p0));};};
+   var mod12 = function (h) {    return A2($Basics._op["%"],h,12);};
+   var fullDayOfWeek = function (dow) {
+      var _p1 = dow;
+      switch (_p1.ctor)
+      {case "Mon": return "Monday";
+         case "Tue": return "Tuesday";
+         case "Wed": return "Wednesday";
+         case "Thu": return "Thursday";
+         case "Fri": return "Friday";
+         case "Sat": return "Saturday";
+         default: return "Sunday";}
+   };
+   var monthToFullName = function (m) {
+      var _p2 = m;
+      switch (_p2.ctor)
+      {case "Jan": return "January";
+         case "Feb": return "February";
+         case "Mar": return "March";
+         case "Apr": return "April";
+         case "May": return "May";
+         case "Jun": return "June";
+         case "Jul": return "July";
+         case "Aug": return "August";
+         case "Sep": return "September";
+         case "Oct": return "October";
+         case "Nov": return "November";
+         default: return "December";}
+   };
+   var monthToInt = function (m) {
+      var _p3 = m;
+      switch (_p3.ctor)
+      {case "Jan": return 1;
+         case "Feb": return 2;
+         case "Mar": return 3;
+         case "Apr": return 4;
+         case "May": return 5;
+         case "Jun": return 6;
+         case "Jul": return 7;
+         case "Aug": return 8;
+         case "Sep": return 9;
+         case "Oct": return 10;
+         case "Nov": return 11;
+         default: return 12;}
+   };
+   var collapse = function (m) {    return A2($Maybe.andThen,m,$Basics.identity);};
+   var formatToken = F2(function (d,m) {
+      var symbol = A2($Maybe.withDefault," ",collapse(A2($Maybe.andThen,$List.tail(m.submatches),$List.head)));
+      var prefix = A2($Maybe.withDefault," ",collapse($List.head(m.submatches)));
+      return A2($Basics._op["++"],
+      prefix,
+      function () {
+         var _p4 = symbol;
+         switch (_p4)
+         {case "Y": return $Basics.toString($Date.year(d));
+            case "m": return A3($String.padLeft,2,_U.chr("0"),$Basics.toString(monthToInt($Date.month(d))));
+            case "B": return monthToFullName($Date.month(d));
+            case "b": return $Basics.toString($Date.month(d));
+            case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
+            case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
+            case "a": return $Basics.toString($Date.dayOfWeek(d));
+            case "A": return fullDayOfWeek($Date.dayOfWeek(d));
+            case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
+            case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
+            case "I": return A2(padWith,_U.chr("0"),mod12($Date.hour(d)));
+            case "l": return A2(padWith,_U.chr(" "),mod12($Date.hour(d)));
+            case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
+            case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
+            case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
+            case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
+            default: return "";}
+      }());
+   });
+   var re = $Regex.regex("(^|[^%])%(Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
+   var format = F2(function (s,d) {    return A4($Regex.replace,$Regex.All,re,formatToken(d),s);});
+   return _elm.Date.Format.values = {_op: _op,format: format};
+};
+Elm.Native.Effects = {};
+Elm.Native.Effects.make = function(localRuntime) {
+
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Effects = localRuntime.Native.Effects || {};
+	if (localRuntime.Native.Effects.values)
+	{
+		return localRuntime.Native.Effects.values;
+	}
+
+	var Task = Elm.Native.Task.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+	var Signal = Elm.Signal.make(localRuntime);
+	var List = Elm.Native.List.make(localRuntime);
+
+
+	// polyfill so things will work even if rAF is not available for some reason
+	var _requestAnimationFrame =
+		typeof requestAnimationFrame !== 'undefined'
+			? requestAnimationFrame
+			: function(cb) { setTimeout(cb, 1000 / 60); }
+			;
+
+
+	// batchedSending and sendCallback implement a small state machine in order
+	// to schedule only one send(time) call per animation frame.
+	//
+	// Invariants:
+	// 1. In the NO_REQUEST state, there is never a scheduled sendCallback.
+	// 2. In the PENDING_REQUEST and EXTRA_REQUEST states, there is always exactly
+	//    one scheduled sendCallback.
+	var NO_REQUEST = 0;
+	var PENDING_REQUEST = 1;
+	var EXTRA_REQUEST = 2;
+	var state = NO_REQUEST;
+	var messageArray = [];
+
+
+	function batchedSending(address, tickMessages)
+	{
+		// insert ticks into the messageArray
+		var foundAddress = false;
+
+		for (var i = messageArray.length; i--; )
+		{
+			if (messageArray[i].address === address)
+			{
+				foundAddress = true;
+				messageArray[i].tickMessages = A3(List.foldl, List.cons, messageArray[i].tickMessages, tickMessages);
+				break;
+			}
+		}
+
+		if (!foundAddress)
+		{
+			messageArray.push({ address: address, tickMessages: tickMessages });
+		}
+
+		// do the appropriate state transition
+		switch (state)
+		{
+			case NO_REQUEST:
+				_requestAnimationFrame(sendCallback);
+				state = PENDING_REQUEST;
+				break;
+			case PENDING_REQUEST:
+				state = PENDING_REQUEST;
+				break;
+			case EXTRA_REQUEST:
+				state = PENDING_REQUEST;
+				break;
+		}
+	}
+
+
+	function sendCallback(time)
+	{
+		switch (state)
+		{
+			case NO_REQUEST:
+				// This state should not be possible. How can there be no
+				// request, yet somehow we are actively fulfilling a
+				// request?
+				throw new Error(
+					'Unexpected send callback.\n' +
+					'Please report this to <https://github.com/evancz/elm-effects/issues>.'
+				);
+
+			case PENDING_REQUEST:
+				// At this point, we do not *know* that another frame is
+				// needed, but we make an extra request to rAF just in
+				// case. It's possible to drop a frame if rAF is called
+				// too late, so we just do it preemptively.
+				_requestAnimationFrame(sendCallback);
+				state = EXTRA_REQUEST;
+
+				// There's also stuff we definitely need to send.
+				send(time);
+				return;
+
+			case EXTRA_REQUEST:
+				// Turns out the extra request was not needed, so we will
+				// stop calling rAF. No reason to call it all the time if
+				// no one needs it.
+				state = NO_REQUEST;
+				return;
+		}
+	}
+
+
+	function send(time)
+	{
+		for (var i = messageArray.length; i--; )
+		{
+			var messages = A3(
+				List.foldl,
+				F2( function(toAction, list) { return List.Cons(toAction(time), list); } ),
+				List.Nil,
+				messageArray[i].tickMessages
+			);
+			Task.perform( A2(Signal.send, messageArray[i].address, messages) );
+		}
+		messageArray = [];
+	}
+
+
+	function requestTickSending(address, tickMessages)
+	{
+		return Task.asyncFunction(function(callback) {
+			batchedSending(address, tickMessages);
+			callback(Task.succeed(Utils.Tuple0));
+		});
+	}
+
+
+	return localRuntime.Native.Effects.values = {
+		requestTickSending: F2(requestTickSending)
+	};
+
+};
+
+Elm.Effects = Elm.Effects || {};
+Elm.Effects.make = function (_elm) {
+   "use strict";
+   _elm.Effects = _elm.Effects || {};
+   if (_elm.Effects.values) return _elm.Effects.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$Effects = Elm.Native.Effects.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var ignore = function (task) {    return A2($Task.map,$Basics.always({ctor: "_Tuple0"}),task);};
+   var requestTickSending = $Native$Effects.requestTickSending;
+   var toTaskHelp = F3(function (address,effect,_p0) {
+      var _p1 = _p0;
+      var _p5 = _p1._1;
+      var _p4 = _p1;
+      var _p3 = _p1._0;
+      var _p2 = effect;
+      switch (_p2.ctor)
+      {case "Task": var reporter = A2($Task.andThen,_p2._0,function (answer) {    return A2($Signal.send,address,_U.list([answer]));});
+           return {ctor: "_Tuple2",_0: A2($Task.andThen,_p3,$Basics.always(ignore($Task.spawn(reporter)))),_1: _p5};
+         case "Tick": return {ctor: "_Tuple2",_0: _p3,_1: A2($List._op["::"],_p2._0,_p5)};
+         case "None": return _p4;
+         default: return A3($List.foldl,toTaskHelp(address),_p4,_p2._0);}
+   });
+   var toTask = F2(function (address,effect) {
+      var _p6 = A3(toTaskHelp,address,effect,{ctor: "_Tuple2",_0: $Task.succeed({ctor: "_Tuple0"}),_1: _U.list([])});
+      var combinedTask = _p6._0;
+      var tickMessages = _p6._1;
+      return $List.isEmpty(tickMessages) ? combinedTask : A2($Task.andThen,combinedTask,$Basics.always(A2(requestTickSending,address,tickMessages)));
+   });
+   var Never = function (a) {    return {ctor: "Never",_0: a};};
+   var Batch = function (a) {    return {ctor: "Batch",_0: a};};
+   var batch = Batch;
+   var None = {ctor: "None"};
+   var none = None;
+   var Tick = function (a) {    return {ctor: "Tick",_0: a};};
+   var tick = Tick;
+   var Task = function (a) {    return {ctor: "Task",_0: a};};
+   var task = Task;
+   var map = F2(function (func,effect) {
+      var _p7 = effect;
+      switch (_p7.ctor)
+      {case "Task": return Task(A2($Task.map,func,_p7._0));
+         case "Tick": return Tick(function (_p8) {    return func(_p7._0(_p8));});
+         case "None": return None;
+         default: return Batch(A2($List.map,map(func),_p7._0));}
+   });
+   return _elm.Effects.values = {_op: _op,none: none,task: task,tick: tick,map: map,batch: batch,toTask: toTask};
+};
+Elm.Native.Json = {};
+
+Elm.Native.Json.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Json = localRuntime.Native.Json || {};
+	if (localRuntime.Native.Json.values) {
+		return localRuntime.Native.Json.values;
+	}
+
+	var ElmArray = Elm.Native.Array.make(localRuntime);
+	var List = Elm.Native.List.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+	var Result = Elm.Result.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+
+
+	function crash(expected, actual) {
+		throw new Error(
+			'expecting ' + expected + ' but got ' + JSON.stringify(actual)
+		);
+	}
+
+
+	// PRIMITIVE VALUES
+
+	function decodeNull(successValue) {
+		return function(value) {
+			if (value === null) {
+				return successValue;
+			}
+			crash('null', value);
+		};
+	}
+
+
+	function decodeString(value) {
+		if (typeof value === 'string' || value instanceof String) {
+			return value;
+		}
+		crash('a String', value);
+	}
+
+
+	function decodeFloat(value) {
+		if (typeof value === 'number') {
+			return value;
+		}
+		crash('a Float', value);
+	}
+
+
+	function decodeInt(value) {
+		if (typeof value !== 'number') {
+			crash('an Int', value);
+		}
+
+		if (value < 2147483647 && value > -2147483647 && (value | 0) === value) {
+			return value;
+		}
+
+		if (isFinite(value) && !(value % 1)) {
+			return value;
+		}
+
+		crash('an Int', value);
+	}
+
+
+	function decodeBool(value) {
+		if (typeof value === 'boolean') {
+			return value;
+		}
+		crash('a Bool', value);
+	}
+
+
+	// ARRAY
+
+	function decodeArray(decoder) {
+		return function(value) {
+			if (value instanceof Array) {
+				var len = value.length;
+				var array = new Array(len);
+				for (var i = len; i--; ) {
+					array[i] = decoder(value[i]);
+				}
+				return ElmArray.fromJSArray(array);
+			}
+			crash('an Array', value);
+		};
+	}
+
+
+	// LIST
+
+	function decodeList(decoder) {
+		return function(value) {
+			if (value instanceof Array) {
+				var len = value.length;
+				var list = List.Nil;
+				for (var i = len; i--; ) {
+					list = List.Cons( decoder(value[i]), list );
+				}
+				return list;
+			}
+			crash('a List', value);
+		};
+	}
+
+
+	// MAYBE
+
+	function decodeMaybe(decoder) {
+		return function(value) {
+			try {
+				return Maybe.Just(decoder(value));
+			} catch(e) {
+				return Maybe.Nothing;
+			}
+		};
+	}
+
+
+	// FIELDS
+
+	function decodeField(field, decoder) {
+		return function(value) {
+			var subValue = value[field];
+			if (subValue !== undefined) {
+				return decoder(subValue);
+			}
+			crash("an object with field '" + field + "'", value);
+		};
+	}
+
+
+	// OBJECTS
+
+	function decodeKeyValuePairs(decoder) {
+		return function(value) {
+			var isObject =
+				typeof value === 'object'
+					&& value !== null
+					&& !(value instanceof Array);
+
+			if (isObject) {
+				var keyValuePairs = List.Nil;
+				for (var key in value)
+				{
+					var elmValue = decoder(value[key]);
+					var pair = Utils.Tuple2(key, elmValue);
+					keyValuePairs = List.Cons(pair, keyValuePairs);
+				}
+				return keyValuePairs;
+			}
+
+			crash('an object', value);
+		};
+	}
+
+	function decodeObject1(f, d1) {
+		return function(value) {
+			return f(d1(value));
+		};
+	}
+
+	function decodeObject2(f, d1, d2) {
+		return function(value) {
+			return A2( f, d1(value), d2(value) );
+		};
+	}
+
+	function decodeObject3(f, d1, d2, d3) {
+		return function(value) {
+			return A3( f, d1(value), d2(value), d3(value) );
+		};
+	}
+
+	function decodeObject4(f, d1, d2, d3, d4) {
+		return function(value) {
+			return A4( f, d1(value), d2(value), d3(value), d4(value) );
+		};
+	}
+
+	function decodeObject5(f, d1, d2, d3, d4, d5) {
+		return function(value) {
+			return A5( f, d1(value), d2(value), d3(value), d4(value), d5(value) );
+		};
+	}
+
+	function decodeObject6(f, d1, d2, d3, d4, d5, d6) {
+		return function(value) {
+			return A6( f,
+				d1(value),
+				d2(value),
+				d3(value),
+				d4(value),
+				d5(value),
+				d6(value)
+			);
+		};
+	}
+
+	function decodeObject7(f, d1, d2, d3, d4, d5, d6, d7) {
+		return function(value) {
+			return A7( f,
+				d1(value),
+				d2(value),
+				d3(value),
+				d4(value),
+				d5(value),
+				d6(value),
+				d7(value)
+			);
+		};
+	}
+
+	function decodeObject8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
+		return function(value) {
+			return A8( f,
+				d1(value),
+				d2(value),
+				d3(value),
+				d4(value),
+				d5(value),
+				d6(value),
+				d7(value),
+				d8(value)
+			);
+		};
+	}
+
+
+	// TUPLES
+
+	function decodeTuple1(f, d1) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 1 ) {
+				crash('a Tuple of length 1', value);
+			}
+			return f( d1(value[0]) );
+		};
+	}
+
+	function decodeTuple2(f, d1, d2) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 2 ) {
+				crash('a Tuple of length 2', value);
+			}
+			return A2( f, d1(value[0]), d2(value[1]) );
+		};
+	}
+
+	function decodeTuple3(f, d1, d2, d3) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 3 ) {
+				crash('a Tuple of length 3', value);
+			}
+			return A3( f, d1(value[0]), d2(value[1]), d3(value[2]) );
+		};
+	}
+
+
+	function decodeTuple4(f, d1, d2, d3, d4) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 4 ) {
+				crash('a Tuple of length 4', value);
+			}
+			return A4( f, d1(value[0]), d2(value[1]), d3(value[2]), d4(value[3]) );
+		};
+	}
+
+
+	function decodeTuple5(f, d1, d2, d3, d4, d5) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 5 ) {
+				crash('a Tuple of length 5', value);
+			}
+			return A5( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4])
+			);
+		};
+	}
+
+
+	function decodeTuple6(f, d1, d2, d3, d4, d5, d6) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 6 ) {
+				crash('a Tuple of length 6', value);
+			}
+			return A6( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4]),
+				d6(value[5])
+			);
+		};
+	}
+
+	function decodeTuple7(f, d1, d2, d3, d4, d5, d6, d7) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 7 ) {
+				crash('a Tuple of length 7', value);
+			}
+			return A7( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4]),
+				d6(value[5]),
+				d7(value[6])
+			);
+		};
+	}
+
+
+	function decodeTuple8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
+		return function(value) {
+			if ( !(value instanceof Array) || value.length !== 8 ) {
+				crash('a Tuple of length 8', value);
+			}
+			return A8( f,
+				d1(value[0]),
+				d2(value[1]),
+				d3(value[2]),
+				d4(value[3]),
+				d5(value[4]),
+				d6(value[5]),
+				d7(value[6]),
+				d8(value[7])
+			);
+		};
+	}
+
+
+	// CUSTOM DECODERS
+
+	function decodeValue(value) {
+		return value;
+	}
+
+	function runDecoderValue(decoder, value) {
+		try {
+			return Result.Ok(decoder(value));
+		} catch(e) {
+			return Result.Err(e.message);
+		}
+	}
+
+	function customDecoder(decoder, callback) {
+		return function(value) {
+			var result = callback(decoder(value));
+			if (result.ctor === 'Err') {
+				throw new Error('custom decoder failed: ' + result._0);
+			}
+			return result._0;
+		};
+	}
+
+	function andThen(decode, callback) {
+		return function(value) {
+			var result = decode(value);
+			return callback(result)(value);
+		};
+	}
+
+	function fail(msg) {
+		return function(value) {
+			throw new Error(msg);
+		};
+	}
+
+	function succeed(successValue) {
+		return function(value) {
+			return successValue;
+		};
+	}
+
+
+	// ONE OF MANY
+
+	function oneOf(decoders) {
+		return function(value) {
+			var errors = [];
+			var temp = decoders;
+			while (temp.ctor !== '[]') {
+				try {
+					return temp._0(value);
+				} catch(e) {
+					errors.push(e.message);
+				}
+				temp = temp._1;
+			}
+			throw new Error('expecting one of the following:\n    ' + errors.join('\n    '));
+		};
+	}
+
+	function get(decoder, value) {
+		try {
+			return Result.Ok(decoder(value));
+		} catch(e) {
+			return Result.Err(e.message);
+		}
+	}
+
+
+	// ENCODE / DECODE
+
+	function runDecoderString(decoder, string) {
+		try {
+			return Result.Ok(decoder(JSON.parse(string)));
+		} catch(e) {
+			return Result.Err(e.message);
+		}
+	}
+
+	function encode(indentLevel, value) {
+		return JSON.stringify(value, null, indentLevel);
+	}
+
+	function identity(value) {
+		return value;
+	}
+
+	function encodeObject(keyValuePairs) {
+		var obj = {};
+		while (keyValuePairs.ctor !== '[]') {
+			var pair = keyValuePairs._0;
+			obj[pair._0] = pair._1;
+			keyValuePairs = keyValuePairs._1;
+		}
+		return obj;
+	}
+
+	return localRuntime.Native.Json.values = {
+		encode: F2(encode),
+		runDecoderString: F2(runDecoderString),
+		runDecoderValue: F2(runDecoderValue),
+
+		get: F2(get),
+		oneOf: oneOf,
+
+		decodeNull: decodeNull,
+		decodeInt: decodeInt,
+		decodeFloat: decodeFloat,
+		decodeString: decodeString,
+		decodeBool: decodeBool,
+
+		decodeMaybe: decodeMaybe,
+
+		decodeList: decodeList,
+		decodeArray: decodeArray,
+
+		decodeField: F2(decodeField),
+
+		decodeObject1: F2(decodeObject1),
+		decodeObject2: F3(decodeObject2),
+		decodeObject3: F4(decodeObject3),
+		decodeObject4: F5(decodeObject4),
+		decodeObject5: F6(decodeObject5),
+		decodeObject6: F7(decodeObject6),
+		decodeObject7: F8(decodeObject7),
+		decodeObject8: F9(decodeObject8),
+		decodeKeyValuePairs: decodeKeyValuePairs,
+
+		decodeTuple1: F2(decodeTuple1),
+		decodeTuple2: F3(decodeTuple2),
+		decodeTuple3: F4(decodeTuple3),
+		decodeTuple4: F5(decodeTuple4),
+		decodeTuple5: F6(decodeTuple5),
+		decodeTuple6: F7(decodeTuple6),
+		decodeTuple7: F8(decodeTuple7),
+		decodeTuple8: F9(decodeTuple8),
+
+		andThen: F2(andThen),
+		decodeValue: decodeValue,
+		customDecoder: F2(customDecoder),
+		fail: fail,
+		succeed: succeed,
+
+		identity: identity,
+		encodeNull: null,
+		encodeArray: ElmArray.toJSArray,
+		encodeList: List.toArray,
+		encodeObject: encodeObject
+
+	};
+};
+
 Elm.Native.Array = {};
 Elm.Native.Array.make = function(localRuntime) {
 
@@ -6772,990 +8317,6 @@ Elm.Array.make = function (_elm) {
                               ,filter: filter
                               ,foldl: foldl
                               ,foldr: foldr};
-};
-Elm.Native.Json = {};
-
-Elm.Native.Json.make = function(localRuntime) {
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Json = localRuntime.Native.Json || {};
-	if (localRuntime.Native.Json.values) {
-		return localRuntime.Native.Json.values;
-	}
-
-	var ElmArray = Elm.Native.Array.make(localRuntime);
-	var List = Elm.Native.List.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-	var Result = Elm.Result.make(localRuntime);
-	var Utils = Elm.Native.Utils.make(localRuntime);
-
-
-	function crash(expected, actual) {
-		throw new Error(
-			'expecting ' + expected + ' but got ' + JSON.stringify(actual)
-		);
-	}
-
-
-	// PRIMITIVE VALUES
-
-	function decodeNull(successValue) {
-		return function(value) {
-			if (value === null) {
-				return successValue;
-			}
-			crash('null', value);
-		};
-	}
-
-
-	function decodeString(value) {
-		if (typeof value === 'string' || value instanceof String) {
-			return value;
-		}
-		crash('a String', value);
-	}
-
-
-	function decodeFloat(value) {
-		if (typeof value === 'number') {
-			return value;
-		}
-		crash('a Float', value);
-	}
-
-
-	function decodeInt(value) {
-		if (typeof value !== 'number') {
-			crash('an Int', value);
-		}
-
-		if (value < 2147483647 && value > -2147483647 && (value | 0) === value) {
-			return value;
-		}
-
-		if (isFinite(value) && !(value % 1)) {
-			return value;
-		}
-
-		crash('an Int', value);
-	}
-
-
-	function decodeBool(value) {
-		if (typeof value === 'boolean') {
-			return value;
-		}
-		crash('a Bool', value);
-	}
-
-
-	// ARRAY
-
-	function decodeArray(decoder) {
-		return function(value) {
-			if (value instanceof Array) {
-				var len = value.length;
-				var array = new Array(len);
-				for (var i = len; i--; ) {
-					array[i] = decoder(value[i]);
-				}
-				return ElmArray.fromJSArray(array);
-			}
-			crash('an Array', value);
-		};
-	}
-
-
-	// LIST
-
-	function decodeList(decoder) {
-		return function(value) {
-			if (value instanceof Array) {
-				var len = value.length;
-				var list = List.Nil;
-				for (var i = len; i--; ) {
-					list = List.Cons( decoder(value[i]), list );
-				}
-				return list;
-			}
-			crash('a List', value);
-		};
-	}
-
-
-	// MAYBE
-
-	function decodeMaybe(decoder) {
-		return function(value) {
-			try {
-				return Maybe.Just(decoder(value));
-			} catch(e) {
-				return Maybe.Nothing;
-			}
-		};
-	}
-
-
-	// FIELDS
-
-	function decodeField(field, decoder) {
-		return function(value) {
-			var subValue = value[field];
-			if (subValue !== undefined) {
-				return decoder(subValue);
-			}
-			crash("an object with field '" + field + "'", value);
-		};
-	}
-
-
-	// OBJECTS
-
-	function decodeKeyValuePairs(decoder) {
-		return function(value) {
-			var isObject =
-				typeof value === 'object'
-					&& value !== null
-					&& !(value instanceof Array);
-
-			if (isObject) {
-				var keyValuePairs = List.Nil;
-				for (var key in value)
-				{
-					var elmValue = decoder(value[key]);
-					var pair = Utils.Tuple2(key, elmValue);
-					keyValuePairs = List.Cons(pair, keyValuePairs);
-				}
-				return keyValuePairs;
-			}
-
-			crash('an object', value);
-		};
-	}
-
-	function decodeObject1(f, d1) {
-		return function(value) {
-			return f(d1(value));
-		};
-	}
-
-	function decodeObject2(f, d1, d2) {
-		return function(value) {
-			return A2( f, d1(value), d2(value) );
-		};
-	}
-
-	function decodeObject3(f, d1, d2, d3) {
-		return function(value) {
-			return A3( f, d1(value), d2(value), d3(value) );
-		};
-	}
-
-	function decodeObject4(f, d1, d2, d3, d4) {
-		return function(value) {
-			return A4( f, d1(value), d2(value), d3(value), d4(value) );
-		};
-	}
-
-	function decodeObject5(f, d1, d2, d3, d4, d5) {
-		return function(value) {
-			return A5( f, d1(value), d2(value), d3(value), d4(value), d5(value) );
-		};
-	}
-
-	function decodeObject6(f, d1, d2, d3, d4, d5, d6) {
-		return function(value) {
-			return A6( f,
-				d1(value),
-				d2(value),
-				d3(value),
-				d4(value),
-				d5(value),
-				d6(value)
-			);
-		};
-	}
-
-	function decodeObject7(f, d1, d2, d3, d4, d5, d6, d7) {
-		return function(value) {
-			return A7( f,
-				d1(value),
-				d2(value),
-				d3(value),
-				d4(value),
-				d5(value),
-				d6(value),
-				d7(value)
-			);
-		};
-	}
-
-	function decodeObject8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
-		return function(value) {
-			return A8( f,
-				d1(value),
-				d2(value),
-				d3(value),
-				d4(value),
-				d5(value),
-				d6(value),
-				d7(value),
-				d8(value)
-			);
-		};
-	}
-
-
-	// TUPLES
-
-	function decodeTuple1(f, d1) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 1 ) {
-				crash('a Tuple of length 1', value);
-			}
-			return f( d1(value[0]) );
-		};
-	}
-
-	function decodeTuple2(f, d1, d2) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 2 ) {
-				crash('a Tuple of length 2', value);
-			}
-			return A2( f, d1(value[0]), d2(value[1]) );
-		};
-	}
-
-	function decodeTuple3(f, d1, d2, d3) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 3 ) {
-				crash('a Tuple of length 3', value);
-			}
-			return A3( f, d1(value[0]), d2(value[1]), d3(value[2]) );
-		};
-	}
-
-
-	function decodeTuple4(f, d1, d2, d3, d4) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 4 ) {
-				crash('a Tuple of length 4', value);
-			}
-			return A4( f, d1(value[0]), d2(value[1]), d3(value[2]), d4(value[3]) );
-		};
-	}
-
-
-	function decodeTuple5(f, d1, d2, d3, d4, d5) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 5 ) {
-				crash('a Tuple of length 5', value);
-			}
-			return A5( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4])
-			);
-		};
-	}
-
-
-	function decodeTuple6(f, d1, d2, d3, d4, d5, d6) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 6 ) {
-				crash('a Tuple of length 6', value);
-			}
-			return A6( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4]),
-				d6(value[5])
-			);
-		};
-	}
-
-	function decodeTuple7(f, d1, d2, d3, d4, d5, d6, d7) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 7 ) {
-				crash('a Tuple of length 7', value);
-			}
-			return A7( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4]),
-				d6(value[5]),
-				d7(value[6])
-			);
-		};
-	}
-
-
-	function decodeTuple8(f, d1, d2, d3, d4, d5, d6, d7, d8) {
-		return function(value) {
-			if ( !(value instanceof Array) || value.length !== 8 ) {
-				crash('a Tuple of length 8', value);
-			}
-			return A8( f,
-				d1(value[0]),
-				d2(value[1]),
-				d3(value[2]),
-				d4(value[3]),
-				d5(value[4]),
-				d6(value[5]),
-				d7(value[6]),
-				d8(value[7])
-			);
-		};
-	}
-
-
-	// CUSTOM DECODERS
-
-	function decodeValue(value) {
-		return value;
-	}
-
-	function runDecoderValue(decoder, value) {
-		try {
-			return Result.Ok(decoder(value));
-		} catch(e) {
-			return Result.Err(e.message);
-		}
-	}
-
-	function customDecoder(decoder, callback) {
-		return function(value) {
-			var result = callback(decoder(value));
-			if (result.ctor === 'Err') {
-				throw new Error('custom decoder failed: ' + result._0);
-			}
-			return result._0;
-		};
-	}
-
-	function andThen(decode, callback) {
-		return function(value) {
-			var result = decode(value);
-			return callback(result)(value);
-		};
-	}
-
-	function fail(msg) {
-		return function(value) {
-			throw new Error(msg);
-		};
-	}
-
-	function succeed(successValue) {
-		return function(value) {
-			return successValue;
-		};
-	}
-
-
-	// ONE OF MANY
-
-	function oneOf(decoders) {
-		return function(value) {
-			var errors = [];
-			var temp = decoders;
-			while (temp.ctor !== '[]') {
-				try {
-					return temp._0(value);
-				} catch(e) {
-					errors.push(e.message);
-				}
-				temp = temp._1;
-			}
-			throw new Error('expecting one of the following:\n    ' + errors.join('\n    '));
-		};
-	}
-
-	function get(decoder, value) {
-		try {
-			return Result.Ok(decoder(value));
-		} catch(e) {
-			return Result.Err(e.message);
-		}
-	}
-
-
-	// ENCODE / DECODE
-
-	function runDecoderString(decoder, string) {
-		try {
-			return Result.Ok(decoder(JSON.parse(string)));
-		} catch(e) {
-			return Result.Err(e.message);
-		}
-	}
-
-	function encode(indentLevel, value) {
-		return JSON.stringify(value, null, indentLevel);
-	}
-
-	function identity(value) {
-		return value;
-	}
-
-	function encodeObject(keyValuePairs) {
-		var obj = {};
-		while (keyValuePairs.ctor !== '[]') {
-			var pair = keyValuePairs._0;
-			obj[pair._0] = pair._1;
-			keyValuePairs = keyValuePairs._1;
-		}
-		return obj;
-	}
-
-	return localRuntime.Native.Json.values = {
-		encode: F2(encode),
-		runDecoderString: F2(runDecoderString),
-		runDecoderValue: F2(runDecoderValue),
-
-		get: F2(get),
-		oneOf: oneOf,
-
-		decodeNull: decodeNull,
-		decodeInt: decodeInt,
-		decodeFloat: decodeFloat,
-		decodeString: decodeString,
-		decodeBool: decodeBool,
-
-		decodeMaybe: decodeMaybe,
-
-		decodeList: decodeList,
-		decodeArray: decodeArray,
-
-		decodeField: F2(decodeField),
-
-		decodeObject1: F2(decodeObject1),
-		decodeObject2: F3(decodeObject2),
-		decodeObject3: F4(decodeObject3),
-		decodeObject4: F5(decodeObject4),
-		decodeObject5: F6(decodeObject5),
-		decodeObject6: F7(decodeObject6),
-		decodeObject7: F8(decodeObject7),
-		decodeObject8: F9(decodeObject8),
-		decodeKeyValuePairs: decodeKeyValuePairs,
-
-		decodeTuple1: F2(decodeTuple1),
-		decodeTuple2: F3(decodeTuple2),
-		decodeTuple3: F4(decodeTuple3),
-		decodeTuple4: F5(decodeTuple4),
-		decodeTuple5: F6(decodeTuple5),
-		decodeTuple6: F7(decodeTuple6),
-		decodeTuple7: F8(decodeTuple7),
-		decodeTuple8: F9(decodeTuple8),
-
-		andThen: F2(andThen),
-		decodeValue: decodeValue,
-		customDecoder: F2(customDecoder),
-		fail: fail,
-		succeed: succeed,
-
-		identity: identity,
-		encodeNull: null,
-		encodeArray: ElmArray.toJSArray,
-		encodeList: List.toArray,
-		encodeObject: encodeObject
-
-	};
-};
-
-Elm.Native.String = {};
-
-Elm.Native.String.make = function(localRuntime) {
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.String = localRuntime.Native.String || {};
-	if (localRuntime.Native.String.values)
-	{
-		return localRuntime.Native.String.values;
-	}
-	if ('values' in Elm.Native.String)
-	{
-		return localRuntime.Native.String.values = Elm.Native.String.values;
-	}
-
-
-	var Char = Elm.Char.make(localRuntime);
-	var List = Elm.Native.List.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-	var Result = Elm.Result.make(localRuntime);
-	var Utils = Elm.Native.Utils.make(localRuntime);
-
-	function isEmpty(str)
-	{
-		return str.length === 0;
-	}
-	function cons(chr, str)
-	{
-		return chr + str;
-	}
-	function uncons(str)
-	{
-		var hd = str[0];
-		if (hd)
-		{
-			return Maybe.Just(Utils.Tuple2(Utils.chr(hd), str.slice(1)));
-		}
-		return Maybe.Nothing;
-	}
-	function append(a, b)
-	{
-		return a + b;
-	}
-	function concat(strs)
-	{
-		return List.toArray(strs).join('');
-	}
-	function length(str)
-	{
-		return str.length;
-	}
-	function map(f, str)
-	{
-		var out = str.split('');
-		for (var i = out.length; i--; )
-		{
-			out[i] = f(Utils.chr(out[i]));
-		}
-		return out.join('');
-	}
-	function filter(pred, str)
-	{
-		return str.split('').map(Utils.chr).filter(pred).join('');
-	}
-	function reverse(str)
-	{
-		return str.split('').reverse().join('');
-	}
-	function foldl(f, b, str)
-	{
-		var len = str.length;
-		for (var i = 0; i < len; ++i)
-		{
-			b = A2(f, Utils.chr(str[i]), b);
-		}
-		return b;
-	}
-	function foldr(f, b, str)
-	{
-		for (var i = str.length; i--; )
-		{
-			b = A2(f, Utils.chr(str[i]), b);
-		}
-		return b;
-	}
-	function split(sep, str)
-	{
-		return List.fromArray(str.split(sep));
-	}
-	function join(sep, strs)
-	{
-		return List.toArray(strs).join(sep);
-	}
-	function repeat(n, str)
-	{
-		var result = '';
-		while (n > 0)
-		{
-			if (n & 1)
-			{
-				result += str;
-			}
-			n >>= 1, str += str;
-		}
-		return result;
-	}
-	function slice(start, end, str)
-	{
-		return str.slice(start, end);
-	}
-	function left(n, str)
-	{
-		return n < 1 ? '' : str.slice(0, n);
-	}
-	function right(n, str)
-	{
-		return n < 1 ? '' : str.slice(-n);
-	}
-	function dropLeft(n, str)
-	{
-		return n < 1 ? str : str.slice(n);
-	}
-	function dropRight(n, str)
-	{
-		return n < 1 ? str : str.slice(0, -n);
-	}
-	function pad(n, chr, str)
-	{
-		var half = (n - str.length) / 2;
-		return repeat(Math.ceil(half), chr) + str + repeat(half | 0, chr);
-	}
-	function padRight(n, chr, str)
-	{
-		return str + repeat(n - str.length, chr);
-	}
-	function padLeft(n, chr, str)
-	{
-		return repeat(n - str.length, chr) + str;
-	}
-
-	function trim(str)
-	{
-		return str.trim();
-	}
-	function trimLeft(str)
-	{
-		return str.replace(/^\s+/, '');
-	}
-	function trimRight(str)
-	{
-		return str.replace(/\s+$/, '');
-	}
-
-	function words(str)
-	{
-		return List.fromArray(str.trim().split(/\s+/g));
-	}
-	function lines(str)
-	{
-		return List.fromArray(str.split(/\r\n|\r|\n/g));
-	}
-
-	function toUpper(str)
-	{
-		return str.toUpperCase();
-	}
-	function toLower(str)
-	{
-		return str.toLowerCase();
-	}
-
-	function any(pred, str)
-	{
-		for (var i = str.length; i--; )
-		{
-			if (pred(Utils.chr(str[i])))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-	function all(pred, str)
-	{
-		for (var i = str.length; i--; )
-		{
-			if (!pred(Utils.chr(str[i])))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	function contains(sub, str)
-	{
-		return str.indexOf(sub) > -1;
-	}
-	function startsWith(sub, str)
-	{
-		return str.indexOf(sub) === 0;
-	}
-	function endsWith(sub, str)
-	{
-		return str.length >= sub.length &&
-			str.lastIndexOf(sub) === str.length - sub.length;
-	}
-	function indexes(sub, str)
-	{
-		var subLen = sub.length;
-		var i = 0;
-		var is = [];
-		while ((i = str.indexOf(sub, i)) > -1)
-		{
-			is.push(i);
-			i = i + subLen;
-		}
-		return List.fromArray(is);
-	}
-
-	function toInt(s)
-	{
-		var len = s.length;
-		if (len === 0)
-		{
-			return Result.Err("could not convert string '" + s + "' to an Int" );
-		}
-		var start = 0;
-		if (s[0] === '-')
-		{
-			if (len === 1)
-			{
-				return Result.Err("could not convert string '" + s + "' to an Int" );
-			}
-			start = 1;
-		}
-		for (var i = start; i < len; ++i)
-		{
-			if (!Char.isDigit(s[i]))
-			{
-				return Result.Err("could not convert string '" + s + "' to an Int" );
-			}
-		}
-		return Result.Ok(parseInt(s, 10));
-	}
-
-	function toFloat(s)
-	{
-		var len = s.length;
-		if (len === 0)
-		{
-			return Result.Err("could not convert string '" + s + "' to a Float" );
-		}
-		var start = 0;
-		if (s[0] === '-')
-		{
-			if (len === 1)
-			{
-				return Result.Err("could not convert string '" + s + "' to a Float" );
-			}
-			start = 1;
-		}
-		var dotCount = 0;
-		for (var i = start; i < len; ++i)
-		{
-			if (Char.isDigit(s[i]))
-			{
-				continue;
-			}
-			if (s[i] === '.')
-			{
-				dotCount += 1;
-				if (dotCount <= 1)
-				{
-					continue;
-				}
-			}
-			return Result.Err("could not convert string '" + s + "' to a Float" );
-		}
-		return Result.Ok(parseFloat(s));
-	}
-
-	function toList(str)
-	{
-		return List.fromArray(str.split('').map(Utils.chr));
-	}
-	function fromList(chars)
-	{
-		return List.toArray(chars).join('');
-	}
-
-	return Elm.Native.String.values = {
-		isEmpty: isEmpty,
-		cons: F2(cons),
-		uncons: uncons,
-		append: F2(append),
-		concat: concat,
-		length: length,
-		map: F2(map),
-		filter: F2(filter),
-		reverse: reverse,
-		foldl: F3(foldl),
-		foldr: F3(foldr),
-
-		split: F2(split),
-		join: F2(join),
-		repeat: F2(repeat),
-
-		slice: F3(slice),
-		left: F2(left),
-		right: F2(right),
-		dropLeft: F2(dropLeft),
-		dropRight: F2(dropRight),
-
-		pad: F3(pad),
-		padLeft: F3(padLeft),
-		padRight: F3(padRight),
-
-		trim: trim,
-		trimLeft: trimLeft,
-		trimRight: trimRight,
-
-		words: words,
-		lines: lines,
-
-		toUpper: toUpper,
-		toLower: toLower,
-
-		any: F2(any),
-		all: F2(all),
-
-		contains: F2(contains),
-		startsWith: F2(startsWith),
-		endsWith: F2(endsWith),
-		indexes: F2(indexes),
-
-		toInt: toInt,
-		toFloat: toFloat,
-		toList: toList,
-		fromList: fromList
-	};
-};
-
-Elm.Native.Char = {};
-Elm.Native.Char.make = function(localRuntime) {
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Char = localRuntime.Native.Char || {};
-	if (localRuntime.Native.Char.values)
-	{
-		return localRuntime.Native.Char.values;
-	}
-
-	var Utils = Elm.Native.Utils.make(localRuntime);
-
-	return localRuntime.Native.Char.values = {
-		fromCode: function(c) { return Utils.chr(String.fromCharCode(c)); },
-		toCode: function(c) { return c.charCodeAt(0); },
-		toUpper: function(c) { return Utils.chr(c.toUpperCase()); },
-		toLower: function(c) { return Utils.chr(c.toLowerCase()); },
-		toLocaleUpper: function(c) { return Utils.chr(c.toLocaleUpperCase()); },
-		toLocaleLower: function(c) { return Utils.chr(c.toLocaleLowerCase()); }
-	};
-};
-
-Elm.Char = Elm.Char || {};
-Elm.Char.make = function (_elm) {
-   "use strict";
-   _elm.Char = _elm.Char || {};
-   if (_elm.Char.values) return _elm.Char.values;
-   var _U = Elm.Native.Utils.make(_elm),$Basics = Elm.Basics.make(_elm),$Native$Char = Elm.Native.Char.make(_elm);
-   var _op = {};
-   var fromCode = $Native$Char.fromCode;
-   var toCode = $Native$Char.toCode;
-   var toLocaleLower = $Native$Char.toLocaleLower;
-   var toLocaleUpper = $Native$Char.toLocaleUpper;
-   var toLower = $Native$Char.toLower;
-   var toUpper = $Native$Char.toUpper;
-   var isBetween = F3(function (low,high,$char) {    var code = toCode($char);return _U.cmp(code,toCode(low)) > -1 && _U.cmp(code,toCode(high)) < 1;});
-   var isUpper = A2(isBetween,_U.chr("A"),_U.chr("Z"));
-   var isLower = A2(isBetween,_U.chr("a"),_U.chr("z"));
-   var isDigit = A2(isBetween,_U.chr("0"),_U.chr("9"));
-   var isOctDigit = A2(isBetween,_U.chr("0"),_U.chr("7"));
-   var isHexDigit = function ($char) {
-      return isDigit($char) || (A3(isBetween,_U.chr("a"),_U.chr("f"),$char) || A3(isBetween,_U.chr("A"),_U.chr("F"),$char));
-   };
-   return _elm.Char.values = {_op: _op
-                             ,isUpper: isUpper
-                             ,isLower: isLower
-                             ,isDigit: isDigit
-                             ,isOctDigit: isOctDigit
-                             ,isHexDigit: isHexDigit
-                             ,toUpper: toUpper
-                             ,toLower: toLower
-                             ,toLocaleUpper: toLocaleUpper
-                             ,toLocaleLower: toLocaleLower
-                             ,toCode: toCode
-                             ,fromCode: fromCode};
-};
-Elm.String = Elm.String || {};
-Elm.String.make = function (_elm) {
-   "use strict";
-   _elm.String = _elm.String || {};
-   if (_elm.String.values) return _elm.String.values;
-   var _U = Elm.Native.Utils.make(_elm),$Maybe = Elm.Maybe.make(_elm),$Native$String = Elm.Native.String.make(_elm),$Result = Elm.Result.make(_elm);
-   var _op = {};
-   var fromList = $Native$String.fromList;
-   var toList = $Native$String.toList;
-   var toFloat = $Native$String.toFloat;
-   var toInt = $Native$String.toInt;
-   var indices = $Native$String.indexes;
-   var indexes = $Native$String.indexes;
-   var endsWith = $Native$String.endsWith;
-   var startsWith = $Native$String.startsWith;
-   var contains = $Native$String.contains;
-   var all = $Native$String.all;
-   var any = $Native$String.any;
-   var toLower = $Native$String.toLower;
-   var toUpper = $Native$String.toUpper;
-   var lines = $Native$String.lines;
-   var words = $Native$String.words;
-   var trimRight = $Native$String.trimRight;
-   var trimLeft = $Native$String.trimLeft;
-   var trim = $Native$String.trim;
-   var padRight = $Native$String.padRight;
-   var padLeft = $Native$String.padLeft;
-   var pad = $Native$String.pad;
-   var dropRight = $Native$String.dropRight;
-   var dropLeft = $Native$String.dropLeft;
-   var right = $Native$String.right;
-   var left = $Native$String.left;
-   var slice = $Native$String.slice;
-   var repeat = $Native$String.repeat;
-   var join = $Native$String.join;
-   var split = $Native$String.split;
-   var foldr = $Native$String.foldr;
-   var foldl = $Native$String.foldl;
-   var reverse = $Native$String.reverse;
-   var filter = $Native$String.filter;
-   var map = $Native$String.map;
-   var length = $Native$String.length;
-   var concat = $Native$String.concat;
-   var append = $Native$String.append;
-   var uncons = $Native$String.uncons;
-   var cons = $Native$String.cons;
-   var fromChar = function ($char) {    return A2(cons,$char,"");};
-   var isEmpty = $Native$String.isEmpty;
-   return _elm.String.values = {_op: _op
-                               ,isEmpty: isEmpty
-                               ,length: length
-                               ,reverse: reverse
-                               ,repeat: repeat
-                               ,cons: cons
-                               ,uncons: uncons
-                               ,fromChar: fromChar
-                               ,append: append
-                               ,concat: concat
-                               ,split: split
-                               ,join: join
-                               ,words: words
-                               ,lines: lines
-                               ,slice: slice
-                               ,left: left
-                               ,right: right
-                               ,dropLeft: dropLeft
-                               ,dropRight: dropRight
-                               ,contains: contains
-                               ,startsWith: startsWith
-                               ,endsWith: endsWith
-                               ,indexes: indexes
-                               ,indices: indices
-                               ,toInt: toInt
-                               ,toFloat: toFloat
-                               ,toList: toList
-                               ,fromList: fromList
-                               ,toUpper: toUpper
-                               ,toLower: toLower
-                               ,pad: pad
-                               ,padLeft: padLeft
-                               ,padRight: padRight
-                               ,trim: trim
-                               ,trimLeft: trimLeft
-                               ,trimRight: trimRight
-                               ,map: map
-                               ,filter: filter
-                               ,foldl: foldl
-                               ,foldr: foldr
-                               ,any: any
-                               ,all: all};
 };
 Elm.Dict = Elm.Dict || {};
 Elm.Dict.make = function (_elm) {
@@ -10532,6 +11093,72 @@ Elm.Html.Attributes.make = function (_elm) {
                                         ,attribute: attribute};
 };
 Elm.Html = Elm.Html || {};
+Elm.Html.Events = Elm.Html.Events || {};
+Elm.Html.Events.make = function (_elm) {
+   "use strict";
+   _elm.Html = _elm.Html || {};
+   _elm.Html.Events = _elm.Html.Events || {};
+   if (_elm.Html.Events.values) return _elm.Html.Events.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $VirtualDom = Elm.VirtualDom.make(_elm);
+   var _op = {};
+   var keyCode = A2($Json$Decode._op[":="],"keyCode",$Json$Decode.$int);
+   var targetChecked = A2($Json$Decode.at,_U.list(["target","checked"]),$Json$Decode.bool);
+   var targetValue = A2($Json$Decode.at,_U.list(["target","value"]),$Json$Decode.string);
+   var defaultOptions = $VirtualDom.defaultOptions;
+   var Options = F2(function (a,b) {    return {stopPropagation: a,preventDefault: b};});
+   var onWithOptions = $VirtualDom.onWithOptions;
+   var on = $VirtualDom.on;
+   var messageOn = F3(function (name,addr,msg) {    return A3(on,name,$Json$Decode.value,function (_p0) {    return A2($Signal.message,addr,msg);});});
+   var onClick = messageOn("click");
+   var onDoubleClick = messageOn("dblclick");
+   var onMouseMove = messageOn("mousemove");
+   var onMouseDown = messageOn("mousedown");
+   var onMouseUp = messageOn("mouseup");
+   var onMouseEnter = messageOn("mouseenter");
+   var onMouseLeave = messageOn("mouseleave");
+   var onMouseOver = messageOn("mouseover");
+   var onMouseOut = messageOn("mouseout");
+   var onBlur = messageOn("blur");
+   var onFocus = messageOn("focus");
+   var onSubmit = messageOn("submit");
+   var onKey = F3(function (name,addr,handler) {    return A3(on,name,keyCode,function (code) {    return A2($Signal.message,addr,handler(code));});});
+   var onKeyUp = onKey("keyup");
+   var onKeyDown = onKey("keydown");
+   var onKeyPress = onKey("keypress");
+   return _elm.Html.Events.values = {_op: _op
+                                    ,onBlur: onBlur
+                                    ,onFocus: onFocus
+                                    ,onSubmit: onSubmit
+                                    ,onKeyUp: onKeyUp
+                                    ,onKeyDown: onKeyDown
+                                    ,onKeyPress: onKeyPress
+                                    ,onClick: onClick
+                                    ,onDoubleClick: onDoubleClick
+                                    ,onMouseMove: onMouseMove
+                                    ,onMouseDown: onMouseDown
+                                    ,onMouseUp: onMouseUp
+                                    ,onMouseEnter: onMouseEnter
+                                    ,onMouseLeave: onMouseLeave
+                                    ,onMouseOver: onMouseOver
+                                    ,onMouseOut: onMouseOut
+                                    ,on: on
+                                    ,onWithOptions: onWithOptions
+                                    ,defaultOptions: defaultOptions
+                                    ,targetValue: targetValue
+                                    ,targetChecked: targetChecked
+                                    ,keyCode: keyCode
+                                    ,Options: Options};
+};
+Elm.Html = Elm.Html || {};
 Elm.Html.Lazy = Elm.Html.Lazy || {};
 Elm.Html.Lazy.make = function (_elm) {
    "use strict";
@@ -10552,6 +11179,310 @@ Elm.Html.Lazy.make = function (_elm) {
    var lazy2 = $VirtualDom.lazy2;
    var lazy = $VirtualDom.lazy;
    return _elm.Html.Lazy.values = {_op: _op,lazy: lazy,lazy2: lazy2,lazy3: lazy3};
+};
+Elm.Native.Http = {};
+Elm.Native.Http.make = function(localRuntime) {
+
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Http = localRuntime.Native.Http || {};
+	if (localRuntime.Native.Http.values)
+	{
+		return localRuntime.Native.Http.values;
+	}
+
+	var Dict = Elm.Dict.make(localRuntime);
+	var List = Elm.List.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+	var Task = Elm.Native.Task.make(localRuntime);
+
+
+	function send(settings, request)
+	{
+		return Task.asyncFunction(function(callback) {
+			var req = new XMLHttpRequest();
+
+			// start
+			if (settings.onStart.ctor === 'Just')
+			{
+				req.addEventListener('loadStart', function() {
+					var task = settings.onStart._0;
+					Task.spawn(task);
+				});
+			}
+
+			// progress
+			if (settings.onProgress.ctor === 'Just')
+			{
+				req.addEventListener('progress', function(event) {
+					var progress = !event.lengthComputable
+						? Maybe.Nothing
+						: Maybe.Just({
+							_: {},
+							loaded: event.loaded,
+							total: event.total
+						});
+					var task = settings.onProgress._0(progress);
+					Task.spawn(task);
+				});
+			}
+
+			// end
+			req.addEventListener('error', function() {
+				return callback(Task.fail({ ctor: 'RawNetworkError' }));
+			});
+
+			req.addEventListener('timeout', function() {
+				return callback(Task.fail({ ctor: 'RawTimeout' }));
+			});
+
+			req.addEventListener('load', function() {
+				return callback(Task.succeed(toResponse(req)));
+			});
+
+			req.open(request.verb, request.url, true);
+
+			// set all the headers
+			function setHeader(pair) {
+				req.setRequestHeader(pair._0, pair._1);
+			}
+			A2(List.map, setHeader, request.headers);
+
+			// set the timeout
+			req.timeout = settings.timeout;
+
+			// enable this withCredentials thing
+			req.withCredentials = settings.withCredentials;
+
+			// ask for a specific MIME type for the response
+			if (settings.desiredResponseType.ctor === 'Just')
+			{
+				req.overrideMimeType(settings.desiredResponseType._0);
+			}
+
+			// actuall send the request
+			if(request.body.ctor === "BodyFormData")
+			{
+				req.send(request.body.formData)
+			}
+			else
+			{
+				req.send(request.body._0);
+			}
+		});
+	}
+
+
+	// deal with responses
+
+	function toResponse(req)
+	{
+		var tag = req.responseType === 'blob' ? 'Blob' : 'Text'
+		var response = tag === 'Blob' ? req.response : req.responseText;
+		return {
+			_: {},
+			status: req.status,
+			statusText: req.statusText,
+			headers: parseHeaders(req.getAllResponseHeaders()),
+			url: req.responseURL,
+			value: { ctor: tag, _0: response }
+		};
+	}
+
+
+	function parseHeaders(rawHeaders)
+	{
+		var headers = Dict.empty;
+
+		if (!rawHeaders)
+		{
+			return headers;
+		}
+
+		var headerPairs = rawHeaders.split('\u000d\u000a');
+		for (var i = headerPairs.length; i--; )
+		{
+			var headerPair = headerPairs[i];
+			var index = headerPair.indexOf('\u003a\u0020');
+			if (index > 0)
+			{
+				var key = headerPair.substring(0, index);
+				var value = headerPair.substring(index + 2);
+
+				headers = A3(Dict.update, key, function(oldValue) {
+					if (oldValue.ctor === 'Just')
+					{
+						return Maybe.Just(value + ', ' + oldValue._0);
+					}
+					return Maybe.Just(value);
+				}, headers);
+			}
+		}
+
+		return headers;
+	}
+
+
+	function multipart(dataList)
+	{
+		var formData = new FormData();
+
+		while (dataList.ctor !== '[]')
+		{
+			var data = dataList._0;
+			if (data.ctor === 'StringData')
+			{
+				formData.append(data._0, data._1);
+			}
+			else
+			{
+				var fileName = data._1.ctor === 'Nothing'
+					? undefined
+					: data._1._0;
+				formData.append(data._0, data._2, fileName);
+			}
+			dataList = dataList._1;
+		}
+
+		return { ctor: 'BodyFormData', formData: formData };
+	}
+
+
+	function uriEncode(string)
+	{
+		return encodeURIComponent(string);
+	}
+
+	function uriDecode(string)
+	{
+		return decodeURIComponent(string);
+	}
+
+	return localRuntime.Native.Http.values = {
+		send: F2(send),
+		multipart: multipart,
+		uriEncode: uriEncode,
+		uriDecode: uriDecode
+	};
+};
+
+Elm.Http = Elm.Http || {};
+Elm.Http.make = function (_elm) {
+   "use strict";
+   _elm.Http = _elm.Http || {};
+   if (_elm.Http.values) return _elm.Http.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$Http = Elm.Native.Http.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm),
+   $Task = Elm.Task.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var send = $Native$Http.send;
+   var BadResponse = F2(function (a,b) {    return {ctor: "BadResponse",_0: a,_1: b};});
+   var UnexpectedPayload = function (a) {    return {ctor: "UnexpectedPayload",_0: a};};
+   var handleResponse = F2(function (handle,response) {
+      if (_U.cmp(200,response.status) < 1 && _U.cmp(response.status,300) < 0) {
+            var _p0 = response.value;
+            if (_p0.ctor === "Text") {
+                  return handle(_p0._0);
+               } else {
+                  return $Task.fail(UnexpectedPayload("Response body is a blob, expecting a string."));
+               }
+         } else return $Task.fail(A2(BadResponse,response.status,response.statusText));
+   });
+   var NetworkError = {ctor: "NetworkError"};
+   var Timeout = {ctor: "Timeout"};
+   var promoteError = function (rawError) {    var _p1 = rawError;if (_p1.ctor === "RawTimeout") {    return Timeout;} else {    return NetworkError;}};
+   var fromJson = F2(function (decoder,response) {
+      var decode = function (str) {
+         var _p2 = A2($Json$Decode.decodeString,decoder,str);
+         if (_p2.ctor === "Ok") {
+               return $Task.succeed(_p2._0);
+            } else {
+               return $Task.fail(UnexpectedPayload(_p2._0));
+            }
+      };
+      return A2($Task.andThen,A2($Task.mapError,promoteError,response),handleResponse(decode));
+   });
+   var RawNetworkError = {ctor: "RawNetworkError"};
+   var RawTimeout = {ctor: "RawTimeout"};
+   var Blob = function (a) {    return {ctor: "Blob",_0: a};};
+   var Text = function (a) {    return {ctor: "Text",_0: a};};
+   var Response = F5(function (a,b,c,d,e) {    return {status: a,statusText: b,headers: c,url: d,value: e};});
+   var defaultSettings = {timeout: 0,onStart: $Maybe.Nothing,onProgress: $Maybe.Nothing,desiredResponseType: $Maybe.Nothing,withCredentials: false};
+   var post = F3(function (decoder,url,body) {
+      var request = {verb: "POST",headers: _U.list([]),url: url,body: body};
+      return A2(fromJson,decoder,A2(send,defaultSettings,request));
+   });
+   var Settings = F5(function (a,b,c,d,e) {    return {timeout: a,onStart: b,onProgress: c,desiredResponseType: d,withCredentials: e};});
+   var multipart = $Native$Http.multipart;
+   var FileData = F3(function (a,b,c) {    return {ctor: "FileData",_0: a,_1: b,_2: c};});
+   var BlobData = F3(function (a,b,c) {    return {ctor: "BlobData",_0: a,_1: b,_2: c};});
+   var blobData = BlobData;
+   var StringData = F2(function (a,b) {    return {ctor: "StringData",_0: a,_1: b};});
+   var stringData = StringData;
+   var BodyBlob = function (a) {    return {ctor: "BodyBlob",_0: a};};
+   var BodyFormData = {ctor: "BodyFormData"};
+   var ArrayBuffer = {ctor: "ArrayBuffer"};
+   var BodyString = function (a) {    return {ctor: "BodyString",_0: a};};
+   var string = BodyString;
+   var Empty = {ctor: "Empty"};
+   var empty = Empty;
+   var getString = function (url) {
+      var request = {verb: "GET",headers: _U.list([]),url: url,body: empty};
+      return A2($Task.andThen,A2($Task.mapError,promoteError,A2(send,defaultSettings,request)),handleResponse($Task.succeed));
+   };
+   var get = F2(function (decoder,url) {
+      var request = {verb: "GET",headers: _U.list([]),url: url,body: empty};
+      return A2(fromJson,decoder,A2(send,defaultSettings,request));
+   });
+   var Request = F4(function (a,b,c,d) {    return {verb: a,headers: b,url: c,body: d};});
+   var uriDecode = $Native$Http.uriDecode;
+   var uriEncode = $Native$Http.uriEncode;
+   var queryEscape = function (string) {    return A2($String.join,"+",A2($String.split,"%20",uriEncode(string)));};
+   var queryPair = function (_p3) {    var _p4 = _p3;return A2($Basics._op["++"],queryEscape(_p4._0),A2($Basics._op["++"],"=",queryEscape(_p4._1)));};
+   var url = F2(function (baseUrl,args) {
+      var _p5 = args;
+      if (_p5.ctor === "[]") {
+            return baseUrl;
+         } else {
+            return A2($Basics._op["++"],baseUrl,A2($Basics._op["++"],"?",A2($String.join,"&",A2($List.map,queryPair,args))));
+         }
+   });
+   var TODO_implement_file_in_another_library = {ctor: "TODO_implement_file_in_another_library"};
+   var TODO_implement_blob_in_another_library = {ctor: "TODO_implement_blob_in_another_library"};
+   return _elm.Http.values = {_op: _op
+                             ,getString: getString
+                             ,get: get
+                             ,post: post
+                             ,send: send
+                             ,url: url
+                             ,uriEncode: uriEncode
+                             ,uriDecode: uriDecode
+                             ,empty: empty
+                             ,string: string
+                             ,multipart: multipart
+                             ,stringData: stringData
+                             ,defaultSettings: defaultSettings
+                             ,fromJson: fromJson
+                             ,Request: Request
+                             ,Settings: Settings
+                             ,Response: Response
+                             ,Text: Text
+                             ,Blob: Blob
+                             ,Timeout: Timeout
+                             ,NetworkError: NetworkError
+                             ,UnexpectedPayload: UnexpectedPayload
+                             ,BadResponse: BadResponse
+                             ,RawTimeout: RawTimeout
+                             ,RawNetworkError: RawNetworkError};
 };
 Elm.Ansi = Elm.Ansi || {};
 Elm.Ansi.make = function (_elm) {
@@ -10894,7 +11825,11 @@ Elm.Ansi.Log.make = function (_elm) {
                      }()]);
    };
    var viewChunk = function (chunk) {    return A2($Html.span,styleAttributes(chunk.style),_U.list([$Html.text(chunk.text)]));};
-   var viewLine = function (line) {    return A2($Html.div,_U.list([]),A2($Basics._op["++"],A2($List.map,viewChunk,line),_U.list([$Html.text("\n")])));};
+   var viewLine = function (line) {
+      return A2($Html.div,
+      _U.list([]),
+      A3($List.foldl,F2(function (chunk,line) {    return A2($List._op["::"],viewChunk(chunk),line);}),_U.list([$Html.text("\n")]),line));
+   };
    var lazyLine = $Html$Lazy.lazy(viewLine);
    var view = function (model) {    return A2($Html.pre,_U.list([]),$Array.toList(A2($Array.map,lazyLine,model.lines)));};
    var lineLen = F2(function (acc,line) {
@@ -10946,7 +11881,7 @@ Elm.Ansi.Log.make = function (_elm) {
             }
       }
    });
-   var insertChunkAt = F3(function (pos,chunk,line) {
+   var insertChunkAtOld = F3(function (pos,chunk,line) {
       var after = A2(dropLen,pos + $String.length(chunk.text),line);
       var chunksBefore = A3(takeLen,$Array.empty,pos,line);
       var chunksLen = A2(lineLen,0,chunksBefore);
@@ -10955,8 +11890,9 @@ Elm.Ansi.Log.make = function (_elm) {
       _U.list([{style: chunk.style,text: A2($String.repeat,pos - chunksLen," ")}])) : chunksBefore;
       return A2($Basics._op["++"],before,A2($Basics._op["++"],_U.list([chunk]),after));
    });
+   var insertChunkAt = F3(function (pos,chunk,line) {    return line;});
    var writeChunk = F3(function (pos,chunk,line) {
-      return _U.eq(pos,A2(lineLen,0,line)) ? A2($Basics._op["++"],line,_U.list([chunk])) : A3(insertChunkAt,pos,chunk,line);
+      return _U.eq(pos,A2(lineLen,0,line)) ? A2($List._op["::"],chunk,line) : A3(insertChunkAt,pos,chunk,line);
    });
    var updateStyle = F2(function (action,style) {
       var _p7 = action;
@@ -11054,1023 +11990,6 @@ Elm.Ansi.Log.make = function (_elm) {
                                  ,Style: Style
                                  ,Raw: Raw
                                  ,Cooked: Cooked};
-};
-Elm.Native.Date = {};
-Elm.Native.Date.make = function(localRuntime) {
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Date = localRuntime.Native.Date || {};
-	if (localRuntime.Native.Date.values)
-	{
-		return localRuntime.Native.Date.values;
-	}
-
-	var Result = Elm.Result.make(localRuntime);
-
-	function readDate(str)
-	{
-		var date = new Date(str);
-		return isNaN(date.getTime())
-			? Result.Err('unable to parse \'' + str + '\' as a date')
-			: Result.Ok(date);
-	}
-
-	var dayTable = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-	var monthTable =
-		['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-		 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-
-	return localRuntime.Native.Date.values = {
-		read: readDate,
-		year: function(d) { return d.getFullYear(); },
-		month: function(d) { return { ctor: monthTable[d.getMonth()] }; },
-		day: function(d) { return d.getDate(); },
-		hour: function(d) { return d.getHours(); },
-		minute: function(d) { return d.getMinutes(); },
-		second: function(d) { return d.getSeconds(); },
-		millisecond: function(d) { return d.getMilliseconds(); },
-		toTime: function(d) { return d.getTime(); },
-		fromTime: function(t) { return new Date(t); },
-		dayOfWeek: function(d) { return { ctor: dayTable[d.getDay()] }; }
-	};
-};
-
-Elm.Date = Elm.Date || {};
-Elm.Date.make = function (_elm) {
-   "use strict";
-   _elm.Date = _elm.Date || {};
-   if (_elm.Date.values) return _elm.Date.values;
-   var _U = Elm.Native.Utils.make(_elm),$Native$Date = Elm.Native.Date.make(_elm),$Result = Elm.Result.make(_elm),$Time = Elm.Time.make(_elm);
-   var _op = {};
-   var millisecond = $Native$Date.millisecond;
-   var second = $Native$Date.second;
-   var minute = $Native$Date.minute;
-   var hour = $Native$Date.hour;
-   var dayOfWeek = $Native$Date.dayOfWeek;
-   var day = $Native$Date.day;
-   var month = $Native$Date.month;
-   var year = $Native$Date.year;
-   var fromTime = $Native$Date.fromTime;
-   var toTime = $Native$Date.toTime;
-   var fromString = $Native$Date.read;
-   var Dec = {ctor: "Dec"};
-   var Nov = {ctor: "Nov"};
-   var Oct = {ctor: "Oct"};
-   var Sep = {ctor: "Sep"};
-   var Aug = {ctor: "Aug"};
-   var Jul = {ctor: "Jul"};
-   var Jun = {ctor: "Jun"};
-   var May = {ctor: "May"};
-   var Apr = {ctor: "Apr"};
-   var Mar = {ctor: "Mar"};
-   var Feb = {ctor: "Feb"};
-   var Jan = {ctor: "Jan"};
-   var Sun = {ctor: "Sun"};
-   var Sat = {ctor: "Sat"};
-   var Fri = {ctor: "Fri"};
-   var Thu = {ctor: "Thu"};
-   var Wed = {ctor: "Wed"};
-   var Tue = {ctor: "Tue"};
-   var Mon = {ctor: "Mon"};
-   var Date = {ctor: "Date"};
-   return _elm.Date.values = {_op: _op
-                             ,fromString: fromString
-                             ,toTime: toTime
-                             ,fromTime: fromTime
-                             ,year: year
-                             ,month: month
-                             ,day: day
-                             ,dayOfWeek: dayOfWeek
-                             ,hour: hour
-                             ,minute: minute
-                             ,second: second
-                             ,millisecond: millisecond
-                             ,Jan: Jan
-                             ,Feb: Feb
-                             ,Mar: Mar
-                             ,Apr: Apr
-                             ,May: May
-                             ,Jun: Jun
-                             ,Jul: Jul
-                             ,Aug: Aug
-                             ,Sep: Sep
-                             ,Oct: Oct
-                             ,Nov: Nov
-                             ,Dec: Dec
-                             ,Mon: Mon
-                             ,Tue: Tue
-                             ,Wed: Wed
-                             ,Thu: Thu
-                             ,Fri: Fri
-                             ,Sat: Sat
-                             ,Sun: Sun};
-};
-Elm.Native.Regex = {};
-Elm.Native.Regex.make = function(localRuntime) {
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Regex = localRuntime.Native.Regex || {};
-	if (localRuntime.Native.Regex.values)
-	{
-		return localRuntime.Native.Regex.values;
-	}
-	if ('values' in Elm.Native.Regex)
-	{
-		return localRuntime.Native.Regex.values = Elm.Native.Regex.values;
-	}
-
-	var List = Elm.Native.List.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-
-	function escape(str)
-	{
-		return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-	}
-	function caseInsensitive(re)
-	{
-		return new RegExp(re.source, 'gi');
-	}
-	function regex(raw)
-	{
-		return new RegExp(raw, 'g');
-	}
-
-	function contains(re, string)
-	{
-		return string.match(re) !== null;
-	}
-
-	function find(n, re, str)
-	{
-		n = n.ctor === 'All' ? Infinity : n._0;
-		var out = [];
-		var number = 0;
-		var string = str;
-		var lastIndex = re.lastIndex;
-		var prevLastIndex = -1;
-		var result;
-		while (number++ < n && (result = re.exec(string)))
-		{
-			if (prevLastIndex === re.lastIndex) break;
-			var i = result.length - 1;
-			var subs = new Array(i);
-			while (i > 0)
-			{
-				var submatch = result[i];
-				subs[--i] = submatch === undefined
-					? Maybe.Nothing
-					: Maybe.Just(submatch);
-			}
-			out.push({
-				match: result[0],
-				submatches: List.fromArray(subs),
-				index: result.index,
-				number: number
-			});
-			prevLastIndex = re.lastIndex;
-		}
-		re.lastIndex = lastIndex;
-		return List.fromArray(out);
-	}
-
-	function replace(n, re, replacer, string)
-	{
-		n = n.ctor === 'All' ? Infinity : n._0;
-		var count = 0;
-		function jsReplacer(match)
-		{
-			if (count++ >= n)
-			{
-				return match;
-			}
-			var i = arguments.length - 3;
-			var submatches = new Array(i);
-			while (i > 0)
-			{
-				var submatch = arguments[i];
-				submatches[--i] = submatch === undefined
-					? Maybe.Nothing
-					: Maybe.Just(submatch);
-			}
-			return replacer({
-				match: match,
-				submatches: List.fromArray(submatches),
-				index: arguments[i - 1],
-				number: count
-			});
-		}
-		return string.replace(re, jsReplacer);
-	}
-
-	function split(n, re, str)
-	{
-		n = n.ctor === 'All' ? Infinity : n._0;
-		if (n === Infinity)
-		{
-			return List.fromArray(str.split(re));
-		}
-		var string = str;
-		var result;
-		var out = [];
-		var start = re.lastIndex;
-		while (n--)
-		{
-			if (!(result = re.exec(string))) break;
-			out.push(string.slice(start, result.index));
-			start = re.lastIndex;
-		}
-		out.push(string.slice(start));
-		return List.fromArray(out);
-	}
-
-	return Elm.Native.Regex.values = {
-		regex: regex,
-		caseInsensitive: caseInsensitive,
-		escape: escape,
-
-		contains: F2(contains),
-		find: F3(find),
-		replace: F4(replace),
-		split: F3(split)
-	};
-};
-
-Elm.Regex = Elm.Regex || {};
-Elm.Regex.make = function (_elm) {
-   "use strict";
-   _elm.Regex = _elm.Regex || {};
-   if (_elm.Regex.values) return _elm.Regex.values;
-   var _U = Elm.Native.Utils.make(_elm),$Maybe = Elm.Maybe.make(_elm),$Native$Regex = Elm.Native.Regex.make(_elm);
-   var _op = {};
-   var split = $Native$Regex.split;
-   var replace = $Native$Regex.replace;
-   var find = $Native$Regex.find;
-   var AtMost = function (a) {    return {ctor: "AtMost",_0: a};};
-   var All = {ctor: "All"};
-   var Match = F4(function (a,b,c,d) {    return {match: a,submatches: b,index: c,number: d};});
-   var contains = $Native$Regex.contains;
-   var caseInsensitive = $Native$Regex.caseInsensitive;
-   var regex = $Native$Regex.regex;
-   var escape = $Native$Regex.escape;
-   var Regex = {ctor: "Regex"};
-   return _elm.Regex.values = {_op: _op
-                              ,regex: regex
-                              ,escape: escape
-                              ,caseInsensitive: caseInsensitive
-                              ,contains: contains
-                              ,find: find
-                              ,replace: replace
-                              ,split: split
-                              ,Match: Match
-                              ,All: All
-                              ,AtMost: AtMost};
-};
-Elm.Date = Elm.Date || {};
-Elm.Date.Format = Elm.Date.Format || {};
-Elm.Date.Format.make = function (_elm) {
-   "use strict";
-   _elm.Date = _elm.Date || {};
-   _elm.Date.Format = _elm.Date.Format || {};
-   if (_elm.Date.Format.values) return _elm.Date.Format.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Date = Elm.Date.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Regex = Elm.Regex.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $String = Elm.String.make(_elm);
-   var _op = {};
-   var padWith = function (c) {    return function (_p0) {    return A3($String.padLeft,2,c,$Basics.toString(_p0));};};
-   var mod12 = function (h) {    return A2($Basics._op["%"],h,12);};
-   var fullDayOfWeek = function (dow) {
-      var _p1 = dow;
-      switch (_p1.ctor)
-      {case "Mon": return "Monday";
-         case "Tue": return "Tuesday";
-         case "Wed": return "Wednesday";
-         case "Thu": return "Thursday";
-         case "Fri": return "Friday";
-         case "Sat": return "Saturday";
-         default: return "Sunday";}
-   };
-   var monthToFullName = function (m) {
-      var _p2 = m;
-      switch (_p2.ctor)
-      {case "Jan": return "January";
-         case "Feb": return "February";
-         case "Mar": return "March";
-         case "Apr": return "April";
-         case "May": return "May";
-         case "Jun": return "June";
-         case "Jul": return "July";
-         case "Aug": return "August";
-         case "Sep": return "September";
-         case "Oct": return "October";
-         case "Nov": return "November";
-         default: return "December";}
-   };
-   var monthToInt = function (m) {
-      var _p3 = m;
-      switch (_p3.ctor)
-      {case "Jan": return 1;
-         case "Feb": return 2;
-         case "Mar": return 3;
-         case "Apr": return 4;
-         case "May": return 5;
-         case "Jun": return 6;
-         case "Jul": return 7;
-         case "Aug": return 8;
-         case "Sep": return 9;
-         case "Oct": return 10;
-         case "Nov": return 11;
-         default: return 12;}
-   };
-   var collapse = function (m) {    return A2($Maybe.andThen,m,$Basics.identity);};
-   var formatToken = F2(function (d,m) {
-      var symbol = A2($Maybe.withDefault," ",collapse(A2($Maybe.andThen,$List.tail(m.submatches),$List.head)));
-      var prefix = A2($Maybe.withDefault," ",collapse($List.head(m.submatches)));
-      return A2($Basics._op["++"],
-      prefix,
-      function () {
-         var _p4 = symbol;
-         switch (_p4)
-         {case "Y": return $Basics.toString($Date.year(d));
-            case "m": return A3($String.padLeft,2,_U.chr("0"),$Basics.toString(monthToInt($Date.month(d))));
-            case "B": return monthToFullName($Date.month(d));
-            case "b": return $Basics.toString($Date.month(d));
-            case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
-            case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
-            case "a": return $Basics.toString($Date.dayOfWeek(d));
-            case "A": return fullDayOfWeek($Date.dayOfWeek(d));
-            case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
-            case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
-            case "I": return A2(padWith,_U.chr("0"),mod12($Date.hour(d)));
-            case "l": return A2(padWith,_U.chr(" "),mod12($Date.hour(d)));
-            case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
-            case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
-            case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
-            case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
-            default: return "";}
-      }());
-   });
-   var re = $Regex.regex("(^|[^%])%(Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
-   var format = F2(function (s,d) {    return A4($Regex.replace,$Regex.All,re,formatToken(d),s);});
-   return _elm.Date.Format.values = {_op: _op,format: format};
-};
-Elm.Native.Effects = {};
-Elm.Native.Effects.make = function(localRuntime) {
-
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Effects = localRuntime.Native.Effects || {};
-	if (localRuntime.Native.Effects.values)
-	{
-		return localRuntime.Native.Effects.values;
-	}
-
-	var Task = Elm.Native.Task.make(localRuntime);
-	var Utils = Elm.Native.Utils.make(localRuntime);
-	var Signal = Elm.Signal.make(localRuntime);
-	var List = Elm.Native.List.make(localRuntime);
-
-
-	// polyfill so things will work even if rAF is not available for some reason
-	var _requestAnimationFrame =
-		typeof requestAnimationFrame !== 'undefined'
-			? requestAnimationFrame
-			: function(cb) { setTimeout(cb, 1000 / 60); }
-			;
-
-
-	// batchedSending and sendCallback implement a small state machine in order
-	// to schedule only one send(time) call per animation frame.
-	//
-	// Invariants:
-	// 1. In the NO_REQUEST state, there is never a scheduled sendCallback.
-	// 2. In the PENDING_REQUEST and EXTRA_REQUEST states, there is always exactly
-	//    one scheduled sendCallback.
-	var NO_REQUEST = 0;
-	var PENDING_REQUEST = 1;
-	var EXTRA_REQUEST = 2;
-	var state = NO_REQUEST;
-	var messageArray = [];
-
-
-	function batchedSending(address, tickMessages)
-	{
-		// insert ticks into the messageArray
-		var foundAddress = false;
-
-		for (var i = messageArray.length; i--; )
-		{
-			if (messageArray[i].address === address)
-			{
-				foundAddress = true;
-				messageArray[i].tickMessages = A3(List.foldl, List.cons, messageArray[i].tickMessages, tickMessages);
-				break;
-			}
-		}
-
-		if (!foundAddress)
-		{
-			messageArray.push({ address: address, tickMessages: tickMessages });
-		}
-
-		// do the appropriate state transition
-		switch (state)
-		{
-			case NO_REQUEST:
-				_requestAnimationFrame(sendCallback);
-				state = PENDING_REQUEST;
-				break;
-			case PENDING_REQUEST:
-				state = PENDING_REQUEST;
-				break;
-			case EXTRA_REQUEST:
-				state = PENDING_REQUEST;
-				break;
-		}
-	}
-
-
-	function sendCallback(time)
-	{
-		switch (state)
-		{
-			case NO_REQUEST:
-				// This state should not be possible. How can there be no
-				// request, yet somehow we are actively fulfilling a
-				// request?
-				throw new Error(
-					'Unexpected send callback.\n' +
-					'Please report this to <https://github.com/evancz/elm-effects/issues>.'
-				);
-
-			case PENDING_REQUEST:
-				// At this point, we do not *know* that another frame is
-				// needed, but we make an extra request to rAF just in
-				// case. It's possible to drop a frame if rAF is called
-				// too late, so we just do it preemptively.
-				_requestAnimationFrame(sendCallback);
-				state = EXTRA_REQUEST;
-
-				// There's also stuff we definitely need to send.
-				send(time);
-				return;
-
-			case EXTRA_REQUEST:
-				// Turns out the extra request was not needed, so we will
-				// stop calling rAF. No reason to call it all the time if
-				// no one needs it.
-				state = NO_REQUEST;
-				return;
-		}
-	}
-
-
-	function send(time)
-	{
-		for (var i = messageArray.length; i--; )
-		{
-			var messages = A3(
-				List.foldl,
-				F2( function(toAction, list) { return List.Cons(toAction(time), list); } ),
-				List.Nil,
-				messageArray[i].tickMessages
-			);
-			Task.perform( A2(Signal.send, messageArray[i].address, messages) );
-		}
-		messageArray = [];
-	}
-
-
-	function requestTickSending(address, tickMessages)
-	{
-		return Task.asyncFunction(function(callback) {
-			batchedSending(address, tickMessages);
-			callback(Task.succeed(Utils.Tuple0));
-		});
-	}
-
-
-	return localRuntime.Native.Effects.values = {
-		requestTickSending: F2(requestTickSending)
-	};
-
-};
-
-Elm.Effects = Elm.Effects || {};
-Elm.Effects.make = function (_elm) {
-   "use strict";
-   _elm.Effects = _elm.Effects || {};
-   if (_elm.Effects.values) return _elm.Effects.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Native$Effects = Elm.Native.Effects.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Task = Elm.Task.make(_elm),
-   $Time = Elm.Time.make(_elm);
-   var _op = {};
-   var ignore = function (task) {    return A2($Task.map,$Basics.always({ctor: "_Tuple0"}),task);};
-   var requestTickSending = $Native$Effects.requestTickSending;
-   var toTaskHelp = F3(function (address,effect,_p0) {
-      var _p1 = _p0;
-      var _p5 = _p1._1;
-      var _p4 = _p1;
-      var _p3 = _p1._0;
-      var _p2 = effect;
-      switch (_p2.ctor)
-      {case "Task": var reporter = A2($Task.andThen,_p2._0,function (answer) {    return A2($Signal.send,address,_U.list([answer]));});
-           return {ctor: "_Tuple2",_0: A2($Task.andThen,_p3,$Basics.always(ignore($Task.spawn(reporter)))),_1: _p5};
-         case "Tick": return {ctor: "_Tuple2",_0: _p3,_1: A2($List._op["::"],_p2._0,_p5)};
-         case "None": return _p4;
-         default: return A3($List.foldl,toTaskHelp(address),_p4,_p2._0);}
-   });
-   var toTask = F2(function (address,effect) {
-      var _p6 = A3(toTaskHelp,address,effect,{ctor: "_Tuple2",_0: $Task.succeed({ctor: "_Tuple0"}),_1: _U.list([])});
-      var combinedTask = _p6._0;
-      var tickMessages = _p6._1;
-      return $List.isEmpty(tickMessages) ? combinedTask : A2($Task.andThen,combinedTask,$Basics.always(A2(requestTickSending,address,tickMessages)));
-   });
-   var Never = function (a) {    return {ctor: "Never",_0: a};};
-   var Batch = function (a) {    return {ctor: "Batch",_0: a};};
-   var batch = Batch;
-   var None = {ctor: "None"};
-   var none = None;
-   var Tick = function (a) {    return {ctor: "Tick",_0: a};};
-   var tick = Tick;
-   var Task = function (a) {    return {ctor: "Task",_0: a};};
-   var task = Task;
-   var map = F2(function (func,effect) {
-      var _p7 = effect;
-      switch (_p7.ctor)
-      {case "Task": return Task(A2($Task.map,func,_p7._0));
-         case "Tick": return Tick(function (_p8) {    return func(_p7._0(_p8));});
-         case "None": return None;
-         default: return Batch(A2($List.map,map(func),_p7._0));}
-   });
-   return _elm.Effects.values = {_op: _op,none: none,task: task,tick: tick,map: map,batch: batch,toTask: toTask};
-};
-Elm.Native.EventSource = {};
-Elm.Native.EventSource.make = function(localRuntime) {
-  localRuntime.Native = localRuntime.Native || {};
-  localRuntime.Native.EventSource = localRuntime.Native.EventSource || {};
-  if (localRuntime.Native.EventSource.values) {
-    return localRuntime.Native.EventSource.values;
-  }
-
-  var Task = Elm.Native.Task.make (localRuntime);
-  var Maybe = Elm.Maybe.make(localRuntime);
-  var Utils = Elm.Native.Utils.make (localRuntime);
-
-  function connect(uri, settings) {
-    return Task.asyncFunction(function(callback) {
-      var es = new EventSource(uri);
-
-      if (settings.onOpen.ctor === "Just") {
-        es.onopen = function() {
-          Task.perform(settings.onOpen._0._0(Utils.Tuple0));
-        };
-      }
-
-      if (settings.onError.ctor === "Just") {
-        es.onerror = function(e) {
-          Task.perform(settings.onError._0._0(Utils.Tuple0));
-        };
-      }
-
-      callback(Task.succeed(es));
-    });
-  }
-
-  function on(eventName, address, es) {
-    return Task.asyncFunction(function(callback) {
-      es.addEventListener(eventName, function(event) {
-        Task.perform(address._0({
-          ctor: "Event",
-          lastEventId: event.lastEventId ? Maybe.Just(event.lastEventId) : Maybe.Nothing,
-          name: event.type ? Maybe.Just(event.type) : Maybe.Nothing,
-          data: event.data
-        }));
-      });
-
-      callback(Task.succeed(es));
-    });
-  }
-
-  function close(es) {
-    return Task.asyncFunction(function(callback) {
-      es.close();
-      callback(Task.succeed(Utils.Tuple0));
-    });
-  }
-
-  localRuntime.Native.EventSource.values = {
-    connect: F2(connect),
-    on: F3(on),
-    close: close,
-  };
-
-  return localRuntime.Native.EventSource.values;
-};
-
-Elm.EventSource = Elm.EventSource || {};
-Elm.EventSource.make = function (_elm) {
-   "use strict";
-   _elm.EventSource = _elm.EventSource || {};
-   if (_elm.EventSource.values) return _elm.EventSource.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Native$EventSource = Elm.Native.EventSource.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Task = Elm.Task.make(_elm);
-   var _op = {};
-   var close = $Native$EventSource.close;
-   var on = $Native$EventSource.on;
-   var connect = $Native$EventSource.connect;
-   var Settings = F2(function (a,b) {    return {onOpen: a,onError: b};});
-   var Event = F3(function (a,b,c) {    return {lastEventId: a,name: b,data: c};});
-   var EventSource = {ctor: "EventSource"};
-   return _elm.EventSource.values = {_op: _op,EventSource: EventSource,Event: Event,Settings: Settings,connect: connect,on: on,close: close};
-};
-Elm.Html = Elm.Html || {};
-Elm.Html.Events = Elm.Html.Events || {};
-Elm.Html.Events.make = function (_elm) {
-   "use strict";
-   _elm.Html = _elm.Html || {};
-   _elm.Html.Events = _elm.Html.Events || {};
-   if (_elm.Html.Events.values) return _elm.Html.Events.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $Json$Decode = Elm.Json.Decode.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $VirtualDom = Elm.VirtualDom.make(_elm);
-   var _op = {};
-   var keyCode = A2($Json$Decode._op[":="],"keyCode",$Json$Decode.$int);
-   var targetChecked = A2($Json$Decode.at,_U.list(["target","checked"]),$Json$Decode.bool);
-   var targetValue = A2($Json$Decode.at,_U.list(["target","value"]),$Json$Decode.string);
-   var defaultOptions = $VirtualDom.defaultOptions;
-   var Options = F2(function (a,b) {    return {stopPropagation: a,preventDefault: b};});
-   var onWithOptions = $VirtualDom.onWithOptions;
-   var on = $VirtualDom.on;
-   var messageOn = F3(function (name,addr,msg) {    return A3(on,name,$Json$Decode.value,function (_p0) {    return A2($Signal.message,addr,msg);});});
-   var onClick = messageOn("click");
-   var onDoubleClick = messageOn("dblclick");
-   var onMouseMove = messageOn("mousemove");
-   var onMouseDown = messageOn("mousedown");
-   var onMouseUp = messageOn("mouseup");
-   var onMouseEnter = messageOn("mouseenter");
-   var onMouseLeave = messageOn("mouseleave");
-   var onMouseOver = messageOn("mouseover");
-   var onMouseOut = messageOn("mouseout");
-   var onBlur = messageOn("blur");
-   var onFocus = messageOn("focus");
-   var onSubmit = messageOn("submit");
-   var onKey = F3(function (name,addr,handler) {    return A3(on,name,keyCode,function (code) {    return A2($Signal.message,addr,handler(code));});});
-   var onKeyUp = onKey("keyup");
-   var onKeyDown = onKey("keydown");
-   var onKeyPress = onKey("keypress");
-   return _elm.Html.Events.values = {_op: _op
-                                    ,onBlur: onBlur
-                                    ,onFocus: onFocus
-                                    ,onSubmit: onSubmit
-                                    ,onKeyUp: onKeyUp
-                                    ,onKeyDown: onKeyDown
-                                    ,onKeyPress: onKeyPress
-                                    ,onClick: onClick
-                                    ,onDoubleClick: onDoubleClick
-                                    ,onMouseMove: onMouseMove
-                                    ,onMouseDown: onMouseDown
-                                    ,onMouseUp: onMouseUp
-                                    ,onMouseEnter: onMouseEnter
-                                    ,onMouseLeave: onMouseLeave
-                                    ,onMouseOver: onMouseOver
-                                    ,onMouseOut: onMouseOut
-                                    ,on: on
-                                    ,onWithOptions: onWithOptions
-                                    ,defaultOptions: defaultOptions
-                                    ,targetValue: targetValue
-                                    ,targetChecked: targetChecked
-                                    ,keyCode: keyCode
-                                    ,Options: Options};
-};
-Elm.Native.Http = {};
-Elm.Native.Http.make = function(localRuntime) {
-
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Http = localRuntime.Native.Http || {};
-	if (localRuntime.Native.Http.values)
-	{
-		return localRuntime.Native.Http.values;
-	}
-
-	var Dict = Elm.Dict.make(localRuntime);
-	var List = Elm.List.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-	var Task = Elm.Native.Task.make(localRuntime);
-
-
-	function send(settings, request)
-	{
-		return Task.asyncFunction(function(callback) {
-			var req = new XMLHttpRequest();
-
-			// start
-			if (settings.onStart.ctor === 'Just')
-			{
-				req.addEventListener('loadStart', function() {
-					var task = settings.onStart._0;
-					Task.spawn(task);
-				});
-			}
-
-			// progress
-			if (settings.onProgress.ctor === 'Just')
-			{
-				req.addEventListener('progress', function(event) {
-					var progress = !event.lengthComputable
-						? Maybe.Nothing
-						: Maybe.Just({
-							_: {},
-							loaded: event.loaded,
-							total: event.total
-						});
-					var task = settings.onProgress._0(progress);
-					Task.spawn(task);
-				});
-			}
-
-			// end
-			req.addEventListener('error', function() {
-				return callback(Task.fail({ ctor: 'RawNetworkError' }));
-			});
-
-			req.addEventListener('timeout', function() {
-				return callback(Task.fail({ ctor: 'RawTimeout' }));
-			});
-
-			req.addEventListener('load', function() {
-				return callback(Task.succeed(toResponse(req)));
-			});
-
-			req.open(request.verb, request.url, true);
-
-			// set all the headers
-			function setHeader(pair) {
-				req.setRequestHeader(pair._0, pair._1);
-			}
-			A2(List.map, setHeader, request.headers);
-
-			// set the timeout
-			req.timeout = settings.timeout;
-
-			// enable this withCredentials thing
-			req.withCredentials = settings.withCredentials;
-
-			// ask for a specific MIME type for the response
-			if (settings.desiredResponseType.ctor === 'Just')
-			{
-				req.overrideMimeType(settings.desiredResponseType._0);
-			}
-
-			// actuall send the request
-			if(request.body.ctor === "BodyFormData")
-			{
-				req.send(request.body.formData)
-			}
-			else
-			{
-				req.send(request.body._0);
-			}
-		});
-	}
-
-
-	// deal with responses
-
-	function toResponse(req)
-	{
-		var tag = req.responseType === 'blob' ? 'Blob' : 'Text'
-		var response = tag === 'Blob' ? req.response : req.responseText;
-		return {
-			_: {},
-			status: req.status,
-			statusText: req.statusText,
-			headers: parseHeaders(req.getAllResponseHeaders()),
-			url: req.responseURL,
-			value: { ctor: tag, _0: response }
-		};
-	}
-
-
-	function parseHeaders(rawHeaders)
-	{
-		var headers = Dict.empty;
-
-		if (!rawHeaders)
-		{
-			return headers;
-		}
-
-		var headerPairs = rawHeaders.split('\u000d\u000a');
-		for (var i = headerPairs.length; i--; )
-		{
-			var headerPair = headerPairs[i];
-			var index = headerPair.indexOf('\u003a\u0020');
-			if (index > 0)
-			{
-				var key = headerPair.substring(0, index);
-				var value = headerPair.substring(index + 2);
-
-				headers = A3(Dict.update, key, function(oldValue) {
-					if (oldValue.ctor === 'Just')
-					{
-						return Maybe.Just(value + ', ' + oldValue._0);
-					}
-					return Maybe.Just(value);
-				}, headers);
-			}
-		}
-
-		return headers;
-	}
-
-
-	function multipart(dataList)
-	{
-		var formData = new FormData();
-
-		while (dataList.ctor !== '[]')
-		{
-			var data = dataList._0;
-			if (data.ctor === 'StringData')
-			{
-				formData.append(data._0, data._1);
-			}
-			else
-			{
-				var fileName = data._1.ctor === 'Nothing'
-					? undefined
-					: data._1._0;
-				formData.append(data._0, data._2, fileName);
-			}
-			dataList = dataList._1;
-		}
-
-		return { ctor: 'BodyFormData', formData: formData };
-	}
-
-
-	function uriEncode(string)
-	{
-		return encodeURIComponent(string);
-	}
-
-	function uriDecode(string)
-	{
-		return decodeURIComponent(string);
-	}
-
-	return localRuntime.Native.Http.values = {
-		send: F2(send),
-		multipart: multipart,
-		uriEncode: uriEncode,
-		uriDecode: uriDecode
-	};
-};
-
-Elm.Http = Elm.Http || {};
-Elm.Http.make = function (_elm) {
-   "use strict";
-   _elm.Http = _elm.Http || {};
-   if (_elm.Http.values) return _elm.Http.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Dict = Elm.Dict.make(_elm),
-   $Json$Decode = Elm.Json.Decode.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Native$Http = Elm.Native.Http.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $String = Elm.String.make(_elm),
-   $Task = Elm.Task.make(_elm),
-   $Time = Elm.Time.make(_elm);
-   var _op = {};
-   var send = $Native$Http.send;
-   var BadResponse = F2(function (a,b) {    return {ctor: "BadResponse",_0: a,_1: b};});
-   var UnexpectedPayload = function (a) {    return {ctor: "UnexpectedPayload",_0: a};};
-   var handleResponse = F2(function (handle,response) {
-      if (_U.cmp(200,response.status) < 1 && _U.cmp(response.status,300) < 0) {
-            var _p0 = response.value;
-            if (_p0.ctor === "Text") {
-                  return handle(_p0._0);
-               } else {
-                  return $Task.fail(UnexpectedPayload("Response body is a blob, expecting a string."));
-               }
-         } else return $Task.fail(A2(BadResponse,response.status,response.statusText));
-   });
-   var NetworkError = {ctor: "NetworkError"};
-   var Timeout = {ctor: "Timeout"};
-   var promoteError = function (rawError) {    var _p1 = rawError;if (_p1.ctor === "RawTimeout") {    return Timeout;} else {    return NetworkError;}};
-   var fromJson = F2(function (decoder,response) {
-      var decode = function (str) {
-         var _p2 = A2($Json$Decode.decodeString,decoder,str);
-         if (_p2.ctor === "Ok") {
-               return $Task.succeed(_p2._0);
-            } else {
-               return $Task.fail(UnexpectedPayload(_p2._0));
-            }
-      };
-      return A2($Task.andThen,A2($Task.mapError,promoteError,response),handleResponse(decode));
-   });
-   var RawNetworkError = {ctor: "RawNetworkError"};
-   var RawTimeout = {ctor: "RawTimeout"};
-   var Blob = function (a) {    return {ctor: "Blob",_0: a};};
-   var Text = function (a) {    return {ctor: "Text",_0: a};};
-   var Response = F5(function (a,b,c,d,e) {    return {status: a,statusText: b,headers: c,url: d,value: e};});
-   var defaultSettings = {timeout: 0,onStart: $Maybe.Nothing,onProgress: $Maybe.Nothing,desiredResponseType: $Maybe.Nothing,withCredentials: false};
-   var post = F3(function (decoder,url,body) {
-      var request = {verb: "POST",headers: _U.list([]),url: url,body: body};
-      return A2(fromJson,decoder,A2(send,defaultSettings,request));
-   });
-   var Settings = F5(function (a,b,c,d,e) {    return {timeout: a,onStart: b,onProgress: c,desiredResponseType: d,withCredentials: e};});
-   var multipart = $Native$Http.multipart;
-   var FileData = F3(function (a,b,c) {    return {ctor: "FileData",_0: a,_1: b,_2: c};});
-   var BlobData = F3(function (a,b,c) {    return {ctor: "BlobData",_0: a,_1: b,_2: c};});
-   var blobData = BlobData;
-   var StringData = F2(function (a,b) {    return {ctor: "StringData",_0: a,_1: b};});
-   var stringData = StringData;
-   var BodyBlob = function (a) {    return {ctor: "BodyBlob",_0: a};};
-   var BodyFormData = {ctor: "BodyFormData"};
-   var ArrayBuffer = {ctor: "ArrayBuffer"};
-   var BodyString = function (a) {    return {ctor: "BodyString",_0: a};};
-   var string = BodyString;
-   var Empty = {ctor: "Empty"};
-   var empty = Empty;
-   var getString = function (url) {
-      var request = {verb: "GET",headers: _U.list([]),url: url,body: empty};
-      return A2($Task.andThen,A2($Task.mapError,promoteError,A2(send,defaultSettings,request)),handleResponse($Task.succeed));
-   };
-   var get = F2(function (decoder,url) {
-      var request = {verb: "GET",headers: _U.list([]),url: url,body: empty};
-      return A2(fromJson,decoder,A2(send,defaultSettings,request));
-   });
-   var Request = F4(function (a,b,c,d) {    return {verb: a,headers: b,url: c,body: d};});
-   var uriDecode = $Native$Http.uriDecode;
-   var uriEncode = $Native$Http.uriEncode;
-   var queryEscape = function (string) {    return A2($String.join,"+",A2($String.split,"%20",uriEncode(string)));};
-   var queryPair = function (_p3) {    var _p4 = _p3;return A2($Basics._op["++"],queryEscape(_p4._0),A2($Basics._op["++"],"=",queryEscape(_p4._1)));};
-   var url = F2(function (baseUrl,args) {
-      var _p5 = args;
-      if (_p5.ctor === "[]") {
-            return baseUrl;
-         } else {
-            return A2($Basics._op["++"],baseUrl,A2($Basics._op["++"],"?",A2($String.join,"&",A2($List.map,queryPair,args))));
-         }
-   });
-   var TODO_implement_file_in_another_library = {ctor: "TODO_implement_file_in_another_library"};
-   var TODO_implement_blob_in_another_library = {ctor: "TODO_implement_blob_in_another_library"};
-   return _elm.Http.values = {_op: _op
-                             ,getString: getString
-                             ,get: get
-                             ,post: post
-                             ,send: send
-                             ,url: url
-                             ,uriEncode: uriEncode
-                             ,uriDecode: uriDecode
-                             ,empty: empty
-                             ,string: string
-                             ,multipart: multipart
-                             ,stringData: stringData
-                             ,defaultSettings: defaultSettings
-                             ,fromJson: fromJson
-                             ,Request: Request
-                             ,Settings: Settings
-                             ,Response: Response
-                             ,Text: Text
-                             ,Blob: Blob
-                             ,Timeout: Timeout
-                             ,NetworkError: NetworkError
-                             ,UnexpectedPayload: UnexpectedPayload
-                             ,BadResponse: BadResponse
-                             ,RawTimeout: RawTimeout
-                             ,RawNetworkError: RawNetworkError};
 };
 Elm.Concourse = Elm.Concourse || {};
 Elm.Concourse.Pagination = Elm.Concourse.Pagination || {};
@@ -12411,6 +12330,92 @@ Elm.Concourse.Version.make = function (_elm) {
    var decode = $Json$Decode.dict($Json$Decode.string);
    return _elm.Concourse.Version.values = {_op: _op,decode: decode};
 };
+Elm.Native.EventSource = {};
+Elm.Native.EventSource.make = function(localRuntime) {
+  localRuntime.Native = localRuntime.Native || {};
+  localRuntime.Native.EventSource = localRuntime.Native.EventSource || {};
+  if (localRuntime.Native.EventSource.values) {
+    return localRuntime.Native.EventSource.values;
+  }
+
+  var Task = Elm.Native.Task.make (localRuntime);
+  var Maybe = Elm.Maybe.make(localRuntime);
+  var Utils = Elm.Native.Utils.make (localRuntime);
+
+  function connect(uri, settings) {
+    return Task.asyncFunction(function(callback) {
+      var es = new EventSource(uri);
+
+      if (settings.onOpen.ctor === "Just") {
+        es.onopen = function() {
+          Task.perform(settings.onOpen._0._0(Utils.Tuple0));
+        };
+      }
+
+      if (settings.onError.ctor === "Just") {
+        es.onerror = function(e) {
+          Task.perform(settings.onError._0._0(Utils.Tuple0));
+        };
+      }
+
+      callback(Task.succeed(es));
+    });
+  }
+
+  function on(eventName, address, es) {
+    return Task.asyncFunction(function(callback) {
+      es.addEventListener(eventName, function(event) {
+        Task.perform(address._0({
+          ctor: "Event",
+          lastEventId: event.lastEventId ? Maybe.Just(event.lastEventId) : Maybe.Nothing,
+          name: event.type ? Maybe.Just(event.type) : Maybe.Nothing,
+          data: event.data
+        }));
+      });
+
+      callback(Task.succeed(es));
+    });
+  }
+
+  function close(es) {
+    return Task.asyncFunction(function(callback) {
+      es.close();
+      callback(Task.succeed(Utils.Tuple0));
+    });
+  }
+
+  localRuntime.Native.EventSource.values = {
+    connect: F2(connect),
+    on: F3(on),
+    close: close,
+  };
+
+  return localRuntime.Native.EventSource.values;
+};
+
+Elm.EventSource = Elm.EventSource || {};
+Elm.EventSource.make = function (_elm) {
+   "use strict";
+   _elm.EventSource = _elm.EventSource || {};
+   if (_elm.EventSource.values) return _elm.EventSource.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$EventSource = Elm.Native.EventSource.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var close = $Native$EventSource.close;
+   var on = $Native$EventSource.on;
+   var connect = $Native$EventSource.connect;
+   var Settings = F2(function (a,b) {    return {onOpen: a,onError: b};});
+   var Event = F3(function (a,b,c) {    return {lastEventId: a,name: b,data: c};});
+   var EventSource = {ctor: "EventSource"};
+   return _elm.EventSource.values = {_op: _op,EventSource: EventSource,Event: Event,Settings: Settings,connect: connect,on: on,close: close};
+};
 Elm.Concourse = Elm.Concourse || {};
 Elm.Concourse.BuildEvents = Elm.Concourse.BuildEvents || {};
 Elm.Concourse.BuildEvents.make = function (_elm) {
@@ -12721,121 +12726,28 @@ Elm.Concourse.BuildResources.make = function (_elm) {
                                                  ,decodeInput: decodeInput
                                                  ,decodeOutput: decodeOutput};
 };
-Elm.Duration = Elm.Duration || {};
-Elm.Duration.make = function (_elm) {
+Elm.LoadingIndicator = Elm.LoadingIndicator || {};
+Elm.LoadingIndicator.make = function (_elm) {
    "use strict";
-   _elm.Duration = _elm.Duration || {};
-   if (_elm.Duration.values) return _elm.Duration.values;
+   _elm.LoadingIndicator = _elm.LoadingIndicator || {};
+   if (_elm.LoadingIndicator.values) return _elm.LoadingIndicator.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Time = Elm.Time.make(_elm);
+   $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var format = function (duration) {
-      var seconds = $Basics.truncate(duration / 1000);
-      var remainingSeconds = A2($Basics.rem,seconds,60);
-      var minutes = seconds / 60 | 0;
-      var remainingMinutes = A2($Basics.rem,minutes,60);
-      var hours = minutes / 60 | 0;
-      var remainingHours = A2($Basics.rem,hours,24);
-      var days = hours / 24 | 0;
-      var _p0 = {ctor: "_Tuple4",_0: days,_1: remainingHours,_2: remainingMinutes,_3: remainingSeconds};
-      if (_p0._0 === 0) {
-            if (_p0._1 === 0) {
-                  if (_p0._2 === 0) {
-                        return A2($Basics._op["++"],$Basics.toString(_p0._3),"s");
-                     } else {
-                        return A2($Basics._op["++"],$Basics.toString(_p0._2),A2($Basics._op["++"],"m ",A2($Basics._op["++"],$Basics.toString(_p0._3),"s")));
-                     }
-               } else {
-                  return A2($Basics._op["++"],$Basics.toString(_p0._1),A2($Basics._op["++"],"h ",A2($Basics._op["++"],$Basics.toString(_p0._2),"m")));
-               }
-         } else {
-            return A2($Basics._op["++"],$Basics.toString(_p0._0),A2($Basics._op["++"],"d ",A2($Basics._op["++"],$Basics.toString(_p0._1),"h")));
-         }
-   };
-   var between = F2(function (a,b) {    return b - a;});
-   return _elm.Duration.values = {_op: _op,between: between,format: format};
-};
-Elm.Native.Scroll = {};
-Elm.Native.Scroll.make = function(localRuntime) {
-  localRuntime.Native = localRuntime.Native || {};
-  localRuntime.Native.Scroll = localRuntime.Native.Scroll || {};
-  if (localRuntime.Native.Scroll.values) {
-    return localRuntime.Native.Scroll.values;
-  }
-
-  var NS = Elm.Native.Signal.make(localRuntime);
-
-  var Task = Elm.Native.Task.make(localRuntime);
-  var Utils = Elm.Native.Utils.make(localRuntime);
-
-  var fromBottom = NS.input('Scroll.fromBottom', 0);
-
-  localRuntime.addListener([fromBottom.id], window, 'scroll', function() {
-    var scrolledHeight = window.pageYOffset + document.documentElement.clientHeight;
-
-    localRuntime.notify(
-      fromBottom.id,
-      document.documentElement.scrollHeight - scrolledHeight
-    );
-  });
-
-  function toBottom() {
-    return Task.asyncFunction(function(callback) {
-      window.scrollTo(0, document.body.scrollHeight);
-      callback(Task.succeed(Utils.Tuple0));
-    });
-  }
-
-  function scrollElement(id, delta) {
-    return Task.asyncFunction(function(callback) {
-      document.getElementById(id).scrollLeft -= delta;
-      callback(Task.succeed(Utils.Tuple0));
-    });
-  }
-
-  function scrollIntoView(selector) {
-    return Task.asyncFunction(function(callback) {
-      document.querySelector(selector).scrollIntoView();
-      callback(Task.succeed(Utils.Tuple0));
-    });
-  }
-
-  localRuntime.Native.Scroll.values = {
-    toBottom: toBottom,
-    fromBottom: fromBottom,
-    scroll: F2(scrollElement),
-    scrollIntoView: scrollIntoView,
-  };
-
-  return localRuntime.Native.Scroll.values;
-};
-
-Elm.Scroll = Elm.Scroll || {};
-Elm.Scroll.make = function (_elm) {
-   "use strict";
-   _elm.Scroll = _elm.Scroll || {};
-   if (_elm.Scroll.values) return _elm.Scroll.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Native$Scroll = Elm.Native.Scroll.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Task = Elm.Task.make(_elm);
-   var _op = {};
-   var scrollIntoView = $Native$Scroll.scrollIntoView;
-   var scroll = $Native$Scroll.scroll;
-   var fromBottom = $Native$Scroll.fromBottom;
-   var toBottom = $Native$Scroll.toBottom({ctor: "_Tuple0"});
-   return _elm.Scroll.values = {_op: _op,toBottom: toBottom,fromBottom: fromBottom,scroll: scroll,scrollIntoView: scrollIntoView};
+   var view = A2($Html.div,
+   _U.list([$Html$Attributes.$class("build-step")]),
+   _U.list([A2($Html.div,
+   _U.list([$Html$Attributes.$class("header")]),
+   _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("left fa fa-fw fa-spin fa-circle-o-notch")]),_U.list([]))
+           ,A2($Html.h3,_U.list([]),_U.list([$Html.text("loading")]))]))]));
+   return _elm.LoadingIndicator.values = {_op: _op,view: view};
 };
 Elm.Focus = Elm.Focus || {};
 Elm.Focus.make = function (_elm) {
@@ -13284,11 +13196,11 @@ Elm.StepTree.make = function (_elm) {
                                  ,Finished: Finished
                                  ,SwitchTab: SwitchTab};
 };
-Elm.Build = Elm.Build || {};
-Elm.Build.make = function (_elm) {
+Elm.BuildOutput = Elm.BuildOutput || {};
+Elm.BuildOutput.make = function (_elm) {
    "use strict";
-   _elm.Build = _elm.Build || {};
-   if (_elm.Build.values) return _elm.Build.values;
+   _elm.BuildOutput = _elm.BuildOutput || {};
+   if (_elm.BuildOutput.values) return _elm.BuildOutput.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Ansi$Log = Elm.Ansi.Log.make(_elm),
    $Basics = Elm.Basics.make(_elm),
@@ -13298,25 +13210,386 @@ Elm.Build.make = function (_elm) {
    $Concourse$BuildResources = Elm.Concourse.BuildResources.make(_elm),
    $Concourse$BuildStatus = Elm.Concourse.BuildStatus.make(_elm),
    $Concourse$Metadata = Elm.Concourse.Metadata.make(_elm),
-   $Concourse$Pagination = Elm.Concourse.Pagination.make(_elm),
    $Concourse$Version = Elm.Concourse.Version.make(_elm),
+   $Date = Elm.Date.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
+   $EventSource = Elm.EventSource.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Http = Elm.Http.make(_elm),
+   $List = Elm.List.make(_elm),
+   $LoadingIndicator = Elm.LoadingIndicator.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $StepTree = Elm.StepTree.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var paddingClass = function (build) {
+      var _p0 = build.job;
+      if (_p0.ctor === "Just") {
+            return _U.list([]);
+         } else {
+            return _U.list([$Html$Attributes.$class("build-body-noSubHeader")]);
+         }
+   };
+   var viewLoginButton = function (build) {
+      return A2($Html.form,
+      _U.list([$Html$Attributes.$class("build-login"),$Html$Attributes.method("get"),$Html$Attributes.action("/login")]),
+      _U.list([A2($Html.input,_U.list([$Html$Attributes.type$("submit"),$Html$Attributes.value("log in to view")]),_U.list([]))
+              ,A2($Html.input,
+              _U.list([$Html$Attributes.type$("hidden"),$Html$Attributes.name("redirect"),$Html$Attributes.value($Concourse$Build.url(build))]),
+              _U.list([]))]));
+   };
+   var viewErrors = function (errors) {
+      var _p1 = errors;
+      if (_p1.ctor === "Nothing") {
+            return A2($Html.div,_U.list([]),_U.list([]));
+         } else {
+            return A2($Html.div,
+            _U.list([$Html$Attributes.$class("build-step")]),
+            _U.list([A2($Html.div,
+                    _U.list([$Html$Attributes.$class("header")]),
+                    _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("left fa fa-fw fa-exclamation-triangle")]),_U.list([]))
+                            ,A2($Html.h3,_U.list([]),_U.list([$Html.text("error")]))]))
+                    ,A2($Html.div,_U.list([$Html$Attributes.$class("step-body build-errors-body")]),_U.list([$Ansi$Log.view(_p1._0)]))]));
+         }
+   };
+   var setStepState = F2(function (state,tree) {    return A2($StepTree.map,function (step) {    return _U.update(step,{state: state});},tree);});
+   var setResourceInfo = F3(function (version,metadata,tree) {
+      return A2($StepTree.map,function (step) {    return _U.update(step,{version: $Maybe.Just(version),metadata: metadata});},tree);
+   });
+   var finishStep = F2(function (exitStatus,tree) {
+      var stepState = _U.eq(exitStatus,0) ? $StepTree.StepStateSucceeded : $StepTree.StepStateFailed;
+      return A2(setStepState,stepState,tree);
+   });
+   var setStepError = F2(function (message,tree) {
+      return A2($StepTree.map,function (step) {    return _U.update(step,{state: $StepTree.StepStateErrored,error: $Maybe.Just(message)});},tree);
+   });
+   var appendStepLog = F2(function (output,tree) {
+      return A2($StepTree.map,function (step) {    return _U.update(step,{log: A2($Ansi$Log.update,output,step.log)});},tree);
+   });
+   var setRunning = setStepState($StepTree.StepStateRunning);
+   var updateStep = F3(function (id,update,model) {    return _U.update(model,{steps: A2($Maybe.map,A2($StepTree.updateAt,id,update),model.steps)});});
+   var StepTreeAction = function (a) {    return {ctor: "StepTreeAction",_0: a};};
+   var viewStepTree = F4(function (actions,build,steps,state) {
+      var _p2 = {ctor: "_Tuple2",_0: state,_1: steps};
+      _v2_4: do {
+         switch (_p2._0.ctor)
+         {case "StepsLoading": return $LoadingIndicator.view;
+            case "LoginRequired": return viewLoginButton(build);
+            case "StepsLiveUpdating": if (_p2._1.ctor === "Just") {
+                    return A2($StepTree.view,A2($Signal.forwardTo,actions,StepTreeAction),_p2._1._0);
+                 } else {
+                    break _v2_4;
+                 }
+            default: if (_p2._1.ctor === "Just") {
+                    return A2($StepTree.view,A2($Signal.forwardTo,actions,StepTreeAction),_p2._1._0);
+                 } else {
+                    break _v2_4;
+                 }}
+      } while (false);
+      return $LoadingIndicator.view;
+   });
+   var view = F2(function (actions,_p3) {
+      var _p4 = _p3;
+      var _p5 = _p4.build;
+      return A2($Html.div,
+      A2($List._op["::"],$Html$Attributes.id("build-body"),paddingClass(_p5)),
+      _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("steps")]),_U.list([viewErrors(_p4.errors),A4(viewStepTree,actions,_p5,_p4.steps,_p4.state)]))]));
+   });
+   var BuildEventsClosed = {ctor: "BuildEventsClosed"};
+   var closeEvents = function (eventSource) {    return $Effects.task(A2($Task.map,$Basics.always(BuildEventsClosed),$EventSource.close(eventSource)));};
+   var BuildEventsAction = function (a) {    return {ctor: "BuildEventsAction",_0: a};};
+   var BuildEventsListening = function (a) {    return {ctor: "BuildEventsListening",_0: a};};
+   var subscribeToEvents = F2(function (build,actions) {
+      return $Effects.task(A2($Task.map,BuildEventsListening,A2($Concourse$BuildEvents.subscribe,build,A2($Signal.forwardTo,actions,BuildEventsAction))));
+   });
+   var PlanAndResourcesFetched = function (a) {    return {ctor: "PlanAndResourcesFetched",_0: a};};
+   var fetchBuildPlanAndResources = function (buildId) {
+      return $Effects.task(A2($Task.map,
+      PlanAndResourcesFetched,
+      $Task.toResult(A3($Task.map2,
+      F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),
+      $Concourse$BuildPlan.fetch(buildId),
+      $Concourse$BuildResources.fetch(buildId)))));
+   };
+   var fetchBuildPlan = function (buildId) {
+      return $Effects.task(A2($Task.map,
+      PlanAndResourcesFetched,
+      $Task.toResult(A2($Task.map,
+      A2($Basics.flip,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),$Concourse$BuildResources.empty),
+      $Concourse$BuildPlan.fetch(buildId)))));
+   };
+   var Noop = {ctor: "Noop"};
+   var handleEvent = F2(function (event,model) {
+      var _p6 = event;
+      switch (_p6.ctor)
+      {case "Log": return {ctor: "_Tuple2"
+                          ,_0: A3(updateStep,_p6._0.id,function (_p7) {    return setRunning(A2(appendStepLog,_p6._1,_p7));},model)
+                          ,_1: $Effects.none};
+         case "Error": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,setStepError(_p6._1),model),_1: $Effects.none};
+         case "InitializeTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,setRunning,model),_1: $Effects.none};
+         case "StartTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,setRunning,model),_1: $Effects.none};
+         case "FinishTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,finishStep(_p6._1),model),_1: $Effects.none};
+         case "InitializeGet": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,setRunning,model),_1: $Effects.none};
+         case "FinishGet": return {ctor: "_Tuple2"
+                                  ,_0: A3(updateStep,_p6._0.id,function (_p8) {    return A2(finishStep,_p6._1,A3(setResourceInfo,_p6._2,_p6._3,_p8));},model)
+                                  ,_1: $Effects.none};
+         case "InitializePut": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,setRunning,model),_1: $Effects.none};
+         case "FinishPut": return {ctor: "_Tuple2"
+                                  ,_0: A3(updateStep,_p6._0.id,function (_p9) {    return A2(finishStep,_p6._1,A3(setResourceInfo,_p6._2,_p6._3,_p9));},model)
+                                  ,_1: $Effects.none};
+         case "BuildStatus": var _p11 = _p6._0;
+           var notifyStatus = function (_p10) {
+              return $Effects.task(A2($Task.map,$Basics.always(Noop),_p10));
+           }(A2($Signal.send,model.context.buildStatus,{ctor: "_Tuple2",_0: _p11,_1: _p6._1}));
+           var finishSteps = $Basics.not($Concourse$BuildStatus.isRunning(_p11)) ? _U.update(model,
+           {steps: A2($Maybe.map,$StepTree.update($StepTree.Finished),model.steps)}) : model;
+           return {ctor: "_Tuple2",_0: finishSteps,_1: notifyStatus};
+         default: return {ctor: "_Tuple2"
+                         ,_0: _U.update(model,
+                         {errors: $Maybe.Just(A2($Ansi$Log.update,_p6._0,A2($Maybe.withDefault,$Ansi$Log.init($Ansi$Log.Cooked),model.errors)))})
+                         ,_1: $Effects.none};}
+   });
+   var LoginRequired = {ctor: "LoginRequired"};
+   var StepsComplete = {ctor: "StepsComplete"};
+   var handleEventsAction = F2(function (action,model) {
+      var _p12 = action;
+      switch (_p12.ctor)
+      {case "Opened": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         case "Errored": var newState = function () {
+              var _p13 = model.state;
+              switch (_p13.ctor)
+              {case "StepsLoading": return LoginRequired;
+                 case "StepsComplete": return model.state;
+                 case "StepsLiveUpdating": return model.state;
+                 default: return model.state;}
+           }();
+           return {ctor: "_Tuple2",_0: _U.update(model,{state: newState}),_1: $Effects.none};
+         case "Event": if (_p12._0.ctor === "Ok") {
+                 return A2(handleEvent,_p12._0._0,model);
+              } else {
+                 return {ctor: "_Tuple2",_0: model,_1: A2($Debug.log,_p12._0._0,$Effects.none)};
+              }
+         default: var _p14 = model.eventSource;
+           if (_p14.ctor === "Just") {
+                 return {ctor: "_Tuple2",_0: _U.update(model,{state: StepsComplete}),_1: closeEvents(_p14._0)};
+              } else {
+                 return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+              }}
+   });
+   var update = F2(function (action,model) {
+      var _p15 = action;
+      switch (_p15.ctor)
+      {case "Noop": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         case "PlanAndResourcesFetched": if (_p15._0.ctor === "Err") {
+                 if (_p15._0._0.ctor === "BadResponse" && _p15._0._0._0 === 404) {
+                       return {ctor: "_Tuple2",_0: model,_1: A2(subscribeToEvents,model.build.id,model.context.events)};
+                    } else {
+                       return A2($Debug.log,
+                       A2($Basics._op["++"],"failed to fetch plan: ",$Basics.toString(_p15._0._0)),
+                       {ctor: "_Tuple2",_0: model,_1: $Effects.none});
+                    }
+              } else {
+                 return {ctor: "_Tuple2"
+                        ,_0: _U.update(model,{steps: $Maybe.Just(A2($StepTree.init,_p15._0._0._1,_p15._0._0._0))})
+                        ,_1: A2(subscribeToEvents,model.build.id,model.context.events)};
+              }
+         case "BuildEventsListening": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Just(_p15._0)}),_1: $Effects.none};
+         case "BuildEventsAction": return A2(handleEventsAction,_p15._0,model);
+         case "BuildEventsClosed": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Nothing}),_1: $Effects.none};
+         default: return {ctor: "_Tuple2",_0: _U.update(model,{steps: A2($Maybe.map,$StepTree.update(_p15._0),model.steps)}),_1: $Effects.none};}
+   });
+   var StepsLiveUpdating = {ctor: "StepsLiveUpdating"};
+   var StepsLoading = {ctor: "StepsLoading"};
+   var init = F2(function (build,ctx) {
+      var outputState = $Concourse$BuildStatus.isRunning(build.status) ? StepsLiveUpdating : StepsLoading;
+      var model = {build: build,steps: $Maybe.Nothing,errors: $Maybe.Nothing,state: outputState,context: ctx,eventSource: $Maybe.Nothing};
+      var fetch = !_U.eq(build.job,$Maybe.Nothing) ? fetchBuildPlanAndResources(model.build.id) : fetchBuildPlan(model.build.id);
+      return {ctor: "_Tuple2",_0: model,_1: fetch};
+   });
+   var Context = F2(function (a,b) {    return {events: a,buildStatus: b};});
+   var Model = F6(function (a,b,c,d,e,f) {    return {build: a,steps: b,errors: c,state: d,context: e,eventSource: f};});
+   return _elm.BuildOutput.values = {_op: _op
+                                    ,Model: Model
+                                    ,Context: Context
+                                    ,StepsLoading: StepsLoading
+                                    ,StepsLiveUpdating: StepsLiveUpdating
+                                    ,StepsComplete: StepsComplete
+                                    ,LoginRequired: LoginRequired
+                                    ,Noop: Noop
+                                    ,PlanAndResourcesFetched: PlanAndResourcesFetched
+                                    ,BuildEventsListening: BuildEventsListening
+                                    ,BuildEventsAction: BuildEventsAction
+                                    ,BuildEventsClosed: BuildEventsClosed
+                                    ,StepTreeAction: StepTreeAction
+                                    ,init: init
+                                    ,update: update
+                                    ,handleEventsAction: handleEventsAction
+                                    ,handleEvent: handleEvent
+                                    ,updateStep: updateStep
+                                    ,setRunning: setRunning
+                                    ,appendStepLog: appendStepLog
+                                    ,setStepError: setStepError
+                                    ,finishStep: finishStep
+                                    ,setResourceInfo: setResourceInfo
+                                    ,setStepState: setStepState
+                                    ,fetchBuildPlanAndResources: fetchBuildPlanAndResources
+                                    ,fetchBuildPlan: fetchBuildPlan
+                                    ,subscribeToEvents: subscribeToEvents
+                                    ,closeEvents: closeEvents
+                                    ,view: view
+                                    ,viewStepTree: viewStepTree
+                                    ,viewErrors: viewErrors
+                                    ,viewLoginButton: viewLoginButton
+                                    ,paddingClass: paddingClass};
+};
+Elm.Duration = Elm.Duration || {};
+Elm.Duration.make = function (_elm) {
+   "use strict";
+   _elm.Duration = _elm.Duration || {};
+   if (_elm.Duration.values) return _elm.Duration.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var format = function (duration) {
+      var seconds = $Basics.truncate(duration / 1000);
+      var remainingSeconds = A2($Basics.rem,seconds,60);
+      var minutes = seconds / 60 | 0;
+      var remainingMinutes = A2($Basics.rem,minutes,60);
+      var hours = minutes / 60 | 0;
+      var remainingHours = A2($Basics.rem,hours,24);
+      var days = hours / 24 | 0;
+      var _p0 = {ctor: "_Tuple4",_0: days,_1: remainingHours,_2: remainingMinutes,_3: remainingSeconds};
+      if (_p0._0 === 0) {
+            if (_p0._1 === 0) {
+                  if (_p0._2 === 0) {
+                        return A2($Basics._op["++"],$Basics.toString(_p0._3),"s");
+                     } else {
+                        return A2($Basics._op["++"],$Basics.toString(_p0._2),A2($Basics._op["++"],"m ",A2($Basics._op["++"],$Basics.toString(_p0._3),"s")));
+                     }
+               } else {
+                  return A2($Basics._op["++"],$Basics.toString(_p0._1),A2($Basics._op["++"],"h ",A2($Basics._op["++"],$Basics.toString(_p0._2),"m")));
+               }
+         } else {
+            return A2($Basics._op["++"],$Basics.toString(_p0._0),A2($Basics._op["++"],"d ",A2($Basics._op["++"],$Basics.toString(_p0._1),"h")));
+         }
+   };
+   var between = F2(function (a,b) {    return b - a;});
+   return _elm.Duration.values = {_op: _op,between: between,format: format};
+};
+Elm.Native.Scroll = {};
+Elm.Native.Scroll.make = function(localRuntime) {
+  localRuntime.Native = localRuntime.Native || {};
+  localRuntime.Native.Scroll = localRuntime.Native.Scroll || {};
+  if (localRuntime.Native.Scroll.values) {
+    return localRuntime.Native.Scroll.values;
+  }
+
+  var NS = Elm.Native.Signal.make(localRuntime);
+
+  var Task = Elm.Native.Task.make(localRuntime);
+  var Utils = Elm.Native.Utils.make(localRuntime);
+
+  var fromBottom = NS.input('Scroll.fromBottom', 0);
+
+  localRuntime.addListener([fromBottom.id], window, 'scroll', function() {
+    var scrolledHeight = window.pageYOffset + document.documentElement.clientHeight;
+
+    localRuntime.notify(
+      fromBottom.id,
+      document.documentElement.scrollHeight - scrolledHeight
+    );
+  });
+
+  function toBottom() {
+    return Task.asyncFunction(function(callback) {
+      window.scrollTo(0, document.body.scrollHeight);
+      callback(Task.succeed(Utils.Tuple0));
+    });
+  }
+
+  function scrollElement(id, delta) {
+    return Task.asyncFunction(function(callback) {
+      document.getElementById(id).scrollLeft -= delta;
+      callback(Task.succeed(Utils.Tuple0));
+    });
+  }
+
+  function scrollIntoView(selector) {
+    return Task.asyncFunction(function(callback) {
+      document.querySelector(selector).scrollIntoView();
+      callback(Task.succeed(Utils.Tuple0));
+    });
+  }
+
+  localRuntime.Native.Scroll.values = {
+    toBottom: toBottom,
+    fromBottom: fromBottom,
+    scroll: F2(scrollElement),
+    scrollIntoView: scrollIntoView,
+  };
+
+  return localRuntime.Native.Scroll.values;
+};
+
+Elm.Scroll = Elm.Scroll || {};
+Elm.Scroll.make = function (_elm) {
+   "use strict";
+   _elm.Scroll = _elm.Scroll || {};
+   if (_elm.Scroll.values) return _elm.Scroll.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$Scroll = Elm.Native.Scroll.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var scrollIntoView = $Native$Scroll.scrollIntoView;
+   var scroll = $Native$Scroll.scroll;
+   var fromBottom = $Native$Scroll.fromBottom;
+   var toBottom = $Native$Scroll.toBottom({ctor: "_Tuple0"});
+   return _elm.Scroll.values = {_op: _op,toBottom: toBottom,fromBottom: fromBottom,scroll: scroll,scrollIntoView: scrollIntoView};
+};
+Elm.Build = Elm.Build || {};
+Elm.Build.make = function (_elm) {
+   "use strict";
+   _elm.Build = _elm.Build || {};
+   if (_elm.Build.values) return _elm.Build.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $BuildOutput = Elm.BuildOutput.make(_elm),
+   $Concourse$Build = Elm.Concourse.Build.make(_elm),
+   $Concourse$BuildStatus = Elm.Concourse.BuildStatus.make(_elm),
+   $Concourse$Pagination = Elm.Concourse.Pagination.make(_elm),
    $Date = Elm.Date.make(_elm),
    $Date$Format = Elm.Date.Format.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Duration = Elm.Duration.make(_elm),
    $Effects = Elm.Effects.make(_elm),
-   $EventSource = Elm.EventSource.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
+   $Html$Lazy = Elm.Html.Lazy.make(_elm),
    $Http = Elm.Http.make(_elm),
    $Json$Decode = Elm.Json.Decode.make(_elm),
    $List = Elm.List.make(_elm),
+   $LoadingIndicator = Elm.LoadingIndicator.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Scroll = Elm.Scroll.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $StepTree = Elm.StepTree.make(_elm),
    $Task = Elm.Task.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
@@ -13366,144 +13639,47 @@ Elm.Build.make = function (_elm) {
                                                   ,{ctor: "_Tuple2",_0: "current",_1: _U.eq(build.name,currentBuild.name)}]))]),
       _U.list([A2($Html.a,_U.list([$Html$Attributes.href($Concourse$Build.url(build))]),_U.list([$Html.text(build.name)]))]));
    });
-   var paddingClass = function (build) {
-      var _p3 = build.job;
-      if (_p3.ctor === "Just") {
-            return _U.list([]);
-         } else {
-            return _U.list([$Html$Attributes.$class("build-body-noSubHeader")]);
-         }
-   };
-   var viewLoginButton = function (build) {
-      return A2($Html.form,
-      _U.list([$Html$Attributes.$class("build-login"),$Html$Attributes.method("get"),$Html$Attributes.action("/login")]),
-      _U.list([A2($Html.input,_U.list([$Html$Attributes.type$("submit"),$Html$Attributes.value("log in to view")]),_U.list([]))
-              ,A2($Html.input,
-              _U.list([$Html$Attributes.type$("hidden"),$Html$Attributes.name("redirect"),$Html$Attributes.value($Concourse$Build.url(build))]),
-              _U.list([]))]));
-   };
-   var viewErrors = function (errors) {
-      var _p4 = errors;
-      if (_p4.ctor === "Nothing") {
-            return A2($Html.div,_U.list([]),_U.list([]));
-         } else {
-            return A2($Html.div,
-            _U.list([$Html$Attributes.$class("build-step")]),
-            _U.list([A2($Html.div,
-                    _U.list([$Html$Attributes.$class("header")]),
-                    _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("left fa fa-fw fa-exclamation-triangle")]),_U.list([]))
-                            ,A2($Html.h3,_U.list([]),_U.list([$Html.text("error")]))]))
-                    ,A2($Html.div,_U.list([$Html$Attributes.$class("step-body build-errors-body")]),_U.list([$Ansi$Log.view(_p4._0)]))]));
-         }
-   };
-   var loadingIndicator = A2($Html.div,
-   _U.list([$Html$Attributes.$class("steps")]),
-   _U.list([A2($Html.div,
-   _U.list([$Html$Attributes.$class("build-step")]),
-   _U.list([A2($Html.div,
-   _U.list([$Html$Attributes.$class("header")]),
-   _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("left fa fa-fw fa-spin fa-circle-o-notch")]),_U.list([]))
-           ,A2($Html.h3,_U.list([]),_U.list([$Html.text("loading")]))]))]))]));
-   var setStepState = F2(function (state,tree) {    return A2($StepTree.map,function (step) {    return _U.update(step,{state: state});},tree);});
-   var setResourceInfo = F3(function (version,metadata,tree) {
-      return A2($StepTree.map,function (step) {    return _U.update(step,{version: $Maybe.Just(version),metadata: metadata});},tree);
-   });
-   var finishStep = F2(function (exitStatus,tree) {
-      var stepState = _U.eq(exitStatus,0) ? $StepTree.StepStateSucceeded : $StepTree.StepStateFailed;
-      return A2(setStepState,stepState,tree);
-   });
-   var setStepError = F2(function (message,tree) {
-      return A2($StepTree.map,function (step) {    return _U.update(step,{state: $StepTree.StepStateErrored,error: $Maybe.Just(message)});},tree);
-   });
-   var appendStepLog = F2(function (output,tree) {
-      return A2($StepTree.map,function (step) {    return _U.update(step,{log: A2($Ansi$Log.update,output,step.log)});},tree);
-   });
-   var setRunning = setStepState($StepTree.StepStateRunning);
-   var updateStep = F3(function (id,update,model) {    return _U.update(model,{steps: A2($Maybe.map,A2($StepTree.updateAt,id,update),model.steps)});});
    var updateStartFinishAt = F3(function (status,date,model) {
       var duration = model.duration;
-      var _p5 = status;
-      if (_p5.ctor === "Started") {
+      var _p3 = status;
+      if (_p3.ctor === "Started") {
             return _U.update(model,{duration: _U.update(duration,{startedAt: $Maybe.Just(date)})});
          } else {
             return _U.update(model,{duration: _U.update(duration,{finishedAt: $Maybe.Just(date)})});
          }
-   });
-   var handleEvent = F2(function (event,model) {
-      var _p6 = event;
-      switch (_p6.ctor)
-      {case "Log": return {ctor: "_Tuple2"
-                          ,_0: A3(updateStep,_p6._0.id,function (_p7) {    return setRunning(A2(appendStepLog,_p6._1,_p7));},model)
-                          ,_1: $Effects.none};
-         case "Error": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,setStepError(_p6._1),model),_1: $Effects.none};
-         case "InitializeTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,setRunning,model),_1: $Effects.none};
-         case "StartTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,setRunning,model),_1: $Effects.none};
-         case "FinishTask": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,finishStep(_p6._1),model),_1: $Effects.none};
-         case "InitializeGet": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,setRunning,model),_1: $Effects.none};
-         case "FinishGet": return {ctor: "_Tuple2"
-                                  ,_0: A3(updateStep,_p6._0.id,function (_p8) {    return A2(finishStep,_p6._1,A3(setResourceInfo,_p6._2,_p6._3,_p8));},model)
-                                  ,_1: $Effects.none};
-         case "InitializePut": return {ctor: "_Tuple2",_0: A3(updateStep,_p6._0.id,setRunning,model),_1: $Effects.none};
-         case "FinishPut": return {ctor: "_Tuple2"
-                                  ,_0: A3(updateStep,_p6._0.id,function (_p9) {    return A2(finishStep,_p6._1,A3(setResourceInfo,_p6._2,_p6._3,_p9));},model)
-                                  ,_1: $Effects.none};
-         case "BuildStatus": var _p11 = _p6._0;
-           var updated = $Basics.not($Concourse$BuildStatus.isRunning(_p11)) ? _U.update(model,
-           {steps: A2($Maybe.map,$StepTree.update($StepTree.Finished),model.steps)}) : model;
-           return {ctor: "_Tuple2"
-                  ,_0: A3(updateStartFinishAt,
-                  _p11,
-                  _p6._1,
-                  function () {
-                     var _p10 = updated.stepState;
-                     if (_p10.ctor === "StepsLiveUpdating") {
-                           return _U.update(updated,{status: _p11});
-                        } else {
-                           return updated;
-                        }
-                  }())
-                  ,_1: $Effects.none};
-         default: return {ctor: "_Tuple2"
-                         ,_0: _U.update(model,
-                         {errors: $Maybe.Just(A2($Ansi$Log.update,_p6._0,A2($Maybe.withDefault,$Ansi$Log.init($Ansi$Log.Cooked),model.errors)))})
-                         ,_1: $Effects.none};}
    });
    var RevealCurrentBuildInHistory = {ctor: "RevealCurrentBuildInHistory"};
    var BuildAborted = function (a) {    return {ctor: "BuildAborted",_0: a};};
    var abortBuild = function (buildId) {    return $Effects.task(A2($Task.map,BuildAborted,$Task.toResult($Concourse$Build.abort(buildId))));};
    var AbortBuild = {ctor: "AbortBuild"};
    var ClockTick = function (a) {    return {ctor: "ClockTick",_0: a};};
-   var StepTreeAction = function (a) {    return {ctor: "StepTreeAction",_0: a};};
-   var viewSteps = F4(function (actions,errors,build,root) {
-      return A2($Html.div,
-      _U.list([$Html$Attributes.$class("steps")]),
-      _U.list([viewErrors(errors),A2($StepTree.view,A2($Signal.forwardTo,actions,StepTreeAction),root)]));
-   });
    var ScrollBuilds = function (a) {    return {ctor: "ScrollBuilds",_0: a};};
    var scrollEvent = F2(function (actions,delta) {    return A2($Signal.message,actions,ScrollBuilds(delta));});
-   var viewBuildHeader = F6(function (actions,build,status,now,duration,history) {
+   var viewBuildHeader = F3(function (actions,build,_p4) {
+      var _p5 = _p4;
+      var _p9 = _p5.status;
       var buildTitle = function () {
-         var _p12 = build.job;
-         if (_p12.ctor === "Just") {
-               var _p13 = _p12._0.name;
+         var _p6 = build.job;
+         if (_p6.ctor === "Just") {
+               var _p7 = _p6._0.name;
                return A2($Html.a,
                _U.list([$Html$Attributes.href(A2($Basics._op["++"],
                "/pipelines/",
-               A2($Basics._op["++"],_p12._0.pipelineName,A2($Basics._op["++"],"/jobs/",_p13))))]),
-               _U.list([$Html.text(A2($Basics._op["++"],_p13,A2($Basics._op["++"]," #",build.name)))]));
+               A2($Basics._op["++"],_p6._0.pipelineName,A2($Basics._op["++"],"/jobs/",_p7))))]),
+               _U.list([$Html.text(A2($Basics._op["++"],_p7,A2($Basics._op["++"]," #",build.name)))]));
             } else {
                return $Html.text(A2($Basics._op["++"],"build #",$Basics.toString(build.id)));
             }
       }();
-      var abortButton = $Concourse$BuildStatus.isRunning(status) ? A2($Html.span,
+      var abortButton = $Concourse$BuildStatus.isRunning(_p9) ? A2($Html.span,
       _U.list([$Html$Attributes.$class("build-action build-action-abort fr"),A2($Html$Events.onClick,actions,AbortBuild)]),
       _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-times-circle")]),_U.list([]))])) : A2($Html.span,_U.list([]),_U.list([]));
       var triggerButton = function () {
-         var _p14 = build.job;
-         if (_p14.ctor === "Just") {
+         var _p8 = build.job;
+         if (_p8.ctor === "Just") {
                var actionUrl = A2($Basics._op["++"],
                "/pipelines/",
-               A2($Basics._op["++"],_p14._0.pipelineName,A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],_p14._0.name,"/builds"))));
+               A2($Basics._op["++"],_p8._0.pipelineName,A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],_p8._0.name,"/builds"))));
                return A2($Html.form,
                _U.list([$Html$Attributes.$class("trigger-build"),$Html$Attributes.method("post"),$Html$Attributes.action(actionUrl)]),
                _U.list([A2($Html.button,
@@ -13514,54 +13690,36 @@ Elm.Build.make = function (_elm) {
             }
       }();
       return A2($Html.div,
-      _U.list([$Html$Attributes.id("page-header"),$Html$Attributes.$class($Concourse$BuildStatus.show(status))]),
+      _U.list([$Html$Attributes.id("page-header"),$Html$Attributes.$class($Concourse$BuildStatus.show(_p9))]),
       _U.list([A2($Html.div,
               _U.list([$Html$Attributes.$class("build-header")]),
               _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("build-actions fr")]),_U.list([triggerButton,abortButton]))
                       ,A2($Html.h1,_U.list([]),_U.list([buildTitle]))
-                      ,A2(viewBuildDuration,now,duration)]))
+                      ,A2(viewBuildDuration,_p5.now,_p5.duration)]))
               ,A2($Html.ul,
               _U.list([A3($Html$Events.on,"mousewheel",decodeScrollEvent,scrollEvent(actions)),$Html$Attributes.id("builds")]),
-              A2($List.map,A2(viewHistory,build,status),history))]));
+              A2($List.map,A2(viewHistory,build,_p9),_p5.history))]));
+   });
+   var BuildStatus = F2(function (a,b) {    return {ctor: "BuildStatus",_0: a,_1: b};});
+   var BuildOutputAction = function (a) {    return {ctor: "BuildOutputAction",_0: a};};
+   var initBuildOutput = F2(function (build,model) {
+      var _p10 = A2($BuildOutput.init,
+      build,
+      {events: A2($Signal.forwardTo,model.actions,BuildOutputAction),buildStatus: A2($Signal.forwardTo,model.actions,$Basics.uncurry(BuildStatus))});
+      var output = _p10._0;
+      var outputEffects = _p10._1;
+      return {ctor: "_Tuple2",_0: _U.update(model,{output: $Maybe.Just(output)}),_1: A2($Effects.map,BuildOutputAction,outputEffects)};
    });
    var view = F2(function (actions,model) {
-      var _p15 = {ctor: "_Tuple2",_0: model.build,_1: model.steps};
-      if (_p15.ctor === "_Tuple2" && _p15._0.ctor === "Just") {
-            if (_p15._1.ctor === "Just") {
-                  var _p18 = _p15._1._0;
-                  var _p17 = _p15._0._0;
-                  return A2($Html.div,
-                  _U.list([]),
-                  _U.list([A6(viewBuildHeader,actions,_p17,model.status,model.now,model.duration,A2($Maybe.withDefault,_U.list([]),model.history))
-                          ,A2($Html.div,
-                          A2($List._op["::"],$Html$Attributes.id("build-body"),paddingClass(_p17)),
-                          _U.list([function () {
-                             var _p16 = model.stepState;
-                             switch (_p16.ctor)
-                             {case "StepsLoading": return loadingIndicator;
-                                case "StepsLiveUpdating": return A4(viewSteps,actions,model.errors,_p17,_p18);
-                                case "StepsComplete": return A4(viewSteps,actions,model.errors,_p17,_p18);
-                                default: return viewLoginButton(_p17);}
-                          }()]))]));
-               } else {
-                  var _p19 = _p15._0._0;
-                  return A2($Html.div,
-                  _U.list([]),
-                  _U.list([A6(viewBuildHeader,actions,_p19,model.status,model.now,model.duration,A2($Maybe.withDefault,_U.list([]),model.history))
-                          ,A2($Html.div,
-                          A2($List._op["::"],$Html$Attributes.id("build-body"),paddingClass(_p19)),
-                          _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("steps")]),_U.list([viewErrors(model.errors)]))]))]));
-               }
+      var _p11 = {ctor: "_Tuple2",_0: model.build,_1: model.output};
+      if (_p11.ctor === "_Tuple2" && _p11._0.ctor === "Just" && _p11._1.ctor === "Just") {
+            return A2($Html.div,
+            _U.list([]),
+            _U.list([A3(viewBuildHeader,actions,_p11._0._0,model)
+                    ,A2($Html$Lazy.lazy,$BuildOutput.view(A2($Signal.forwardTo,actions,BuildOutputAction)),_p11._1._0)]));
          } else {
-            return loadingIndicator;
+            return $LoadingIndicator.view;
          }
-   });
-   var BuildEventsClosed = {ctor: "BuildEventsClosed"};
-   var closeEvents = function (eventSource) {    return $Effects.task(A2($Task.map,$Basics.always(BuildEventsClosed),$EventSource.close(eventSource)));};
-   var BuildEventsAction = function (a) {    return {ctor: "BuildEventsAction",_0: a};};
-   var BuildEventsListening = function (a) {    return {ctor: "BuildEventsListening",_0: a};};
-   var subscribeToEvents = F2(function (build,actions) {
-      return $Effects.task(A2($Task.map,BuildEventsListening,A2($Concourse$BuildEvents.subscribe,build,A2($Signal.forwardTo,actions,BuildEventsAction))));
    });
    var BuildHistoryFetched = function (a) {    return {ctor: "BuildHistoryFetched",_0: a};};
    var fetchBuildHistory = F2(function (job,page) {
@@ -13569,23 +13727,22 @@ Elm.Build.make = function (_elm) {
    });
    var handleHistoryFetched = F2(function (history,model) {
       var loadedCurrentBuild = A2($List.any,
-      function (_p20) {
-         return A2(F2(function (x,y) {    return _U.eq(x,y);}),model.buildId,function (_) {    return _.id;}(_p20));
+      function (_p12) {
+         return A2(F2(function (x,y) {    return _U.eq(x,y);}),model.buildId,function (_) {    return _.id;}(_p12));
       },
       history.content);
       var scrollToCurrent = loadedCurrentBuild ? $Effects.tick($Basics.always(RevealCurrentBuildInHistory)) : $Effects.none;
-      var builds = A2($List.append,A2($Maybe.withDefault,_U.list([]),model.history),history.content);
-      var withBuilds = _U.update(model,{history: $Maybe.Just(builds)});
-      var _p21 = {ctor: "_Tuple2",_0: history.pagination.nextPage,_1: A2($Maybe.andThen,model.build,function (_) {    return _.job;})};
-      if (_p21._0.ctor === "Nothing") {
+      var withBuilds = _U.update(model,{history: A2($List.append,model.history,history.content)});
+      var _p13 = {ctor: "_Tuple2",_0: history.pagination.nextPage,_1: A2($Maybe.andThen,model.build,function (_) {    return _.job;})};
+      if (_p13._0.ctor === "Nothing") {
             return {ctor: "_Tuple2",_0: withBuilds,_1: scrollToCurrent};
          } else {
-            if (_p21._1.ctor === "Just") {
+            if (_p13._1.ctor === "Just") {
                   return {ctor: "_Tuple2"
                          ,_0: withBuilds
-                         ,_1: $Effects.batch(_U.list([A2(fetchBuildHistory,_p21._1._0,$Maybe.Just(_p21._0._0)),scrollToCurrent]))};
+                         ,_1: $Effects.batch(_U.list([A2(fetchBuildHistory,_p13._1._0,$Maybe.Just(_p13._0._0)),scrollToCurrent]))};
                } else {
-                  return _U.crashCase("Build",{start: {line: 216,column: 5},end: {line: 224,column: 33}},_p21)("impossible");
+                  return _U.crashCase("Build",{start: {line: 193,column: 5},end: {line: 201,column: 33}},_p13)("impossible");
                }
          }
    });
@@ -13593,138 +13750,87 @@ Elm.Build.make = function (_elm) {
    var fetchBuild = F2(function (delay,buildId) {
       return $Effects.task(A2($Task.map,BuildFetched,$Task.toResult(A2($Task.andThen,$Task.sleep(delay),$Basics.always($Concourse$Build.fetch(buildId))))));
    });
-   var PlanAndResourcesFetched = function (a) {    return {ctor: "PlanAndResourcesFetched",_0: a};};
-   var fetchBuildPlanAndResources = function (buildId) {
-      return $Effects.task(A2($Task.map,
-      PlanAndResourcesFetched,
-      $Task.toResult(A3($Task.map2,
-      F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),
-      $Concourse$BuildPlan.fetch(buildId),
-      $Concourse$BuildResources.fetch(buildId)))));
-   };
-   var fetchBuildPlan = function (buildId) {
-      return $Effects.task(A2($Task.map,
-      PlanAndResourcesFetched,
-      $Task.toResult(A2($Task.map,
-      A2($Basics.flip,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),$Concourse$BuildResources.empty),
-      $Concourse$BuildPlan.fetch(buildId)))));
-   };
-   var Noop = {ctor: "Noop"};
-   var scrollBuilds = function (delta) {    return $Effects.task(A2($Task.map,$Basics.always(Noop),A2($Scroll.scroll,"builds",delta)));};
-   var scrollToCurrentBuildInHistory = $Effects.task(A2($Task.map,$Basics.always(Noop),$Scroll.scrollIntoView("#builds .current")));
-   var redirectToLogin = function (model) {    return $Effects.task(A2($Task.map,$Basics.always(Noop),A2($Signal.send,model.redirect,"/login")));};
-   var LoginRequired = {ctor: "LoginRequired"};
-   var StepsComplete = {ctor: "StepsComplete"};
-   var handleEventsAction = F2(function (action,model) {
-      var _p23 = action;
-      switch (_p23.ctor)
-      {case "Opened": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "Errored": var newState = function () {
-              var _p24 = model.stepState;
-              switch (_p24.ctor)
-              {case "StepsLoading": return LoginRequired;
-                 case "StepsComplete": return model.stepState;
-                 case "StepsLiveUpdating": return model.stepState;
-                 default: return model.stepState;}
-           }();
-           return {ctor: "_Tuple2",_0: _U.update(model,{stepState: newState}),_1: $Effects.none};
-         case "Event": if (_p23._0.ctor === "Ok") {
-                 return A2(handleEvent,_p23._0._0,model);
-              } else {
-                 return {ctor: "_Tuple2",_0: model,_1: A2($Debug.log,_p23._0._0,$Effects.none)};
-              }
-         default: var _p25 = model.eventSource;
-           if (_p25.ctor === "Just") {
-                 return {ctor: "_Tuple2",_0: _U.update(model,{stepState: StepsComplete}),_1: closeEvents(_p25._0)};
-              } else {
-                 return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-              }}
-   });
-   var StepsLiveUpdating = {ctor: "StepsLiveUpdating"};
-   var StepsLoading = {ctor: "StepsLoading"};
+   var pollUntilStarted = function (model) {    return {ctor: "_Tuple2",_0: model,_1: A2(fetchBuild,$Time.second,model.buildId)};};
    var handleBuildFetched = F2(function (build,model) {
+      var withBuild = _U.update(model,{build: $Maybe.Just(build),status: build.status});
+      var _p15 = _U.eq(build.status,$Concourse$BuildStatus.Pending) ? pollUntilStarted(withBuild) : A2(initBuildOutput,build,withBuild);
+      var model = _p15._0;
+      var effects = _p15._1;
       var fetchHistory = function () {
-         var _p26 = {ctor: "_Tuple2",_0: model.build,_1: build.job};
-         if (_p26.ctor === "_Tuple2" && _p26._0.ctor === "Nothing" && _p26._1.ctor === "Just") {
-               return A2(fetchBuildHistory,_p26._1._0,$Maybe.Nothing);
+         var _p16 = {ctor: "_Tuple2",_0: model.build,_1: build.job};
+         if (_p16.ctor === "_Tuple2" && _p16._0.ctor === "Nothing" && _p16._1.ctor === "Just") {
+               return A2(fetchBuildHistory,_p16._1._0,$Maybe.Nothing);
             } else {
                return $Effects.none;
             }
       }();
-      var stepState = $Concourse$BuildStatus.isRunning(build.status) ? StepsLiveUpdating : StepsLoading;
-      var pending = _U.eq(build.status,$Concourse$BuildStatus.Pending);
-      var fetch = pending ? A2(fetchBuild,$Time.second,model.buildId) : !_U.eq(build.job,
-      $Maybe.Nothing) ? fetchBuildPlanAndResources(model.buildId) : fetchBuildPlan(model.buildId);
-      return {ctor: "_Tuple2"
-             ,_0: _U.update(model,{build: $Maybe.Just(build),status: build.status,stepState: stepState})
-             ,_1: $Effects.batch(_U.list([fetch,fetchHistory]))};
+      return {ctor: "_Tuple2",_0: model,_1: $Effects.batch(_U.list([effects,fetchHistory]))};
    });
+   var Noop = {ctor: "Noop"};
+   var scrollBuilds = function (delta) {    return $Effects.task(A2($Task.map,$Basics.always(Noop),A2($Scroll.scroll,"builds",delta)));};
+   var scrollToCurrentBuildInHistory = $Effects.task(A2($Task.map,$Basics.always(Noop),$Scroll.scrollIntoView("#builds .current")));
+   var redirectToLogin = function (model) {    return $Effects.task(A2($Task.map,$Basics.always(Noop),A2($Signal.send,model.redirect,"/login")));};
    var update = F2(function (action,model) {
-      var _p27 = action;
-      switch (_p27.ctor)
+      var _p17 = action;
+      switch (_p17.ctor)
       {case "Noop": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          case "AbortBuild": return {ctor: "_Tuple2",_0: model,_1: abortBuild(model.buildId)};
-         case "BuildAborted": if (_p27._0.ctor === "Ok") {
+         case "BuildAborted": if (_p17._0.ctor === "Ok") {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               } else {
-                 if (_p27._0._0.ctor === "BadResponse" && _p27._0._0._0 === 401) {
+                 if (_p17._0._0.ctor === "BadResponse" && _p17._0._0._0 === 401) {
                        return {ctor: "_Tuple2",_0: model,_1: redirectToLogin(model)};
                     } else {
                        return A2($Debug.log,
-                       A2($Basics._op["++"],"failed to abort build: ",$Basics.toString(_p27._0._0)),
+                       A2($Basics._op["++"],"failed to abort build: ",$Basics.toString(_p17._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               }
-         case "BuildFetched": if (_p27._0.ctor === "Ok") {
-                 return A2(handleBuildFetched,_p27._0._0,model);
+         case "BuildFetched": if (_p17._0.ctor === "Ok") {
+                 return A2(handleBuildFetched,_p17._0._0,model);
               } else {
                  return A2($Debug.log,
-                 A2($Basics._op["++"],"failed to fetch build: ",$Basics.toString(_p27._0._0)),
+                 A2($Basics._op["++"],"failed to fetch build: ",$Basics.toString(_p17._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
-         case "PlanAndResourcesFetched": if (_p27._0.ctor === "Err") {
-                 if (_p27._0._0.ctor === "BadResponse" && _p27._0._0._0 === 404) {
-                       return {ctor: "_Tuple2",_0: model,_1: A2(subscribeToEvents,model.buildId,model.actions)};
-                    } else {
-                       return A2($Debug.log,
-                       A2($Basics._op["++"],"failed to fetch plan: ",$Basics.toString(_p27._0._0)),
-                       {ctor: "_Tuple2",_0: model,_1: $Effects.none});
-                    }
+         case "BuildOutputAction": var _p18 = model.output;
+           if (_p18.ctor === "Just") {
+                 var _p19 = A2($BuildOutput.update,_p17._0,_p18._0);
+                 var newOutput = _p19._0;
+                 var effects = _p19._1;
+                 return {ctor: "_Tuple2",_0: _U.update(model,{output: $Maybe.Just(newOutput)}),_1: A2($Effects.map,BuildOutputAction,effects)};
               } else {
-                 return {ctor: "_Tuple2"
-                        ,_0: _U.update(model,{steps: $Maybe.Just(A2($StepTree.init,_p27._0._0._1,_p27._0._0._0))})
-                        ,_1: A2(subscribeToEvents,model.buildId,model.actions)};
+                 return _U.crashCase("Build",
+                 {start: {line: 100,column: 7},end: {line: 108,column: 77}},
+                 _p18)("impossible (received action for missing BuildOutput)");
               }
-         case "BuildHistoryFetched": if (_p27._0.ctor === "Err") {
+         case "BuildStatus": var _p21 = _p17._0;
+           return {ctor: "_Tuple2"
+                  ,_0: A3(updateStartFinishAt,_p21,_p17._1,$Concourse$BuildStatus.isRunning(model.status) ? _U.update(model,{status: _p21}) : model)
+                  ,_1: $Effects.none};
+         case "BuildHistoryFetched": if (_p17._0.ctor === "Err") {
                  return A2($Debug.log,
-                 A2($Basics._op["++"],"failed to fetch build history: ",$Basics.toString(_p27._0._0)),
+                 A2($Basics._op["++"],"failed to fetch build history: ",$Basics.toString(_p17._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
-                 return A2(handleHistoryFetched,_p27._0._0,model);
+                 return A2(handleHistoryFetched,_p17._0._0,model);
               }
          case "RevealCurrentBuildInHistory": return {ctor: "_Tuple2",_0: model,_1: scrollToCurrentBuildInHistory};
-         case "BuildEventsListening": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Just(_p27._0)}),_1: $Effects.none};
-         case "BuildEventsAction": return A2(handleEventsAction,_p27._0,model);
-         case "BuildEventsClosed": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Nothing}),_1: $Effects.none};
-         case "StepTreeAction": return {ctor: "_Tuple2",_0: _U.update(model,{steps: A2($Maybe.map,$StepTree.update(_p27._0),model.steps)}),_1: $Effects.none};
-         case "ScrollBuilds": if (_p27._0._0 === 0) {
-                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(_p27._0._1)};
+         case "ScrollBuilds": if (_p17._0._0 === 0) {
+                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(_p17._0._1)};
               } else {
-                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(0 - _p27._0._0)};
+                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(0 - _p17._0._0)};
               }
-         default: return {ctor: "_Tuple2",_0: _U.update(model,{now: _p27._0}),_1: $Effects.none};}
+         default: return {ctor: "_Tuple2",_0: _U.update(model,{now: _p17._0}),_1: $Effects.none};}
    });
    var BuildDuration = F2(function (a,b) {    return {startedAt: a,finishedAt: b};});
    var init = F3(function (redirect,actions,buildId) {
       var model = {redirect: redirect
                   ,actions: actions
                   ,buildId: buildId
-                  ,errors: $Maybe.Nothing
-                  ,steps: $Maybe.Nothing
+                  ,output: $Maybe.Nothing
                   ,build: $Maybe.Nothing
-                  ,history: $Maybe.Nothing
-                  ,eventSource: $Maybe.Nothing
-                  ,stepState: StepsLoading
+                  ,history: _U.list([])
                   ,autoScroll: true
                   ,status: $Concourse$BuildStatus.Pending
                   ,now: 0
@@ -13741,25 +13847,7 @@ Elm.Build.make = function (_elm) {
                         return function (h) {
                            return function (i) {
                               return function (j) {
-                                 return function (k) {
-                                    return function (l) {
-                                       return function (m) {
-                                          return {redirect: a
-                                                 ,actions: b
-                                                 ,buildId: c
-                                                 ,errors: d
-                                                 ,steps: e
-                                                 ,build: f
-                                                 ,history: g
-                                                 ,eventSource: h
-                                                 ,stepState: i
-                                                 ,status: j
-                                                 ,autoScroll: k
-                                                 ,now: l
-                                                 ,duration: m};
-                                       };
-                                    };
-                                 };
+                                 return {redirect: a,actions: b,buildId: c,build: d,history: e,status: f,autoScroll: g,now: h,duration: i,output: j};
                               };
                            };
                         };
@@ -13773,19 +13861,12 @@ Elm.Build.make = function (_elm) {
    return _elm.Build.values = {_op: _op
                               ,Model: Model
                               ,BuildDuration: BuildDuration
-                              ,StepsLoading: StepsLoading
-                              ,StepsLiveUpdating: StepsLiveUpdating
-                              ,StepsComplete: StepsComplete
-                              ,LoginRequired: LoginRequired
                               ,Noop: Noop
-                              ,PlanAndResourcesFetched: PlanAndResourcesFetched
                               ,BuildFetched: BuildFetched
                               ,BuildHistoryFetched: BuildHistoryFetched
-                              ,BuildEventsListening: BuildEventsListening
-                              ,BuildEventsAction: BuildEventsAction
-                              ,BuildEventsClosed: BuildEventsClosed
+                              ,BuildOutputAction: BuildOutputAction
+                              ,BuildStatus: BuildStatus
                               ,ScrollBuilds: ScrollBuilds
-                              ,StepTreeAction: StepTreeAction
                               ,ClockTick: ClockTick
                               ,AbortBuild: AbortBuild
                               ,BuildAborted: BuildAborted
@@ -13793,24 +13874,12 @@ Elm.Build.make = function (_elm) {
                               ,init: init
                               ,update: update
                               ,handleBuildFetched: handleBuildFetched
+                              ,pollUntilStarted: pollUntilStarted
+                              ,initBuildOutput: initBuildOutput
                               ,handleHistoryFetched: handleHistoryFetched
-                              ,handleEventsAction: handleEventsAction
-                              ,handleEvent: handleEvent
                               ,updateStartFinishAt: updateStartFinishAt
                               ,abortBuild: abortBuild
-                              ,updateStep: updateStep
-                              ,setRunning: setRunning
-                              ,appendStepLog: appendStepLog
-                              ,setStepError: setStepError
-                              ,finishStep: finishStep
-                              ,setResourceInfo: setResourceInfo
-                              ,setStepState: setStepState
                               ,view: view
-                              ,loadingIndicator: loadingIndicator
-                              ,viewSteps: viewSteps
-                              ,viewErrors: viewErrors
-                              ,viewLoginButton: viewLoginButton
-                              ,paddingClass: paddingClass
                               ,viewBuildHeader: viewBuildHeader
                               ,viewHistory: viewHistory
                               ,viewBuildDuration: viewBuildDuration
@@ -13820,11 +13889,7 @@ Elm.Build.make = function (_elm) {
                               ,scrollEvent: scrollEvent
                               ,decodeScrollEvent: decodeScrollEvent
                               ,fetchBuild: fetchBuild
-                              ,fetchBuildPlanAndResources: fetchBuildPlanAndResources
-                              ,fetchBuildPlan: fetchBuildPlan
                               ,fetchBuildHistory: fetchBuildHistory
-                              ,subscribeToEvents: subscribeToEvents
-                              ,closeEvents: closeEvents
                               ,scrollBuilds: scrollBuilds
                               ,scrollToCurrentBuildInHistory: scrollToCurrentBuildInHistory
                               ,redirectToLogin: redirectToLogin};
