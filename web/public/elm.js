@@ -12214,6 +12214,7 @@ Elm.Concourse.Build.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $Concourse$BuildStatus = Elm.Concourse.BuildStatus.make(_elm),
    $Concourse$Pagination = Elm.Concourse.Pagination.make(_elm),
+   $Date = Elm.Date.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Http = Elm.Http.make(_elm),
    $Json$Decode = Elm.Json.Decode.make(_elm),
@@ -12223,9 +12224,10 @@ Elm.Concourse.Build.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
+   var dateFromSeconds = function (_p0) {    return $Date.fromTime(A2(F2(function (x,y) {    return x * y;}),1000,_p0));};
    var promoteHttpError = function (rawError) {
-      var _p0 = rawError;
-      if (_p0.ctor === "RawTimeout") {
+      var _p1 = rawError;
+      if (_p1.ctor === "RawTimeout") {
             return $Http.Timeout;
          } else {
             return $Http.NetworkError;
@@ -12237,15 +12239,15 @@ Elm.Concourse.Build.make = function (_elm) {
       response.statusText));
    };
    var url = function (build) {
-      var _p1 = build.job;
-      if (_p1.ctor === "Nothing") {
+      var _p2 = build.job;
+      if (_p2.ctor === "Nothing") {
             return A2($Basics._op["++"],"/builds/",$Basics.toString(build.id));
          } else {
             return A2($Basics._op["++"],
             "/pipelines/",
             A2($Basics._op["++"],
-            _p1._0.pipelineName,
-            A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],_p1._0.name,A2($Basics._op["++"],"/builds/",build.name)))));
+            _p2._0.pipelineName,
+            A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],_p2._0.name,A2($Basics._op["++"],"/builds/",build.name)))));
          }
    };
    var abort = function (buildId) {
@@ -12258,8 +12260,8 @@ Elm.Concourse.Build.make = function (_elm) {
       return A2($Task.andThen,A2($Task.mapError,promoteHttpError,post),handleResponse);
    };
    var Job = F2(function (a,b) {    return {name: a,pipelineName: b};});
-   var Build = F4(function (a,b,c,d) {    return {id: a,name: b,job: c,status: d};});
-   var decode = A5($Json$Decode.object4,
+   var Build = F6(function (a,b,c,d,e,f) {    return {id: a,name: b,job: c,status: d,startedAt: e,finishedAt: f};});
+   var decode = A7($Json$Decode.object6,
    Build,
    A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
    A2($Json$Decode._op[":="],"name",$Json$Decode.string),
@@ -12267,7 +12269,9 @@ Elm.Concourse.Build.make = function (_elm) {
    Job,
    A2($Json$Decode._op[":="],"job_name",$Json$Decode.string),
    A2($Json$Decode._op[":="],"pipeline_name",$Json$Decode.string))),
-   A2($Json$Decode._op[":="],"status",$Concourse$BuildStatus.decode));
+   A2($Json$Decode._op[":="],"status",$Concourse$BuildStatus.decode),
+   $Json$Decode.maybe(A2($Json$Decode._op[":="],"start_time",A2($Json$Decode.map,dateFromSeconds,$Json$Decode.$float))),
+   $Json$Decode.maybe(A2($Json$Decode._op[":="],"end_time",A2($Json$Decode.map,dateFromSeconds,$Json$Decode.$float))));
    var fetch = function (buildId) {    return A2($Http.get,decode,A2($Basics._op["++"],"/api/v1/builds/",$Basics.toString(buildId)));};
    var fetchJobBuilds = F2(function (job,page) {
       var url = A2($Basics._op["++"],
@@ -12284,7 +12288,8 @@ Elm.Concourse.Build.make = function (_elm) {
                                         ,url: url
                                         ,decode: decode
                                         ,handleResponse: handleResponse
-                                        ,promoteHttpError: promoteHttpError};
+                                        ,promoteHttpError: promoteHttpError
+                                        ,dateFromSeconds: dateFromSeconds};
 };
 Elm.Concourse = Elm.Concourse || {};
 Elm.Concourse.Metadata = Elm.Concourse.Metadata || {};
@@ -13742,7 +13747,7 @@ Elm.Build.make = function (_elm) {
                          ,_0: withBuilds
                          ,_1: $Effects.batch(_U.list([A2(fetchBuildHistory,_p13._1._0,$Maybe.Just(_p13._0._0)),scrollToCurrent]))};
                } else {
-                  return _U.crashCase("Build",{start: {line: 193,column: 5},end: {line: 201,column: 33}},_p13)("impossible");
+                  return _U.crashCase("Build",{start: {line: 195,column: 5},end: {line: 203,column: 33}},_p13)("impossible");
                }
          }
    });
@@ -13751,8 +13756,26 @@ Elm.Build.make = function (_elm) {
       return $Effects.task(A2($Task.map,BuildFetched,$Task.toResult(A2($Task.andThen,$Task.sleep(delay),$Basics.always($Concourse$Build.fetch(buildId))))));
    });
    var pollUntilStarted = function (model) {    return {ctor: "_Tuple2",_0: model,_1: A2(fetchBuild,$Time.second,model.buildId)};};
+   var Noop = {ctor: "Noop"};
+   var scrollBuilds = function (delta) {    return $Effects.task(A2($Task.map,$Basics.always(Noop),A2($Scroll.scroll,"builds",delta)));};
+   var scrollToCurrentBuildInHistory = $Effects.task(A2($Task.map,$Basics.always(Noop),$Scroll.scrollIntoView("#builds .current")));
+   var redirectToLogin = function (model) {    return $Effects.task(A2($Task.map,$Basics.always(Noop),A2($Signal.send,model.redirect,"/login")));};
+   var BuildDuration = F2(function (a,b) {    return {startedAt: a,finishedAt: b};});
+   var init = F3(function (redirect,actions,buildId) {
+      var model = {redirect: redirect
+                  ,actions: actions
+                  ,buildId: buildId
+                  ,output: $Maybe.Nothing
+                  ,build: $Maybe.Nothing
+                  ,history: _U.list([])
+                  ,autoScroll: true
+                  ,status: $Concourse$BuildStatus.Pending
+                  ,now: 0
+                  ,duration: A2(BuildDuration,$Maybe.Nothing,$Maybe.Nothing)};
+      return {ctor: "_Tuple2",_0: model,_1: A2(fetchBuild,0,buildId)};
+   });
    var handleBuildFetched = F2(function (build,model) {
-      var withBuild = _U.update(model,{build: $Maybe.Just(build),status: build.status});
+      var withBuild = _U.update(model,{build: $Maybe.Just(build),status: build.status,duration: A2(BuildDuration,build.startedAt,build.finishedAt)});
       var _p15 = _U.eq(build.status,$Concourse$BuildStatus.Pending) ? pollUntilStarted(withBuild) : A2(initBuildOutput,build,withBuild);
       var model = _p15._0;
       var effects = _p15._1;
@@ -13766,10 +13789,6 @@ Elm.Build.make = function (_elm) {
       }();
       return {ctor: "_Tuple2",_0: model,_1: $Effects.batch(_U.list([effects,fetchHistory]))};
    });
-   var Noop = {ctor: "Noop"};
-   var scrollBuilds = function (delta) {    return $Effects.task(A2($Task.map,$Basics.always(Noop),A2($Scroll.scroll,"builds",delta)));};
-   var scrollToCurrentBuildInHistory = $Effects.task(A2($Task.map,$Basics.always(Noop),$Scroll.scrollIntoView("#builds .current")));
-   var redirectToLogin = function (model) {    return $Effects.task(A2($Task.map,$Basics.always(Noop),A2($Signal.send,model.redirect,"/login")));};
    var update = F2(function (action,model) {
       var _p17 = action;
       switch (_p17.ctor)
@@ -13801,7 +13820,7 @@ Elm.Build.make = function (_elm) {
                  return {ctor: "_Tuple2",_0: _U.update(model,{output: $Maybe.Just(newOutput)}),_1: A2($Effects.map,BuildOutputAction,effects)};
               } else {
                  return _U.crashCase("Build",
-                 {start: {line: 100,column: 7},end: {line: 108,column: 77}},
+                 {start: {line: 99,column: 7},end: {line: 107,column: 77}},
                  _p18)("impossible (received action for missing BuildOutput)");
               }
          case "BuildStatus": var _p21 = _p17._0;
@@ -13822,20 +13841,6 @@ Elm.Build.make = function (_elm) {
                  return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(0 - _p17._0._0)};
               }
          default: return {ctor: "_Tuple2",_0: _U.update(model,{now: _p17._0}),_1: $Effects.none};}
-   });
-   var BuildDuration = F2(function (a,b) {    return {startedAt: a,finishedAt: b};});
-   var init = F3(function (redirect,actions,buildId) {
-      var model = {redirect: redirect
-                  ,actions: actions
-                  ,buildId: buildId
-                  ,output: $Maybe.Nothing
-                  ,build: $Maybe.Nothing
-                  ,history: _U.list([])
-                  ,autoScroll: true
-                  ,status: $Concourse$BuildStatus.Pending
-                  ,now: 0
-                  ,duration: A2(BuildDuration,$Maybe.Nothing,$Maybe.Nothing)};
-      return {ctor: "_Tuple2",_0: model,_1: A2(fetchBuild,0,buildId)};
    });
    var Model = function (a) {
       return function (b) {
