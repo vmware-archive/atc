@@ -11825,11 +11825,7 @@ Elm.Ansi.Log.make = function (_elm) {
                      }()]);
    };
    var viewChunk = function (chunk) {    return A2($Html.span,styleAttributes(chunk.style),_U.list([$Html.text(chunk.text)]));};
-   var viewLine = function (line) {
-      return A2($Html.div,
-      _U.list([]),
-      A3($List.foldl,F2(function (chunk,line) {    return A2($List._op["::"],viewChunk(chunk),line);}),_U.list([$Html.text("\n")]),line));
-   };
+   var viewLine = function (line) {    return A2($Html.div,_U.list([]),A2($Basics._op["++"],A2($List.map,viewChunk,line),_U.list([$Html.text("\n")])));};
    var lazyLine = $Html$Lazy.lazy(viewLine);
    var view = function (model) {    return A2($Html.pre,_U.list([]),$Array.toList(A2($Array.map,lazyLine,model.lines)));};
    var lineLen = F2(function (acc,line) {
@@ -11881,7 +11877,7 @@ Elm.Ansi.Log.make = function (_elm) {
             }
       }
    });
-   var insertChunkAtOld = F3(function (pos,chunk,line) {
+   var insertChunkAt = F3(function (pos,chunk,line) {
       var after = A2(dropLen,pos + $String.length(chunk.text),line);
       var chunksBefore = A3(takeLen,$Array.empty,pos,line);
       var chunksLen = A2(lineLen,0,chunksBefore);
@@ -11890,9 +11886,8 @@ Elm.Ansi.Log.make = function (_elm) {
       _U.list([{style: chunk.style,text: A2($String.repeat,pos - chunksLen," ")}])) : chunksBefore;
       return A2($Basics._op["++"],before,A2($Basics._op["++"],_U.list([chunk]),after));
    });
-   var insertChunkAt = F3(function (pos,chunk,line) {    return line;});
    var writeChunk = F3(function (pos,chunk,line) {
-      return _U.eq(pos,A2(lineLen,0,line)) ? A2($List._op["::"],chunk,line) : A3(insertChunkAt,pos,chunk,line);
+      return _U.eq(pos,A2(lineLen,0,line)) ? A2($Basics._op["++"],line,_U.list([chunk])) : A3(insertChunkAt,pos,chunk,line);
    });
    var updateStyle = F2(function (action,style) {
       var _p7 = action;
