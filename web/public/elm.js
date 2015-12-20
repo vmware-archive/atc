@@ -11825,93 +11825,99 @@ Elm.Ansi.Log.make = function (_elm) {
                      }()]);
    };
    var viewChunk = function (chunk) {    return A2($Html.span,styleAttributes(chunk.style),_U.list([$Html.text(chunk.text)]));};
-   var viewLine = function (line) {    return A2($Html.div,_U.list([]),A2($Basics._op["++"],A2($List.map,viewChunk,line),_U.list([$Html.text("\n")])));};
+   var viewLine = function (_p1) {
+      var _p2 = _p1;
+      return A2($Html.div,_U.list([]),A3($List.foldl,F2(function (c,l) {    return A2($List._op["::"],viewChunk(c),l);}),_U.list([$Html.text("\n")]),_p2._0));
+   };
    var lazyLine = $Html$Lazy.lazy(viewLine);
    var view = function (model) {    return A2($Html.pre,_U.list([]),$Array.toList(A2($Array.map,lazyLine,model.lines)));};
-   var lineLen = F2(function (acc,line) {
-      lineLen: while (true) {
-         var _p1 = line;
-         if (_p1.ctor === "[]") {
-               return acc;
-            } else {
-               var _v2 = acc + $String.length(_p1._0.text),_v3 = _p1._1;
-               acc = _v2;
-               line = _v3;
-               continue lineLen;
-            }
-      }
-   });
-   var takeLen = F3(function (acc,len,line) {
-      takeLen: while (true) if (_U.eq(len,0)) return $Array.toList(acc); else {
-            var _p2 = line;
-            if (_p2.ctor === "::") {
-                  var _p3 = _p2._0;
-                  var chunkLen = $String.length(_p3.text);
-                  if (_U.cmp(chunkLen,len) < 0) {
-                        var _v5 = A2($Array.push,_p3,acc),_v6 = len - chunkLen,_v7 = _p2._1;
-                        acc = _v5;
-                        len = _v6;
-                        line = _v7;
-                        continue takeLen;
-                     } else return $Array.toList(A2($Array.push,_U.update(_p3,{text: A2($String.left,len,_p3.text)}),acc));
+   var blankLine = {ctor: "_Tuple2",_0: _U.list([]),_1: 0};
+   var spacing = F2(function (style,len) {    return {style: style,text: A2($String.repeat,len," ")};});
+   var chunkLen = function (_p3) {    return $String.length(function (_) {    return _.text;}(_p3));};
+   var addChunk = F2(function (chunk,line) {
+      var clen = chunkLen(chunk);
+      if (_U.eq(clen,0)) return line; else {
+            var _p4 = line;
+            if (_p4._0.ctor === "[]") {
+                  return {ctor: "_Tuple2",_0: _U.list([chunk]),_1: clen};
                } else {
-                  return $Array.toList(acc);
+                  var _p7 = _p4._1;
+                  var _p6 = _p4._0._1;
+                  var _p5 = _p4._0._0;
+                  return _U.eq(_p5.style,chunk.style) ? {ctor: "_Tuple2"
+                                                        ,_0: A2($List._op["::"],_U.update(_p5,{text: A2($String.append,_p5.text,chunk.text)}),_p6)
+                                                        ,_1: _p7 + clen} : {ctor: "_Tuple2"
+                                                                           ,_0: A2($List._op["::"],chunk,A2($List._op["::"],_p5,_p6))
+                                                                           ,_1: _p7 + clen};
                }
          }
    });
-   var dropLen = F2(function (len,line) {
-      dropLen: while (true) {
-         var _p4 = line;
-         if (_p4.ctor === "::") {
-               var _p6 = _p4._1;
-               var _p5 = _p4._0;
-               var chunkLen = $String.length(_p5.text);
-               if (_U.cmp(chunkLen,len) > 0) return A2($List._op["::"],_U.update(_p5,{text: A2($String.dropLeft,len,_p5.text)}),_p6); else {
-                     var _v9 = len - chunkLen,_v10 = _p6;
-                     len = _v9;
-                     line = _v10;
-                     continue dropLen;
-                  }
+   var dropRight = F2(function (n,line) {
+      dropRight: while (true) {
+         var _p8 = line;
+         if (_p8._0.ctor === "[]") {
+               return line;
             } else {
-               return _U.list([]);
+               var _p11 = _p8._1;
+               var _p10 = _p8._0._1;
+               var _p9 = _p8._0._0;
+               var clen = chunkLen(_p9);
+               if (_U.cmp(clen,n) < 1) {
+                     var _v4 = n - clen,_v5 = {ctor: "_Tuple2",_0: _p10,_1: _p11 - clen};
+                     n = _v4;
+                     line = _v5;
+                     continue dropRight;
+                  } else return {ctor: "_Tuple2",_0: A2($List._op["::"],_U.update(_p9,{text: A2($String.dropRight,n,_p9.text)}),_p10),_1: _p11 - n};
             }
       }
    });
-   var insertChunkAt = F3(function (pos,chunk,line) {
-      var after = A2(dropLen,pos + $String.length(chunk.text),line);
-      var chunksBefore = A3(takeLen,$Array.empty,pos,line);
-      var chunksLen = A2(lineLen,0,chunksBefore);
-      var before = _U.cmp(chunksLen,pos) < 0 ? A2($Basics._op["++"],
-      chunksBefore,
-      _U.list([{style: chunk.style,text: A2($String.repeat,pos - chunksLen," ")}])) : chunksBefore;
-      return A2($Basics._op["++"],before,A2($Basics._op["++"],_U.list([chunk]),after));
+   var takeRight = F2(function (n,line) {
+      var _p12 = line;
+      if (_p12._0.ctor === "[]") {
+            return line;
+         } else {
+            var _p13 = _p12._0._0;
+            var clen = chunkLen(_p13);
+            return _U.cmp(clen,n) < 0 ? A2(addChunk,_p13,A2(takeRight,n - clen,{ctor: "_Tuple2",_0: _p12._0._1,_1: _p12._1 - clen})) : _U.eq(clen,
+            n) ? {ctor: "_Tuple2",_0: _U.list([_p13]),_1: clen} : {ctor: "_Tuple2",_0: _U.list([_U.update(_p13,{text: A2($String.right,n,_p13.text)})]),_1: n};
+         }
    });
+   var lineLen = $Basics.snd;
    var writeChunk = F3(function (pos,chunk,line) {
-      return _U.eq(pos,A2(lineLen,0,line)) ? A2($Basics._op["++"],line,_U.list([chunk])) : A3(insertChunkAt,pos,chunk,line);
+      var len = lineLen(line);
+      var afterLen = len - (chunkLen(chunk) + pos);
+      var textChopped = len - pos;
+      if (_U.eq(len,pos)) return A2(addChunk,chunk,line); else if (_U.cmp(pos,len) > 0) return A2(addChunk,
+            chunk,
+            A2(addChunk,A2(spacing,chunk.style,pos - len),line)); else {
+               var appended = A2(addChunk,chunk,A2(dropRight,len - pos,line));
+               return _U.cmp(afterLen,0) > 0 ? A3($List.foldl,addChunk,appended,$Basics.fst(A2(takeRight,afterLen,line))) : appended;
+            }
    });
+   var takeLeft = F2(function (n,line) {    return A2(dropRight,lineLen(line) - n,line);});
    var updateStyle = F2(function (action,style) {
-      var _p7 = action;
-      switch (_p7.ctor)
-      {case "SetForeground": return _U.update(style,{foreground: _p7._0});
-         case "SetBackground": return _U.update(style,{background: _p7._0});
-         case "SetInverted": return _U.update(style,{inverted: _p7._0});
-         case "SetBold": return _U.update(style,{bold: _p7._0});
-         case "SetFaint": return _U.update(style,{faint: _p7._0});
-         case "SetItalic": return _U.update(style,{italic: _p7._0});
-         case "SetUnderline": return _U.update(style,{underline: _p7._0});
+      var _p14 = action;
+      switch (_p14.ctor)
+      {case "SetForeground": return _U.update(style,{foreground: _p14._0});
+         case "SetBackground": return _U.update(style,{background: _p14._0});
+         case "SetInverted": return _U.update(style,{inverted: _p14._0});
+         case "SetBold": return _U.update(style,{bold: _p14._0});
+         case "SetFaint": return _U.update(style,{faint: _p14._0});
+         case "SetItalic": return _U.update(style,{italic: _p14._0});
+         case "SetUnderline": return _U.update(style,{underline: _p14._0});
          default: return style;}
    });
    var appendLine = F3(function (after,line,lines) {
       appendLine: while (true) if (_U.eq(after,0)) return A2($Array.push,line,lines); else {
-            var _v12 = after - 1,_v13 = line,_v14 = A2($Array.push,_U.list([]),lines);
-            after = _v12;
-            line = _v13;
-            lines = _v14;
+            var _v8 = after - 1,_v9 = line,_v10 = A2($Array.push,blankLine,lines);
+            after = _v8;
+            line = _v9;
+            lines = _v10;
             continue appendLine;
          }
    });
    var updateLine = F3(function (row,update,lines) {
-      var line = update(A2($Maybe.withDefault,_U.list([]),A2($Array.get,row,lines)));
+      var line = update(A2($Maybe.withDefault,blankLine,A2($Array.get,row,lines)));
       var currentLines = $Array.length(lines);
       return _U.cmp(row + 1,currentLines) > 0 ? A3(appendLine,row - currentLines,line,lines) : A3($Array.set,row,line,lines);
    });
@@ -11931,43 +11937,41 @@ Elm.Ansi.Log.make = function (_elm) {
    var Chunk = F2(function (a,b) {    return {text: a,style: b};});
    var handleAction = F2(function (action,model) {
       handleAction: while (true) {
-         var _p8 = action;
-         switch (_p8.ctor)
-         {case "Print": var _p9 = _p8._0;
-              var chunk = A2(Chunk,_p9,model.style);
+         var _p15 = action;
+         switch (_p15.ctor)
+         {case "Print": var chunk = A2(Chunk,_p15._0,model.style);
               var update = A2(writeChunk,model.position.column,chunk);
-              return _U.update(model,
-              {lines: A3(updateLine,model.position.row,update,model.lines),position: A3(moveCursor,0,$String.length(_p9),model.position)});
+              return _U.update(model,{lines: A3(updateLine,model.position.row,update,model.lines),position: A3(moveCursor,0,chunkLen(chunk),model.position)});
             case "CarriageReturn": return _U.update(model,{position: A2(CursorPosition,model.position.row,0)});
-            case "Linebreak": var _v17 = $Ansi.Print(""),
-              _v18 = function () {
-                 var _p10 = model.lineDiscipline;
-                 if (_p10.ctor === "Raw") {
+            case "Linebreak": var _v13 = $Ansi.Print(""),
+              _v14 = function () {
+                 var _p16 = model.lineDiscipline;
+                 if (_p16.ctor === "Raw") {
                        return _U.update(model,{position: A3(moveCursor,1,0,model.position)});
                     } else {
                        return _U.update(model,{position: A2(CursorPosition,model.position.row + 1,0)});
                     }
               }();
-              action = _v17;
-              model = _v18;
+              action = _v13;
+              model = _v14;
               continue handleAction;
-            case "Remainder": return _U.update(model,{remainder: _p8._0});
-            case "CursorUp": return _U.update(model,{position: A3(moveCursor,0 - _p8._0,0,model.position)});
-            case "CursorDown": return _U.update(model,{position: A3(moveCursor,_p8._0,0,model.position)});
-            case "CursorForward": return _U.update(model,{position: A3(moveCursor,0,_p8._0,model.position)});
-            case "CursorBack": return _U.update(model,{position: A3(moveCursor,0,0 - _p8._0,model.position)});
-            case "CursorPosition": return _U.update(model,{position: A2(CursorPosition,_p8._0 - 1,_p8._1 - 1)});
-            case "CursorColumn": return _U.update(model,{position: A2(CursorPosition,model.position.row,_p8._0)});
+            case "Remainder": return _U.update(model,{remainder: _p15._0});
+            case "CursorUp": return _U.update(model,{position: A3(moveCursor,0 - _p15._0,0,model.position)});
+            case "CursorDown": return _U.update(model,{position: A3(moveCursor,_p15._0,0,model.position)});
+            case "CursorForward": return _U.update(model,{position: A3(moveCursor,0,_p15._0,model.position)});
+            case "CursorBack": return _U.update(model,{position: A3(moveCursor,0,0 - _p15._0,model.position)});
+            case "CursorPosition": return _U.update(model,{position: A2(CursorPosition,_p15._0 - 1,_p15._1 - 1)});
+            case "CursorColumn": return _U.update(model,{position: A2(CursorPosition,model.position.row,_p15._0)});
             case "SaveCursorPosition": return _U.update(model,{savedPosition: $Maybe.Just(model.position)});
             case "RestoreCursorPosition": return _U.update(model,{position: A2($Maybe.withDefault,model.position,model.savedPosition)});
-            case "EraseLine": var _p11 = _p8._0;
-              switch (_p11.ctor)
+            case "EraseLine": var _p17 = _p15._0;
+              switch (_p17.ctor)
               {case "EraseToBeginning": var chunk = A2(Chunk,A2($String.repeat,model.position.column," "),model.style);
                    var update = A2(writeChunk,0,chunk);
                    return _U.update(model,{lines: A3(updateLine,model.position.row,update,model.lines)});
-                 case "EraseToEnd": var update = A2(takeLen,$Array.empty,model.position.column);
+                 case "EraseToEnd": var update = takeLeft(model.position.column);
                    return _U.update(model,{lines: A3(updateLine,model.position.row,update,model.lines)});
-                 default: return _U.update(model,{lines: A3(updateLine,model.position.row,$Basics.always(_U.list([])),model.lines)});}
+                 default: return _U.update(model,{lines: A3(updateLine,model.position.row,$Basics.always(blankLine),model.lines)});}
             default: return _U.update(model,{style: A2(updateStyle,action,model.style)});}
       }
    });
