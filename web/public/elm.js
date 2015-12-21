@@ -13362,60 +13362,60 @@ Elm.BuildOutput.make = function (_elm) {
    var handleEventsAction = F2(function (action,model) {
       var _p12 = action;
       switch (_p12.ctor)
-      {case "Opened": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "Errored": var newState = function () {
-              var _p13 = model.state;
-              switch (_p13.ctor)
-              {case "StepsLoading": return LoginRequired;
-                 case "StepsComplete": return model.state;
-                 case "StepsLiveUpdating": return model.state;
-                 default: return model.state;}
-           }();
-           return {ctor: "_Tuple2",_0: _U.update(model,{state: newState}),_1: $Effects.none};
+      {case "Opened": return {ctor: "_Tuple2",_0: _U.update(model,{eventSourceOpened: true}),_1: $Effects.none};
+         case "Errored": return model.eventSourceOpened ? {ctor: "_Tuple2",_0: model,_1: $Effects.none} : {ctor: "_Tuple2"
+                                                                                                          ,_0: _U.update(model,{state: LoginRequired})
+                                                                                                          ,_1: $Effects.none};
          case "Event": if (_p12._0.ctor === "Ok") {
                  return A2(handleEvent,_p12._0._0,model);
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: A2($Debug.log,_p12._0._0,$Effects.none)};
               }
-         default: var _p14 = model.eventSource;
-           if (_p14.ctor === "Just") {
-                 return {ctor: "_Tuple2",_0: _U.update(model,{state: StepsComplete}),_1: closeEvents(_p14._0)};
+         default: var _p13 = model.eventSource;
+           if (_p13.ctor === "Just") {
+                 return {ctor: "_Tuple2",_0: _U.update(model,{state: StepsComplete}),_1: closeEvents(_p13._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }}
    });
    var update = F2(function (action,model) {
-      var _p15 = action;
-      switch (_p15.ctor)
+      var _p14 = action;
+      switch (_p14.ctor)
       {case "Noop": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "PlanAndResourcesFetched": if (_p15._0.ctor === "Err") {
-                 if (_p15._0._0.ctor === "BadResponse" && _p15._0._0._0 === 404) {
+         case "PlanAndResourcesFetched": if (_p14._0.ctor === "Err") {
+                 if (_p14._0._0.ctor === "BadResponse" && _p14._0._0._0 === 404) {
                        return {ctor: "_Tuple2",_0: model,_1: A2(subscribeToEvents,model.build.id,model.context.events)};
                     } else {
                        return A2($Debug.log,
-                       A2($Basics._op["++"],"failed to fetch plan: ",$Basics.toString(_p15._0._0)),
+                       A2($Basics._op["++"],"failed to fetch plan: ",$Basics.toString(_p14._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               } else {
                  return {ctor: "_Tuple2"
-                        ,_0: _U.update(model,{steps: $Maybe.Just(A2($StepTree.init,_p15._0._0._1,_p15._0._0._0))})
+                        ,_0: _U.update(model,{steps: $Maybe.Just(A2($StepTree.init,_p14._0._0._1,_p14._0._0._0))})
                         ,_1: A2(subscribeToEvents,model.build.id,model.context.events)};
               }
-         case "BuildEventsListening": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Just(_p15._0)}),_1: $Effects.none};
-         case "BuildEventsAction": return A2(handleEventsAction,_p15._0,model);
+         case "BuildEventsListening": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Just(_p14._0)}),_1: $Effects.none};
+         case "BuildEventsAction": return A2(handleEventsAction,_p14._0,model);
          case "BuildEventsClosed": return {ctor: "_Tuple2",_0: _U.update(model,{eventSource: $Maybe.Nothing}),_1: $Effects.none};
-         default: return {ctor: "_Tuple2",_0: _U.update(model,{steps: A2($Maybe.map,$StepTree.update(_p15._0),model.steps)}),_1: $Effects.none};}
+         default: return {ctor: "_Tuple2",_0: _U.update(model,{steps: A2($Maybe.map,$StepTree.update(_p14._0),model.steps)}),_1: $Effects.none};}
    });
    var StepsLiveUpdating = {ctor: "StepsLiveUpdating"};
    var StepsLoading = {ctor: "StepsLoading"};
    var init = F2(function (build,ctx) {
       var outputState = $Concourse$BuildStatus.isRunning(build.status) ? StepsLiveUpdating : StepsLoading;
-      var model = {build: build,steps: $Maybe.Nothing,errors: $Maybe.Nothing,state: outputState,context: ctx,eventSource: $Maybe.Nothing};
+      var model = {build: build
+                  ,steps: $Maybe.Nothing
+                  ,errors: $Maybe.Nothing
+                  ,state: outputState
+                  ,context: ctx
+                  ,eventSource: $Maybe.Nothing
+                  ,eventSourceOpened: false};
       var fetch = !_U.eq(build.job,$Maybe.Nothing) ? fetchBuildPlanAndResources(model.build.id) : fetchBuildPlan(model.build.id);
       return {ctor: "_Tuple2",_0: model,_1: fetch};
    });
    var Context = F2(function (a,b) {    return {events: a,buildStatus: b};});
-   var Model = F6(function (a,b,c,d,e,f) {    return {build: a,steps: b,errors: c,state: d,context: e,eventSource: f};});
+   var Model = F7(function (a,b,c,d,e,f,g) {    return {build: a,steps: b,errors: c,state: d,context: e,eventSource: f,eventSourceOpened: g};});
    return _elm.BuildOutput.values = {_op: _op
                                     ,Model: Model
                                     ,Context: Context
