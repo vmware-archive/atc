@@ -16921,6 +16921,9 @@ Elm.Job.make = function (_elm) {
    var getPlayPauseLoadIcon = F2(function (job,pausedChanging) {
       return pausedChanging ? "fa-circle-o-notch fa-spin" : job.paused ? "" : "fa-pause";
    });
+   var isRunning = function (build) {
+      return $Concourse$BuildStatus.isRunning(build.status);
+   };
    var initLiveUpdatingBuildWithResources = function (nextBuild) {
       return {buildWithResources: $Maybe.Nothing
              ,nextBuild: nextBuild};
@@ -16928,12 +16931,30 @@ Elm.Job.make = function (_elm) {
    var addNextBuild = F2(function (nextBuild,buildWithResources) {
       return _U.update(buildWithResources,{nextBuild: nextBuild});
    });
+   var addNextBuildFromArray = F3(function (newBuilds,i,lubwr) {
+      var _p7 = A2($Array.get,i,newBuilds);
+      if (_p7.ctor === "Nothing") {
+            return lubwr;
+         } else {
+            return A2(addNextBuild,_p7._0,lubwr);
+         }
+   });
    var addFetchedResources = F2(function (resources,lubwr) {
       return _U.update(lubwr,
       {buildWithResources: $Maybe.Just({build: lubwr.nextBuild
                                        ,resources: resources})});
    });
    var jobBuildsPerPage = 100;
+   var permalink = function (builds) {
+      var _p8 = $List.head(builds);
+      if (_p8.ctor === "Nothing") {
+            return {direction: $Concourse$Pagination.Since(0)
+                   ,limit: jobBuildsPerPage};
+         } else {
+            return {direction: $Concourse$Pagination.Since(_p8._0.id + 1)
+                   ,limit: $List.length(builds)};
+         }
+   };
    var LiveUpdatingBuildWithResources = F2(function (a,b) {
       return {buildWithResources: a,nextBuild: b};
    });
@@ -16961,14 +16982,14 @@ Elm.Job.make = function (_elm) {
       return A2($Html.div,
       _U.list([]),
       _U.list([function () {
-                 var _p7 = model.job;
-                 if (_p7.ctor === "Nothing") {
+                 var _p9 = model.job;
+                 if (_p9.ctor === "Nothing") {
                        return loadSpinner;
                     } else {
-                       var _p8 = _p7._0;
+                       var _p10 = _p9._0;
                        return A2($Html.div,
                        _U.list([$Html$Attributes.id("page-header")
-                               ,$Html$Attributes.$class(headerBuildStatusClass(_p8.finishedBuild))]),
+                               ,$Html$Attributes.$class(headerBuildStatusClass(_p10.finishedBuild))]),
                        _U.list([A2($Html.div,
                        _U.list([$Html$Attributes.$class("build-header")]),
                        _U.list([A2($Html.button,
@@ -16976,14 +16997,14 @@ Elm.Job.make = function (_elm) {
                                _U.list([$Html$Attributes.id("job-state")
                                        ,$Html$Attributes.$class(A2($Basics._op["++"],
                                        "btn-pause btn-large fl ",
-                                       A2(getPausedState,_p8,model.pausedChanging)))]),
+                                       A2(getPausedState,_p10,model.pausedChanging)))]),
                                $Basics.not(model.pausedChanging) ? _U.list([A2($Html$Events.onClick,
                                actions,
                                TogglePaused)]) : _U.list([])),
                                _U.list([A2($Html.i,
                                _U.list([$Html$Attributes.$class(A2($Basics._op["++"],
                                "fa fa-fw fa-play ",
-                               A2(getPlayPauseLoadIcon,_p8,model.pausedChanging)))]),
+                               A2(getPlayPauseLoadIcon,_p10,model.pausedChanging)))]),
                                _U.list([]))]))
                                ,A2($Html.form,
                                _U.list([$Html$Attributes.$class("trigger-build")
@@ -17006,8 +17027,8 @@ Elm.Job.make = function (_elm) {
                     }
               }()
               ,function () {
-                 var _p9 = model.buildsWithResources;
-                 if (_p9.ctor === "Nothing") {
+                 var _p11 = model.buildsWithResources;
+                 if (_p11.ctor === "Nothing") {
                        return loadSpinner;
                     } else {
                        return A2($Html.div,
@@ -17020,7 +17041,7 @@ Elm.Job.make = function (_elm) {
                                _U.list([$Html$Attributes.$class("jobs-builds-list builds-list")]),
                                A2($List.map,
                                viewBuildWithResources(model),
-                               $Array.toList(_p9._0)))
+                               $Array.toList(_p11._0)))
                                ,A2($Html.div,
                                _U.list([$Html$Attributes.$class("pagination-footer")]),
                                _U.list([viewPaginationBar(model)]))]));
@@ -17041,40 +17062,27 @@ Elm.Job.make = function (_elm) {
       initBuildResourcesFetched(index),
       $Task.toResult($Concourse$BuildResources.fetch(buildId))));
    });
-   var handleJobBuildsFetched = F2(function (paginatedBuilds,
-   model) {
-      var fetchedBuilds = $Array.fromList(paginatedBuilds.content);
-      return {ctor: "_Tuple2"
-             ,_0: _U.update(model,
-             {buildsWithResources: $Maybe.Just(A2($Array.map,
-             initLiveUpdatingBuildWithResources,
-             fetchedBuilds))
-             ,pagination: paginatedBuilds.pagination})
-             ,_1: $Effects.batch($Array.toList(A2($Array.indexedMap,
-             fetchBuildResources,
-             A2($Array.map,
-             function (_) {
-                return _.id;
-             },
-             fetchedBuilds))))};
-   });
    var JobFetched = function (a) {
       return {ctor: "JobFetched",_0: a};
    };
-   var fetchJob = function (jobInfo) {
+   var fetchJob = F2(function (delay,jobInfo) {
       return $Effects.task(A2($Task.map,
       JobFetched,
-      $Task.toResult($Concourse$Job.fetchJob(jobInfo))));
-   };
+      $Task.toResult(A2($Task.andThen,
+      $Task.sleep(delay),
+      $Basics.always($Concourse$Job.fetchJob(jobInfo))))));
+   });
    var JobBuildsFetched = function (a) {
       return {ctor: "JobBuildsFetched",_0: a};
    };
-   var fetchJobBuilds = F2(function (jobInfo,page) {
+   var fetchJobBuilds = F3(function (delay,jobInfo,page) {
       return $Effects.task(A2($Task.map,
       JobBuildsFetched,
-      $Task.toResult(A2($Concourse$Build.fetchJobBuilds,
+      $Task.toResult(A2($Task.andThen,
+      $Task.sleep(delay),
+      $Basics.always(A2($Concourse$Build.fetchJobBuilds,
       jobInfo,
-      page))));
+      page))))));
    });
    var init = F5(function (redirect,
    jobName,
@@ -17094,10 +17102,53 @@ Elm.Job.make = function (_elm) {
                                ,nextPage: $Maybe.Nothing}};
       return {ctor: "_Tuple2"
              ,_0: model
-             ,_1: $Effects.batch(_U.list([A2(fetchJobBuilds,
+             ,_1: $Effects.batch(_U.list([A3(fetchJobBuilds,
+                                         0,
                                          model.jobInfo,
                                          $Maybe.Just(model.page))
-                                         ,fetchJob(model.jobInfo)]))};
+                                         ,A2(fetchJob,0,model.jobInfo)]))};
+   });
+   var handleJobBuildsFetched = F2(function (paginatedBuilds,
+   model) {
+      var newPage = permalink(paginatedBuilds.content);
+      var fetchedBuilds = $Array.fromList(paginatedBuilds.content);
+      return {ctor: "_Tuple2"
+             ,_0: _U.update(model,
+             {buildsWithResources: $Maybe.Just(function () {
+                var _p12 = model.buildsWithResources;
+                if (_p12.ctor === "Nothing") {
+                      return A2($Array.map,
+                      initLiveUpdatingBuildWithResources,
+                      fetchedBuilds);
+                   } else {
+                      return A2($Array.indexedMap,
+                      addNextBuildFromArray(fetchedBuilds),
+                      _p12._0);
+                   }
+             }())
+             ,page: newPage
+             ,pagination: paginatedBuilds.pagination})
+             ,_1: $Effects.batch(A2($List._op["::"],
+             A3(fetchJobBuilds,
+             5 * $Time.second,
+             model.jobInfo,
+             $Maybe.Just(newPage)),
+             $Array.toList(A2($Array.indexedMap,
+             fetchBuildResources,
+             A2($Array.map,
+             function (_) {
+                return _.id;
+             },
+             function () {
+                var _p13 = model.buildsWithResources;
+                if (_p13.ctor === "Nothing") {
+                      return fetchedBuilds;
+                   } else {
+                      return A2($Array.filter,
+                      isRunning,
+                      A2($Array.map,function (_) {    return _.nextBuild;},_p13._0));
+                   }
+             }())))))};
    });
    var Noop = {ctor: "Noop"};
    var redirectToLogin = function (model) {
@@ -17106,49 +17157,49 @@ Elm.Job.make = function (_elm) {
       A2($Signal.send,model.redirect,"/login")));
    };
    var update = F2(function (action,model) {
-      var _p10 = action;
-      switch (_p10.ctor)
+      var _p14 = action;
+      switch (_p14.ctor)
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
-         case "JobBuildsFetched": if (_p10._0.ctor === "Ok") {
-                 return A2(handleJobBuildsFetched,_p10._0._0,model);
+         case "JobBuildsFetched": if (_p14._0.ctor === "Ok") {
+                 return A2(handleJobBuildsFetched,_p14._0._0,model);
               } else {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch builds: ",
-                 $Basics.toString(_p10._0._0)),
+                 $Basics.toString(_p14._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
-         case "JobFetched": if (_p10._0.ctor === "Ok") {
+         case "JobFetched": if (_p14._0.ctor === "Ok") {
                  return {ctor: "_Tuple2"
-                        ,_0: _U.update(model,{job: $Maybe.Just(_p10._0._0)})
-                        ,_1: $Effects.none};
+                        ,_0: _U.update(model,{job: $Maybe.Just(_p14._0._0)})
+                        ,_1: A2(fetchJob,5 * $Time.second,model.jobInfo)};
               } else {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch job info: ",
-                 $Basics.toString(_p10._0._0)),
+                 $Basics.toString(_p14._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
-         case "BuildResourcesFetched": var _p15 = _p10._0;
-           var _p11 = _p15.result;
-           if (_p11.ctor === "Ok") {
-                 var _p12 = model.buildsWithResources;
-                 if (_p12.ctor === "Nothing") {
+         case "BuildResourcesFetched": var _p19 = _p14._0;
+           var _p15 = _p19.result;
+           if (_p15.ctor === "Ok") {
+                 var _p16 = model.buildsWithResources;
+                 if (_p16.ctor === "Nothing") {
                        return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
                     } else {
-                       var _p14 = _p12._0;
-                       var _p13 = A2($Array.get,_p15.index,_p14);
-                       if (_p13.ctor === "Nothing") {
+                       var _p18 = _p16._0;
+                       var _p17 = A2($Array.get,_p19.index,_p18);
+                       if (_p17.ctor === "Nothing") {
                              return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
                           } else {
                              return {ctor: "_Tuple2"
                                     ,_0: _U.update(model,
                                     {buildsWithResources: $Maybe.Just(A3($Array.set,
-                                    _p15.index,
-                                    A2(addFetchedResources,_p11._0,_p13._0),
-                                    _p14))})
+                                    _p19.index,
+                                    A2(addFetchedResources,_p15._0,_p17._0),
+                                    _p18))})
                                     ,_1: $Effects.none};
                           }
                     }
@@ -17156,26 +17207,26 @@ Elm.Job.make = function (_elm) {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }
          case "ClockTick": return {ctor: "_Tuple2"
-                                  ,_0: _U.update(model,{now: _p10._0})
+                                  ,_0: _U.update(model,{now: _p14._0})
                                   ,_1: $Effects.none};
-         case "TogglePaused": var _p16 = model.job;
-           if (_p16.ctor === "Nothing") {
+         case "TogglePaused": var _p20 = model.job;
+           if (_p20.ctor === "Nothing") {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               } else {
-                 var _p17 = _p16._0;
+                 var _p21 = _p20._0;
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,
                         {pausedChanging: true
-                        ,job: $Maybe.Just(_U.update(_p17,
-                        {paused: $Basics.not(_p17.paused)}))})
-                        ,_1: _p17.paused ? unpauseJob(model.jobInfo) : pauseJob(model.jobInfo)};
+                        ,job: $Maybe.Just(_U.update(_p21,
+                        {paused: $Basics.not(_p21.paused)}))})
+                        ,_1: _p21.paused ? unpauseJob(model.jobInfo) : pauseJob(model.jobInfo)};
               }
-         default: if (_p10._0.ctor === "Ok") {
+         default: if (_p14._0.ctor === "Ok") {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{pausedChanging: false})
                         ,_1: $Effects.none};
               } else {
-                 if (_p10._0._0.ctor === "BadResponse" && _p10._0._0._0 === 401)
+                 if (_p14._0._0.ctor === "BadResponse" && _p14._0._0._0 === 401)
                  {
                        return {ctor: "_Tuple2"
                               ,_0: model
@@ -17184,7 +17235,7 @@ Elm.Job.make = function (_elm) {
                        return A2($Debug.log,
                        A2($Basics._op["++"],
                        "failed to pause/unpause job: ",
-                       $Basics.toString(_p10._0._0)),
+                       $Basics.toString(_p14._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               }}
@@ -17214,10 +17265,13 @@ Elm.Job.make = function (_elm) {
                             ,jobBuildsPerPage: jobBuildsPerPage
                             ,addFetchedResources: addFetchedResources
                             ,addNextBuild: addNextBuild
+                            ,addNextBuildFromArray: addNextBuildFromArray
                             ,initLiveUpdatingBuildWithResources: initLiveUpdatingBuildWithResources
                             ,init: init
                             ,update: update
+                            ,permalink: permalink
                             ,handleJobBuildsFetched: handleJobBuildsFetched
+                            ,isRunning: isRunning
                             ,view: view
                             ,getPlayPauseLoadIcon: getPlayPauseLoadIcon
                             ,getPausedState: getPausedState
