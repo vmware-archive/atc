@@ -12806,7 +12806,7 @@ Elm.DictView.make = function (_elm) {
       return A2($Html.tr,
       _U.list([]),
       _U.list([A2($Html.td,_U.list([$Html$Attributes.$class("dict-key")]),_U.list([$Html.text(_p1._0)]))
-              ,A2($Html.td,_U.list([$Html$Attributes.$class("dict-value")]),_U.list([$Html.text(_p1._1)]))]));
+              ,A2($Html.td,_U.list([$Html$Attributes.$class("dict-value")]),_U.list([A2($Html.pre,_U.list([]),_U.list([$Html.text(_p1._1)]))]))]));
    };
    var view = function (dict) {    return A2($Html.table,_U.list([$Html$Attributes.$class("dictionary")]),A2($List.map,viewPair,$Dict.toList(dict)));};
    return _elm.DictView.values = {_op: _op,view: view,viewPair: viewPair};
