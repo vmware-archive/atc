@@ -15168,7 +15168,9 @@ Elm.StepTree.make = function (_elm) {
                                      } else {
                                         return A2($Html.span,
                                         _U.list([$Html$Attributes.$class("error")]),
-                                        _U.list([$Html.text(_p23._0)]));
+                                        _U.list([A2($Html.pre,
+                                        _U.list([]),
+                                        _U.list([$Html.text(_p23._0)]))]));
                                      }
                                }()]) : _U.list([]))]));
    });
