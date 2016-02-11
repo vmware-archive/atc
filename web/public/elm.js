@@ -16337,7 +16337,7 @@ Elm.Build.make = function (_elm) {
             _U.list([A2($Html.div,
                     _U.list([$Html$Attributes.$class("header")]),
                     _U.list([A2($Html.i,
-                            _U.list([$Html$Attributes.$class("left fa fa-fw fa-wrench")]),
+                            _U.list([$Html$Attributes.$class("left fa fa-fw fa-cogs")]),
                             _U.list([]))
                             ,A2($Html.h3,
                             _U.list([]),
