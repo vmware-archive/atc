@@ -7406,6 +7406,766 @@ Elm.Date.Format.make = function (_elm) {
                                     ,format: format
                                     ,formatISO8601: formatISO8601};
 };
+Elm.Dict = Elm.Dict || {};
+Elm.Dict.make = function (_elm) {
+   "use strict";
+   _elm.Dict = _elm.Dict || {};
+   if (_elm.Dict.values) return _elm.Dict.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$Debug = Elm.Native.Debug.make(_elm),
+   $String = Elm.String.make(_elm);
+   var _op = {};
+   var foldr = F3(function (f,acc,t) {
+      foldr: while (true) {
+         var _p0 = t;
+         if (_p0.ctor === "RBEmpty_elm_builtin") {
+               return acc;
+            } else {
+               var _v1 = f,
+               _v2 = A3(f,_p0._1,_p0._2,A3(foldr,f,acc,_p0._4)),
+               _v3 = _p0._3;
+               f = _v1;
+               acc = _v2;
+               t = _v3;
+               continue foldr;
+            }
+      }
+   });
+   var keys = function (dict) {
+      return A3(foldr,
+      F3(function (key,value,keyList) {
+         return A2($List._op["::"],key,keyList);
+      }),
+      _U.list([]),
+      dict);
+   };
+   var values = function (dict) {
+      return A3(foldr,
+      F3(function (key,value,valueList) {
+         return A2($List._op["::"],value,valueList);
+      }),
+      _U.list([]),
+      dict);
+   };
+   var toList = function (dict) {
+      return A3(foldr,
+      F3(function (key,value,list) {
+         return A2($List._op["::"],
+         {ctor: "_Tuple2",_0: key,_1: value},
+         list);
+      }),
+      _U.list([]),
+      dict);
+   };
+   var foldl = F3(function (f,acc,dict) {
+      foldl: while (true) {
+         var _p1 = dict;
+         if (_p1.ctor === "RBEmpty_elm_builtin") {
+               return acc;
+            } else {
+               var _v5 = f,
+               _v6 = A3(f,_p1._1,_p1._2,A3(foldl,f,acc,_p1._3)),
+               _v7 = _p1._4;
+               f = _v5;
+               acc = _v6;
+               dict = _v7;
+               continue foldl;
+            }
+      }
+   });
+   var reportRemBug = F4(function (msg,c,lgot,rgot) {
+      return $Native$Debug.crash($String.concat(_U.list(["Internal red-black tree invariant violated, expected "
+                                                        ,msg
+                                                        ," and got "
+                                                        ,$Basics.toString(c)
+                                                        ,"/"
+                                                        ,lgot
+                                                        ,"/"
+                                                        ,rgot
+                                                        ,"\nPlease report this bug to <https://github.com/elm-lang/core/issues>"])));
+   });
+   var isBBlack = function (dict) {
+      var _p2 = dict;
+      _v8_2: do {
+         if (_p2.ctor === "RBNode_elm_builtin") {
+               if (_p2._0.ctor === "BBlack") {
+                     return true;
+                  } else {
+                     break _v8_2;
+                  }
+            } else {
+               if (_p2._0.ctor === "LBBlack") {
+                     return true;
+                  } else {
+                     break _v8_2;
+                  }
+            }
+      } while (false);
+      return false;
+   };
+   var Same = {ctor: "Same"};
+   var Remove = {ctor: "Remove"};
+   var Insert = {ctor: "Insert"};
+   var sizeHelp = F2(function (n,dict) {
+      sizeHelp: while (true) {
+         var _p3 = dict;
+         if (_p3.ctor === "RBEmpty_elm_builtin") {
+               return n;
+            } else {
+               var _v10 = A2(sizeHelp,n + 1,_p3._4),_v11 = _p3._3;
+               n = _v10;
+               dict = _v11;
+               continue sizeHelp;
+            }
+      }
+   });
+   var size = function (dict) {    return A2(sizeHelp,0,dict);};
+   var get = F2(function (targetKey,dict) {
+      get: while (true) {
+         var _p4 = dict;
+         if (_p4.ctor === "RBEmpty_elm_builtin") {
+               return $Maybe.Nothing;
+            } else {
+               var _p5 = A2($Basics.compare,targetKey,_p4._1);
+               switch (_p5.ctor)
+               {case "LT": var _v14 = targetKey,_v15 = _p4._3;
+                    targetKey = _v14;
+                    dict = _v15;
+                    continue get;
+                  case "EQ": return $Maybe.Just(_p4._2);
+                  default: var _v16 = targetKey,_v17 = _p4._4;
+                    targetKey = _v16;
+                    dict = _v17;
+                    continue get;}
+            }
+      }
+   });
+   var member = F2(function (key,dict) {
+      var _p6 = A2(get,key,dict);
+      if (_p6.ctor === "Just") {
+            return true;
+         } else {
+            return false;
+         }
+   });
+   var maxWithDefault = F3(function (k,v,r) {
+      maxWithDefault: while (true) {
+         var _p7 = r;
+         if (_p7.ctor === "RBEmpty_elm_builtin") {
+               return {ctor: "_Tuple2",_0: k,_1: v};
+            } else {
+               var _v20 = _p7._1,_v21 = _p7._2,_v22 = _p7._4;
+               k = _v20;
+               v = _v21;
+               r = _v22;
+               continue maxWithDefault;
+            }
+      }
+   });
+   var RBEmpty_elm_builtin = function (a) {
+      return {ctor: "RBEmpty_elm_builtin",_0: a};
+   };
+   var RBNode_elm_builtin = F5(function (a,b,c,d,e) {
+      return {ctor: "RBNode_elm_builtin"
+             ,_0: a
+             ,_1: b
+             ,_2: c
+             ,_3: d
+             ,_4: e};
+   });
+   var LBBlack = {ctor: "LBBlack"};
+   var LBlack = {ctor: "LBlack"};
+   var empty = RBEmpty_elm_builtin(LBlack);
+   var isEmpty = function (dict) {    return _U.eq(dict,empty);};
+   var map = F2(function (f,dict) {
+      var _p8 = dict;
+      if (_p8.ctor === "RBEmpty_elm_builtin") {
+            return RBEmpty_elm_builtin(LBlack);
+         } else {
+            var _p9 = _p8._1;
+            return A5(RBNode_elm_builtin,
+            _p8._0,
+            _p9,
+            A2(f,_p9,_p8._2),
+            A2(map,f,_p8._3),
+            A2(map,f,_p8._4));
+         }
+   });
+   var NBlack = {ctor: "NBlack"};
+   var BBlack = {ctor: "BBlack"};
+   var Black = {ctor: "Black"};
+   var ensureBlackRoot = function (dict) {
+      var _p10 = dict;
+      if (_p10.ctor === "RBNode_elm_builtin" && _p10._0.ctor === "Red")
+      {
+            return A5(RBNode_elm_builtin,
+            Black,
+            _p10._1,
+            _p10._2,
+            _p10._3,
+            _p10._4);
+         } else {
+            return dict;
+         }
+   };
+   var blackish = function (t) {
+      var _p11 = t;
+      if (_p11.ctor === "RBNode_elm_builtin") {
+            var _p12 = _p11._0;
+            return _U.eq(_p12,Black) || _U.eq(_p12,BBlack);
+         } else {
+            return true;
+         }
+   };
+   var blacken = function (t) {
+      var _p13 = t;
+      if (_p13.ctor === "RBEmpty_elm_builtin") {
+            return RBEmpty_elm_builtin(LBlack);
+         } else {
+            return A5(RBNode_elm_builtin,
+            Black,
+            _p13._1,
+            _p13._2,
+            _p13._3,
+            _p13._4);
+         }
+   };
+   var Red = {ctor: "Red"};
+   var moreBlack = function (color) {
+      var _p14 = color;
+      switch (_p14.ctor)
+      {case "Black": return BBlack;
+         case "Red": return Black;
+         case "NBlack": return Red;
+         default:
+         return $Native$Debug.crash("Can\'t make a double black node more black!");}
+   };
+   var lessBlack = function (color) {
+      var _p15 = color;
+      switch (_p15.ctor)
+      {case "BBlack": return Black;
+         case "Black": return Red;
+         case "Red": return NBlack;
+         default:
+         return $Native$Debug.crash("Can\'t make a negative black node less black!");}
+   };
+   var lessBlackTree = function (dict) {
+      var _p16 = dict;
+      if (_p16.ctor === "RBNode_elm_builtin") {
+            return A5(RBNode_elm_builtin,
+            lessBlack(_p16._0),
+            _p16._1,
+            _p16._2,
+            _p16._3,
+            _p16._4);
+         } else {
+            return RBEmpty_elm_builtin(LBlack);
+         }
+   };
+   var balancedTree = function (col) {
+      return function (xk) {
+         return function (xv) {
+            return function (yk) {
+               return function (yv) {
+                  return function (zk) {
+                     return function (zv) {
+                        return function (a) {
+                           return function (b) {
+                              return function (c) {
+                                 return function (d) {
+                                    return A5(RBNode_elm_builtin,
+                                    lessBlack(col),
+                                    yk,
+                                    yv,
+                                    A5(RBNode_elm_builtin,Black,xk,xv,a,b),
+                                    A5(RBNode_elm_builtin,Black,zk,zv,c,d));
+                                 };
+                              };
+                           };
+                        };
+                     };
+                  };
+               };
+            };
+         };
+      };
+   };
+   var redden = function (t) {
+      var _p17 = t;
+      if (_p17.ctor === "RBEmpty_elm_builtin") {
+            return $Native$Debug.crash("can\'t make a Leaf red");
+         } else {
+            return A5(RBNode_elm_builtin,
+            Red,
+            _p17._1,
+            _p17._2,
+            _p17._3,
+            _p17._4);
+         }
+   };
+   var balanceHelp = function (tree) {
+      var _p18 = tree;
+      _v31_6: do {
+         _v31_5: do {
+            _v31_4: do {
+               _v31_3: do {
+                  _v31_2: do {
+                     _v31_1: do {
+                        _v31_0: do {
+                           if (_p18.ctor === "RBNode_elm_builtin") {
+                                 if (_p18._3.ctor === "RBNode_elm_builtin") {
+                                       if (_p18._4.ctor === "RBNode_elm_builtin") {
+                                             switch (_p18._3._0.ctor)
+                                             {case "Red": switch (_p18._4._0.ctor)
+                                                  {case "Red":
+                                                     if (_p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Red")
+                                                       {
+                                                             break _v31_0;
+                                                          } else {
+                                                             if (_p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Red")
+                                                             {
+                                                                   break _v31_1;
+                                                                } else {
+                                                                   if (_p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Red")
+                                                                   {
+                                                                         break _v31_2;
+                                                                      } else {
+                                                                         if (_p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Red")
+                                                                         {
+                                                                               break _v31_3;
+                                                                            } else {
+                                                                               break _v31_6;
+                                                                            }
+                                                                      }
+                                                                }
+                                                          }
+                                                     case "NBlack":
+                                                     if (_p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Red")
+                                                       {
+                                                             break _v31_0;
+                                                          } else {
+                                                             if (_p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Red")
+                                                             {
+                                                                   break _v31_1;
+                                                                } else {
+                                                                   if (_p18._0.ctor === "BBlack" && _p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Black" && _p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Black")
+                                                                   {
+                                                                         break _v31_4;
+                                                                      } else {
+                                                                         break _v31_6;
+                                                                      }
+                                                                }
+                                                          }
+                                                     default:
+                                                     if (_p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Red")
+                                                       {
+                                                             break _v31_0;
+                                                          } else {
+                                                             if (_p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Red")
+                                                             {
+                                                                   break _v31_1;
+                                                                } else {
+                                                                   break _v31_6;
+                                                                }
+                                                          }}
+                                                case "NBlack": switch (_p18._4._0.ctor)
+                                                  {case "Red":
+                                                     if (_p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Red")
+                                                       {
+                                                             break _v31_2;
+                                                          } else {
+                                                             if (_p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Red")
+                                                             {
+                                                                   break _v31_3;
+                                                                } else {
+                                                                   if (_p18._0.ctor === "BBlack" && _p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Black" && _p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Black")
+                                                                   {
+                                                                         break _v31_5;
+                                                                      } else {
+                                                                         break _v31_6;
+                                                                      }
+                                                                }
+                                                          }
+                                                     case "NBlack": if (_p18._0.ctor === "BBlack") {
+                                                             if (_p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Black" && _p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Black")
+                                                             {
+                                                                   break _v31_4;
+                                                                } else {
+                                                                   if (_p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Black" && _p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Black")
+                                                                   {
+                                                                         break _v31_5;
+                                                                      } else {
+                                                                         break _v31_6;
+                                                                      }
+                                                                }
+                                                          } else {
+                                                             break _v31_6;
+                                                          }
+                                                     default:
+                                                     if (_p18._0.ctor === "BBlack" && _p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Black" && _p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Black")
+                                                       {
+                                                             break _v31_5;
+                                                          } else {
+                                                             break _v31_6;
+                                                          }}
+                                                default: switch (_p18._4._0.ctor)
+                                                  {case "Red":
+                                                     if (_p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Red")
+                                                       {
+                                                             break _v31_2;
+                                                          } else {
+                                                             if (_p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Red")
+                                                             {
+                                                                   break _v31_3;
+                                                                } else {
+                                                                   break _v31_6;
+                                                                }
+                                                          }
+                                                     case "NBlack":
+                                                     if (_p18._0.ctor === "BBlack" && _p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Black" && _p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Black")
+                                                       {
+                                                             break _v31_4;
+                                                          } else {
+                                                             break _v31_6;
+                                                          }
+                                                     default: break _v31_6;}}
+                                          } else {
+                                             switch (_p18._3._0.ctor)
+                                             {case "Red":
+                                                if (_p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Red")
+                                                  {
+                                                        break _v31_0;
+                                                     } else {
+                                                        if (_p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Red")
+                                                        {
+                                                              break _v31_1;
+                                                           } else {
+                                                              break _v31_6;
+                                                           }
+                                                     }
+                                                case "NBlack":
+                                                if (_p18._0.ctor === "BBlack" && _p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Black" && _p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Black")
+                                                  {
+                                                        break _v31_5;
+                                                     } else {
+                                                        break _v31_6;
+                                                     }
+                                                default: break _v31_6;}
+                                          }
+                                    } else {
+                                       if (_p18._4.ctor === "RBNode_elm_builtin") {
+                                             switch (_p18._4._0.ctor)
+                                             {case "Red":
+                                                if (_p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Red")
+                                                  {
+                                                        break _v31_2;
+                                                     } else {
+                                                        if (_p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Red")
+                                                        {
+                                                              break _v31_3;
+                                                           } else {
+                                                              break _v31_6;
+                                                           }
+                                                     }
+                                                case "NBlack":
+                                                if (_p18._0.ctor === "BBlack" && _p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Black" && _p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Black")
+                                                  {
+                                                        break _v31_4;
+                                                     } else {
+                                                        break _v31_6;
+                                                     }
+                                                default: break _v31_6;}
+                                          } else {
+                                             break _v31_6;
+                                          }
+                                    }
+                              } else {
+                                 break _v31_6;
+                              }
+                        } while (false);
+                        return balancedTree(_p18._0)(_p18._3._3._1)(_p18._3._3._2)(_p18._3._1)(_p18._3._2)(_p18._1)(_p18._2)(_p18._3._3._3)(_p18._3._3._4)(_p18._3._4)(_p18._4);
+                     } while (false);
+                     return balancedTree(_p18._0)(_p18._3._1)(_p18._3._2)(_p18._3._4._1)(_p18._3._4._2)(_p18._1)(_p18._2)(_p18._3._3)(_p18._3._4._3)(_p18._3._4._4)(_p18._4);
+                  } while (false);
+                  return balancedTree(_p18._0)(_p18._1)(_p18._2)(_p18._4._3._1)(_p18._4._3._2)(_p18._4._1)(_p18._4._2)(_p18._3)(_p18._4._3._3)(_p18._4._3._4)(_p18._4._4);
+               } while (false);
+               return balancedTree(_p18._0)(_p18._1)(_p18._2)(_p18._4._1)(_p18._4._2)(_p18._4._4._1)(_p18._4._4._2)(_p18._3)(_p18._4._3)(_p18._4._4._3)(_p18._4._4._4);
+            } while (false);
+            return A5(RBNode_elm_builtin,
+            Black,
+            _p18._4._3._1,
+            _p18._4._3._2,
+            A5(RBNode_elm_builtin,
+            Black,
+            _p18._1,
+            _p18._2,
+            _p18._3,
+            _p18._4._3._3),
+            A5(balance,
+            Black,
+            _p18._4._1,
+            _p18._4._2,
+            _p18._4._3._4,
+            redden(_p18._4._4)));
+         } while (false);
+         return A5(RBNode_elm_builtin,
+         Black,
+         _p18._3._4._1,
+         _p18._3._4._2,
+         A5(balance,
+         Black,
+         _p18._3._1,
+         _p18._3._2,
+         redden(_p18._3._3),
+         _p18._3._4._3),
+         A5(RBNode_elm_builtin,
+         Black,
+         _p18._1,
+         _p18._2,
+         _p18._3._4._4,
+         _p18._4));
+      } while (false);
+      return tree;
+   };
+   var balance = F5(function (c,k,v,l,r) {
+      var tree = A5(RBNode_elm_builtin,c,k,v,l,r);
+      return blackish(tree) ? balanceHelp(tree) : tree;
+   });
+   var bubble = F5(function (c,k,v,l,r) {
+      return isBBlack(l) || isBBlack(r) ? A5(balance,
+      moreBlack(c),
+      k,
+      v,
+      lessBlackTree(l),
+      lessBlackTree(r)) : A5(RBNode_elm_builtin,c,k,v,l,r);
+   });
+   var removeMax = F5(function (c,k,v,l,r) {
+      var _p19 = r;
+      if (_p19.ctor === "RBEmpty_elm_builtin") {
+            return A3(rem,c,l,r);
+         } else {
+            return A5(bubble,
+            c,
+            k,
+            v,
+            l,
+            A5(removeMax,_p19._0,_p19._1,_p19._2,_p19._3,_p19._4));
+         }
+   });
+   var rem = F3(function (c,l,r) {
+      var _p20 = {ctor: "_Tuple2",_0: l,_1: r};
+      if (_p20._0.ctor === "RBEmpty_elm_builtin") {
+            if (_p20._1.ctor === "RBEmpty_elm_builtin") {
+                  var _p21 = c;
+                  switch (_p21.ctor)
+                  {case "Red": return RBEmpty_elm_builtin(LBlack);
+                     case "Black": return RBEmpty_elm_builtin(LBBlack);
+                     default:
+                     return $Native$Debug.crash("cannot have bblack or nblack nodes at this point");}
+               } else {
+                  var _p24 = _p20._1._0;
+                  var _p23 = _p20._0._0;
+                  var _p22 = {ctor: "_Tuple3",_0: c,_1: _p23,_2: _p24};
+                  if (_p22.ctor === "_Tuple3" && _p22._0.ctor === "Black" && _p22._1.ctor === "LBlack" && _p22._2.ctor === "Red")
+                  {
+                        return A5(RBNode_elm_builtin,
+                        Black,
+                        _p20._1._1,
+                        _p20._1._2,
+                        _p20._1._3,
+                        _p20._1._4);
+                     } else {
+                        return A4(reportRemBug,
+                        "Black/LBlack/Red",
+                        c,
+                        $Basics.toString(_p23),
+                        $Basics.toString(_p24));
+                     }
+               }
+         } else {
+            if (_p20._1.ctor === "RBEmpty_elm_builtin") {
+                  var _p27 = _p20._1._0;
+                  var _p26 = _p20._0._0;
+                  var _p25 = {ctor: "_Tuple3",_0: c,_1: _p26,_2: _p27};
+                  if (_p25.ctor === "_Tuple3" && _p25._0.ctor === "Black" && _p25._1.ctor === "Red" && _p25._2.ctor === "LBlack")
+                  {
+                        return A5(RBNode_elm_builtin,
+                        Black,
+                        _p20._0._1,
+                        _p20._0._2,
+                        _p20._0._3,
+                        _p20._0._4);
+                     } else {
+                        return A4(reportRemBug,
+                        "Black/Red/LBlack",
+                        c,
+                        $Basics.toString(_p26),
+                        $Basics.toString(_p27));
+                     }
+               } else {
+                  var _p31 = _p20._0._2;
+                  var _p30 = _p20._0._4;
+                  var _p29 = _p20._0._1;
+                  var l$ = A5(removeMax,_p20._0._0,_p29,_p31,_p20._0._3,_p30);
+                  var _p28 = A3(maxWithDefault,_p29,_p31,_p30);
+                  var k = _p28._0;
+                  var v = _p28._1;
+                  return A5(bubble,c,k,v,l$,r);
+               }
+         }
+   });
+   var update = F3(function (k,alter,dict) {
+      var up = function (dict) {
+         var _p32 = dict;
+         if (_p32.ctor === "RBEmpty_elm_builtin") {
+               var _p33 = alter($Maybe.Nothing);
+               if (_p33.ctor === "Nothing") {
+                     return {ctor: "_Tuple2",_0: Same,_1: empty};
+                  } else {
+                     return {ctor: "_Tuple2"
+                            ,_0: Insert
+                            ,_1: A5(RBNode_elm_builtin,Red,k,_p33._0,empty,empty)};
+                  }
+            } else {
+               var _p44 = _p32._2;
+               var _p43 = _p32._4;
+               var _p42 = _p32._3;
+               var _p41 = _p32._1;
+               var _p40 = _p32._0;
+               var _p34 = A2($Basics.compare,k,_p41);
+               switch (_p34.ctor)
+               {case "EQ": var _p35 = alter($Maybe.Just(_p44));
+                    if (_p35.ctor === "Nothing") {
+                          return {ctor: "_Tuple2"
+                                 ,_0: Remove
+                                 ,_1: A3(rem,_p40,_p42,_p43)};
+                       } else {
+                          return {ctor: "_Tuple2"
+                                 ,_0: Same
+                                 ,_1: A5(RBNode_elm_builtin,_p40,_p41,_p35._0,_p42,_p43)};
+                       }
+                  case "LT": var _p36 = up(_p42);
+                    var flag = _p36._0;
+                    var newLeft = _p36._1;
+                    var _p37 = flag;
+                    switch (_p37.ctor)
+                    {case "Same": return {ctor: "_Tuple2"
+                                         ,_0: Same
+                                         ,_1: A5(RBNode_elm_builtin,_p40,_p41,_p44,newLeft,_p43)};
+                       case "Insert": return {ctor: "_Tuple2"
+                                             ,_0: Insert
+                                             ,_1: A5(balance,_p40,_p41,_p44,newLeft,_p43)};
+                       default: return {ctor: "_Tuple2"
+                                       ,_0: Remove
+                                       ,_1: A5(bubble,_p40,_p41,_p44,newLeft,_p43)};}
+                  default: var _p38 = up(_p43);
+                    var flag = _p38._0;
+                    var newRight = _p38._1;
+                    var _p39 = flag;
+                    switch (_p39.ctor)
+                    {case "Same": return {ctor: "_Tuple2"
+                                         ,_0: Same
+                                         ,_1: A5(RBNode_elm_builtin,_p40,_p41,_p44,_p42,newRight)};
+                       case "Insert": return {ctor: "_Tuple2"
+                                             ,_0: Insert
+                                             ,_1: A5(balance,_p40,_p41,_p44,_p42,newRight)};
+                       default: return {ctor: "_Tuple2"
+                                       ,_0: Remove
+                                       ,_1: A5(bubble,_p40,_p41,_p44,_p42,newRight)};}}
+            }
+      };
+      var _p45 = up(dict);
+      var flag = _p45._0;
+      var updatedDict = _p45._1;
+      var _p46 = flag;
+      switch (_p46.ctor)
+      {case "Same": return updatedDict;
+         case "Insert": return ensureBlackRoot(updatedDict);
+         default: return blacken(updatedDict);}
+   });
+   var insert = F3(function (key,value,dict) {
+      return A3(update,
+      key,
+      $Basics.always($Maybe.Just(value)),
+      dict);
+   });
+   var singleton = F2(function (key,value) {
+      return A3(insert,key,value,empty);
+   });
+   var union = F2(function (t1,t2) {
+      return A3(foldl,insert,t2,t1);
+   });
+   var fromList = function (assocs) {
+      return A3($List.foldl,
+      F2(function (_p47,dict) {
+         var _p48 = _p47;
+         return A3(insert,_p48._0,_p48._1,dict);
+      }),
+      empty,
+      assocs);
+   };
+   var filter = F2(function (predicate,dictionary) {
+      var add = F3(function (key,value,dict) {
+         return A2(predicate,key,value) ? A3(insert,
+         key,
+         value,
+         dict) : dict;
+      });
+      return A3(foldl,add,empty,dictionary);
+   });
+   var intersect = F2(function (t1,t2) {
+      return A2(filter,
+      F2(function (k,_p49) {    return A2(member,k,t2);}),
+      t1);
+   });
+   var partition = F2(function (predicate,dict) {
+      var add = F3(function (key,value,_p50) {
+         var _p51 = _p50;
+         var _p53 = _p51._1;
+         var _p52 = _p51._0;
+         return A2(predicate,key,value) ? {ctor: "_Tuple2"
+                                          ,_0: A3(insert,key,value,_p52)
+                                          ,_1: _p53} : {ctor: "_Tuple2"
+                                                       ,_0: _p52
+                                                       ,_1: A3(insert,key,value,_p53)};
+      });
+      return A3(foldl,add,{ctor: "_Tuple2",_0: empty,_1: empty},dict);
+   });
+   var remove = F2(function (key,dict) {
+      return A3(update,key,$Basics.always($Maybe.Nothing),dict);
+   });
+   var diff = F2(function (t1,t2) {
+      return A3(foldl,
+      F3(function (k,v,t) {    return A2(remove,k,t);}),
+      t1,
+      t2);
+   });
+   return _elm.Dict.values = {_op: _op
+                             ,empty: empty
+                             ,singleton: singleton
+                             ,insert: insert
+                             ,update: update
+                             ,isEmpty: isEmpty
+                             ,get: get
+                             ,remove: remove
+                             ,member: member
+                             ,size: size
+                             ,filter: filter
+                             ,partition: partition
+                             ,foldl: foldl
+                             ,foldr: foldr
+                             ,map: map
+                             ,union: union
+                             ,intersect: intersect
+                             ,diff: diff
+                             ,keys: keys
+                             ,values: values
+                             ,toList: toList
+                             ,fromList: fromList};
+};
 Elm.Native.Effects = {};
 Elm.Native.Effects.make = function(localRuntime) {
 
@@ -9177,766 +9937,6 @@ Elm.Array.make = function (_elm) {
                               ,filter: filter
                               ,foldl: foldl
                               ,foldr: foldr};
-};
-Elm.Dict = Elm.Dict || {};
-Elm.Dict.make = function (_elm) {
-   "use strict";
-   _elm.Dict = _elm.Dict || {};
-   if (_elm.Dict.values) return _elm.Dict.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Native$Debug = Elm.Native.Debug.make(_elm),
-   $String = Elm.String.make(_elm);
-   var _op = {};
-   var foldr = F3(function (f,acc,t) {
-      foldr: while (true) {
-         var _p0 = t;
-         if (_p0.ctor === "RBEmpty_elm_builtin") {
-               return acc;
-            } else {
-               var _v1 = f,
-               _v2 = A3(f,_p0._1,_p0._2,A3(foldr,f,acc,_p0._4)),
-               _v3 = _p0._3;
-               f = _v1;
-               acc = _v2;
-               t = _v3;
-               continue foldr;
-            }
-      }
-   });
-   var keys = function (dict) {
-      return A3(foldr,
-      F3(function (key,value,keyList) {
-         return A2($List._op["::"],key,keyList);
-      }),
-      _U.list([]),
-      dict);
-   };
-   var values = function (dict) {
-      return A3(foldr,
-      F3(function (key,value,valueList) {
-         return A2($List._op["::"],value,valueList);
-      }),
-      _U.list([]),
-      dict);
-   };
-   var toList = function (dict) {
-      return A3(foldr,
-      F3(function (key,value,list) {
-         return A2($List._op["::"],
-         {ctor: "_Tuple2",_0: key,_1: value},
-         list);
-      }),
-      _U.list([]),
-      dict);
-   };
-   var foldl = F3(function (f,acc,dict) {
-      foldl: while (true) {
-         var _p1 = dict;
-         if (_p1.ctor === "RBEmpty_elm_builtin") {
-               return acc;
-            } else {
-               var _v5 = f,
-               _v6 = A3(f,_p1._1,_p1._2,A3(foldl,f,acc,_p1._3)),
-               _v7 = _p1._4;
-               f = _v5;
-               acc = _v6;
-               dict = _v7;
-               continue foldl;
-            }
-      }
-   });
-   var reportRemBug = F4(function (msg,c,lgot,rgot) {
-      return $Native$Debug.crash($String.concat(_U.list(["Internal red-black tree invariant violated, expected "
-                                                        ,msg
-                                                        ," and got "
-                                                        ,$Basics.toString(c)
-                                                        ,"/"
-                                                        ,lgot
-                                                        ,"/"
-                                                        ,rgot
-                                                        ,"\nPlease report this bug to <https://github.com/elm-lang/core/issues>"])));
-   });
-   var isBBlack = function (dict) {
-      var _p2 = dict;
-      _v8_2: do {
-         if (_p2.ctor === "RBNode_elm_builtin") {
-               if (_p2._0.ctor === "BBlack") {
-                     return true;
-                  } else {
-                     break _v8_2;
-                  }
-            } else {
-               if (_p2._0.ctor === "LBBlack") {
-                     return true;
-                  } else {
-                     break _v8_2;
-                  }
-            }
-      } while (false);
-      return false;
-   };
-   var Same = {ctor: "Same"};
-   var Remove = {ctor: "Remove"};
-   var Insert = {ctor: "Insert"};
-   var sizeHelp = F2(function (n,dict) {
-      sizeHelp: while (true) {
-         var _p3 = dict;
-         if (_p3.ctor === "RBEmpty_elm_builtin") {
-               return n;
-            } else {
-               var _v10 = A2(sizeHelp,n + 1,_p3._4),_v11 = _p3._3;
-               n = _v10;
-               dict = _v11;
-               continue sizeHelp;
-            }
-      }
-   });
-   var size = function (dict) {    return A2(sizeHelp,0,dict);};
-   var get = F2(function (targetKey,dict) {
-      get: while (true) {
-         var _p4 = dict;
-         if (_p4.ctor === "RBEmpty_elm_builtin") {
-               return $Maybe.Nothing;
-            } else {
-               var _p5 = A2($Basics.compare,targetKey,_p4._1);
-               switch (_p5.ctor)
-               {case "LT": var _v14 = targetKey,_v15 = _p4._3;
-                    targetKey = _v14;
-                    dict = _v15;
-                    continue get;
-                  case "EQ": return $Maybe.Just(_p4._2);
-                  default: var _v16 = targetKey,_v17 = _p4._4;
-                    targetKey = _v16;
-                    dict = _v17;
-                    continue get;}
-            }
-      }
-   });
-   var member = F2(function (key,dict) {
-      var _p6 = A2(get,key,dict);
-      if (_p6.ctor === "Just") {
-            return true;
-         } else {
-            return false;
-         }
-   });
-   var maxWithDefault = F3(function (k,v,r) {
-      maxWithDefault: while (true) {
-         var _p7 = r;
-         if (_p7.ctor === "RBEmpty_elm_builtin") {
-               return {ctor: "_Tuple2",_0: k,_1: v};
-            } else {
-               var _v20 = _p7._1,_v21 = _p7._2,_v22 = _p7._4;
-               k = _v20;
-               v = _v21;
-               r = _v22;
-               continue maxWithDefault;
-            }
-      }
-   });
-   var RBEmpty_elm_builtin = function (a) {
-      return {ctor: "RBEmpty_elm_builtin",_0: a};
-   };
-   var RBNode_elm_builtin = F5(function (a,b,c,d,e) {
-      return {ctor: "RBNode_elm_builtin"
-             ,_0: a
-             ,_1: b
-             ,_2: c
-             ,_3: d
-             ,_4: e};
-   });
-   var LBBlack = {ctor: "LBBlack"};
-   var LBlack = {ctor: "LBlack"};
-   var empty = RBEmpty_elm_builtin(LBlack);
-   var isEmpty = function (dict) {    return _U.eq(dict,empty);};
-   var map = F2(function (f,dict) {
-      var _p8 = dict;
-      if (_p8.ctor === "RBEmpty_elm_builtin") {
-            return RBEmpty_elm_builtin(LBlack);
-         } else {
-            var _p9 = _p8._1;
-            return A5(RBNode_elm_builtin,
-            _p8._0,
-            _p9,
-            A2(f,_p9,_p8._2),
-            A2(map,f,_p8._3),
-            A2(map,f,_p8._4));
-         }
-   });
-   var NBlack = {ctor: "NBlack"};
-   var BBlack = {ctor: "BBlack"};
-   var Black = {ctor: "Black"};
-   var ensureBlackRoot = function (dict) {
-      var _p10 = dict;
-      if (_p10.ctor === "RBNode_elm_builtin" && _p10._0.ctor === "Red")
-      {
-            return A5(RBNode_elm_builtin,
-            Black,
-            _p10._1,
-            _p10._2,
-            _p10._3,
-            _p10._4);
-         } else {
-            return dict;
-         }
-   };
-   var blackish = function (t) {
-      var _p11 = t;
-      if (_p11.ctor === "RBNode_elm_builtin") {
-            var _p12 = _p11._0;
-            return _U.eq(_p12,Black) || _U.eq(_p12,BBlack);
-         } else {
-            return true;
-         }
-   };
-   var blacken = function (t) {
-      var _p13 = t;
-      if (_p13.ctor === "RBEmpty_elm_builtin") {
-            return RBEmpty_elm_builtin(LBlack);
-         } else {
-            return A5(RBNode_elm_builtin,
-            Black,
-            _p13._1,
-            _p13._2,
-            _p13._3,
-            _p13._4);
-         }
-   };
-   var Red = {ctor: "Red"};
-   var moreBlack = function (color) {
-      var _p14 = color;
-      switch (_p14.ctor)
-      {case "Black": return BBlack;
-         case "Red": return Black;
-         case "NBlack": return Red;
-         default:
-         return $Native$Debug.crash("Can\'t make a double black node more black!");}
-   };
-   var lessBlack = function (color) {
-      var _p15 = color;
-      switch (_p15.ctor)
-      {case "BBlack": return Black;
-         case "Black": return Red;
-         case "Red": return NBlack;
-         default:
-         return $Native$Debug.crash("Can\'t make a negative black node less black!");}
-   };
-   var lessBlackTree = function (dict) {
-      var _p16 = dict;
-      if (_p16.ctor === "RBNode_elm_builtin") {
-            return A5(RBNode_elm_builtin,
-            lessBlack(_p16._0),
-            _p16._1,
-            _p16._2,
-            _p16._3,
-            _p16._4);
-         } else {
-            return RBEmpty_elm_builtin(LBlack);
-         }
-   };
-   var balancedTree = function (col) {
-      return function (xk) {
-         return function (xv) {
-            return function (yk) {
-               return function (yv) {
-                  return function (zk) {
-                     return function (zv) {
-                        return function (a) {
-                           return function (b) {
-                              return function (c) {
-                                 return function (d) {
-                                    return A5(RBNode_elm_builtin,
-                                    lessBlack(col),
-                                    yk,
-                                    yv,
-                                    A5(RBNode_elm_builtin,Black,xk,xv,a,b),
-                                    A5(RBNode_elm_builtin,Black,zk,zv,c,d));
-                                 };
-                              };
-                           };
-                        };
-                     };
-                  };
-               };
-            };
-         };
-      };
-   };
-   var redden = function (t) {
-      var _p17 = t;
-      if (_p17.ctor === "RBEmpty_elm_builtin") {
-            return $Native$Debug.crash("can\'t make a Leaf red");
-         } else {
-            return A5(RBNode_elm_builtin,
-            Red,
-            _p17._1,
-            _p17._2,
-            _p17._3,
-            _p17._4);
-         }
-   };
-   var balanceHelp = function (tree) {
-      var _p18 = tree;
-      _v31_6: do {
-         _v31_5: do {
-            _v31_4: do {
-               _v31_3: do {
-                  _v31_2: do {
-                     _v31_1: do {
-                        _v31_0: do {
-                           if (_p18.ctor === "RBNode_elm_builtin") {
-                                 if (_p18._3.ctor === "RBNode_elm_builtin") {
-                                       if (_p18._4.ctor === "RBNode_elm_builtin") {
-                                             switch (_p18._3._0.ctor)
-                                             {case "Red": switch (_p18._4._0.ctor)
-                                                  {case "Red":
-                                                     if (_p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Red")
-                                                       {
-                                                             break _v31_0;
-                                                          } else {
-                                                             if (_p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Red")
-                                                             {
-                                                                   break _v31_1;
-                                                                } else {
-                                                                   if (_p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Red")
-                                                                   {
-                                                                         break _v31_2;
-                                                                      } else {
-                                                                         if (_p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Red")
-                                                                         {
-                                                                               break _v31_3;
-                                                                            } else {
-                                                                               break _v31_6;
-                                                                            }
-                                                                      }
-                                                                }
-                                                          }
-                                                     case "NBlack":
-                                                     if (_p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Red")
-                                                       {
-                                                             break _v31_0;
-                                                          } else {
-                                                             if (_p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Red")
-                                                             {
-                                                                   break _v31_1;
-                                                                } else {
-                                                                   if (_p18._0.ctor === "BBlack" && _p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Black" && _p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Black")
-                                                                   {
-                                                                         break _v31_4;
-                                                                      } else {
-                                                                         break _v31_6;
-                                                                      }
-                                                                }
-                                                          }
-                                                     default:
-                                                     if (_p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Red")
-                                                       {
-                                                             break _v31_0;
-                                                          } else {
-                                                             if (_p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Red")
-                                                             {
-                                                                   break _v31_1;
-                                                                } else {
-                                                                   break _v31_6;
-                                                                }
-                                                          }}
-                                                case "NBlack": switch (_p18._4._0.ctor)
-                                                  {case "Red":
-                                                     if (_p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Red")
-                                                       {
-                                                             break _v31_2;
-                                                          } else {
-                                                             if (_p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Red")
-                                                             {
-                                                                   break _v31_3;
-                                                                } else {
-                                                                   if (_p18._0.ctor === "BBlack" && _p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Black" && _p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Black")
-                                                                   {
-                                                                         break _v31_5;
-                                                                      } else {
-                                                                         break _v31_6;
-                                                                      }
-                                                                }
-                                                          }
-                                                     case "NBlack": if (_p18._0.ctor === "BBlack") {
-                                                             if (_p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Black" && _p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Black")
-                                                             {
-                                                                   break _v31_4;
-                                                                } else {
-                                                                   if (_p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Black" && _p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Black")
-                                                                   {
-                                                                         break _v31_5;
-                                                                      } else {
-                                                                         break _v31_6;
-                                                                      }
-                                                                }
-                                                          } else {
-                                                             break _v31_6;
-                                                          }
-                                                     default:
-                                                     if (_p18._0.ctor === "BBlack" && _p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Black" && _p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Black")
-                                                       {
-                                                             break _v31_5;
-                                                          } else {
-                                                             break _v31_6;
-                                                          }}
-                                                default: switch (_p18._4._0.ctor)
-                                                  {case "Red":
-                                                     if (_p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Red")
-                                                       {
-                                                             break _v31_2;
-                                                          } else {
-                                                             if (_p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Red")
-                                                             {
-                                                                   break _v31_3;
-                                                                } else {
-                                                                   break _v31_6;
-                                                                }
-                                                          }
-                                                     case "NBlack":
-                                                     if (_p18._0.ctor === "BBlack" && _p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Black" && _p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Black")
-                                                       {
-                                                             break _v31_4;
-                                                          } else {
-                                                             break _v31_6;
-                                                          }
-                                                     default: break _v31_6;}}
-                                          } else {
-                                             switch (_p18._3._0.ctor)
-                                             {case "Red":
-                                                if (_p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Red")
-                                                  {
-                                                        break _v31_0;
-                                                     } else {
-                                                        if (_p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Red")
-                                                        {
-                                                              break _v31_1;
-                                                           } else {
-                                                              break _v31_6;
-                                                           }
-                                                     }
-                                                case "NBlack":
-                                                if (_p18._0.ctor === "BBlack" && _p18._3._3.ctor === "RBNode_elm_builtin" && _p18._3._3._0.ctor === "Black" && _p18._3._4.ctor === "RBNode_elm_builtin" && _p18._3._4._0.ctor === "Black")
-                                                  {
-                                                        break _v31_5;
-                                                     } else {
-                                                        break _v31_6;
-                                                     }
-                                                default: break _v31_6;}
-                                          }
-                                    } else {
-                                       if (_p18._4.ctor === "RBNode_elm_builtin") {
-                                             switch (_p18._4._0.ctor)
-                                             {case "Red":
-                                                if (_p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Red")
-                                                  {
-                                                        break _v31_2;
-                                                     } else {
-                                                        if (_p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Red")
-                                                        {
-                                                              break _v31_3;
-                                                           } else {
-                                                              break _v31_6;
-                                                           }
-                                                     }
-                                                case "NBlack":
-                                                if (_p18._0.ctor === "BBlack" && _p18._4._3.ctor === "RBNode_elm_builtin" && _p18._4._3._0.ctor === "Black" && _p18._4._4.ctor === "RBNode_elm_builtin" && _p18._4._4._0.ctor === "Black")
-                                                  {
-                                                        break _v31_4;
-                                                     } else {
-                                                        break _v31_6;
-                                                     }
-                                                default: break _v31_6;}
-                                          } else {
-                                             break _v31_6;
-                                          }
-                                    }
-                              } else {
-                                 break _v31_6;
-                              }
-                        } while (false);
-                        return balancedTree(_p18._0)(_p18._3._3._1)(_p18._3._3._2)(_p18._3._1)(_p18._3._2)(_p18._1)(_p18._2)(_p18._3._3._3)(_p18._3._3._4)(_p18._3._4)(_p18._4);
-                     } while (false);
-                     return balancedTree(_p18._0)(_p18._3._1)(_p18._3._2)(_p18._3._4._1)(_p18._3._4._2)(_p18._1)(_p18._2)(_p18._3._3)(_p18._3._4._3)(_p18._3._4._4)(_p18._4);
-                  } while (false);
-                  return balancedTree(_p18._0)(_p18._1)(_p18._2)(_p18._4._3._1)(_p18._4._3._2)(_p18._4._1)(_p18._4._2)(_p18._3)(_p18._4._3._3)(_p18._4._3._4)(_p18._4._4);
-               } while (false);
-               return balancedTree(_p18._0)(_p18._1)(_p18._2)(_p18._4._1)(_p18._4._2)(_p18._4._4._1)(_p18._4._4._2)(_p18._3)(_p18._4._3)(_p18._4._4._3)(_p18._4._4._4);
-            } while (false);
-            return A5(RBNode_elm_builtin,
-            Black,
-            _p18._4._3._1,
-            _p18._4._3._2,
-            A5(RBNode_elm_builtin,
-            Black,
-            _p18._1,
-            _p18._2,
-            _p18._3,
-            _p18._4._3._3),
-            A5(balance,
-            Black,
-            _p18._4._1,
-            _p18._4._2,
-            _p18._4._3._4,
-            redden(_p18._4._4)));
-         } while (false);
-         return A5(RBNode_elm_builtin,
-         Black,
-         _p18._3._4._1,
-         _p18._3._4._2,
-         A5(balance,
-         Black,
-         _p18._3._1,
-         _p18._3._2,
-         redden(_p18._3._3),
-         _p18._3._4._3),
-         A5(RBNode_elm_builtin,
-         Black,
-         _p18._1,
-         _p18._2,
-         _p18._3._4._4,
-         _p18._4));
-      } while (false);
-      return tree;
-   };
-   var balance = F5(function (c,k,v,l,r) {
-      var tree = A5(RBNode_elm_builtin,c,k,v,l,r);
-      return blackish(tree) ? balanceHelp(tree) : tree;
-   });
-   var bubble = F5(function (c,k,v,l,r) {
-      return isBBlack(l) || isBBlack(r) ? A5(balance,
-      moreBlack(c),
-      k,
-      v,
-      lessBlackTree(l),
-      lessBlackTree(r)) : A5(RBNode_elm_builtin,c,k,v,l,r);
-   });
-   var removeMax = F5(function (c,k,v,l,r) {
-      var _p19 = r;
-      if (_p19.ctor === "RBEmpty_elm_builtin") {
-            return A3(rem,c,l,r);
-         } else {
-            return A5(bubble,
-            c,
-            k,
-            v,
-            l,
-            A5(removeMax,_p19._0,_p19._1,_p19._2,_p19._3,_p19._4));
-         }
-   });
-   var rem = F3(function (c,l,r) {
-      var _p20 = {ctor: "_Tuple2",_0: l,_1: r};
-      if (_p20._0.ctor === "RBEmpty_elm_builtin") {
-            if (_p20._1.ctor === "RBEmpty_elm_builtin") {
-                  var _p21 = c;
-                  switch (_p21.ctor)
-                  {case "Red": return RBEmpty_elm_builtin(LBlack);
-                     case "Black": return RBEmpty_elm_builtin(LBBlack);
-                     default:
-                     return $Native$Debug.crash("cannot have bblack or nblack nodes at this point");}
-               } else {
-                  var _p24 = _p20._1._0;
-                  var _p23 = _p20._0._0;
-                  var _p22 = {ctor: "_Tuple3",_0: c,_1: _p23,_2: _p24};
-                  if (_p22.ctor === "_Tuple3" && _p22._0.ctor === "Black" && _p22._1.ctor === "LBlack" && _p22._2.ctor === "Red")
-                  {
-                        return A5(RBNode_elm_builtin,
-                        Black,
-                        _p20._1._1,
-                        _p20._1._2,
-                        _p20._1._3,
-                        _p20._1._4);
-                     } else {
-                        return A4(reportRemBug,
-                        "Black/LBlack/Red",
-                        c,
-                        $Basics.toString(_p23),
-                        $Basics.toString(_p24));
-                     }
-               }
-         } else {
-            if (_p20._1.ctor === "RBEmpty_elm_builtin") {
-                  var _p27 = _p20._1._0;
-                  var _p26 = _p20._0._0;
-                  var _p25 = {ctor: "_Tuple3",_0: c,_1: _p26,_2: _p27};
-                  if (_p25.ctor === "_Tuple3" && _p25._0.ctor === "Black" && _p25._1.ctor === "Red" && _p25._2.ctor === "LBlack")
-                  {
-                        return A5(RBNode_elm_builtin,
-                        Black,
-                        _p20._0._1,
-                        _p20._0._2,
-                        _p20._0._3,
-                        _p20._0._4);
-                     } else {
-                        return A4(reportRemBug,
-                        "Black/Red/LBlack",
-                        c,
-                        $Basics.toString(_p26),
-                        $Basics.toString(_p27));
-                     }
-               } else {
-                  var _p31 = _p20._0._2;
-                  var _p30 = _p20._0._4;
-                  var _p29 = _p20._0._1;
-                  var l$ = A5(removeMax,_p20._0._0,_p29,_p31,_p20._0._3,_p30);
-                  var _p28 = A3(maxWithDefault,_p29,_p31,_p30);
-                  var k = _p28._0;
-                  var v = _p28._1;
-                  return A5(bubble,c,k,v,l$,r);
-               }
-         }
-   });
-   var update = F3(function (k,alter,dict) {
-      var up = function (dict) {
-         var _p32 = dict;
-         if (_p32.ctor === "RBEmpty_elm_builtin") {
-               var _p33 = alter($Maybe.Nothing);
-               if (_p33.ctor === "Nothing") {
-                     return {ctor: "_Tuple2",_0: Same,_1: empty};
-                  } else {
-                     return {ctor: "_Tuple2"
-                            ,_0: Insert
-                            ,_1: A5(RBNode_elm_builtin,Red,k,_p33._0,empty,empty)};
-                  }
-            } else {
-               var _p44 = _p32._2;
-               var _p43 = _p32._4;
-               var _p42 = _p32._3;
-               var _p41 = _p32._1;
-               var _p40 = _p32._0;
-               var _p34 = A2($Basics.compare,k,_p41);
-               switch (_p34.ctor)
-               {case "EQ": var _p35 = alter($Maybe.Just(_p44));
-                    if (_p35.ctor === "Nothing") {
-                          return {ctor: "_Tuple2"
-                                 ,_0: Remove
-                                 ,_1: A3(rem,_p40,_p42,_p43)};
-                       } else {
-                          return {ctor: "_Tuple2"
-                                 ,_0: Same
-                                 ,_1: A5(RBNode_elm_builtin,_p40,_p41,_p35._0,_p42,_p43)};
-                       }
-                  case "LT": var _p36 = up(_p42);
-                    var flag = _p36._0;
-                    var newLeft = _p36._1;
-                    var _p37 = flag;
-                    switch (_p37.ctor)
-                    {case "Same": return {ctor: "_Tuple2"
-                                         ,_0: Same
-                                         ,_1: A5(RBNode_elm_builtin,_p40,_p41,_p44,newLeft,_p43)};
-                       case "Insert": return {ctor: "_Tuple2"
-                                             ,_0: Insert
-                                             ,_1: A5(balance,_p40,_p41,_p44,newLeft,_p43)};
-                       default: return {ctor: "_Tuple2"
-                                       ,_0: Remove
-                                       ,_1: A5(bubble,_p40,_p41,_p44,newLeft,_p43)};}
-                  default: var _p38 = up(_p43);
-                    var flag = _p38._0;
-                    var newRight = _p38._1;
-                    var _p39 = flag;
-                    switch (_p39.ctor)
-                    {case "Same": return {ctor: "_Tuple2"
-                                         ,_0: Same
-                                         ,_1: A5(RBNode_elm_builtin,_p40,_p41,_p44,_p42,newRight)};
-                       case "Insert": return {ctor: "_Tuple2"
-                                             ,_0: Insert
-                                             ,_1: A5(balance,_p40,_p41,_p44,_p42,newRight)};
-                       default: return {ctor: "_Tuple2"
-                                       ,_0: Remove
-                                       ,_1: A5(bubble,_p40,_p41,_p44,_p42,newRight)};}}
-            }
-      };
-      var _p45 = up(dict);
-      var flag = _p45._0;
-      var updatedDict = _p45._1;
-      var _p46 = flag;
-      switch (_p46.ctor)
-      {case "Same": return updatedDict;
-         case "Insert": return ensureBlackRoot(updatedDict);
-         default: return blacken(updatedDict);}
-   });
-   var insert = F3(function (key,value,dict) {
-      return A3(update,
-      key,
-      $Basics.always($Maybe.Just(value)),
-      dict);
-   });
-   var singleton = F2(function (key,value) {
-      return A3(insert,key,value,empty);
-   });
-   var union = F2(function (t1,t2) {
-      return A3(foldl,insert,t2,t1);
-   });
-   var fromList = function (assocs) {
-      return A3($List.foldl,
-      F2(function (_p47,dict) {
-         var _p48 = _p47;
-         return A3(insert,_p48._0,_p48._1,dict);
-      }),
-      empty,
-      assocs);
-   };
-   var filter = F2(function (predicate,dictionary) {
-      var add = F3(function (key,value,dict) {
-         return A2(predicate,key,value) ? A3(insert,
-         key,
-         value,
-         dict) : dict;
-      });
-      return A3(foldl,add,empty,dictionary);
-   });
-   var intersect = F2(function (t1,t2) {
-      return A2(filter,
-      F2(function (k,_p49) {    return A2(member,k,t2);}),
-      t1);
-   });
-   var partition = F2(function (predicate,dict) {
-      var add = F3(function (key,value,_p50) {
-         var _p51 = _p50;
-         var _p53 = _p51._1;
-         var _p52 = _p51._0;
-         return A2(predicate,key,value) ? {ctor: "_Tuple2"
-                                          ,_0: A3(insert,key,value,_p52)
-                                          ,_1: _p53} : {ctor: "_Tuple2"
-                                                       ,_0: _p52
-                                                       ,_1: A3(insert,key,value,_p53)};
-      });
-      return A3(foldl,add,{ctor: "_Tuple2",_0: empty,_1: empty},dict);
-   });
-   var remove = F2(function (key,dict) {
-      return A3(update,key,$Basics.always($Maybe.Nothing),dict);
-   });
-   var diff = F2(function (t1,t2) {
-      return A3(foldl,
-      F3(function (k,v,t) {    return A2(remove,k,t);}),
-      t1,
-      t2);
-   });
-   return _elm.Dict.values = {_op: _op
-                             ,empty: empty
-                             ,singleton: singleton
-                             ,insert: insert
-                             ,update: update
-                             ,isEmpty: isEmpty
-                             ,get: get
-                             ,remove: remove
-                             ,member: member
-                             ,size: size
-                             ,filter: filter
-                             ,partition: partition
-                             ,foldl: foldl
-                             ,foldr: foldr
-                             ,map: map
-                             ,union: union
-                             ,intersect: intersect
-                             ,diff: diff
-                             ,keys: keys
-                             ,values: values
-                             ,toList: toList
-                             ,fromList: fromList};
 };
 Elm.Json = Elm.Json || {};
 Elm.Json.Encode = Elm.Json.Encode || {};
@@ -15575,14 +15575,6 @@ Elm.BuildOutput.make = function (_elm) {
    $StepTree = Elm.StepTree.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
-   var paddingClass = function (build) {
-      var _p0 = build.job;
-      if (_p0.ctor === "Just") {
-            return _U.list([]);
-         } else {
-            return _U.list([$Html$Attributes.$class("build-body-noSubHeader")]);
-         }
-   };
    var viewLoginButton = function (build) {
       return A2($Html.form,
       _U.list([$Html$Attributes.$class("build-login")
@@ -15599,8 +15591,8 @@ Elm.BuildOutput.make = function (_elm) {
               _U.list([]))]));
    };
    var viewErrors = function (errors) {
-      var _p1 = errors;
-      if (_p1.ctor === "Nothing") {
+      var _p0 = errors;
+      if (_p0.ctor === "Nothing") {
             return A2($Html.div,_U.list([]),_U.list([]));
          } else {
             return A2($Html.div,
@@ -15613,7 +15605,7 @@ Elm.BuildOutput.make = function (_elm) {
                             ,A2($Html.h3,_U.list([]),_U.list([$Html.text("error")]))]))
                     ,A2($Html.div,
                     _U.list([$Html$Attributes.$class("step-body build-errors-body")]),
-                    _U.list([$Ansi$Log.view(_p1._0)]))]));
+                    _U.list([$Ansi$Log.view(_p0._0)]))]));
          }
    };
    var setStepState = F2(function (state,tree) {
@@ -15664,39 +15656,34 @@ Elm.BuildOutput.make = function (_elm) {
       return {ctor: "StepTreeAction",_0: a};
    };
    var viewStepTree = F4(function (actions,build,steps,state) {
-      var _p2 = {ctor: "_Tuple2",_0: state,_1: steps};
-      _v2_4: do {
-         switch (_p2._0.ctor)
+      var _p1 = {ctor: "_Tuple2",_0: state,_1: steps};
+      _v1_4: do {
+         switch (_p1._0.ctor)
          {case "StepsLoading": return $LoadingIndicator.view;
             case "LoginRequired": return viewLoginButton(build);
-            case "StepsLiveUpdating": if (_p2._1.ctor === "Just") {
+            case "StepsLiveUpdating": if (_p1._1.ctor === "Just") {
                     return A2($StepTree.view,
                     A2($Signal.forwardTo,actions,StepTreeAction),
-                    _p2._1._0);
+                    _p1._1._0);
                  } else {
-                    break _v2_4;
+                    break _v1_4;
                  }
-            default: if (_p2._1.ctor === "Just") {
+            default: if (_p1._1.ctor === "Just") {
                     return A2($StepTree.view,
                     A2($Signal.forwardTo,actions,StepTreeAction),
-                    _p2._1._0);
+                    _p1._1._0);
                  } else {
-                    break _v2_4;
+                    break _v1_4;
                  }}
       } while (false);
       return A2($Html.div,_U.list([]),_U.list([]));
    });
-   var view = F2(function (actions,_p3) {
-      var _p4 = _p3;
-      var _p5 = _p4.build;
+   var view = F2(function (actions,_p2) {
+      var _p3 = _p2;
       return A2($Html.div,
-      A2($List._op["::"],
-      $Html$Attributes.id("build-body"),
-      paddingClass(_p5)),
-      _U.list([A2($Html.div,
       _U.list([$Html$Attributes.$class("steps")]),
-      _U.list([viewErrors(_p4.errors)
-              ,A4(viewStepTree,actions,_p5,_p4.steps,_p4.state)]))]));
+      _U.list([viewErrors(_p3.errors)
+              ,A4(viewStepTree,actions,_p3.build,_p3.steps,_p3.state)]));
    });
    var BuildEventsClosed = {ctor: "BuildEventsClosed"};
    var closeEvents = function (eventSource) {
@@ -15743,63 +15730,61 @@ Elm.BuildOutput.make = function (_elm) {
    };
    var Noop = {ctor: "Noop"};
    var handleEvent = F2(function (event,model) {
-      var _p6 = event;
-      switch (_p6.ctor)
+      var _p4 = event;
+      switch (_p4.ctor)
       {case "Log": return {ctor: "_Tuple2"
                           ,_0: A3(updateStep,
-                          _p6._0.id,
-                          function (_p7) {
-                             return setRunning(A2(appendStepLog,_p6._1,_p7));
+                          _p4._0.id,
+                          function (_p5) {
+                             return setRunning(A2(appendStepLog,_p4._1,_p5));
                           },
                           model)
                           ,_1: $Effects.none};
          case "Error": return {ctor: "_Tuple2"
-                              ,_0: A3(updateStep,_p6._0.id,setStepError(_p6._1),model)
+                              ,_0: A3(updateStep,_p4._0.id,setStepError(_p4._1),model)
                               ,_1: $Effects.none};
          case "InitializeTask": return {ctor: "_Tuple2"
-                                       ,_0: A3(updateStep,_p6._0.id,setRunning,model)
+                                       ,_0: A3(updateStep,_p4._0.id,setRunning,model)
                                        ,_1: $Effects.none};
          case "StartTask": return {ctor: "_Tuple2"
-                                  ,_0: A3(updateStep,_p6._0.id,setRunning,model)
+                                  ,_0: A3(updateStep,_p4._0.id,setRunning,model)
                                   ,_1: $Effects.none};
          case "FinishTask": return {ctor: "_Tuple2"
-                                   ,_0: A3(updateStep,_p6._0.id,finishStep(_p6._1),model)
+                                   ,_0: A3(updateStep,_p4._0.id,finishStep(_p4._1),model)
                                    ,_1: $Effects.none};
          case "InitializeGet": return {ctor: "_Tuple2"
-                                      ,_0: A3(updateStep,_p6._0.id,setRunning,model)
+                                      ,_0: A3(updateStep,_p4._0.id,setRunning,model)
                                       ,_1: $Effects.none};
          case "FinishGet": return {ctor: "_Tuple2"
                                   ,_0: A3(updateStep,
-                                  _p6._0.id,
-                                  function (_p8) {
+                                  _p4._0.id,
+                                  function (_p6) {
                                      return A2(finishStep,
-                                     _p6._1,
-                                     A3(setResourceInfo,_p6._2,_p6._3,_p8));
+                                     _p4._1,
+                                     A3(setResourceInfo,_p4._2,_p4._3,_p6));
                                   },
                                   model)
                                   ,_1: $Effects.none};
          case "InitializePut": return {ctor: "_Tuple2"
-                                      ,_0: A3(updateStep,_p6._0.id,setRunning,model)
+                                      ,_0: A3(updateStep,_p4._0.id,setRunning,model)
                                       ,_1: $Effects.none};
          case "FinishPut": return {ctor: "_Tuple2"
                                   ,_0: A3(updateStep,
-                                  _p6._0.id,
-                                  function (_p9) {
+                                  _p4._0.id,
+                                  function (_p7) {
                                      return A2(finishStep,
-                                     _p6._1,
-                                     A3(setResourceInfo,_p6._2,_p6._3,_p9));
+                                     _p4._1,
+                                     A3(setResourceInfo,_p4._2,_p4._3,_p7));
                                   },
                                   model)
                                   ,_1: $Effects.none};
-         case "BuildStatus": var _p11 = _p6._0;
-           var notifyStatus = function (_p10) {
-              return $Effects.task(A2($Task.map,
-              $Basics.always(Noop),
-              _p10));
+         case "BuildStatus": var _p9 = _p4._0;
+           var notifyStatus = function (_p8) {
+              return $Effects.task(A2($Task.map,$Basics.always(Noop),_p8));
            }(A2($Signal.send,
            model.context.buildStatus,
-           {ctor: "_Tuple2",_0: _p11,_1: _p6._1}));
-           var finishSteps = $Basics.not($Concourse$BuildStatus.isRunning(_p11)) ? _U.update(model,
+           {ctor: "_Tuple2",_0: _p9,_1: _p4._1}));
+           var finishSteps = $Basics.not($Concourse$BuildStatus.isRunning(_p9)) ? _U.update(model,
            {steps: A2($Maybe.map,
            $StepTree.update($StepTree.Finished),
            model.steps)}) : model;
@@ -15807,7 +15792,7 @@ Elm.BuildOutput.make = function (_elm) {
          default: return {ctor: "_Tuple2"
                          ,_0: _U.update(model,
                          {errors: $Maybe.Just(A2($Ansi$Log.update,
-                         _p6._0,
+                         _p4._0,
                          A2($Maybe.withDefault,
                          $Ansi$Log.init($Ansi$Log.Cooked),
                          model.errors)))})
@@ -15816,8 +15801,8 @@ Elm.BuildOutput.make = function (_elm) {
    var LoginRequired = {ctor: "LoginRequired"};
    var StepsComplete = {ctor: "StepsComplete"};
    var handleEventsAction = F2(function (action,model) {
-      var _p12 = action;
-      switch (_p12.ctor)
+      var _p10 = action;
+      switch (_p10.ctor)
       {case "Opened": return {ctor: "_Tuple2"
                              ,_0: _U.update(model,{eventSourceOpened: true})
                              ,_1: $Effects.none};
@@ -15827,30 +15812,30 @@ Elm.BuildOutput.make = function (_elm) {
                                           ,_1: $Effects.none} : {ctor: "_Tuple2"
                                                                 ,_0: _U.update(model,{state: LoginRequired})
                                                                 ,_1: $Effects.none};
-         case "Event": if (_p12._0.ctor === "Ok") {
-                 return A2(handleEvent,_p12._0._0,model);
+         case "Event": if (_p10._0.ctor === "Ok") {
+                 return A2(handleEvent,_p10._0._0,model);
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: A2($Debug.log,_p12._0._0,$Effects.none)};
+                        ,_1: A2($Debug.log,_p10._0._0,$Effects.none)};
               }
-         default: var _p13 = model.eventSource;
-           if (_p13.ctor === "Just") {
+         default: var _p11 = model.eventSource;
+           if (_p11.ctor === "Just") {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{state: StepsComplete})
-                        ,_1: closeEvents(_p13._0)};
+                        ,_1: closeEvents(_p11._0)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               }}
    });
    var update = F2(function (action,model) {
-      var _p14 = action;
-      switch (_p14.ctor)
+      var _p12 = action;
+      switch (_p12.ctor)
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
-         case "PlanAndResourcesFetched": if (_p14._0.ctor === "Err") {
-                 if (_p14._0._0.ctor === "BadResponse" && _p14._0._0._0 === 404)
+         case "PlanAndResourcesFetched": if (_p12._0.ctor === "Err") {
+                 if (_p12._0._0.ctor === "BadResponse" && _p12._0._0._0 === 404)
                  {
                        return {ctor: "_Tuple2"
                               ,_0: model
@@ -15859,29 +15844,29 @@ Elm.BuildOutput.make = function (_elm) {
                        return A2($Debug.log,
                        A2($Basics._op["++"],
                        "failed to fetch plan: ",
-                       $Basics.toString(_p14._0._0)),
+                       $Basics.toString(_p12._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,
                         {steps: $Maybe.Just(A2($StepTree.init,
-                        _p14._0._0._1,
-                        _p14._0._0._0))})
+                        _p12._0._0._1,
+                        _p12._0._0._0))})
                         ,_1: A2(subscribeToEvents,model.build.id,model.context.events)};
               }
          case "BuildEventsListening": return {ctor: "_Tuple2"
-                                             ,_0: _U.update(model,{eventSource: $Maybe.Just(_p14._0)})
+                                             ,_0: _U.update(model,{eventSource: $Maybe.Just(_p12._0)})
                                              ,_1: $Effects.none};
          case "BuildEventsAction": return A2(handleEventsAction,
-           _p14._0,
+           _p12._0,
            model);
          case "BuildEventsClosed": return {ctor: "_Tuple2"
                                           ,_0: _U.update(model,{eventSource: $Maybe.Nothing})
                                           ,_1: $Effects.none};
          default: return {ctor: "_Tuple2"
                          ,_0: _U.update(model,
-                         {steps: A2($Maybe.map,$StepTree.update(_p14._0),model.steps)})
+                         {steps: A2($Maybe.map,$StepTree.update(_p12._0),model.steps)})
                          ,_1: $Effects.none};}
    });
    var StepsLiveUpdating = {ctor: "StepsLiveUpdating"};
@@ -15942,8 +15927,75 @@ Elm.BuildOutput.make = function (_elm) {
                                     ,view: view
                                     ,viewStepTree: viewStepTree
                                     ,viewErrors: viewErrors
-                                    ,viewLoginButton: viewLoginButton
-                                    ,paddingClass: paddingClass};
+                                    ,viewLoginButton: viewLoginButton};
+};
+Elm.Concourse = Elm.Concourse || {};
+Elm.Concourse.BuildPrep = Elm.Concourse.BuildPrep || {};
+Elm.Concourse.BuildPrep.make = function (_elm) {
+   "use strict";
+   _elm.Concourse = _elm.Concourse || {};
+   _elm.Concourse.BuildPrep = _elm.Concourse.BuildPrep || {};
+   if (_elm.Concourse.BuildPrep.values)
+   return _elm.Concourse.BuildPrep.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Concourse$Build = Elm.Concourse.Build.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $Http = Elm.Http.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var BuildPrep = F4(function (a,b,c,d) {
+      return {pausedPipeline: a
+             ,pausedJob: b
+             ,maxRunningBuilds: c
+             ,inputs: d};
+   });
+   var NotBlocking = {ctor: "NotBlocking"};
+   var Blocking = {ctor: "Blocking"};
+   var Unknown = {ctor: "Unknown"};
+   var decodeStatus = A2($Json$Decode.customDecoder,
+   $Json$Decode.string,
+   function (status) {
+      var _p0 = status;
+      switch (_p0)
+      {case "unknown": return $Result.Ok(Unknown);
+         case "blocking": return $Result.Ok(Blocking);
+         case "not_blocking": return $Result.Ok(NotBlocking);
+         default: return $Result.Err(A2($Basics._op["++"],
+           "unknown build preparation status: ",
+           _p0));}
+   });
+   var decode = A5($Json$Decode.object4,
+   BuildPrep,
+   A2($Json$Decode._op[":="],"paused_pipeline",decodeStatus),
+   A2($Json$Decode._op[":="],"paused_job",decodeStatus),
+   A2($Json$Decode._op[":="],"max_running_builds",decodeStatus),
+   A2($Json$Decode._op[":="],
+   "inputs",
+   $Json$Decode.dict(decodeStatus)));
+   var fetch = function (buildId) {
+      return A2($Http.get,
+      decode,
+      A2($Basics._op["++"],
+      "/api/v1/builds/",
+      A2($Basics._op["++"],
+      $Basics.toString(buildId),
+      "/preparation")));
+   };
+   return _elm.Concourse.BuildPrep.values = {_op: _op
+                                            ,Unknown: Unknown
+                                            ,Blocking: Blocking
+                                            ,NotBlocking: NotBlocking
+                                            ,BuildPrep: BuildPrep
+                                            ,fetch: fetch
+                                            ,decodeStatus: decodeStatus
+                                            ,decode: decode};
 };
 Elm.Duration = Elm.Duration || {};
 Elm.Duration.make = function (_elm) {
@@ -16187,11 +16239,13 @@ Elm.Build.make = function (_elm) {
    $BuildDuration = Elm.BuildDuration.make(_elm),
    $BuildOutput = Elm.BuildOutput.make(_elm),
    $Concourse$Build = Elm.Concourse.Build.make(_elm),
+   $Concourse$BuildPrep = Elm.Concourse.BuildPrep.make(_elm),
    $Concourse$BuildStatus = Elm.Concourse.BuildStatus.make(_elm),
    $Concourse$Pagination = Elm.Concourse.Pagination.make(_elm),
    $Date = Elm.Date.make(_elm),
    $Date$Format = Elm.Date.Format.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
    $Effects = Elm.Effects.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
@@ -16236,10 +16290,87 @@ Elm.Build.make = function (_elm) {
       _U.list([$Html$Attributes.href($Concourse$Build.url(build))]),
       _U.list([$Html.text(build.name)]))]));
    });
+   var viewBuildPrepStatus = function (status) {
+      var _p0 = status;
+      switch (_p0.ctor)
+      {case "Unknown": return A2($Html.i,
+           _U.list([$Html$Attributes.$class("fa fa-fw fa-circle-o-notch")
+                   ,$Html$Attributes.title("thinking...")]),
+           _U.list([]));
+         case "Blocking": return A2($Html.i,
+           _U.list([$Html$Attributes.$class("fa fa-fw fa-spin fa-circle-o-notch inactive")
+                   ,$Html$Attributes.title("blocking")]),
+           _U.list([]));
+         default: return A2($Html.i,
+           _U.list([$Html$Attributes.$class("fa fa-fw fa-check")
+                   ,$Html$Attributes.title("not blocking")]),
+           _U.list([]));}
+   };
+   var viewBuildPrepLi = F2(function (text,status) {
+      return A2($Html.li,
+      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2"
+                                                   ,_0: "prep-status"
+                                                   ,_1: true}
+                                                  ,{ctor: "_Tuple2"
+                                                   ,_0: "inactive"
+                                                   ,_1: _U.eq(status,$Concourse$BuildPrep.Unknown)}]))]),
+      _U.list([A2($Html.span,
+              _U.list([$Html$Attributes.$class("marker")]),
+              _U.list([viewBuildPrepStatus(status)]))
+              ,A2($Html.span,_U.list([]),_U.list([$Html.text(text)]))]));
+   });
+   var viewBuildPrepInput = function (_p1) {
+      var _p2 = _p1;
+      return A2(viewBuildPrepLi,
+      A2($Basics._op["++"],"discovering any new versions of ",_p2._0),
+      _p2._1);
+   };
+   var viewBuildPrepInputs = function (inputs) {
+      return A2($List.map,viewBuildPrepInput,$Dict.toList(inputs));
+   };
+   var viewBuildPrep = function (prep) {
+      var _p3 = prep;
+      if (_p3.ctor === "Just") {
+            var _p4 = _p3._0;
+            return A2($Html.div,
+            _U.list([$Html$Attributes.$class("build-step")]),
+            _U.list([A2($Html.div,
+                    _U.list([$Html$Attributes.$class("header")]),
+                    _U.list([A2($Html.i,
+                            _U.list([$Html$Attributes.$class("left fa fa-fw fa-wrench")]),
+                            _U.list([]))
+                            ,A2($Html.h3,
+                            _U.list([]),
+                            _U.list([$Html.text("preparing build")]))]))
+                    ,A2($Html.div,
+                    _U.list([]),
+                    _U.list([A2($Html.ul,
+                    _U.list([$Html$Attributes.$class("prep-status-list")]),
+                    A2($List.append,
+                    _U.list([A2(viewBuildPrepLi,
+                            "checking pipeline is not paused",
+                            _p4.pausedPipeline)
+                            ,A2(viewBuildPrepLi,"checking job is not paused",_p4.pausedJob)
+                            ,A2(viewBuildPrepLi,
+                            "checking max-in-flight is not reached",
+                            _p4.maxRunningBuilds)]),
+                    viewBuildPrepInputs(_p4.inputs)))]))]));
+         } else {
+            return A2($Html.div,_U.list([]),_U.list([]));
+         }
+   };
+   var paddingClass = function (build) {
+      var _p5 = build.job;
+      if (_p5.ctor === "Just") {
+            return _U.list([]);
+         } else {
+            return _U.list([$Html$Attributes.$class("build-body-noSubHeader")]);
+         }
+   };
    var updateStartFinishAt = F3(function (status,date,model) {
       var duration = model.duration;
-      var _p0 = status;
-      if (_p0.ctor === "Started") {
+      var _p6 = status;
+      if (_p6.ctor === "Started") {
             return _U.update(model,
             {duration: _U.update(duration,{startedAt: $Maybe.Just(date)})});
          } else {
@@ -16247,6 +16378,11 @@ Elm.Build.make = function (_elm) {
             {duration: _U.update(duration,
             {finishedAt: $Maybe.Just(date)})});
          }
+   });
+   var handleBuildPrepFetched = F2(function (buildPrep,model) {
+      return {ctor: "_Tuple2"
+             ,_0: _U.update(model,{buildPrep: $Maybe.Just(buildPrep)})
+             ,_1: $Effects.none};
    });
    var RevealCurrentBuildInHistory = {ctor: "RevealCurrentBuildInHistory"};
    var BuildAborted = function (a) {
@@ -16267,21 +16403,21 @@ Elm.Build.make = function (_elm) {
    var scrollEvent = F2(function (actions,delta) {
       return A2($Signal.message,actions,ScrollBuilds(delta));
    });
-   var viewBuildHeader = F3(function (actions,build,_p1) {
-      var _p2 = _p1;
-      var _p6 = _p2.status;
+   var viewBuildHeader = F3(function (actions,build,_p7) {
+      var _p8 = _p7;
+      var _p12 = _p8.status;
       var buildTitle = function () {
-         var _p3 = build.job;
-         if (_p3.ctor === "Just") {
-               var _p4 = _p3._0.name;
+         var _p9 = build.job;
+         if (_p9.ctor === "Just") {
+               var _p10 = _p9._0.name;
                return A2($Html.a,
                _U.list([$Html$Attributes.href(A2($Basics._op["++"],
                "/pipelines/",
                A2($Basics._op["++"],
-               _p3._0.pipelineName,
-               A2($Basics._op["++"],"/jobs/",_p4))))]),
+               _p9._0.pipelineName,
+               A2($Basics._op["++"],"/jobs/",_p10))))]),
                _U.list([$Html.text(A2($Basics._op["++"],
-               _p4,
+               _p10,
                A2($Basics._op["++"]," #",build.name)))]));
             } else {
                return $Html.text(A2($Basics._op["++"],
@@ -16289,22 +16425,22 @@ Elm.Build.make = function (_elm) {
                $Basics.toString(build.id)));
             }
       }();
-      var abortButton = $Concourse$BuildStatus.isRunning(_p6) ? A2($Html.span,
+      var abortButton = $Concourse$BuildStatus.isRunning(_p12) ? A2($Html.span,
       _U.list([$Html$Attributes.$class("build-action build-action-abort fr")
               ,A2($Html$Events.onClick,actions,AbortBuild)]),
       _U.list([A2($Html.i,
       _U.list([$Html$Attributes.$class("fa fa-times-circle")]),
       _U.list([]))])) : A2($Html.span,_U.list([]),_U.list([]));
       var triggerButton = function () {
-         var _p5 = build.job;
-         if (_p5.ctor === "Just") {
+         var _p11 = build.job;
+         if (_p11.ctor === "Just") {
                var actionUrl = A2($Basics._op["++"],
                "/pipelines/",
                A2($Basics._op["++"],
-               _p5._0.pipelineName,
+               _p11._0.pipelineName,
                A2($Basics._op["++"],
                "/jobs/",
-               A2($Basics._op["++"],_p5._0.name,"/builds"))));
+               A2($Basics._op["++"],_p11._0.name,"/builds"))));
                return A2($Html.form,
                _U.list([$Html$Attributes.$class("trigger-build")
                        ,$Html$Attributes.method("post")
@@ -16320,14 +16456,14 @@ Elm.Build.make = function (_elm) {
       }();
       return A2($Html.div,
       _U.list([$Html$Attributes.id("page-header")
-              ,$Html$Attributes.$class($Concourse$BuildStatus.show(_p6))]),
+              ,$Html$Attributes.$class($Concourse$BuildStatus.show(_p12))]),
       _U.list([A2($Html.div,
               _U.list([$Html$Attributes.$class("build-header")]),
               _U.list([A2($Html.div,
                       _U.list([$Html$Attributes.$class("build-actions fr")]),
                       _U.list([triggerButton,abortButton]))
                       ,A2($Html.h1,_U.list([]),_U.list([buildTitle]))
-                      ,A2($BuildDuration.view,_p2.duration,_p2.now)]))
+                      ,A2($BuildDuration.view,_p8.duration,_p8.now)]))
               ,A2($Html.ul,
               _U.list([A4($Html$Events.onWithOptions,
                       "mousewheel",
@@ -16335,7 +16471,7 @@ Elm.Build.make = function (_elm) {
                       decodeScrollEvent,
                       scrollEvent(actions))
                       ,$Html$Attributes.id("builds")]),
-              A2($List.map,A2(viewHistory,build,_p6),_p2.history))]));
+              A2($List.map,A2(viewHistory,build,_p12),_p8.history))]));
    });
    var BuildStatus = F2(function (a,b) {
       return {ctor: "BuildStatus",_0: a,_1: b};
@@ -16344,35 +16480,43 @@ Elm.Build.make = function (_elm) {
       return {ctor: "BuildOutputAction",_0: a};
    };
    var initBuildOutput = F2(function (build,model) {
-      var _p7 = A2($BuildOutput.init,
+      var _p13 = A2($BuildOutput.init,
       build,
       {events: A2($Signal.forwardTo,model.actions,BuildOutputAction)
       ,buildStatus: A2($Signal.forwardTo,
       model.actions,
       $Basics.uncurry(BuildStatus))});
-      var output = _p7._0;
-      var outputEffects = _p7._1;
+      var output = _p13._0;
+      var outputEffects = _p13._1;
       return {ctor: "_Tuple2"
              ,_0: _U.update(model,{output: $Maybe.Just(output)})
              ,_1: A2($Effects.map,BuildOutputAction,outputEffects)};
    });
    var viewBuildOutput = F2(function (actions,output) {
-      var _p8 = output;
-      if (_p8.ctor === "Just") {
+      var _p14 = output;
+      if (_p14.ctor === "Just") {
             return A2($BuildOutput.view,
             A2($Signal.forwardTo,actions,BuildOutputAction),
-            _p8._0);
+            _p14._0);
          } else {
             return $LoadingIndicator.view;
          }
    });
    var view = F2(function (actions,model) {
-      var _p9 = model.build;
-      if (_p9.ctor === "Just") {
+      var _p15 = model.build;
+      if (_p15.ctor === "Just") {
+            var _p16 = _p15._0;
             return A2($Html.div,
             _U.list([]),
-            _U.list([A3(viewBuildHeader,actions,_p9._0,model)
-                    ,A2($Html$Lazy.lazy,viewBuildOutput(actions),model.output)]));
+            _U.list([A3(viewBuildHeader,actions,_p16,model)
+                    ,A2($Html.div,
+                    A2($List._op["::"],
+                    $Html$Attributes.id("build-body"),
+                    paddingClass(_p16)),
+                    _U.list([viewBuildPrep(model.buildPrep)
+                            ,A2($Html$Lazy.lazy,
+                            viewBuildOutput(actions),
+                            model.output)]))]));
          } else {
             return $LoadingIndicator.view;
          }
@@ -16387,40 +16531,50 @@ Elm.Build.make = function (_elm) {
    });
    var handleHistoryFetched = F2(function (history,model) {
       var loadedCurrentBuild = A2($List.any,
-      function (_p10) {
+      function (_p17) {
          return A2(F2(function (x,y) {    return _U.eq(x,y);}),
          model.buildId,
          function (_) {
             return _.id;
-         }(_p10));
+         }(_p17));
       },
       history.content);
       var scrollToCurrent = loadedCurrentBuild ? $Effects.tick($Basics.always(RevealCurrentBuildInHistory)) : $Effects.none;
       var withBuilds = _U.update(model,
       {history: A2($List.append,model.history,history.content)});
-      var _p11 = {ctor: "_Tuple2"
+      var _p18 = {ctor: "_Tuple2"
                  ,_0: history.pagination.nextPage
                  ,_1: A2($Maybe.andThen,
                  model.build,
                  function (_) {
                     return _.job;
                  })};
-      if (_p11._0.ctor === "Nothing") {
+      if (_p18._0.ctor === "Nothing") {
             return {ctor: "_Tuple2",_0: withBuilds,_1: scrollToCurrent};
          } else {
-            if (_p11._1.ctor === "Just") {
+            if (_p18._1.ctor === "Just") {
                   return {ctor: "_Tuple2"
                          ,_0: withBuilds
                          ,_1: $Effects.batch(_U.list([A2(fetchBuildHistory,
-                                                     _p11._1._0,
-                                                     $Maybe.Just(_p11._0._0))
+                                                     _p18._1._0,
+                                                     $Maybe.Just(_p18._0._0))
                                                      ,scrollToCurrent]))};
                } else {
                   return _U.crashCase("Build",
-                  {start: {line: 196,column: 5},end: {line: 204,column: 33}},
-                  _p11)("impossible");
+                  {start: {line: 214,column: 5},end: {line: 222,column: 33}},
+                  _p18)("impossible");
                }
          }
+   });
+   var BuildPrepFetched = function (a) {
+      return {ctor: "BuildPrepFetched",_0: a};
+   };
+   var fetchBuildPrep = F2(function (delay,buildId) {
+      return $Effects.task(A2($Task.map,
+      BuildPrepFetched,
+      $Task.toResult(A2($Task.andThen,
+      $Task.sleep(delay),
+      $Basics.always($Concourse$BuildPrep.fetch(buildId))))));
    });
    var BuildFetched = function (a) {
       return {ctor: "BuildFetched",_0: a};
@@ -16438,6 +16592,7 @@ Elm.Build.make = function (_elm) {
                   ,buildId: buildId
                   ,output: $Maybe.Nothing
                   ,build: $Maybe.Nothing
+                  ,buildPrep: $Maybe.Nothing
                   ,history: _U.list([])
                   ,autoScroll: true
                   ,status: $Concourse$BuildStatus.Pending
@@ -16450,14 +16605,17 @@ Elm.Build.make = function (_elm) {
    var pollUntilStarted = function (model) {
       return {ctor: "_Tuple2"
              ,_0: model
-             ,_1: A2(fetchBuild,$Time.second,model.buildId)};
+             ,_1: $Effects.batch(_U.list([A2(fetchBuild,
+                                         $Time.second,
+                                         model.buildId)
+                                         ,A2(fetchBuildPrep,$Time.second,model.buildId)]))};
    };
    var handleBuildFetched = F2(function (build,model) {
       var fetchHistory = function () {
-         var _p13 = {ctor: "_Tuple2",_0: model.build,_1: build.job};
-         if (_p13.ctor === "_Tuple2" && _p13._0.ctor === "Nothing" && _p13._1.ctor === "Just")
+         var _p20 = {ctor: "_Tuple2",_0: model.build,_1: build.job};
+         if (_p20.ctor === "_Tuple2" && _p20._0.ctor === "Nothing" && _p20._1.ctor === "Just")
          {
-               return A2(fetchBuildHistory,_p13._1._0,$Maybe.Nothing);
+               return A2(fetchBuildHistory,_p20._1._0,$Maybe.Nothing);
             } else {
                return $Effects.none;
             }
@@ -16466,12 +16624,12 @@ Elm.Build.make = function (_elm) {
       {build: $Maybe.Just(build)
       ,status: build.status
       ,duration: build.duration});
-      var _p14 = _U.eq(build.status,
+      var _p21 = _U.eq(build.status,
       $Concourse$BuildStatus.Pending) ? pollUntilStarted(withBuild) : A2(initBuildOutput,
       build,
       withBuild);
-      var newModel = _p14._0;
-      var effects = _p14._1;
+      var newModel = _p21._0;
+      var effects = _p21._1;
       return {ctor: "_Tuple2"
              ,_0: newModel
              ,_1: $Effects.batch(_U.list([effects,fetchHistory]))};
@@ -16491,18 +16649,18 @@ Elm.Build.make = function (_elm) {
       A2($Signal.send,model.redirect,"/login")));
    };
    var update = F2(function (action,model) {
-      var _p15 = action;
-      switch (_p15.ctor)
+      var _p22 = action;
+      switch (_p22.ctor)
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
          case "AbortBuild": return {ctor: "_Tuple2"
                                    ,_0: model
                                    ,_1: abortBuild(model.buildId)};
-         case "BuildAborted": if (_p15._0.ctor === "Ok") {
+         case "BuildAborted": if (_p22._0.ctor === "Ok") {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               } else {
-                 if (_p15._0._0.ctor === "BadResponse" && _p15._0._0._0 === 401)
+                 if (_p22._0._0.ctor === "BadResponse" && _p22._0._0._0 === 401)
                  {
                        return {ctor: "_Tuple2"
                               ,_0: model
@@ -16511,63 +16669,72 @@ Elm.Build.make = function (_elm) {
                        return A2($Debug.log,
                        A2($Basics._op["++"],
                        "failed to abort build: ",
-                       $Basics.toString(_p15._0._0)),
+                       $Basics.toString(_p22._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               }
-         case "BuildFetched": if (_p15._0.ctor === "Ok") {
-                 return A2(handleBuildFetched,_p15._0._0,model);
+         case "BuildFetched": if (_p22._0.ctor === "Ok") {
+                 return A2(handleBuildFetched,_p22._0._0,model);
               } else {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch build: ",
-                 $Basics.toString(_p15._0._0)),
+                 $Basics.toString(_p22._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
-         case "BuildOutputAction": var _p16 = model.output;
-           if (_p16.ctor === "Just") {
-                 var _p17 = A2($BuildOutput.update,_p15._0,_p16._0);
-                 var newOutput = _p17._0;
-                 var effects = _p17._1;
+         case "BuildPrepFetched": if (_p22._0.ctor === "Ok") {
+                 return A2(handleBuildPrepFetched,_p22._0._0,model);
+              } else {
+                 return A2($Debug.log,
+                 A2($Basics._op["++"],
+                 "failed to fetch build preparation: ",
+                 $Basics.toString(_p22._0._0)),
+                 {ctor: "_Tuple2",_0: model,_1: $Effects.none});
+              }
+         case "BuildOutputAction": var _p23 = model.output;
+           if (_p23.ctor === "Just") {
+                 var _p24 = A2($BuildOutput.update,_p22._0,_p23._0);
+                 var newOutput = _p24._0;
+                 var effects = _p24._1;
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{output: $Maybe.Just(newOutput)})
                         ,_1: A2($Effects.map,BuildOutputAction,effects)};
               } else {
                  return _U.crashCase("Build",
-                 {start: {line: 100,column: 7},end: {line: 108,column: 77}},
-                 _p16)("impossible (received action for missing BuildOutput)");
+                 {start: {line: 112,column: 7},end: {line: 120,column: 77}},
+                 _p23)("impossible (received action for missing BuildOutput)");
               }
-         case "BuildStatus": var _p19 = _p15._0;
+         case "BuildStatus": var _p26 = _p22._0;
            return {ctor: "_Tuple2"
                   ,_0: A3(updateStartFinishAt,
-                  _p19,
-                  _p15._1,
+                  _p26,
+                  _p22._1,
                   $Concourse$BuildStatus.isRunning(model.status) ? _U.update(model,
-                  {status: _p19}) : model)
+                  {status: _p26}) : model)
                   ,_1: $Effects.none};
-         case "BuildHistoryFetched": if (_p15._0.ctor === "Err") {
+         case "BuildHistoryFetched": if (_p22._0.ctor === "Err") {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch build history: ",
-                 $Basics.toString(_p15._0._0)),
+                 $Basics.toString(_p22._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
-                 return A2(handleHistoryFetched,_p15._0._0,model);
+                 return A2(handleHistoryFetched,_p22._0._0,model);
               }
          case "RevealCurrentBuildInHistory": return {ctor: "_Tuple2"
                                                     ,_0: model
                                                     ,_1: scrollToCurrentBuildInHistory};
-         case "ScrollBuilds": if (_p15._0._0 === 0) {
+         case "ScrollBuilds": if (_p22._0._0 === 0) {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: scrollBuilds(_p15._0._1)};
+                        ,_1: scrollBuilds(_p22._0._1)};
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: scrollBuilds(0 - _p15._0._0)};
+                        ,_1: scrollBuilds(0 - _p22._0._0)};
               }
          default: return {ctor: "_Tuple2"
-                         ,_0: _U.update(model,{now: _p15._0})
+                         ,_0: _U.update(model,{now: _p22._0})
                          ,_1: $Effects.none};}
    });
    var LoginRequired = {ctor: "LoginRequired"};
@@ -16584,16 +16751,19 @@ Elm.Build.make = function (_elm) {
                         return function (h) {
                            return function (i) {
                               return function (j) {
-                                 return {redirect: a
-                                        ,actions: b
-                                        ,buildId: c
-                                        ,build: d
-                                        ,history: e
-                                        ,status: f
-                                        ,autoScroll: g
-                                        ,now: h
-                                        ,duration: i
-                                        ,output: j};
+                                 return function (k) {
+                                    return {redirect: a
+                                           ,actions: b
+                                           ,buildId: c
+                                           ,build: d
+                                           ,buildPrep: e
+                                           ,history: f
+                                           ,status: g
+                                           ,autoScroll: h
+                                           ,now: i
+                                           ,duration: j
+                                           ,output: k};
+                                 };
                               };
                            };
                         };
@@ -16612,6 +16782,7 @@ Elm.Build.make = function (_elm) {
                               ,LoginRequired: LoginRequired
                               ,Noop: Noop
                               ,BuildFetched: BuildFetched
+                              ,BuildPrepFetched: BuildPrepFetched
                               ,BuildHistoryFetched: BuildHistoryFetched
                               ,BuildOutputAction: BuildOutputAction
                               ,BuildStatus: BuildStatus
@@ -16626,16 +16797,24 @@ Elm.Build.make = function (_elm) {
                               ,pollUntilStarted: pollUntilStarted
                               ,initBuildOutput: initBuildOutput
                               ,handleHistoryFetched: handleHistoryFetched
+                              ,handleBuildPrepFetched: handleBuildPrepFetched
                               ,updateStartFinishAt: updateStartFinishAt
                               ,abortBuild: abortBuild
                               ,view: view
+                              ,paddingClass: paddingClass
                               ,viewBuildOutput: viewBuildOutput
+                              ,viewBuildPrep: viewBuildPrep
+                              ,viewBuildPrepInputs: viewBuildPrepInputs
+                              ,viewBuildPrepInput: viewBuildPrepInput
+                              ,viewBuildPrepLi: viewBuildPrepLi
+                              ,viewBuildPrepStatus: viewBuildPrepStatus
                               ,viewBuildHeader: viewBuildHeader
                               ,viewHistory: viewHistory
                               ,durationTitle: durationTitle
                               ,scrollEvent: scrollEvent
                               ,decodeScrollEvent: decodeScrollEvent
                               ,fetchBuild: fetchBuild
+                              ,fetchBuildPrep: fetchBuildPrep
                               ,fetchBuildHistory: fetchBuildHistory
                               ,scrollBuilds: scrollBuilds
                               ,scrollToCurrentBuildInHistory: scrollToCurrentBuildInHistory
