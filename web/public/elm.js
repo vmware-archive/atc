@@ -15950,11 +15950,12 @@ Elm.Concourse.BuildPrep.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
-   var BuildPrep = F4(function (a,b,c,d) {
+   var BuildPrep = F5(function (a,b,c,d,e) {
       return {pausedPipeline: a
              ,pausedJob: b
              ,maxRunningBuilds: c
-             ,inputs: d};
+             ,inputs: d
+             ,inputsSatisfied: e};
    });
    var NotBlocking = {ctor: "NotBlocking"};
    var Blocking = {ctor: "Blocking"};
@@ -15971,14 +15972,15 @@ Elm.Concourse.BuildPrep.make = function (_elm) {
            "unknown build preparation status: ",
            _p0));}
    });
-   var decode = A5($Json$Decode.object4,
+   var decode = A6($Json$Decode.object5,
    BuildPrep,
    A2($Json$Decode._op[":="],"paused_pipeline",decodeStatus),
    A2($Json$Decode._op[":="],"paused_job",decodeStatus),
    A2($Json$Decode._op[":="],"max_running_builds",decodeStatus),
    A2($Json$Decode._op[":="],
    "inputs",
-   $Json$Decode.dict(decodeStatus)));
+   $Json$Decode.dict(decodeStatus)),
+   A2($Json$Decode._op[":="],"inputs_satisfied",decodeStatus));
    var fetch = function (buildId) {
       return A2($Http.get,
       decode,
@@ -16346,7 +16348,7 @@ Elm.Build.make = function (_elm) {
                     _U.list([]),
                     _U.list([A2($Html.ul,
                     _U.list([$Html$Attributes.$class("prep-status-list")]),
-                    A2($List.append,
+                    A2($Basics._op["++"],
                     _U.list([A2(viewBuildPrepLi,
                             "checking pipeline is not paused",
                             _p4.pausedPipeline)
@@ -16354,7 +16356,11 @@ Elm.Build.make = function (_elm) {
                             ,A2(viewBuildPrepLi,
                             "checking max-in-flight is not reached",
                             _p4.maxRunningBuilds)]),
-                    viewBuildPrepInputs(_p4.inputs)))]))]));
+                    A2($Basics._op["++"],
+                    viewBuildPrepInputs(_p4.inputs),
+                    _U.list([A2(viewBuildPrepLi,
+                    "checking for a set of inputs that satisfy the passed constraints",
+                    _p4.inputsSatisfied)]))))]))]));
          } else {
             return A2($Html.div,_U.list([]),_U.list([]));
          }
@@ -16499,7 +16505,7 @@ Elm.Build.make = function (_elm) {
             A2($Signal.forwardTo,actions,BuildOutputAction),
             _p14._0);
          } else {
-            return $LoadingIndicator.view;
+            return A2($Html.div,_U.list([]),_U.list([]));
          }
    });
    var view = F2(function (actions,model) {
