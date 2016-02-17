@@ -16352,12 +16352,10 @@ Elm.Build.make = function (_elm) {
                     _U.list([A2(viewBuildPrepLi,
                             "checking pipeline is not paused",
                             _p4.pausedPipeline)
+                            ,A2(viewBuildPrepLi,"checking job is not paused",_p4.pausedJob)
                             ,A2(viewBuildPrepLi,
                             "checking max-in-flight is not reached",
-                            _p4.maxRunningBuilds)
-                            ,A2(viewBuildPrepLi,
-                            "checking job is not paused",
-                            _p4.pausedJob)]),
+                            _p4.maxRunningBuilds)]),
                     A2($Basics._op["++"],
                     viewBuildPrepInputs(_p4.inputs),
                     _U.list([A2(viewBuildPrepLi,
@@ -16569,7 +16567,7 @@ Elm.Build.make = function (_elm) {
                                                      ,scrollToCurrent]))};
                } else {
                   return _U.crashCase("Build",
-                  {start: {line: 214,column: 5},end: {line: 222,column: 33}},
+                  {start: {line: 220,column: 5},end: {line: 228,column: 33}},
                   _p18)("impossible");
                }
          }
@@ -16632,10 +16630,23 @@ Elm.Build.make = function (_elm) {
       {build: $Maybe.Just(build)
       ,status: build.status
       ,duration: build.duration});
-      var _p21 = _U.eq(build.status,
-      $Concourse$BuildStatus.Pending) ? pollUntilStarted(withBuild) : A2(initBuildOutput,
-      build,
-      withBuild);
+      var _p21 = function () {
+         if (_U.eq(build.status,$Concourse$BuildStatus.Pending))
+         return pollUntilStarted(withBuild); else {
+               var _p22 = model.buildPrep;
+               if (_p22.ctor === "Nothing") {
+                     return A2(initBuildOutput,build,withBuild);
+                  } else {
+                     var _p23 = A2(initBuildOutput,build,withBuild);
+                     var newModel = _p23._0;
+                     var effects = _p23._1;
+                     return {ctor: "_Tuple2"
+                            ,_0: newModel
+                            ,_1: $Effects.batch(_U.list([effects
+                                                        ,A2(fetchBuildPrep,$Time.second,model.buildId)]))};
+                  }
+            }
+      }();
       var newModel = _p21._0;
       var effects = _p21._1;
       return {ctor: "_Tuple2"
@@ -16657,18 +16668,18 @@ Elm.Build.make = function (_elm) {
       A2($Signal.send,model.redirect,"/login")));
    };
    var update = F2(function (action,model) {
-      var _p22 = action;
-      switch (_p22.ctor)
+      var _p24 = action;
+      switch (_p24.ctor)
       {case "Noop": return {ctor: "_Tuple2"
                            ,_0: model
                            ,_1: $Effects.none};
          case "AbortBuild": return {ctor: "_Tuple2"
                                    ,_0: model
                                    ,_1: abortBuild(model.buildId)};
-         case "BuildAborted": if (_p22._0.ctor === "Ok") {
+         case "BuildAborted": if (_p24._0.ctor === "Ok") {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               } else {
-                 if (_p22._0._0.ctor === "BadResponse" && _p22._0._0._0 === 401)
+                 if (_p24._0._0.ctor === "BadResponse" && _p24._0._0._0 === 401)
                  {
                        return {ctor: "_Tuple2"
                               ,_0: model
@@ -16677,72 +16688,72 @@ Elm.Build.make = function (_elm) {
                        return A2($Debug.log,
                        A2($Basics._op["++"],
                        "failed to abort build: ",
-                       $Basics.toString(_p22._0._0)),
+                       $Basics.toString(_p24._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               }
-         case "BuildFetched": if (_p22._0.ctor === "Ok") {
-                 return A2(handleBuildFetched,_p22._0._0,model);
+         case "BuildFetched": if (_p24._0.ctor === "Ok") {
+                 return A2(handleBuildFetched,_p24._0._0,model);
               } else {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch build: ",
-                 $Basics.toString(_p22._0._0)),
+                 $Basics.toString(_p24._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
-         case "BuildPrepFetched": if (_p22._0.ctor === "Ok") {
-                 return A2(handleBuildPrepFetched,_p22._0._0,model);
+         case "BuildPrepFetched": if (_p24._0.ctor === "Ok") {
+                 return A2(handleBuildPrepFetched,_p24._0._0,model);
               } else {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch build preparation: ",
-                 $Basics.toString(_p22._0._0)),
+                 $Basics.toString(_p24._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
-         case "BuildOutputAction": var _p23 = model.output;
-           if (_p23.ctor === "Just") {
-                 var _p24 = A2($BuildOutput.update,_p22._0,_p23._0);
-                 var newOutput = _p24._0;
-                 var effects = _p24._1;
+         case "BuildOutputAction": var _p25 = model.output;
+           if (_p25.ctor === "Just") {
+                 var _p26 = A2($BuildOutput.update,_p24._0,_p25._0);
+                 var newOutput = _p26._0;
+                 var effects = _p26._1;
                  return {ctor: "_Tuple2"
                         ,_0: _U.update(model,{output: $Maybe.Just(newOutput)})
                         ,_1: A2($Effects.map,BuildOutputAction,effects)};
               } else {
                  return _U.crashCase("Build",
                  {start: {line: 112,column: 7},end: {line: 120,column: 77}},
-                 _p23)("impossible (received action for missing BuildOutput)");
+                 _p25)("impossible (received action for missing BuildOutput)");
               }
-         case "BuildStatus": var _p26 = _p22._0;
+         case "BuildStatus": var _p28 = _p24._0;
            return {ctor: "_Tuple2"
                   ,_0: A3(updateStartFinishAt,
-                  _p26,
-                  _p22._1,
+                  _p28,
+                  _p24._1,
                   $Concourse$BuildStatus.isRunning(model.status) ? _U.update(model,
-                  {status: _p26}) : model)
+                  {status: _p28}) : model)
                   ,_1: $Effects.none};
-         case "BuildHistoryFetched": if (_p22._0.ctor === "Err") {
+         case "BuildHistoryFetched": if (_p24._0.ctor === "Err") {
                  return A2($Debug.log,
                  A2($Basics._op["++"],
                  "failed to fetch build history: ",
-                 $Basics.toString(_p22._0._0)),
+                 $Basics.toString(_p24._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
-                 return A2(handleHistoryFetched,_p22._0._0,model);
+                 return A2(handleHistoryFetched,_p24._0._0,model);
               }
          case "RevealCurrentBuildInHistory": return {ctor: "_Tuple2"
                                                     ,_0: model
                                                     ,_1: scrollToCurrentBuildInHistory};
-         case "ScrollBuilds": if (_p22._0._0 === 0) {
+         case "ScrollBuilds": if (_p24._0._0 === 0) {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: scrollBuilds(_p22._0._1)};
+                        ,_1: scrollBuilds(_p24._0._1)};
               } else {
                  return {ctor: "_Tuple2"
                         ,_0: model
-                        ,_1: scrollBuilds(0 - _p22._0._0)};
+                        ,_1: scrollBuilds(0 - _p24._0._0)};
               }
          default: return {ctor: "_Tuple2"
-                         ,_0: _U.update(model,{now: _p22._0})
+                         ,_0: _U.update(model,{now: _p24._0})
                          ,_1: $Effects.none};}
    });
    var LoginRequired = {ctor: "LoginRequired"};
