@@ -16352,14 +16352,16 @@ Elm.Build.make = function (_elm) {
                     _U.list([A2(viewBuildPrepLi,
                             "checking pipeline is not paused",
                             _p4.pausedPipeline)
-                            ,A2(viewBuildPrepLi,"checking job is not paused",_p4.pausedJob)
                             ,A2(viewBuildPrepLi,
                             "checking max-in-flight is not reached",
-                            _p4.maxRunningBuilds)]),
+                            _p4.maxRunningBuilds)
+                            ,A2(viewBuildPrepLi,
+                            "checking job is not paused",
+                            _p4.pausedJob)]),
                     A2($Basics._op["++"],
                     viewBuildPrepInputs(_p4.inputs),
                     _U.list([A2(viewBuildPrepLi,
-                    "checking for a set of inputs that satisfy the passed constraints",
+                    "waiting for a suitable set of input versions",
                     _p4.inputsSatisfied)]))))]))]));
          } else {
             return A2($Html.div,_U.list([]),_U.list([]));
