@@ -1274,13 +1274,13 @@ var _ = Describe("GardenFactory", func() {
 						})
 
 						It("exits with the error", func() {
-							Eventually(process.Wait()).Should(Receive(Equal(errors.New("Failed to create container on all compatible workers"))))
+							Eventually(process.Wait()).Should(Receive(MatchError("failed to create container on all compatible workers")))
 						})
 
 						It("invokes the delegate's Failed callback", func() {
 							process.Wait()
 							Expect(taskDelegate.FailedCallCount()).To(Equal(1))
-							Expect(taskDelegate.FailedArgsForCall(0)).To(Equal(errors.New("Failed to create container on all compatible workers")))
+							Expect(taskDelegate.FailedArgsForCall(0)).To(MatchError("failed to create container on all compatible workers"))
 						})
 					})
 				})
@@ -1432,9 +1432,9 @@ var _ = Describe("GardenFactory", func() {
 									})
 
 									It("exits and invokes the delegate's Failed callback", func() {
-										Eventually(process.Wait()).Should(Receive(Equal(errors.New("Failed to create container on all compatible workers"))))
+										Eventually(process.Wait()).Should(Receive(MatchError("failed to create container on all compatible workers")))
 										Expect(taskDelegate.FailedCallCount()).To(Equal(1))
-										Expect(taskDelegate.FailedArgsForCall(0)).To(Equal(errors.New("Failed to create container on all compatible workers")))
+										Expect(taskDelegate.FailedArgsForCall(0)).To(MatchError("failed to create container on all compatible workers"))
 									})
 								})
 							})
