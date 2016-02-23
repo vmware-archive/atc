@@ -13809,7 +13809,7 @@ Elm.Build.make = function (_elm) {
    A2($Json$Decode._op[":="],"deltaX",$Json$Decode.$float),
    A2($Json$Decode._op[":="],"deltaY",$Json$Decode.$float));
    var durationTitle = F2(function (date,content) {    return A2($Html.div,_U.list([$Html$Attributes.title(A2($Date$Format.format,"%b",date))]),content);});
-   var viewHistory = F3(function (currentBuild,currentStatus,build) {
+   var viewHistoryItem = F3(function (currentBuild,currentStatus,build) {
       return A2($Html.li,
       _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2"
                                                    ,_0: _U.eq(build.name,
@@ -13818,6 +13818,10 @@ Elm.Build.make = function (_elm) {
                                                   ,{ctor: "_Tuple2",_0: "current",_1: _U.eq(build.name,currentBuild.name)}]))]),
       _U.list([A2($Html.a,_U.list([$Html$Attributes.href($Concourse$Build.url(build))]),_U.list([$Html.text(build.name)]))]));
    });
+   var viewHistory = F3(function (currentBuild,currentStatus,builds) {
+      return A2($Html.ul,_U.list([$Html$Attributes.id("builds")]),A2($List.map,A2(viewHistoryItem,currentBuild,currentStatus),builds));
+   });
+   var lazyViewHistory = F3(function (currentBuild,currentStatus,builds) {    return A4($Html$Lazy.lazy3,viewHistory,currentBuild,currentStatus,builds);});
    var viewBuildPrepStatus = function (status) {
       var _p0 = status;
       switch (_p0.ctor)
@@ -13932,10 +13936,9 @@ Elm.Build.make = function (_elm) {
               _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("build-actions fr")]),_U.list([triggerButton,abortButton]))
                       ,A2($Html.h1,_U.list([]),_U.list([buildTitle]))
                       ,A2($BuildDuration.view,_p8.duration,_p8.now)]))
-              ,A2($Html.ul,
-              _U.list([A4($Html$Events.onWithOptions,"mousewheel",{stopPropagation: true,preventDefault: true},decodeScrollEvent,scrollEvent(actions))
-                      ,$Html$Attributes.id("builds")]),
-              A2($List.map,A2(viewHistory,build,_p12),_p8.history))]));
+              ,A2($Html.div,
+              _U.list([A4($Html$Events.onWithOptions,"mousewheel",{stopPropagation: true,preventDefault: true},decodeScrollEvent,scrollEvent(actions))]),
+              _U.list([A3(lazyViewHistory,build,_p12,_p8.history)]))]));
    });
    var BuildStatus = F2(function (a,b) {    return {ctor: "BuildStatus",_0: a,_1: b};});
    var BuildOutputAction = function (a) {    return {ctor: "BuildOutputAction",_0: a};};
@@ -14184,7 +14187,9 @@ Elm.Build.make = function (_elm) {
                               ,viewBuildPrepLi: viewBuildPrepLi
                               ,viewBuildPrepStatus: viewBuildPrepStatus
                               ,viewBuildHeader: viewBuildHeader
+                              ,lazyViewHistory: lazyViewHistory
                               ,viewHistory: viewHistory
+                              ,viewHistoryItem: viewHistoryItem
                               ,durationTitle: durationTitle
                               ,scrollEvent: scrollEvent
                               ,decodeScrollEvent: decodeScrollEvent
@@ -14838,7 +14843,7 @@ Elm.Main.make = function (_elm) {
                              ,inputs: _U.list([A2($Signal.map,$Autoscroll.SubAction,pageDrivenActions.signal)
                                               ,A2($Signal.merge,
                                               A2($Signal.map,$Autoscroll.FromBottom,$Scroll.fromBottom),
-                                              A2($Signal.map,$Basics.always($Autoscroll.ScrollDown),$Time.every(50 * $Time.millisecond)))])
+                                              A2($Signal.map,$Basics.always($Autoscroll.ScrollDown),$Time.every(100 * $Time.millisecond)))])
                              ,inits: _U.list([A2($Signal.map,
                              function (_p0) {
                                 return $Autoscroll.SubAction($Build.ClockTick(_p0));
