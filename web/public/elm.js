@@ -11669,13 +11669,9 @@ Elm.Autoscroll.make = function (_elm) {
          case "ScrolledDown": return {ctor: "_Tuple2"
                                      ,_0: model
                                      ,_1: $Effects.none};
-         default: var _p2 = _p0._0;
-           return {ctor: "_Tuple2"
-                  ,_0: _U.update(model,
-                  {shouldScroll: A2($Debug.log,
-                  A2($Basics._op["++"],"num: ",$Basics.toString(_p2)),
-                  _U.cmp(_p2,16) < 0)})
-                  ,_1: $Effects.none};}
+         default: return {ctor: "_Tuple2"
+                         ,_0: _U.update(model,{shouldScroll: _U.cmp(_p0._0,16) < 0})
+                         ,_1: $Effects.none};}
    });
    var view = F3(function (subView,actions,model) {
       return A2(subView,
@@ -11685,11 +11681,11 @@ Elm.Autoscroll.make = function (_elm) {
    var Model = F3(function (a,b,c) {
       return {subModel: a,shouldScroll: b,shouldAutoscroll: c};
    });
-   var init = F2(function (toScrollAction,_p3) {
-      var _p4 = _p3;
+   var init = F2(function (toScrollAction,_p2) {
+      var _p3 = _p2;
       return {ctor: "_Tuple2"
-             ,_0: A3(Model,_p4._0,true,toScrollAction)
-             ,_1: A2($Effects.map,SubAction,_p4._1)};
+             ,_0: A3(Model,_p3._0,true,toScrollAction)
+             ,_1: A2($Effects.map,SubAction,_p3._1)};
    });
    return _elm.Autoscroll.values = {_op: _op
                                    ,Model: Model
@@ -12050,50 +12046,45 @@ Elm.Date.Format.make = function (_elm) {
          case "Nov": return 11;
          default: return 12;}
    };
-   var collapse = function (m) {
-      return A2($Maybe.andThen,m,$Basics.identity);
-   };
    var formatToken = F2(function (d,m) {
-      var symbol = A2($Maybe.withDefault,
-      " ",
-      collapse(A2($Maybe.andThen,
-      $List.tail(m.submatches),
-      $List.head)));
-      var prefix = A2($Maybe.withDefault,
-      " ",
-      collapse($List.head(m.submatches)));
-      return A2($Basics._op["++"],
-      prefix,
-      function () {
-         var _p4 = symbol;
-         switch (_p4)
-         {case "Y": return $Basics.toString($Date.year(d));
-            case "m": return A3($String.padLeft,
-              2,
-              _U.chr("0"),
-              $Basics.toString(monthToInt($Date.month(d))));
-            case "B": return monthToFullName($Date.month(d));
-            case "b": return $Basics.toString($Date.month(d));
-            case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
-            case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
-            case "a": return $Basics.toString($Date.dayOfWeek(d));
-            case "A": return fullDayOfWeek($Date.dayOfWeek(d));
-            case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
-            case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
-            case "I": return A2(padWith,
-              _U.chr("0"),
-              zero2twelve(mod12($Date.hour(d))));
-            case "l": return A2(padWith,
-              _U.chr(" "),
-              zero2twelve(mod12($Date.hour(d))));
-            case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
-            case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
-            case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
-            case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
-            default: return "";}
-      }());
+      var symbol = function () {
+         var _p4 = m.submatches;
+         if (_p4.ctor === "::" && _p4._0.ctor === "Just" && _p4._1.ctor === "[]")
+         {
+               return _p4._0._0;
+            } else {
+               return " ";
+            }
+      }();
+      var _p5 = symbol;
+      switch (_p5)
+      {case "%": return "%";
+         case "Y": return $Basics.toString($Date.year(d));
+         case "m": return A3($String.padLeft,
+           2,
+           _U.chr("0"),
+           $Basics.toString(monthToInt($Date.month(d))));
+         case "B": return monthToFullName($Date.month(d));
+         case "b": return $Basics.toString($Date.month(d));
+         case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
+         case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
+         case "a": return $Basics.toString($Date.dayOfWeek(d));
+         case "A": return fullDayOfWeek($Date.dayOfWeek(d));
+         case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
+         case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
+         case "I": return A2(padWith,
+           _U.chr("0"),
+           zero2twelve(mod12($Date.hour(d))));
+         case "l": return A2(padWith,
+           _U.chr(" "),
+           zero2twelve(mod12($Date.hour(d))));
+         case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
+         case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
+         case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
+         case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
+         default: return "";}
    });
-   var re = $Regex.regex("(^|[^%])%(Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
+   var re = $Regex.regex("%(%|Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
    var format = F2(function (s,d) {
       return A4($Regex.replace,$Regex.All,re,formatToken(d),s);
    });
@@ -16666,7 +16657,8 @@ Elm.Build.make = function (_elm) {
       }();
       var abortButton = $Concourse$BuildStatus.isRunning(_p13) ? A2($Html.span,
       _U.list([$Html$Attributes.$class("build-action build-action-abort fr")
-              ,A2($Html$Events.onClick,actions,AbortBuild)]),
+              ,A2($Html$Events.onClick,actions,AbortBuild)
+              ,A2($Html$Attributes.attribute,"aria-label","Abort Build")]),
       _U.list([A2($Html.i,
       _U.list([$Html$Attributes.$class("fa fa-times-circle")]),
       _U.list([]))])) : A2($Html.span,_U.list([]),_U.list([]));
@@ -16694,7 +16686,8 @@ Elm.Build.make = function (_elm) {
                        ,$Html$Attributes.action(actionUrl)]),
                _U.list([A2($Html.button,
                _U.list([$Html$Attributes.$class("build-action fr")
-                       ,$Html$Attributes.disabled(buttonDisabled)]),
+                       ,$Html$Attributes.disabled(buttonDisabled)
+                       ,A2($Html$Attributes.attribute,"aria-label","Trigger Build")]),
                _U.list([A2($Html.i,
                _U.list([$Html$Attributes.$class("fa fa-plus-circle")]),
                _U.list([]))]))]));
@@ -17223,7 +17216,8 @@ Elm.Job.make = function (_elm) {
                                "/jobs/",
                                A2($Basics._op["++"],
                                model.jobInfo.name,
-                               A2($Basics._op["++"],"?",paginationParam(_p3._0)))))))]),
+                               A2($Basics._op["++"],"?",paginationParam(_p3._0)))))))
+                               ,A2($Html$Attributes.attribute,"aria-label","Previous Page")]),
                        _U.list([A2($Html.i,
                        _U.list([$Html$Attributes.$class("fa fa-arrow-left")]),
                        _U.list([]))]))]));
@@ -17252,7 +17246,8 @@ Elm.Job.make = function (_elm) {
                                "/jobs/",
                                A2($Basics._op["++"],
                                model.jobInfo.name,
-                               A2($Basics._op["++"],"?",paginationParam(_p4._0)))))))]),
+                               A2($Basics._op["++"],"?",paginationParam(_p4._0)))))))
+                               ,A2($Html$Attributes.attribute,"aria-label","Next Page")]),
                        _U.list([A2($Html.i,
                        _U.list([$Html$Attributes.$class("fa fa-arrow-right")]),
                        _U.list([]))]))]));
@@ -17421,6 +17416,9 @@ Elm.Job.make = function (_elm) {
                        _U.list([A2($Html.button,
                                A2($List.append,
                                _U.list([$Html$Attributes.id("job-state")
+                                       ,A2($Html$Attributes.attribute,
+                                       "aria-label",
+                                       "Toggle Job Paused State")
                                        ,$Html$Attributes.$class(A2($Basics._op["++"],
                                        "btn-pause btn-large fl ",
                                        A2(getPausedState,_p12,model.pausedChanging)))]),
@@ -17444,7 +17442,8 @@ Elm.Job.make = function (_elm) {
                                        A2($Basics._op["++"],model.jobInfo.name,"/builds")))))]),
                                _U.list([A2($Html.button,
                                _U.list([$Html$Attributes.$class("build-action fr")
-                                       ,$Html$Attributes.disabled(_p12.disableManualTrigger)]),
+                                       ,$Html$Attributes.disabled(_p12.disableManualTrigger)
+                                       ,A2($Html$Attributes.attribute,"aria-label","Trigger Build")]),
                                _U.list([A2($Html.i,
                                _U.list([$Html$Attributes.$class("fa fa-plus-circle")]),
                                _U.list([]))]))]))
