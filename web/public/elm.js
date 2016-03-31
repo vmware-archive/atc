@@ -12046,45 +12046,50 @@ Elm.Date.Format.make = function (_elm) {
          case "Nov": return 11;
          default: return 12;}
    };
+   var collapse = function (m) {
+      return A2($Maybe.andThen,m,$Basics.identity);
+   };
    var formatToken = F2(function (d,m) {
-      var symbol = function () {
-         var _p4 = m.submatches;
-         if (_p4.ctor === "::" && _p4._0.ctor === "Just" && _p4._1.ctor === "[]")
-         {
-               return _p4._0._0;
-            } else {
-               return " ";
-            }
-      }();
-      var _p5 = symbol;
-      switch (_p5)
-      {case "%": return "%";
-         case "Y": return $Basics.toString($Date.year(d));
-         case "m": return A3($String.padLeft,
-           2,
-           _U.chr("0"),
-           $Basics.toString(monthToInt($Date.month(d))));
-         case "B": return monthToFullName($Date.month(d));
-         case "b": return $Basics.toString($Date.month(d));
-         case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
-         case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
-         case "a": return $Basics.toString($Date.dayOfWeek(d));
-         case "A": return fullDayOfWeek($Date.dayOfWeek(d));
-         case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
-         case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
-         case "I": return A2(padWith,
-           _U.chr("0"),
-           zero2twelve(mod12($Date.hour(d))));
-         case "l": return A2(padWith,
-           _U.chr(" "),
-           zero2twelve(mod12($Date.hour(d))));
-         case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
-         case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
-         case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
-         case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
-         default: return "";}
+      var symbol = A2($Maybe.withDefault,
+      " ",
+      collapse(A2($Maybe.andThen,
+      $List.tail(m.submatches),
+      $List.head)));
+      var prefix = A2($Maybe.withDefault,
+      " ",
+      collapse($List.head(m.submatches)));
+      return A2($Basics._op["++"],
+      prefix,
+      function () {
+         var _p4 = symbol;
+         switch (_p4)
+         {case "Y": return $Basics.toString($Date.year(d));
+            case "m": return A3($String.padLeft,
+              2,
+              _U.chr("0"),
+              $Basics.toString(monthToInt($Date.month(d))));
+            case "B": return monthToFullName($Date.month(d));
+            case "b": return $Basics.toString($Date.month(d));
+            case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
+            case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
+            case "a": return $Basics.toString($Date.dayOfWeek(d));
+            case "A": return fullDayOfWeek($Date.dayOfWeek(d));
+            case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
+            case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
+            case "I": return A2(padWith,
+              _U.chr("0"),
+              zero2twelve(mod12($Date.hour(d))));
+            case "l": return A2(padWith,
+              _U.chr(" "),
+              zero2twelve(mod12($Date.hour(d))));
+            case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
+            case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
+            case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
+            case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
+            default: return "";}
+      }());
    });
-   var re = $Regex.regex("%(%|Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
+   var re = $Regex.regex("(^|[^%])%(Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
    var format = F2(function (s,d) {
       return A4($Regex.replace,$Regex.All,re,formatToken(d),s);
    });
@@ -14858,16 +14863,15 @@ Elm.Concourse.BuildResources.make = function (_elm) {
    A2($Json$Decode._op[":="],
    "version",
    $Json$Decode.dict($Json$Decode.string)));
-   var BuildInput = F7(function (a,b,c,d,e,f,g) {
+   var BuildInput = F6(function (a,b,c,d,e,f) {
       return {name: a
              ,resource: b
              ,type$: c
              ,version: d
              ,metadata: e
-             ,pipelineName: f
-             ,firstOccurrence: g};
+             ,firstOccurrence: f};
    });
-   var decodeInput = A8($Json$Decode.object7,
+   var decodeInput = A7($Json$Decode.object6,
    BuildInput,
    A2($Json$Decode._op[":="],"name",$Json$Decode.string),
    A2($Json$Decode._op[":="],"resource",$Json$Decode.string),
@@ -14876,7 +14880,6 @@ Elm.Concourse.BuildResources.make = function (_elm) {
    A2($Json$Decode._op[":="],
    "metadata",
    $Concourse$Metadata.decode),
-   A2($Json$Decode._op[":="],"pipeline_name",$Json$Decode.string),
    A2($Json$Decode._op[":="],
    "first_occurrence",
    $Json$Decode.bool));
