@@ -11738,6 +11738,7 @@ Elm.Ansi.make = function (_elm) {
    var CarriageReturn = {ctor: "CarriageReturn"};
    var Linebreak = {ctor: "Linebreak"};
    var SetInverted = function (a) {    return {ctor: "SetInverted",_0: a};};
+   var SetBlink = function (a) {    return {ctor: "SetBlink",_0: a};};
    var SetUnderline = function (a) {    return {ctor: "SetUnderline",_0: a};};
    var SetItalic = function (a) {    return {ctor: "SetItalic",_0: a};};
    var SetFaint = function (a) {    return {ctor: "SetFaint",_0: a};};
@@ -11750,6 +11751,7 @@ Elm.Ansi.make = function (_elm) {
                        ,SetFaint(false)
                        ,SetItalic(false)
                        ,SetUnderline(false)
+                       ,SetBlink(false)
                        ,SetInverted(false)]);
    var codeActions = function (code) {
       var _p6 = code;
@@ -11759,6 +11761,7 @@ Elm.Ansi.make = function (_elm) {
          case 2: return _U.list([SetFaint(true)]);
          case 3: return _U.list([SetItalic(true)]);
          case 4: return _U.list([SetUnderline(true)]);
+         case 5: return _U.list([SetBlink(true)]);
          case 7: return _U.list([SetInverted(true)]);
          case 30: return _U.list([SetForeground($Maybe.Just(Black))]);
          case 31: return _U.list([SetForeground($Maybe.Just(Red))]);
@@ -11900,6 +11903,7 @@ Elm.Ansi.make = function (_elm) {
                              ,SetFaint: SetFaint
                              ,SetItalic: SetItalic
                              ,SetUnderline: SetUnderline
+                             ,SetBlink: SetBlink
                              ,SetInverted: SetInverted
                              ,Linebreak: Linebreak
                              ,CarriageReturn: CarriageReturn
@@ -11965,13 +11969,17 @@ Elm.Ansi.Log.make = function (_elm) {
          }
    });
    var styleAttributes = function (style) {
-      return _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-weight",_1: style.bold ? "bold" : "normal"}]))
+      return _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-weight",_1: style.bold ? "bold" : "normal"}
+                                                     ,{ctor: "_Tuple2",_0: "text-decoration",_1: style.underline ? "underline" : "none"}
+                                                     ,{ctor: "_Tuple2",_0: "font-style",_1: style.italic ? "italic" : "normal"}]))
                      ,function () {
+                        var ansiClasses = _U.list([{ctor: "_Tuple2",_0: "ansi-blink",_1: style.blink},{ctor: "_Tuple2",_0: "ansi-faint",_1: style.faint}]);
                         var bgClasses = A3(colorClasses,"-bg",style.bold,$Basics.not(style.inverted) ? style.background : style.foreground);
                         var fgClasses = A3(colorClasses,"-fg",style.bold,$Basics.not(style.inverted) ? style.foreground : style.background);
-                        return $Html$Attributes.classList(A2($List.map,
+                        var fgbgClasses = A2($List.map,
                         A2($Basics.flip,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),true),
-                        A2($Basics._op["++"],fgClasses,bgClasses)));
+                        A2($Basics._op["++"],fgClasses,bgClasses));
+                        return $Html$Attributes.classList(A2($Basics._op["++"],fgbgClasses,ansiClasses));
                      }()]);
    };
    var viewChunk = function (chunk) {    return A2($Html.span,styleAttributes(chunk.style),_U.list([$Html.text(chunk.text)]));};
@@ -12055,6 +12063,7 @@ Elm.Ansi.Log.make = function (_elm) {
          case "SetFaint": return _U.update(style,{faint: _p14._0});
          case "SetItalic": return _U.update(style,{italic: _p14._0});
          case "SetUnderline": return _U.update(style,{underline: _p14._0});
+         case "SetBlink": return _U.update(style,{blink: _p14._0});
          default: return style;}
    });
    var appendLine = F3(function (after,line,lines) {
@@ -12077,13 +12086,20 @@ Elm.Ansi.Log.make = function (_elm) {
              ,lines: $Array.empty
              ,position: {row: 0,column: 0}
              ,savedPosition: $Maybe.Nothing
-             ,style: {foreground: $Maybe.Nothing,background: $Maybe.Nothing,bold: false,faint: false,italic: false,underline: false,inverted: false}
+             ,style: {foreground: $Maybe.Nothing
+                     ,background: $Maybe.Nothing
+                     ,bold: false
+                     ,faint: false
+                     ,italic: false
+                     ,underline: false
+                     ,blink: false
+                     ,inverted: false}
              ,remainder: ""};
    };
    var Cooked = {ctor: "Cooked"};
    var Raw = {ctor: "Raw"};
    var CursorPosition = F2(function (a,b) {    return {row: a,column: b};});
-   var Style = F7(function (a,b,c,d,e,f,g) {    return {foreground: a,background: b,bold: c,faint: d,italic: e,underline: f,inverted: g};});
+   var Style = F8(function (a,b,c,d,e,f,g,h) {    return {foreground: a,background: b,bold: c,faint: d,italic: e,underline: f,blink: g,inverted: h};});
    var Chunk = F2(function (a,b) {    return {text: a,style: b};});
    var handleAction = F2(function (action,model) {
       handleAction: while (true) {
@@ -13145,7 +13161,8 @@ Elm.StepTree.make = function (_elm) {
               _U.list([A2(viewStepState,_p25,model.finished)
                       ,typeIcon(icon)
                       ,viewVersion(_p22.version)
-                      ,A2($Html.h3,_U.list([]),_U.list([$Html.text(_p22.name)]))]))
+                      ,A2($Html.h3,_U.list([]),_U.list([$Html.text(_p22.name)]))
+                      ,A2($Html.div,_U.list([$Html$Attributes.$class("clearfix")]),_U.list([]))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "step-body",_1: true}
                                                           ,{ctor: "_Tuple2",_0: "clearfix",_1: true}
