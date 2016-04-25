@@ -68,11 +68,12 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 			newHandler = auth.CheckAuthHandler(handler, rejector)
 
 		// unauthenticated
-		case atc.ListAuthMethods, atc.GetInfo:
+		case atc.ListAuthMethods,
+			atc.GetInfo,
+			atc.DownloadCLI:
 
 		// unauthenticated if publicly viewable
 		case atc.BuildEvents,
-			atc.DownloadCLI,
 			atc.GetBuild,
 			atc.GetJobBuild,
 			atc.BuildResources,
