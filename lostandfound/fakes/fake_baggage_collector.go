@@ -8,34 +8,34 @@ import (
 )
 
 type FakeBaggageCollector struct {
-	CollectStub        func() error
-	collectMutex       sync.RWMutex
-	collectArgsForCall []struct{}
-	collectReturns     struct {
+	RunStub        func() error
+	runMutex       sync.RWMutex
+	runArgsForCall []struct{}
+	runReturns     struct {
 		result1 error
 	}
 }
 
-func (fake *FakeBaggageCollector) Collect() error {
-	fake.collectMutex.Lock()
-	fake.collectArgsForCall = append(fake.collectArgsForCall, struct{}{})
-	fake.collectMutex.Unlock()
-	if fake.CollectStub != nil {
-		return fake.CollectStub()
+func (fake *FakeBaggageCollector) Run() error {
+	fake.runMutex.Lock()
+	fake.runArgsForCall = append(fake.runArgsForCall, struct{}{})
+	fake.runMutex.Unlock()
+	if fake.RunStub != nil {
+		return fake.RunStub()
 	} else {
-		return fake.collectReturns.result1
+		return fake.runReturns.result1
 	}
 }
 
-func (fake *FakeBaggageCollector) CollectCallCount() int {
-	fake.collectMutex.RLock()
-	defer fake.collectMutex.RUnlock()
-	return len(fake.collectArgsForCall)
+func (fake *FakeBaggageCollector) RunCallCount() int {
+	fake.runMutex.RLock()
+	defer fake.runMutex.RUnlock()
+	return len(fake.runArgsForCall)
 }
 
-func (fake *FakeBaggageCollector) CollectReturns(result1 error) {
-	fake.CollectStub = nil
-	fake.collectReturns = struct {
+func (fake *FakeBaggageCollector) RunReturns(result1 error) {
+	fake.RunStub = nil
+	fake.runReturns = struct {
 		result1 error
 	}{result1}
 }

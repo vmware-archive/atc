@@ -10980,37 +10980,35 @@ Elm.Date.Format.make = function (_elm) {
          case "Nov": return 11;
          default: return 12;}
    };
+   var collapse = function (m) {    return A2($Maybe.andThen,m,$Basics.identity);};
    var formatToken = F2(function (d,m) {
-      var symbol = function () {
-         var _p4 = m.submatches;
-         if (_p4.ctor === "::" && _p4._0.ctor === "Just" && _p4._1.ctor === "[]") {
-               return _p4._0._0;
-            } else {
-               return " ";
-            }
-      }();
-      var _p5 = symbol;
-      switch (_p5)
-      {case "%": return "%";
-         case "Y": return $Basics.toString($Date.year(d));
-         case "m": return A3($String.padLeft,2,_U.chr("0"),$Basics.toString(monthToInt($Date.month(d))));
-         case "B": return monthToFullName($Date.month(d));
-         case "b": return $Basics.toString($Date.month(d));
-         case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
-         case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
-         case "a": return $Basics.toString($Date.dayOfWeek(d));
-         case "A": return fullDayOfWeek($Date.dayOfWeek(d));
-         case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
-         case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
-         case "I": return A2(padWith,_U.chr("0"),zero2twelve(mod12($Date.hour(d))));
-         case "l": return A2(padWith,_U.chr(" "),zero2twelve(mod12($Date.hour(d))));
-         case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
-         case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
-         case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
-         case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
-         default: return "";}
+      var symbol = A2($Maybe.withDefault," ",collapse(A2($Maybe.andThen,$List.tail(m.submatches),$List.head)));
+      var prefix = A2($Maybe.withDefault," ",collapse($List.head(m.submatches)));
+      return A2($Basics._op["++"],
+      prefix,
+      function () {
+         var _p4 = symbol;
+         switch (_p4)
+         {case "Y": return $Basics.toString($Date.year(d));
+            case "m": return A3($String.padLeft,2,_U.chr("0"),$Basics.toString(monthToInt($Date.month(d))));
+            case "B": return monthToFullName($Date.month(d));
+            case "b": return $Basics.toString($Date.month(d));
+            case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
+            case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
+            case "a": return $Basics.toString($Date.dayOfWeek(d));
+            case "A": return fullDayOfWeek($Date.dayOfWeek(d));
+            case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
+            case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
+            case "I": return A2(padWith,_U.chr("0"),zero2twelve(mod12($Date.hour(d))));
+            case "l": return A2(padWith,_U.chr(" "),zero2twelve(mod12($Date.hour(d))));
+            case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
+            case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
+            case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
+            case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
+            default: return "";}
+      }());
    });
-   var re = $Regex.regex("%(%|Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
+   var re = $Regex.regex("(^|[^%])%(Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
    var format = F2(function (s,d) {    return A4($Regex.replace,$Regex.All,re,formatToken(d),s);});
    var formatISO8601 = format("%Y-%m-%dT%H:%M:%SZ");
    return _elm.Date.Format.values = {_op: _op,format: format,formatISO8601: formatISO8601};
@@ -11738,7 +11736,6 @@ Elm.Ansi.make = function (_elm) {
    var CarriageReturn = {ctor: "CarriageReturn"};
    var Linebreak = {ctor: "Linebreak"};
    var SetInverted = function (a) {    return {ctor: "SetInverted",_0: a};};
-   var SetBlink = function (a) {    return {ctor: "SetBlink",_0: a};};
    var SetUnderline = function (a) {    return {ctor: "SetUnderline",_0: a};};
    var SetItalic = function (a) {    return {ctor: "SetItalic",_0: a};};
    var SetFaint = function (a) {    return {ctor: "SetFaint",_0: a};};
@@ -11751,7 +11748,6 @@ Elm.Ansi.make = function (_elm) {
                        ,SetFaint(false)
                        ,SetItalic(false)
                        ,SetUnderline(false)
-                       ,SetBlink(false)
                        ,SetInverted(false)]);
    var codeActions = function (code) {
       var _p6 = code;
@@ -11761,7 +11757,6 @@ Elm.Ansi.make = function (_elm) {
          case 2: return _U.list([SetFaint(true)]);
          case 3: return _U.list([SetItalic(true)]);
          case 4: return _U.list([SetUnderline(true)]);
-         case 5: return _U.list([SetBlink(true)]);
          case 7: return _U.list([SetInverted(true)]);
          case 30: return _U.list([SetForeground($Maybe.Just(Black))]);
          case 31: return _U.list([SetForeground($Maybe.Just(Red))]);
@@ -11903,7 +11898,6 @@ Elm.Ansi.make = function (_elm) {
                              ,SetFaint: SetFaint
                              ,SetItalic: SetItalic
                              ,SetUnderline: SetUnderline
-                             ,SetBlink: SetBlink
                              ,SetInverted: SetInverted
                              ,Linebreak: Linebreak
                              ,CarriageReturn: CarriageReturn
@@ -11969,17 +11963,13 @@ Elm.Ansi.Log.make = function (_elm) {
          }
    });
    var styleAttributes = function (style) {
-      return _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-weight",_1: style.bold ? "bold" : "normal"}
-                                                     ,{ctor: "_Tuple2",_0: "text-decoration",_1: style.underline ? "underline" : "none"}
-                                                     ,{ctor: "_Tuple2",_0: "font-style",_1: style.italic ? "italic" : "normal"}]))
+      return _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-weight",_1: style.bold ? "bold" : "normal"}]))
                      ,function () {
-                        var ansiClasses = _U.list([{ctor: "_Tuple2",_0: "ansi-blink",_1: style.blink},{ctor: "_Tuple2",_0: "ansi-faint",_1: style.faint}]);
                         var bgClasses = A3(colorClasses,"-bg",style.bold,$Basics.not(style.inverted) ? style.background : style.foreground);
                         var fgClasses = A3(colorClasses,"-fg",style.bold,$Basics.not(style.inverted) ? style.foreground : style.background);
-                        var fgbgClasses = A2($List.map,
+                        return $Html$Attributes.classList(A2($List.map,
                         A2($Basics.flip,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),true),
-                        A2($Basics._op["++"],fgClasses,bgClasses));
-                        return $Html$Attributes.classList(A2($Basics._op["++"],fgbgClasses,ansiClasses));
+                        A2($Basics._op["++"],fgClasses,bgClasses)));
                      }()]);
    };
    var viewChunk = function (chunk) {    return A2($Html.span,styleAttributes(chunk.style),_U.list([$Html.text(chunk.text)]));};
@@ -12063,7 +12053,6 @@ Elm.Ansi.Log.make = function (_elm) {
          case "SetFaint": return _U.update(style,{faint: _p14._0});
          case "SetItalic": return _U.update(style,{italic: _p14._0});
          case "SetUnderline": return _U.update(style,{underline: _p14._0});
-         case "SetBlink": return _U.update(style,{blink: _p14._0});
          default: return style;}
    });
    var appendLine = F3(function (after,line,lines) {
@@ -12086,20 +12075,13 @@ Elm.Ansi.Log.make = function (_elm) {
              ,lines: $Array.empty
              ,position: {row: 0,column: 0}
              ,savedPosition: $Maybe.Nothing
-             ,style: {foreground: $Maybe.Nothing
-                     ,background: $Maybe.Nothing
-                     ,bold: false
-                     ,faint: false
-                     ,italic: false
-                     ,underline: false
-                     ,blink: false
-                     ,inverted: false}
+             ,style: {foreground: $Maybe.Nothing,background: $Maybe.Nothing,bold: false,faint: false,italic: false,underline: false,inverted: false}
              ,remainder: ""};
    };
    var Cooked = {ctor: "Cooked"};
    var Raw = {ctor: "Raw"};
    var CursorPosition = F2(function (a,b) {    return {row: a,column: b};});
-   var Style = F8(function (a,b,c,d,e,f,g,h) {    return {foreground: a,background: b,bold: c,faint: d,italic: e,underline: f,blink: g,inverted: h};});
+   var Style = F7(function (a,b,c,d,e,f,g) {    return {foreground: a,background: b,bold: c,faint: d,italic: e,underline: f,inverted: g};});
    var Chunk = F2(function (a,b) {    return {text: a,style: b};});
    var handleAction = F2(function (action,model) {
       handleAction: while (true) {
@@ -12426,8 +12408,8 @@ Elm.Concourse.Build.make = function (_elm) {
    };
    var BuildDuration = F2(function (a,b) {    return {startedAt: a,finishedAt: b};});
    var BuildJob = F2(function (a,b) {    return {name: a,pipelineName: b};});
-   var Build = F5(function (a,b,c,d,e) {    return {id: a,name: b,job: c,status: d,duration: e};});
-   var decode = A6($Json$Decode.object5,
+   var Build = F6(function (a,b,c,d,e,f) {    return {id: a,name: b,job: c,status: d,duration: e,reapTime: f};});
+   var decode = A7($Json$Decode.object6,
    Build,
    A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
    A2($Json$Decode._op[":="],"name",$Json$Decode.string),
@@ -12439,7 +12421,8 @@ Elm.Concourse.Build.make = function (_elm) {
    A3($Json$Decode.object2,
    BuildDuration,
    $Json$Decode.maybe(A2($Json$Decode._op[":="],"start_time",A2($Json$Decode.map,dateFromSeconds,$Json$Decode.$float))),
-   $Json$Decode.maybe(A2($Json$Decode._op[":="],"end_time",A2($Json$Decode.map,dateFromSeconds,$Json$Decode.$float)))));
+   $Json$Decode.maybe(A2($Json$Decode._op[":="],"end_time",A2($Json$Decode.map,dateFromSeconds,$Json$Decode.$float)))),
+   $Json$Decode.maybe(A2($Json$Decode._op[":="],"reap_time",A2($Json$Decode.map,dateFromSeconds,$Json$Decode.$float))));
    var fetch = function (buildId) {    return A2($Http.get,decode,A2($Basics._op["++"],"/api/v1/builds/",$Basics.toString(buildId)));};
    var fetchJobBuilds = F2(function (job,page) {
       var url = A2($Basics._op["++"],
@@ -13925,6 +13908,7 @@ Elm.Build.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Scroll = Elm.Scroll.make(_elm),
    $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm),
    $Task = Elm.Task.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
@@ -14010,6 +13994,7 @@ Elm.Build.make = function (_elm) {
             return _U.list([$Html$Attributes.$class("build-body-noSubHeader")]);
          }
    };
+   var mmDDYY = function (d) {    return A2($Basics._op["++"],A2($Date$Format.format,"%m/%d/",d),A2($String.left,2,A2($Date$Format.format,"%Y",d)));};
    var updateStartFinishAt = F3(function (status,date,model) {
       var duration = model.duration;
       var _p7 = status;
@@ -14111,24 +14096,74 @@ Elm.Build.make = function (_elm) {
    var view = F2(function (actions,model) {
       var _p17 = model.build;
       if (_p17.ctor === "Just") {
-            var _p18 = _p17._0;
+            var _p21 = _p17._0;
             return A2($Html.div,
             _U.list([]),
-            _U.list([A3(viewBuildHeader,actions,_p18,model)
+            _U.list([A3(viewBuildHeader,actions,_p21,model)
                     ,A2($Html.div,
-                    A2($List._op["::"],$Html$Attributes.id("build-body"),paddingClass(_p18)),
-                    _U.list([viewBuildPrep(model.buildPrep),A2($Html$Lazy.lazy,viewBuildOutput(actions),model.output)]))]));
+                    A2($List._op["::"],$Html$Attributes.id("build-body"),paddingClass(_p21)),
+                    A2($Basics._op["++"],
+                    _U.list([viewBuildPrep(model.buildPrep),A2($Html$Lazy.lazy,viewBuildOutput(actions),model.output)]),
+                    function () {
+                       var _p18 = {ctor: "_Tuple2",_0: _p21.duration.startedAt,_1: _p21.reapTime};
+                       if (_p18.ctor === "_Tuple2" && _p18._0.ctor === "Just" && _p18._1.ctor === "Just") {
+                             return _U.list([A2($Html.div,
+                                            _U.list([$Html$Attributes.$class("tombstone")]),
+                                            _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("heading")]),_U.list([$Html.text("RIP")]))
+                                                    ,A2($Html.div,
+                                                    _U.list([$Html$Attributes.$class("job-name")]),
+                                                    _U.list([$Html.text(A2($Maybe.withDefault,
+                                                    "one-off build",
+                                                    A2($Maybe.map,function (_) {    return _.name;},_p21.job)))]))
+                                                    ,A2($Html.div,
+                                                    _U.list([$Html$Attributes.$class("build-name")]),
+                                                    _U.list([$Html.text(A2($Basics._op["++"],
+                                                    "build #",
+                                                    function () {
+                                                       var _p19 = _p21.job;
+                                                       if (_p19.ctor === "Nothing") {
+                                                             return $Basics.toString(_p21.id);
+                                                          } else {
+                                                             return _p21.name;
+                                                          }
+                                                    }()))]))
+                                                    ,A2($Html.div,
+                                                    _U.list([$Html$Attributes.$class("date")]),
+                                                    _U.list([$Html.text(A2($Basics._op["++"],
+                                                    mmDDYY(_p18._0._0),
+                                                    A2($Basics._op["++"],"-",mmDDYY(_p18._1._0))))]))
+                                                    ,A2($Html.div,
+                                                    _U.list([$Html$Attributes.$class("epitaph")]),
+                                                    _U.list([$Html.text(function () {
+                                                       var _p20 = _p21.status;
+                                                       switch (_p20.ctor)
+                                                       {case "Succeeded": return "It passed, and now it has passed on.";
+                                                          case "Failed": return "It failed, and now has been forgotten.";
+                                                          case "Errored": return "It errored, but has found forgiveness.";
+                                                          case "Aborted": return "It was never given a chance.";
+                                                          default: return "I\'m not dead yet.";}
+                                                    }())]))]))
+                                            ,A2($Html.div,
+                                            _U.list([$Html$Attributes.$class("explanation")]),
+                                            _U.list([$Html.text("This log has been ")
+                                                    ,A2($Html.a,
+                                                    _U.list([$Html$Attributes.href("http://concourse.ci/configuring-jobs.html#build_logs_to_retain")]),
+                                                    _U.list([$Html.text("reaped.")]))]))]);
+                          } else {
+                             return _U.list([]);
+                          }
+                    }()))]));
          } else {
             return $LoadingIndicator.view;
          }
    });
    var BuildJobDetailsFetched = function (a) {    return {ctor: "BuildJobDetailsFetched",_0: a};};
    var fetchBuildJobDetails = function (build) {
-      var _p19 = build.job;
-      if (_p19.ctor === "Nothing") {
+      var _p22 = build.job;
+      if (_p22.ctor === "Nothing") {
             return $Effects.none;
          } else {
-            return $Effects.task(A2($Task.map,BuildJobDetailsFetched,$Task.toResult($Concourse$Job.fetchJob(_p19._0))));
+            return $Effects.task(A2($Task.map,BuildJobDetailsFetched,$Task.toResult($Concourse$Job.fetchJob(_p22._0))));
          }
    };
    var BuildHistoryFetched = function (a) {    return {ctor: "BuildHistoryFetched",_0: a};};
@@ -14137,22 +14172,22 @@ Elm.Build.make = function (_elm) {
    });
    var handleHistoryFetched = F2(function (history,model) {
       var loadedCurrentBuild = A2($List.any,
-      function (_p20) {
-         return A2(F2(function (x,y) {    return _U.eq(x,y);}),model.buildId,function (_) {    return _.id;}(_p20));
+      function (_p23) {
+         return A2(F2(function (x,y) {    return _U.eq(x,y);}),model.buildId,function (_) {    return _.id;}(_p23));
       },
       history.content);
       var scrollToCurrent = loadedCurrentBuild ? $Effects.tick($Basics.always(RevealCurrentBuildInHistory)) : $Effects.none;
       var withBuilds = _U.update(model,{history: A2($List.append,model.history,history.content)});
-      var _p21 = {ctor: "_Tuple2",_0: history.pagination.nextPage,_1: A2($Maybe.andThen,model.build,function (_) {    return _.job;})};
-      if (_p21._0.ctor === "Nothing") {
+      var _p24 = {ctor: "_Tuple2",_0: history.pagination.nextPage,_1: A2($Maybe.andThen,model.build,function (_) {    return _.job;})};
+      if (_p24._0.ctor === "Nothing") {
             return {ctor: "_Tuple2",_0: withBuilds,_1: scrollToCurrent};
          } else {
-            if (_p21._1.ctor === "Just") {
+            if (_p24._1.ctor === "Just") {
                   return {ctor: "_Tuple2"
                          ,_0: withBuilds
-                         ,_1: $Effects.batch(_U.list([A2(fetchBuildHistory,_p21._1._0,$Maybe.Just(_p21._0._0)),scrollToCurrent]))};
+                         ,_1: $Effects.batch(_U.list([A2(fetchBuildHistory,_p24._1._0,$Maybe.Just(_p24._0._0)),scrollToCurrent]))};
                } else {
-                  return _U.crashCase("Build",{start: {line: 246,column: 5},end: {line: 254,column: 33}},_p21)("impossible");
+                  return _U.crashCase("Build",{start: {line: 248,column: 5},end: {line: 256,column: 33}},_p24)("impossible");
                }
          }
    });
@@ -14185,37 +14220,37 @@ Elm.Build.make = function (_elm) {
    };
    var handleBuildFetched = F2(function (build,model) {
       var fetchJobDetails = function () {
-         var _p23 = model.job;
-         if (_p23.ctor === "Nothing") {
+         var _p26 = model.job;
+         if (_p26.ctor === "Nothing") {
                return fetchBuildJobDetails(build);
             } else {
                return $Effects.none;
             }
       }();
       var fetchHistory = function () {
-         var _p24 = {ctor: "_Tuple2",_0: model.build,_1: build.job};
-         if (_p24.ctor === "_Tuple2" && _p24._0.ctor === "Nothing" && _p24._1.ctor === "Just") {
-               return A2(fetchBuildHistory,_p24._1._0,$Maybe.Nothing);
+         var _p27 = {ctor: "_Tuple2",_0: model.build,_1: build.job};
+         if (_p27.ctor === "_Tuple2" && _p27._0.ctor === "Nothing" && _p27._1.ctor === "Just") {
+               return A2(fetchBuildHistory,_p27._1._0,$Maybe.Nothing);
             } else {
                return $Effects.none;
             }
       }();
       var withBuild = _U.update(model,{build: $Maybe.Just(build),status: build.status,duration: build.duration});
-      var _p25 = function () {
-         if (_U.eq(build.status,$Concourse$BuildStatus.Pending)) return pollUntilStarted(withBuild); else {
-               var _p26 = model.buildPrep;
-               if (_p26.ctor === "Nothing") {
-                     return A2(initBuildOutput,build,withBuild);
-                  } else {
-                     var _p27 = A2(initBuildOutput,build,withBuild);
-                     var newModel = _p27._0;
-                     var effects = _p27._1;
-                     return {ctor: "_Tuple2",_0: newModel,_1: $Effects.batch(_U.list([effects,A2(fetchBuildPrep,$Time.second,model.buildId)]))};
-                  }
-            }
+      var _p28 = function () {
+         if (_U.eq(build.status,$Concourse$BuildStatus.Pending)) return pollUntilStarted(withBuild); else if (_U.eq(build.reapTime,$Maybe.Nothing)) {
+                  var _p29 = model.buildPrep;
+                  if (_p29.ctor === "Nothing") {
+                        return A2(initBuildOutput,build,withBuild);
+                     } else {
+                        var _p30 = A2(initBuildOutput,build,withBuild);
+                        var newModel = _p30._0;
+                        var effects = _p30._1;
+                        return {ctor: "_Tuple2",_0: newModel,_1: $Effects.batch(_U.list([effects,A2(fetchBuildPrep,$Time.second,model.buildId)]))};
+                     }
+               } else return {ctor: "_Tuple2",_0: withBuild,_1: $Effects.none};
       }();
-      var newModel = _p25._0;
-      var effects = _p25._1;
+      var newModel = _p28._0;
+      var effects = _p28._1;
       return {ctor: "_Tuple2",_0: newModel,_1: $Effects.batch(_U.list([effects,fetchHistory,fetchJobDetails]))};
    });
    var Noop = {ctor: "Noop"};
@@ -14223,71 +14258,71 @@ Elm.Build.make = function (_elm) {
    var scrollToCurrentBuildInHistory = $Effects.task(A2($Task.map,$Basics.always(Noop),$Scroll.scrollIntoView("#builds .current")));
    var redirectToLogin = function (model) {    return $Effects.task(A2($Task.map,$Basics.always(Noop),A2($Signal.send,model.redirect,"/login")));};
    var update = F2(function (action,model) {
-      var _p28 = action;
-      switch (_p28.ctor)
+      var _p31 = action;
+      switch (_p31.ctor)
       {case "Noop": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          case "AbortBuild": return {ctor: "_Tuple2",_0: model,_1: abortBuild(model.buildId)};
-         case "BuildAborted": if (_p28._0.ctor === "Ok") {
+         case "BuildAborted": if (_p31._0.ctor === "Ok") {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
               } else {
-                 if (_p28._0._0.ctor === "BadResponse" && _p28._0._0._0 === 401) {
+                 if (_p31._0._0.ctor === "BadResponse" && _p31._0._0._0 === 401) {
                        return {ctor: "_Tuple2",_0: model,_1: redirectToLogin(model)};
                     } else {
                        return A2($Debug.log,
-                       A2($Basics._op["++"],"failed to abort build: ",$Basics.toString(_p28._0._0)),
+                       A2($Basics._op["++"],"failed to abort build: ",$Basics.toString(_p31._0._0)),
                        {ctor: "_Tuple2",_0: model,_1: $Effects.none});
                     }
               }
-         case "BuildFetched": if (_p28._0.ctor === "Ok") {
-                 return A2(handleBuildFetched,_p28._0._0,model);
+         case "BuildFetched": if (_p31._0.ctor === "Ok") {
+                 return A2(handleBuildFetched,_p31._0._0,model);
               } else {
                  return A2($Debug.log,
-                 A2($Basics._op["++"],"failed to fetch build: ",$Basics.toString(_p28._0._0)),
+                 A2($Basics._op["++"],"failed to fetch build: ",$Basics.toString(_p31._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
-         case "BuildPrepFetched": if (_p28._0.ctor === "Ok") {
-                 return A2(handleBuildPrepFetched,_p28._0._0,model);
+         case "BuildPrepFetched": if (_p31._0.ctor === "Ok") {
+                 return A2(handleBuildPrepFetched,_p31._0._0,model);
               } else {
                  return A2($Debug.log,
-                 A2($Basics._op["++"],"failed to fetch build preparation: ",$Basics.toString(_p28._0._0)),
+                 A2($Basics._op["++"],"failed to fetch build preparation: ",$Basics.toString(_p31._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
-         case "BuildOutputAction": var _p29 = model.output;
-           if (_p29.ctor === "Just") {
-                 var _p30 = A2($BuildOutput.update,_p28._0,_p29._0);
-                 var newOutput = _p30._0;
-                 var effects = _p30._1;
+         case "BuildOutputAction": var _p32 = model.output;
+           if (_p32.ctor === "Just") {
+                 var _p33 = A2($BuildOutput.update,_p31._0,_p32._0);
+                 var newOutput = _p33._0;
+                 var effects = _p33._1;
                  return {ctor: "_Tuple2",_0: _U.update(model,{output: $Maybe.Just(newOutput)}),_1: A2($Effects.map,BuildOutputAction,effects)};
               } else {
                  return _U.crashCase("Build",
-                 {start: {line: 116,column: 7},end: {line: 124,column: 77}},
-                 _p29)("impossible (received action for missing BuildOutput)");
+                 {start: {line: 117,column: 7},end: {line: 125,column: 77}},
+                 _p32)("impossible (received action for missing BuildOutput)");
               }
-         case "BuildStatus": var _p32 = _p28._0;
+         case "BuildStatus": var _p35 = _p31._0;
            return {ctor: "_Tuple2"
-                  ,_0: A3(updateStartFinishAt,_p32,_p28._1,$Concourse$BuildStatus.isRunning(model.status) ? _U.update(model,{status: _p32}) : model)
+                  ,_0: A3(updateStartFinishAt,_p35,_p31._1,$Concourse$BuildStatus.isRunning(model.status) ? _U.update(model,{status: _p35}) : model)
                   ,_1: $Effects.none};
-         case "BuildHistoryFetched": if (_p28._0.ctor === "Err") {
+         case "BuildHistoryFetched": if (_p31._0.ctor === "Err") {
                  return A2($Debug.log,
-                 A2($Basics._op["++"],"failed to fetch build history: ",$Basics.toString(_p28._0._0)),
+                 A2($Basics._op["++"],"failed to fetch build history: ",$Basics.toString(_p31._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               } else {
-                 return A2(handleHistoryFetched,_p28._0._0,model);
+                 return A2(handleHistoryFetched,_p31._0._0,model);
               }
-         case "BuildJobDetailsFetched": if (_p28._0.ctor === "Ok") {
-                 return A2(handleBuildJobFetched,_p28._0._0,model);
+         case "BuildJobDetailsFetched": if (_p31._0.ctor === "Ok") {
+                 return A2(handleBuildJobFetched,_p31._0._0,model);
               } else {
                  return A2($Debug.log,
-                 A2($Basics._op["++"],"failed to fetch build job details: ",$Basics.toString(_p28._0._0)),
+                 A2($Basics._op["++"],"failed to fetch build job details: ",$Basics.toString(_p31._0._0)),
                  {ctor: "_Tuple2",_0: model,_1: $Effects.none});
               }
          case "RevealCurrentBuildInHistory": return {ctor: "_Tuple2",_0: model,_1: scrollToCurrentBuildInHistory};
-         case "ScrollBuilds": if (_p28._0._0 === 0) {
-                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(_p28._0._1)};
+         case "ScrollBuilds": if (_p31._0._0 === 0) {
+                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(_p31._0._1)};
               } else {
-                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(0 - _p28._0._0)};
+                 return {ctor: "_Tuple2",_0: model,_1: scrollBuilds(0 - _p31._0._0)};
               }
-         default: return {ctor: "_Tuple2",_0: _U.update(model,{now: _p28._0}),_1: $Effects.none};}
+         default: return {ctor: "_Tuple2",_0: _U.update(model,{now: _p31._0}),_1: $Effects.none};}
    });
    var LoginRequired = {ctor: "LoginRequired"};
    var StepsComplete = {ctor: "StepsComplete"};
@@ -14345,6 +14380,7 @@ Elm.Build.make = function (_elm) {
                               ,updateStartFinishAt: updateStartFinishAt
                               ,abortBuild: abortBuild
                               ,view: view
+                              ,mmDDYY: mmDDYY
                               ,paddingClass: paddingClass
                               ,viewBuildOutput: viewBuildOutput
                               ,viewBuildPrep: viewBuildPrep
