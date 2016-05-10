@@ -186,10 +186,10 @@ var _ = Describe("APIAuthWrappa", func() {
 
 					atc.ListAuthMethods: unauthed(inputHandlers[atc.ListAuthMethods]),
 					atc.GetInfo:         unauthed(inputHandlers[atc.GetInfo]),
+					atc.DownloadCLI:     unauthed(inputHandlers[atc.DownloadCLI]),
 
 					atc.BuildEvents:                   authed(inputHandlers[atc.BuildEvents]),
 					atc.BuildResources:                authed(inputHandlers[atc.BuildResources]),
-					atc.DownloadCLI:                   authed(inputHandlers[atc.DownloadCLI]),
 					atc.GetBuild:                      authed(inputHandlers[atc.GetBuild]),
 					atc.GetBuildPreparation:           authed(inputHandlers[atc.GetBuildPreparation]),
 					atc.GetJob:                        authed(inputHandlers[atc.GetJob]),
