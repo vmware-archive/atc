@@ -10980,35 +10980,37 @@ Elm.Date.Format.make = function (_elm) {
          case "Nov": return 11;
          default: return 12;}
    };
-   var collapse = function (m) {    return A2($Maybe.andThen,m,$Basics.identity);};
    var formatToken = F2(function (d,m) {
-      var symbol = A2($Maybe.withDefault," ",collapse(A2($Maybe.andThen,$List.tail(m.submatches),$List.head)));
-      var prefix = A2($Maybe.withDefault," ",collapse($List.head(m.submatches)));
-      return A2($Basics._op["++"],
-      prefix,
-      function () {
-         var _p4 = symbol;
-         switch (_p4)
-         {case "Y": return $Basics.toString($Date.year(d));
-            case "m": return A3($String.padLeft,2,_U.chr("0"),$Basics.toString(monthToInt($Date.month(d))));
-            case "B": return monthToFullName($Date.month(d));
-            case "b": return $Basics.toString($Date.month(d));
-            case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
-            case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
-            case "a": return $Basics.toString($Date.dayOfWeek(d));
-            case "A": return fullDayOfWeek($Date.dayOfWeek(d));
-            case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
-            case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
-            case "I": return A2(padWith,_U.chr("0"),zero2twelve(mod12($Date.hour(d))));
-            case "l": return A2(padWith,_U.chr(" "),zero2twelve(mod12($Date.hour(d))));
-            case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
-            case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
-            case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
-            case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
-            default: return "";}
-      }());
+      var symbol = function () {
+         var _p4 = m.submatches;
+         if (_p4.ctor === "::" && _p4._0.ctor === "Just" && _p4._1.ctor === "[]") {
+               return _p4._0._0;
+            } else {
+               return " ";
+            }
+      }();
+      var _p5 = symbol;
+      switch (_p5)
+      {case "%": return "%";
+         case "Y": return $Basics.toString($Date.year(d));
+         case "m": return A3($String.padLeft,2,_U.chr("0"),$Basics.toString(monthToInt($Date.month(d))));
+         case "B": return monthToFullName($Date.month(d));
+         case "b": return $Basics.toString($Date.month(d));
+         case "d": return A2(padWith,_U.chr("0"),$Date.day(d));
+         case "e": return A2(padWith,_U.chr(" "),$Date.day(d));
+         case "a": return $Basics.toString($Date.dayOfWeek(d));
+         case "A": return fullDayOfWeek($Date.dayOfWeek(d));
+         case "H": return A2(padWith,_U.chr("0"),$Date.hour(d));
+         case "k": return A2(padWith,_U.chr(" "),$Date.hour(d));
+         case "I": return A2(padWith,_U.chr("0"),zero2twelve(mod12($Date.hour(d))));
+         case "l": return A2(padWith,_U.chr(" "),zero2twelve(mod12($Date.hour(d))));
+         case "p": return _U.cmp($Date.hour(d),13) < 0 ? "AM" : "PM";
+         case "P": return _U.cmp($Date.hour(d),13) < 0 ? "am" : "pm";
+         case "M": return A2(padWith,_U.chr("0"),$Date.minute(d));
+         case "S": return A2(padWith,_U.chr("0"),$Date.second(d));
+         default: return "";}
    });
-   var re = $Regex.regex("(^|[^%])%(Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
+   var re = $Regex.regex("%(%|Y|m|B|b|d|e|a|A|H|k|I|l|p|P|M|S)");
    var format = F2(function (s,d) {    return A4($Regex.replace,$Regex.All,re,formatToken(d),s);});
    var formatISO8601 = format("%Y-%m-%dT%H:%M:%SZ");
    return _elm.Date.Format.values = {_op: _op,format: format,formatISO8601: formatISO8601};
@@ -11736,6 +11738,7 @@ Elm.Ansi.make = function (_elm) {
    var CarriageReturn = {ctor: "CarriageReturn"};
    var Linebreak = {ctor: "Linebreak"};
    var SetInverted = function (a) {    return {ctor: "SetInverted",_0: a};};
+   var SetBlink = function (a) {    return {ctor: "SetBlink",_0: a};};
    var SetUnderline = function (a) {    return {ctor: "SetUnderline",_0: a};};
    var SetItalic = function (a) {    return {ctor: "SetItalic",_0: a};};
    var SetFaint = function (a) {    return {ctor: "SetFaint",_0: a};};
@@ -11748,6 +11751,7 @@ Elm.Ansi.make = function (_elm) {
                        ,SetFaint(false)
                        ,SetItalic(false)
                        ,SetUnderline(false)
+                       ,SetBlink(false)
                        ,SetInverted(false)]);
    var codeActions = function (code) {
       var _p6 = code;
@@ -11757,6 +11761,7 @@ Elm.Ansi.make = function (_elm) {
          case 2: return _U.list([SetFaint(true)]);
          case 3: return _U.list([SetItalic(true)]);
          case 4: return _U.list([SetUnderline(true)]);
+         case 5: return _U.list([SetBlink(true)]);
          case 7: return _U.list([SetInverted(true)]);
          case 30: return _U.list([SetForeground($Maybe.Just(Black))]);
          case 31: return _U.list([SetForeground($Maybe.Just(Red))]);
@@ -11898,6 +11903,7 @@ Elm.Ansi.make = function (_elm) {
                              ,SetFaint: SetFaint
                              ,SetItalic: SetItalic
                              ,SetUnderline: SetUnderline
+                             ,SetBlink: SetBlink
                              ,SetInverted: SetInverted
                              ,Linebreak: Linebreak
                              ,CarriageReturn: CarriageReturn
@@ -11963,13 +11969,17 @@ Elm.Ansi.Log.make = function (_elm) {
          }
    });
    var styleAttributes = function (style) {
-      return _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-weight",_1: style.bold ? "bold" : "normal"}]))
+      return _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-weight",_1: style.bold ? "bold" : "normal"}
+                                                     ,{ctor: "_Tuple2",_0: "text-decoration",_1: style.underline ? "underline" : "none"}
+                                                     ,{ctor: "_Tuple2",_0: "font-style",_1: style.italic ? "italic" : "normal"}]))
                      ,function () {
+                        var ansiClasses = _U.list([{ctor: "_Tuple2",_0: "ansi-blink",_1: style.blink},{ctor: "_Tuple2",_0: "ansi-faint",_1: style.faint}]);
                         var bgClasses = A3(colorClasses,"-bg",style.bold,$Basics.not(style.inverted) ? style.background : style.foreground);
                         var fgClasses = A3(colorClasses,"-fg",style.bold,$Basics.not(style.inverted) ? style.foreground : style.background);
-                        return $Html$Attributes.classList(A2($List.map,
+                        var fgbgClasses = A2($List.map,
                         A2($Basics.flip,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),true),
-                        A2($Basics._op["++"],fgClasses,bgClasses)));
+                        A2($Basics._op["++"],fgClasses,bgClasses));
+                        return $Html$Attributes.classList(A2($Basics._op["++"],fgbgClasses,ansiClasses));
                      }()]);
    };
    var viewChunk = function (chunk) {    return A2($Html.span,styleAttributes(chunk.style),_U.list([$Html.text(chunk.text)]));};
@@ -12053,6 +12063,7 @@ Elm.Ansi.Log.make = function (_elm) {
          case "SetFaint": return _U.update(style,{faint: _p14._0});
          case "SetItalic": return _U.update(style,{italic: _p14._0});
          case "SetUnderline": return _U.update(style,{underline: _p14._0});
+         case "SetBlink": return _U.update(style,{blink: _p14._0});
          default: return style;}
    });
    var appendLine = F3(function (after,line,lines) {
@@ -12075,13 +12086,20 @@ Elm.Ansi.Log.make = function (_elm) {
              ,lines: $Array.empty
              ,position: {row: 0,column: 0}
              ,savedPosition: $Maybe.Nothing
-             ,style: {foreground: $Maybe.Nothing,background: $Maybe.Nothing,bold: false,faint: false,italic: false,underline: false,inverted: false}
+             ,style: {foreground: $Maybe.Nothing
+                     ,background: $Maybe.Nothing
+                     ,bold: false
+                     ,faint: false
+                     ,italic: false
+                     ,underline: false
+                     ,blink: false
+                     ,inverted: false}
              ,remainder: ""};
    };
    var Cooked = {ctor: "Cooked"};
    var Raw = {ctor: "Raw"};
    var CursorPosition = F2(function (a,b) {    return {row: a,column: b};});
-   var Style = F7(function (a,b,c,d,e,f,g) {    return {foreground: a,background: b,bold: c,faint: d,italic: e,underline: f,inverted: g};});
+   var Style = F8(function (a,b,c,d,e,f,g,h) {    return {foreground: a,background: b,bold: c,faint: d,italic: e,underline: f,blink: g,inverted: h};});
    var Chunk = F2(function (a,b) {    return {text: a,style: b};});
    var handleAction = F2(function (action,model) {
       handleAction: while (true) {
@@ -12391,10 +12409,14 @@ Elm.Concourse.Build.make = function (_elm) {
             return A2($Basics._op["++"],"/builds/",$Basics.toString(build.id));
          } else {
             return A2($Basics._op["++"],
+            "/teams/",
+            A2($Basics._op["++"],
+            _p2._0.teamName,
+            A2($Basics._op["++"],
             "/pipelines/",
             A2($Basics._op["++"],
             _p2._0.pipelineName,
-            A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],_p2._0.name,A2($Basics._op["++"],"/builds/",build.name)))));
+            A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],_p2._0.name,A2($Basics._op["++"],"/builds/",build.name)))))));
          }
    };
    var abort = function (buildId) {
@@ -12407,15 +12429,16 @@ Elm.Concourse.Build.make = function (_elm) {
       return A2($Task.andThen,A2($Task.mapError,promoteHttpError,post),handleResponse);
    };
    var BuildDuration = F2(function (a,b) {    return {startedAt: a,finishedAt: b};});
-   var BuildJob = F2(function (a,b) {    return {name: a,pipelineName: b};});
+   var BuildJob = F3(function (a,b,c) {    return {name: a,teamName: b,pipelineName: c};});
    var Build = F6(function (a,b,c,d,e,f) {    return {id: a,name: b,job: c,status: d,duration: e,reapTime: f};});
    var decode = A7($Json$Decode.object6,
    Build,
    A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
    A2($Json$Decode._op[":="],"name",$Json$Decode.string),
-   $Json$Decode.maybe(A3($Json$Decode.object2,
+   $Json$Decode.maybe(A4($Json$Decode.object3,
    BuildJob,
    A2($Json$Decode._op[":="],"job_name",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"team_name",$Json$Decode.string),
    A2($Json$Decode._op[":="],"pipeline_name",$Json$Decode.string))),
    A2($Json$Decode._op[":="],"status",$Concourse$BuildStatus.decode),
    A3($Json$Decode.object2,
@@ -12426,8 +12449,10 @@ Elm.Concourse.Build.make = function (_elm) {
    var fetch = function (buildId) {    return A2($Http.get,decode,A2($Basics._op["++"],"/api/v1/builds/",$Basics.toString(buildId)));};
    var fetchJobBuilds = F2(function (job,page) {
       var url = A2($Basics._op["++"],
-      "/api/v1/pipelines/",
-      A2($Basics._op["++"],job.pipelineName,A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],job.name,"/builds"))));
+      "/api/v1/teams/",
+      A2($Basics._op["++"],
+      job.teamName,
+      A2($Basics._op["++"],"/pipelines/",A2($Basics._op["++"],job.pipelineName,A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],job.name,"/builds"))))));
       return A3($Concourse$Pagination.fetch,decode,url,page);
    });
    return _elm.Concourse.Build.values = {_op: _op
@@ -13834,15 +13859,20 @@ Elm.Concourse.Job.make = function (_elm) {
       {verb: "PUT"
       ,headers: _U.list([])
       ,url: A2($Basics._op["++"],
-      "/api/v1/pipelines/",
-      A2($Basics._op["++"],jobInfo.pipelineName,A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],jobInfo.name,A2($Basics._op["++"],"/",action)))))
+      "/api/v1/teams/",
+      A2($Basics._op["++"],
+      jobInfo.teamName,
+      A2($Basics._op["++"],
+      "/pipelines/",
+      A2($Basics._op["++"],jobInfo.pipelineName,A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],jobInfo.name,A2($Basics._op["++"],"/",action)))))))
       ,body: $Http.empty});
       return A2($Task.andThen,A2($Task.mapError,promoteHttpError,put),handleResponse);
    });
    var unpause = function (jobInfo) {    return A2(pauseUnpause,false,jobInfo);};
    var pause = function (jobInfo) {    return A2(pauseUnpause,true,jobInfo);};
-   var init = F5(function (pipelineName,name,finishedBuild,maybePaused,maybeDisableManualTrigger) {
+   var init = F6(function (teamName,pipelineName,name,finishedBuild,maybePaused,maybeDisableManualTrigger) {
       return {name: name
+             ,teamName: teamName
              ,pipelineName: pipelineName
              ,finishedBuild: finishedBuild
              ,paused: function () {
@@ -13862,20 +13892,22 @@ Elm.Concourse.Job.make = function (_elm) {
                    }
              }()};
    });
-   var decode = function (pipelineName) {
+   var decode = F2(function (teamName,pipelineName) {
       return A5($Json$Decode.object4,
-      init(pipelineName),
+      A2(init,teamName,pipelineName),
       A2($Json$Decode._op[":="],"name",$Json$Decode.string),
       $Json$Decode.maybe(A2($Json$Decode._op[":="],"finished_build",$Concourse$Build.decode)),
       $Json$Decode.maybe(A2($Json$Decode._op[":="],"paused",$Json$Decode.bool)),
       $Json$Decode.maybe(A2($Json$Decode._op[":="],"disable_manual_trigger",$Json$Decode.bool)));
-   };
+   });
    var fetchJob = function (job) {
       return A2($Http.get,
-      decode(job.pipelineName),
-      A2($Basics._op["++"],"/api/v1/pipelines/",A2($Basics._op["++"],job.pipelineName,A2($Basics._op["++"],"/jobs/",job.name))));
+      A2(decode,job.teamName,job.pipelineName),
+      A2($Basics._op["++"],
+      "/api/v1/teams/",
+      A2($Basics._op["++"],job.teamName,A2($Basics._op["++"],"/pipelines/",A2($Basics._op["++"],job.pipelineName,A2($Basics._op["++"],"/jobs/",job.name))))));
    };
-   var Job = F5(function (a,b,c,d,e) {    return {name: a,pipelineName: b,finishedBuild: c,paused: d,disableManualTrigger: e};});
+   var Job = F6(function (a,b,c,d,e,f) {    return {name: a,pipelineName: b,teamName: c,finishedBuild: d,paused: e,disableManualTrigger: f};});
    return _elm.Concourse.Job.values = {_op: _op
                                       ,Job: Job
                                       ,fetchJob: fetchJob
@@ -14047,8 +14079,10 @@ Elm.Build.make = function (_elm) {
                var _p13 = _p12._0.name;
                return A2($Html.a,
                _U.list([$Html$Attributes.href(A2($Basics._op["++"],
-               "/pipelines/",
-               A2($Basics._op["++"],_p12._0.pipelineName,A2($Basics._op["++"],"/jobs/",_p13))))]),
+               "/teams/",
+               A2($Basics._op["++"],
+               _p12._0.teamName,
+               A2($Basics._op["++"],"/pipelines/",A2($Basics._op["++"],_p12._0.pipelineName,A2($Basics._op["++"],"/jobs/",_p13))))))]),
                _U.list([$Html.text(A2($Basics._op["++"],_p13,A2($Basics._op["++"]," #",build.name)))]));
             } else {
                return $Html.text(A2($Basics._op["++"],"build #",$Basics.toString(build.id)));
@@ -14071,8 +14105,12 @@ Elm.Build.make = function (_elm) {
                      }
                }();
                var actionUrl = A2($Basics._op["++"],
+               "/teams/",
+               A2($Basics._op["++"],
+               _p14._0.teamName,
+               A2($Basics._op["++"],
                "/pipelines/",
-               A2($Basics._op["++"],_p14._0.pipelineName,A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],_p14._0.name,"/builds"))));
+               A2($Basics._op["++"],_p14._0.pipelineName,A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],_p14._0.name,"/builds"))))));
                return A2($Html.form,
                _U.list([$Html$Attributes.$class("trigger-build"),$Html$Attributes.method("post"),$Html$Attributes.action(actionUrl)]),
                _U.list([A2($Html.button,
@@ -14504,10 +14542,14 @@ Elm.Job.make = function (_elm) {
                        _U.list([A2($Html.a,
                        _U.list([$Html$Attributes.$class("arrow")
                                ,$Html$Attributes.href(A2($Basics._op["++"],
+                               "/teams/",
+                               A2($Basics._op["++"],
+                               model.jobInfo.teamName,
+                               A2($Basics._op["++"],
                                "/pipelines/",
                                A2($Basics._op["++"],
                                model.jobInfo.pipelineName,
-                               A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],model.jobInfo.name,A2($Basics._op["++"],"?",paginationParam(_p3._0)))))))
+                               A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],model.jobInfo.name,A2($Basics._op["++"],"?",paginationParam(_p3._0)))))))))
                                ,A2($Html$Attributes.attribute,"aria-label","Previous Page")]),
                        _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-arrow-left")]),_U.list([]))]))]));
                     }
@@ -14526,10 +14568,14 @@ Elm.Job.make = function (_elm) {
                        _U.list([A2($Html.a,
                        _U.list([$Html$Attributes.$class("arrow")
                                ,$Html$Attributes.href(A2($Basics._op["++"],
+                               "/teams/",
+                               A2($Basics._op["++"],
+                               model.jobInfo.teamName,
+                               A2($Basics._op["++"],
                                "/pipelines/",
                                A2($Basics._op["++"],
                                model.jobInfo.pipelineName,
-                               A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],model.jobInfo.name,A2($Basics._op["++"],"?",paginationParam(_p4._0)))))))
+                               A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],model.jobInfo.name,A2($Basics._op["++"],"?",paginationParam(_p4._0)))))))))
                                ,A2($Html$Attributes.attribute,"aria-label","Next Page")]),
                        _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-arrow-right")]),_U.list([]))]))]));
                     }
@@ -14656,10 +14702,14 @@ Elm.Job.make = function (_elm) {
                                _U.list([$Html$Attributes.$class("trigger-build")
                                        ,$Html$Attributes.method("post")
                                        ,$Html$Attributes.action(A2($Basics._op["++"],
+                                       "/teams/",
+                                       A2($Basics._op["++"],
+                                       model.jobInfo.teamName,
+                                       A2($Basics._op["++"],
                                        "/pipelines/",
                                        A2($Basics._op["++"],
                                        model.jobInfo.pipelineName,
-                                       A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],model.jobInfo.name,"/builds")))))]),
+                                       A2($Basics._op["++"],"/jobs/",A2($Basics._op["++"],model.jobInfo.name,"/builds")))))))]),
                                _U.list([A2($Html.button,
                                _U.list([$Html$Attributes.$class("build-action fr")
                                        ,$Html$Attributes.disabled(_p12.disableManualTrigger)
@@ -14701,9 +14751,9 @@ Elm.Job.make = function (_elm) {
       JobBuildsFetched,
       $Task.toResult(A2($Task.andThen,$Task.sleep(delay),$Basics.always(A2($Concourse$Build.fetchJobBuilds,jobInfo,page))))));
    });
-   var init = F5(function (redirect,jobName,pipelineName,pageSince,pageUntil) {
+   var init = F6(function (redirect,jobName,teamName,pipelineName,pageSince,pageUntil) {
       var model = {redirect: redirect
-                  ,jobInfo: {name: jobName,pipelineName: pipelineName}
+                  ,jobInfo: {name: jobName,teamName: teamName,pipelineName: pipelineName}
                   ,job: $Maybe.Nothing
                   ,pausedChanging: false
                   ,buildsWithResources: $Maybe.Nothing
@@ -14941,12 +14991,17 @@ Elm.JobPage.make = function (_elm) {
    function (v) {
       return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",v);
    });
+   var teamName = Elm.Native.Port.make(_elm).inbound("teamName",
+   "String",
+   function (v) {
+      return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",v);
+   });
    var jobName = Elm.Native.Port.make(_elm).inbound("jobName",
    "String",
    function (v) {
       return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",v);
    });
-   var app = $StartApp.start({init: A5($Job.init,redirects.address,jobName,pipelineName,pageSince,pageUntil)
+   var app = $StartApp.start({init: A6($Job.init,redirects.address,jobName,teamName,pipelineName,pageSince,pageUntil)
                              ,update: $Job.update
                              ,view: $Job.view
                              ,inputs: _U.list([])
