@@ -66,6 +66,7 @@ func NewHandler(
 	scannerFactory resourceserver.ScannerFactory,
 
 	sink *lager.ReconfigurableSink,
+	disableHijack bool,
 
 	cliDownloadsDir string,
 	version string,
@@ -112,7 +113,7 @@ func NewHandler(
 
 	cliServer := cliserver.NewServer(logger, absCLIDownloadsDir)
 
-	containerServer := containerserver.NewServer(logger, workerClient, containerDB)
+	containerServer := containerserver.NewServer(logger, workerClient, containerDB, disableHijack)
 
 	volumesServer := volumeserver.NewServer(logger, volumesDB)
 

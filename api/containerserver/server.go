@@ -12,6 +12,8 @@ type Server struct {
 	workerClient worker.Client
 
 	db ContainerDB
+
+	disableHijack bool
 }
 
 //go:generate counterfeiter . ContainerDB
@@ -25,10 +27,12 @@ func NewServer(
 	logger lager.Logger,
 	workerClient worker.Client,
 	db ContainerDB,
+	disableHijack bool,
 ) *Server {
 	return &Server{
-		logger:       logger,
-		workerClient: workerClient,
-		db:           db,
+		logger:        logger,
+		workerClient:  workerClient,
+		db:            db,
+		disableHijack: disableHijack,
 	}
 }
