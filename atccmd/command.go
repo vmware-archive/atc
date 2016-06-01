@@ -72,6 +72,8 @@ type ATCCommand struct {
 
 	PubliclyViewable bool `short:"p" long:"publicly-viewable" default:"false" description:"If true, anonymous users can view pipelines and public jobs."`
 
+	DisableHijack bool `long:"disable-intercept" default:"false" description:"If true, users can not intercept to containers."`
+
 	SessionSigningKey FileFlag `long:"session-signing-key" description:"File containing an RSA private key, used to sign session tokens."`
 
 	ResourceCheckingInterval     time.Duration `long:"resource-checking-interval" default:"1m" description:"Interval on which to check for new versions of resources."`
@@ -801,6 +803,7 @@ func (cmd *ATCCommand) constructAPIHandler(
 		radarScannerFactory,
 
 		reconfigurableSink,
+		cmd.DisableHijack,
 
 		cmd.CLIArtifactsDir.Path(),
 		Version,

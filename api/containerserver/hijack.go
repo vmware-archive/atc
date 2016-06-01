@@ -17,6 +17,11 @@ var upgrader = websocket.Upgrader{
 }
 
 func (s *Server) HijackContainer(w http.ResponseWriter, r *http.Request) {
+	if s.disableHijack {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	handle := r.FormValue(":id")
 
 	hLog := s.logger.Session("hijack", lager.Data{
