@@ -10565,539 +10565,6 @@ var _concourse$atc$Concourse_Build$fetchJobBuilds = F2(
 		return A3(_concourse$atc$Concourse_Pagination$fetch, _concourse$atc$Concourse_Build$decode, url, page);
 	});
 
-var _elm_lang$websocket$Native_WebSocket = function() {
-
-function open(url, settings)
-{
-	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
-	{
-		try
-		{
-			var socket = new WebSocket(url);
-		}
-		catch(err)
-		{
-			return callback(_elm_lang$core$Native_Scheduler.fail({
-				ctor: err.name === 'SecurityError' ? 'BadSecurity' : 'BadArgs',
-				_0: err.message
-			}));
-		}
-
-		socket.addEventListener("open", function(event) {
-			callback(_elm_lang$core$Native_Scheduler.succeed(socket));
-		});
-
-		socket.addEventListener("message", function(event) {
-			_elm_lang$core$Native_Scheduler.rawSpawn(A2(settings.onMessage, socket, event.data));
-		});
-
-		socket.addEventListener("close", function(event) {
-			_elm_lang$core$Native_Scheduler.rawSpawn(settings.onClose({
-				code: event.code,
-				reason: event.reason,
-				wasClean: event.wasClean
-			}));
-		});
-
-		return function()
-		{
-			if (socket && socket.close)
-			{
-				socket.close();
-			}
-		};
-	});
-}
-
-function send(socket, string)
-{
-	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
-	{
-		var result =
-			socket.readyState === WebSocket.OPEN
-				? _elm_lang$core$Maybe$Nothing
-				: _elm_lang$core$Maybe$Just({ ctor: 'NotOpen' });
-
-		try
-		{
-			socket.send(string);
-		}
-		catch(err)
-		{
-			result = _elm_lang$core$Maybe$Just({ ctor: 'BadString' });
-		}
-
-		callback(_elm_lang$core$Native_Scheduler.succeed(result));
-	});
-}
-
-function close(code, reason, socket)
-{
-	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
-		try
-		{
-			socket.close(code, reason);
-		}
-		catch(err)
-		{
-			return callback(_elm_lang$core$Native_Scheduler.fail(_elm_lang$core$Maybe$Just({
-				ctor: err.name === 'SyntaxError' ? 'BadReason' : 'BadCode'
-			})));
-		}
-		callback(_elm_lang$core$Native_Scheduler.succeed(_elm_lang$core$Maybe$Nothing));
-	});
-}
-
-function bytesQueued(socket)
-{
-	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
-		callback(_elm_lang$core$Native_Scheduler.succeed(socket.bufferedAmount));
-	});
-}
-
-return {
-	open: F2(open),
-	send: F2(send),
-	close: F3(close),
-	bytesQueued: bytesQueued
-};
-
-}();
-
-var _elm_lang$websocket$WebSocket_LowLevel$bytesQueued = _elm_lang$websocket$Native_WebSocket.bytesQueued;
-var _elm_lang$websocket$WebSocket_LowLevel$send = _elm_lang$websocket$Native_WebSocket.send;
-var _elm_lang$websocket$WebSocket_LowLevel$closeWith = _elm_lang$websocket$Native_WebSocket.close;
-var _elm_lang$websocket$WebSocket_LowLevel$close = function (socket) {
-	return A2(
-		_elm_lang$core$Task$map,
-		_elm_lang$core$Basics$always(
-			{ctor: '_Tuple0'}),
-		A3(_elm_lang$websocket$WebSocket_LowLevel$closeWith, 1000, '', socket));
-};
-var _elm_lang$websocket$WebSocket_LowLevel$open = _elm_lang$websocket$Native_WebSocket.open;
-var _elm_lang$websocket$WebSocket_LowLevel$Settings = F2(
-	function (a, b) {
-		return {onMessage: a, onClose: b};
-	});
-var _elm_lang$websocket$WebSocket_LowLevel$WebSocket = {ctor: 'WebSocket'};
-var _elm_lang$websocket$WebSocket_LowLevel$BadArgs = {ctor: 'BadArgs'};
-var _elm_lang$websocket$WebSocket_LowLevel$BadSecurity = {ctor: 'BadSecurity'};
-var _elm_lang$websocket$WebSocket_LowLevel$BadReason = {ctor: 'BadReason'};
-var _elm_lang$websocket$WebSocket_LowLevel$BadCode = {ctor: 'BadCode'};
-var _elm_lang$websocket$WebSocket_LowLevel$BadString = {ctor: 'BadString'};
-var _elm_lang$websocket$WebSocket_LowLevel$NotOpen = {ctor: 'NotOpen'};
-
-var _elm_lang$websocket$WebSocket$closeConnection = function (connection) {
-	var _p0 = connection;
-	if (_p0.ctor === 'Opening') {
-		return _elm_lang$core$Process$kill(_p0._1);
-	} else {
-		return _elm_lang$websocket$WebSocket_LowLevel$close(_p0._0);
-	}
-};
-var _elm_lang$websocket$WebSocket$after = function (backoff) {
-	return (_elm_lang$core$Native_Utils.cmp(backoff, 1) < 0) ? _elm_lang$core$Task$succeed(
-		{ctor: '_Tuple0'}) : _elm_lang$core$Process$sleep(
-		_elm_lang$core$Basics$toFloat(
-			10 * Math.pow(2, backoff)));
-};
-var _elm_lang$websocket$WebSocket$removeQueue = F2(
-	function (name, state) {
-		return _elm_lang$core$Native_Utils.update(
-			state,
-			{
-				queues: A2(_elm_lang$core$Dict$remove, name, state.queues)
-			});
-	});
-var _elm_lang$websocket$WebSocket$updateSocket = F3(
-	function (name, connection, state) {
-		return _elm_lang$core$Native_Utils.update(
-			state,
-			{
-				sockets: A3(_elm_lang$core$Dict$insert, name, connection, state.sockets)
-			});
-	});
-var _elm_lang$websocket$WebSocket$add = F2(
-	function (value, maybeList) {
-		var _p1 = maybeList;
-		if (_p1.ctor === 'Nothing') {
-			return _elm_lang$core$Maybe$Just(
-				_elm_lang$core$Native_List.fromArray(
-					[value]));
-		} else {
-			return _elm_lang$core$Maybe$Just(
-				A2(_elm_lang$core$List_ops['::'], value, _p1._0));
-		}
-	});
-var _elm_lang$websocket$WebSocket$buildSubDict = F2(
-	function (subs, dict) {
-		buildSubDict:
-		while (true) {
-			var _p2 = subs;
-			if (_p2.ctor === '[]') {
-				return dict;
-			} else {
-				if (_p2._0.ctor === 'Listen') {
-					var _v3 = _p2._1,
-						_v4 = A3(
-						_elm_lang$core$Dict$update,
-						_p2._0._0,
-						_elm_lang$websocket$WebSocket$add(_p2._0._1),
-						dict);
-					subs = _v3;
-					dict = _v4;
-					continue buildSubDict;
-				} else {
-					var _v5 = _p2._1,
-						_v6 = A3(
-						_elm_lang$core$Dict$update,
-						_p2._0._0,
-						function (_p3) {
-							return _elm_lang$core$Maybe$Just(
-								A2(
-									_elm_lang$core$Maybe$withDefault,
-									_elm_lang$core$Native_List.fromArray(
-										[]),
-									_p3));
-						},
-						dict);
-					subs = _v5;
-					dict = _v6;
-					continue buildSubDict;
-				}
-			}
-		}
-	});
-var _elm_lang$websocket$WebSocket_ops = _elm_lang$websocket$WebSocket_ops || {};
-_elm_lang$websocket$WebSocket_ops['&>'] = F2(
-	function (t1, t2) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			t1,
-			function (_p4) {
-				return t2;
-			});
-	});
-var _elm_lang$websocket$WebSocket$sendMessagesHelp = F3(
-	function (cmds, socketsDict, queuesDict) {
-		sendMessagesHelp:
-		while (true) {
-			var _p5 = cmds;
-			if (_p5.ctor === '[]') {
-				return _elm_lang$core$Task$succeed(queuesDict);
-			} else {
-				var _p9 = _p5._1;
-				var _p8 = _p5._0._0;
-				var _p7 = _p5._0._1;
-				var _p6 = A2(_elm_lang$core$Dict$get, _p8, socketsDict);
-				if ((_p6.ctor === 'Just') && (_p6._0.ctor === 'Connected')) {
-					return A2(
-						_elm_lang$websocket$WebSocket_ops['&>'],
-						A2(_elm_lang$websocket$WebSocket_LowLevel$send, _p6._0._0, _p7),
-						A3(_elm_lang$websocket$WebSocket$sendMessagesHelp, _p9, socketsDict, queuesDict));
-				} else {
-					var _v9 = _p9,
-						_v10 = socketsDict,
-						_v11 = A3(
-						_elm_lang$core$Dict$update,
-						_p8,
-						_elm_lang$websocket$WebSocket$add(_p7),
-						queuesDict);
-					cmds = _v9;
-					socketsDict = _v10;
-					queuesDict = _v11;
-					continue sendMessagesHelp;
-				}
-			}
-		}
-	});
-var _elm_lang$websocket$WebSocket$subscription = _elm_lang$core$Native_Platform.leaf('WebSocket');
-var _elm_lang$websocket$WebSocket$command = _elm_lang$core$Native_Platform.leaf('WebSocket');
-var _elm_lang$websocket$WebSocket$State = F3(
-	function (a, b, c) {
-		return {sockets: a, queues: b, subs: c};
-	});
-var _elm_lang$websocket$WebSocket$init = _elm_lang$core$Task$succeed(
-	A3(_elm_lang$websocket$WebSocket$State, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty));
-var _elm_lang$websocket$WebSocket$Send = F2(
-	function (a, b) {
-		return {ctor: 'Send', _0: a, _1: b};
-	});
-var _elm_lang$websocket$WebSocket$send = F2(
-	function (url, message) {
-		return _elm_lang$websocket$WebSocket$command(
-			A2(_elm_lang$websocket$WebSocket$Send, url, message));
-	});
-var _elm_lang$websocket$WebSocket$cmdMap = F2(
-	function (_p11, _p10) {
-		var _p12 = _p10;
-		return A2(_elm_lang$websocket$WebSocket$Send, _p12._0, _p12._1);
-	});
-var _elm_lang$websocket$WebSocket$KeepAlive = function (a) {
-	return {ctor: 'KeepAlive', _0: a};
-};
-var _elm_lang$websocket$WebSocket$keepAlive = function (url) {
-	return _elm_lang$websocket$WebSocket$subscription(
-		_elm_lang$websocket$WebSocket$KeepAlive(url));
-};
-var _elm_lang$websocket$WebSocket$Listen = F2(
-	function (a, b) {
-		return {ctor: 'Listen', _0: a, _1: b};
-	});
-var _elm_lang$websocket$WebSocket$listen = F2(
-	function (url, tagger) {
-		return _elm_lang$websocket$WebSocket$subscription(
-			A2(_elm_lang$websocket$WebSocket$Listen, url, tagger));
-	});
-var _elm_lang$websocket$WebSocket$subMap = F2(
-	function (func, sub) {
-		var _p13 = sub;
-		if (_p13.ctor === 'Listen') {
-			return A2(
-				_elm_lang$websocket$WebSocket$Listen,
-				_p13._0,
-				function (_p14) {
-					return func(
-						_p13._1(_p14));
-				});
-		} else {
-			return _elm_lang$websocket$WebSocket$KeepAlive(_p13._0);
-		}
-	});
-var _elm_lang$websocket$WebSocket$Connected = function (a) {
-	return {ctor: 'Connected', _0: a};
-};
-var _elm_lang$websocket$WebSocket$Opening = F2(
-	function (a, b) {
-		return {ctor: 'Opening', _0: a, _1: b};
-	});
-var _elm_lang$websocket$WebSocket$BadOpen = function (a) {
-	return {ctor: 'BadOpen', _0: a};
-};
-var _elm_lang$websocket$WebSocket$GoodOpen = F2(
-	function (a, b) {
-		return {ctor: 'GoodOpen', _0: a, _1: b};
-	});
-var _elm_lang$websocket$WebSocket$Die = function (a) {
-	return {ctor: 'Die', _0: a};
-};
-var _elm_lang$websocket$WebSocket$Receive = F2(
-	function (a, b) {
-		return {ctor: 'Receive', _0: a, _1: b};
-	});
-var _elm_lang$websocket$WebSocket$open = F2(
-	function (name, router) {
-		return A2(
-			_elm_lang$websocket$WebSocket_LowLevel$open,
-			name,
-			{
-				onMessage: F2(
-					function (_p15, msg) {
-						return A2(
-							_elm_lang$core$Platform$sendToSelf,
-							router,
-							A2(_elm_lang$websocket$WebSocket$Receive, name, msg));
-					}),
-				onClose: function (details) {
-					return A2(
-						_elm_lang$core$Platform$sendToSelf,
-						router,
-						_elm_lang$websocket$WebSocket$Die(name));
-				}
-			});
-	});
-var _elm_lang$websocket$WebSocket$attemptOpen = F3(
-	function (router, backoff, name) {
-		var badOpen = function (_p16) {
-			return A2(
-				_elm_lang$core$Platform$sendToSelf,
-				router,
-				_elm_lang$websocket$WebSocket$BadOpen(name));
-		};
-		var goodOpen = function (ws) {
-			return A2(
-				_elm_lang$core$Platform$sendToSelf,
-				router,
-				A2(_elm_lang$websocket$WebSocket$GoodOpen, name, ws));
-		};
-		var actuallyAttemptOpen = A2(
-			_elm_lang$core$Task$onError,
-			A2(
-				_elm_lang$core$Task$andThen,
-				A2(_elm_lang$websocket$WebSocket$open, name, router),
-				goodOpen),
-			badOpen);
-		return _elm_lang$core$Process$spawn(
-			A2(
-				_elm_lang$websocket$WebSocket_ops['&>'],
-				_elm_lang$websocket$WebSocket$after(backoff),
-				actuallyAttemptOpen));
-	});
-var _elm_lang$websocket$WebSocket$onEffects = F4(
-	function (router, cmds, subs, state) {
-		var newSubs = A2(_elm_lang$websocket$WebSocket$buildSubDict, subs, _elm_lang$core$Dict$empty);
-		var cleanup = function (newQueues) {
-			var rightStep = F3(
-				function (name, connection, getNewSockets) {
-					return A2(
-						_elm_lang$websocket$WebSocket_ops['&>'],
-						_elm_lang$websocket$WebSocket$closeConnection(connection),
-						getNewSockets);
-				});
-			var bothStep = F4(
-				function (name, _p17, connection, getNewSockets) {
-					return A2(
-						_elm_lang$core$Task$map,
-						A2(_elm_lang$core$Dict$insert, name, connection),
-						getNewSockets);
-				});
-			var leftStep = F3(
-				function (name, _p18, getNewSockets) {
-					return A2(
-						_elm_lang$core$Task$andThen,
-						getNewSockets,
-						function (newSockets) {
-							return A2(
-								_elm_lang$core$Task$andThen,
-								A3(_elm_lang$websocket$WebSocket$attemptOpen, router, 0, name),
-								function (pid) {
-									return _elm_lang$core$Task$succeed(
-										A3(
-											_elm_lang$core$Dict$insert,
-											name,
-											A2(_elm_lang$websocket$WebSocket$Opening, 0, pid),
-											newSockets));
-								});
-						});
-				});
-			var newEntries = A2(
-				_elm_lang$core$Dict$union,
-				newQueues,
-				A2(
-					_elm_lang$core$Dict$map,
-					F2(
-						function (k, v) {
-							return _elm_lang$core$Native_List.fromArray(
-								[]);
-						}),
-					newSubs));
-			return A2(
-				_elm_lang$core$Task$andThen,
-				A6(
-					_elm_lang$core$Dict$merge,
-					leftStep,
-					bothStep,
-					rightStep,
-					newEntries,
-					state.sockets,
-					_elm_lang$core$Task$succeed(_elm_lang$core$Dict$empty)),
-				function (newSockets) {
-					return _elm_lang$core$Task$succeed(
-						A3(_elm_lang$websocket$WebSocket$State, newSockets, newQueues, newSubs));
-				});
-		};
-		var sendMessagesGetNewQueues = A3(_elm_lang$websocket$WebSocket$sendMessagesHelp, cmds, state.sockets, state.queues);
-		return A2(_elm_lang$core$Task$andThen, sendMessagesGetNewQueues, cleanup);
-	});
-var _elm_lang$websocket$WebSocket$onSelfMsg = F3(
-	function (router, selfMsg, state) {
-		var _p19 = selfMsg;
-		switch (_p19.ctor) {
-			case 'Receive':
-				var sends = A2(
-					_elm_lang$core$List$map,
-					function (tagger) {
-						return A2(
-							_elm_lang$core$Platform$sendToApp,
-							router,
-							tagger(_p19._1));
-					},
-					A2(
-						_elm_lang$core$Maybe$withDefault,
-						_elm_lang$core$Native_List.fromArray(
-							[]),
-						A2(_elm_lang$core$Dict$get, _p19._0, state.subs)));
-				return A2(
-					_elm_lang$websocket$WebSocket_ops['&>'],
-					_elm_lang$core$Task$sequence(sends),
-					_elm_lang$core$Task$succeed(state));
-			case 'Die':
-				var _p21 = _p19._0;
-				var _p20 = A2(_elm_lang$core$Dict$get, _p21, state.sockets);
-				if (_p20.ctor === 'Nothing') {
-					return _elm_lang$core$Task$succeed(state);
-				} else {
-					return A2(
-						_elm_lang$core$Task$andThen,
-						A3(_elm_lang$websocket$WebSocket$attemptOpen, router, 0, _p21),
-						function (pid) {
-							return _elm_lang$core$Task$succeed(
-								A3(
-									_elm_lang$websocket$WebSocket$updateSocket,
-									_p21,
-									A2(_elm_lang$websocket$WebSocket$Opening, 0, pid),
-									state));
-						});
-				}
-			case 'GoodOpen':
-				var _p24 = _p19._1;
-				var _p23 = _p19._0;
-				var _p22 = A2(_elm_lang$core$Dict$get, _p23, state.queues);
-				if (_p22.ctor === 'Nothing') {
-					return _elm_lang$core$Task$succeed(
-						A3(
-							_elm_lang$websocket$WebSocket$updateSocket,
-							_p23,
-							_elm_lang$websocket$WebSocket$Connected(_p24),
-							state));
-				} else {
-					return A3(
-						_elm_lang$core$List$foldl,
-						F2(
-							function (msg, task) {
-								return A2(
-									_elm_lang$websocket$WebSocket_ops['&>'],
-									A2(_elm_lang$websocket$WebSocket_LowLevel$send, _p24, msg),
-									task);
-							}),
-						_elm_lang$core$Task$succeed(
-							A2(
-								_elm_lang$websocket$WebSocket$removeQueue,
-								_p23,
-								A3(
-									_elm_lang$websocket$WebSocket$updateSocket,
-									_p23,
-									_elm_lang$websocket$WebSocket$Connected(_p24),
-									state))),
-						_p22._0);
-				}
-			default:
-				var _p27 = _p19._0;
-				var _p25 = A2(_elm_lang$core$Dict$get, _p27, state.sockets);
-				if (_p25.ctor === 'Nothing') {
-					return _elm_lang$core$Task$succeed(state);
-				} else {
-					if (_p25._0.ctor === 'Opening') {
-						var _p26 = _p25._0._0;
-						return A2(
-							_elm_lang$core$Task$andThen,
-							A3(_elm_lang$websocket$WebSocket$attemptOpen, router, _p26 + 1, _p27),
-							function (pid) {
-								return _elm_lang$core$Task$succeed(
-									A3(
-										_elm_lang$websocket$WebSocket$updateSocket,
-										_p27,
-										A2(_elm_lang$websocket$WebSocket$Opening, _p26 + 1, pid),
-										state));
-							});
-					} else {
-						return _elm_lang$core$Task$succeed(state);
-					}
-				}
-		}
-	});
-_elm_lang$core$Native_Platform.effectManagers['WebSocket'] = {pkg: 'elm-lang/websocket', init: _elm_lang$websocket$WebSocket$init, onEffects: _elm_lang$websocket$WebSocket$onEffects, onSelfMsg: _elm_lang$websocket$WebSocket$onSelfMsg, tag: 'fx', cmdMap: _elm_lang$websocket$WebSocket$cmdMap, subMap: _elm_lang$websocket$WebSocket$subMap};
-
 var _concourse$atc$Concourse_Metadata$MetadataField = F2(
 	function (a, b) {
 		return {name: a, value: b};
@@ -11110,6 +10577,322 @@ var _concourse$atc$Concourse_Metadata$decodeMetadataField = A3(
 var _concourse$atc$Concourse_Metadata$decode = _elm_lang$core$Json_Decode$list(_concourse$atc$Concourse_Metadata$decodeMetadataField);
 
 var _concourse$atc$Concourse_Version$decode = _elm_lang$core$Json_Decode$dict(_elm_lang$core$Json_Decode$string);
+
+var _concourse$atc$Native_EventSource = function() {
+  function open(url, settings) {
+    return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
+      var source = new EventSource(url);
+
+      function dispatchEvent(event) {
+        var ev = {
+          data: event.data
+        }
+
+        if (event.type !== undefined) {
+          ev.name = _elm_lang$core$Maybe$Just(event.type);
+        } else {
+          ev.name = _elm_lang$core$Maybe$Nothing;
+        }
+
+        if (event.lastEventId !== undefined) {
+          ev.lastEventId = _elm_lang$core$Maybe$Just(event.lastEventId);
+        } else {
+          ev.lastEventId = _elm_lang$core$Maybe$Nothing;
+        }
+
+        _elm_lang$core$Native_Scheduler.rawSpawn(settings.onEvent(ev));
+      };
+
+      source.onmessage = function(event) {
+        dispatchEvent(event);
+      };
+
+      _elm_lang$core$Native_List.toArray(settings.events).forEach(function(eventType) {
+        source.addEventListener(eventType, function(event) {
+          dispatchEvent(event);
+        });
+      });
+
+      source.onopen = function(event) {
+        _elm_lang$core$Native_Scheduler.rawSpawn(settings.onOpen(source));
+      };
+
+      source.onerror = function(event) {
+        _elm_lang$core$Native_Scheduler.rawSpawn(settings.onError(_elm_lang$core$Native_Utils.Tuple0));
+      };
+    });
+  }
+
+  function close(source) {
+    return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
+      source.close();
+      callback(_elm_lang$core$Native_Scheduler.succeed(_elm_lang$core$Native_Utils.Tuple0));
+    });
+  }
+
+  return {
+    open: F2(open),
+    close: close
+  };
+}();
+
+var _concourse$atc$EventSource_LowLevel$close = _concourse$atc$Native_EventSource.close;
+var _concourse$atc$EventSource_LowLevel$open = _concourse$atc$Native_EventSource.open;
+var _concourse$atc$EventSource_LowLevel$Event = F3(
+	function (a, b, c) {
+		return {lastEventId: a, name: b, data: c};
+	});
+var _concourse$atc$EventSource_LowLevel$Settings = F4(
+	function (a, b, c, d) {
+		return {events: a, onEvent: b, onOpen: c, onError: d};
+	});
+var _concourse$atc$EventSource_LowLevel$EventSource = {ctor: 'EventSource'};
+
+var _concourse$atc$EventSource$broadcast = F3(
+	function (router, msg, subs) {
+		return A2(
+			_elm_lang$core$Task$map,
+			_elm_lang$core$Basics$always(
+				{ctor: '_Tuple0'}),
+			_elm_lang$core$Task$sequence(
+				A2(
+					_elm_lang$core$List$map,
+					function (_p0) {
+						var _p1 = _p0;
+						return A2(
+							_elm_lang$core$Platform$sendToApp,
+							router,
+							_p1._1(msg));
+					},
+					subs)));
+	});
+var _concourse$atc$EventSource$closeSource = F3(
+	function (key, source, rest) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			rest,
+			function (state) {
+				var _p2 = source.source;
+				if (_p2.ctor === 'Nothing') {
+					return _elm_lang$core$Task$succeed(
+						A2(_elm_lang$core$Dict$remove, key, state));
+				} else {
+					return A2(
+						_elm_lang$core$Task$andThen,
+						_concourse$atc$EventSource_LowLevel$close(_p2._0),
+						function (_p3) {
+							return _elm_lang$core$Task$succeed(
+								A2(_elm_lang$core$Dict$remove, key, state));
+						});
+				}
+			});
+	});
+var _concourse$atc$EventSource$updateSourceSubs = F4(
+	function (key, subs, source, rest) {
+		return A2(
+			_elm_lang$core$Task$map,
+			A2(
+				_elm_lang$core$Dict$insert,
+				key,
+				_elm_lang$core$Native_Utils.update(
+					source,
+					{subs: subs})),
+			rest);
+	});
+var _concourse$atc$EventSource$init = _elm_lang$core$Task$succeed(_elm_lang$core$Dict$empty);
+var _concourse$atc$EventSource$subscription = _elm_lang$core$Native_Platform.leaf('EventSource');
+var _concourse$atc$EventSource$Source = F3(
+	function (a, b, c) {
+		return {subs: a, watcher: b, source: c};
+	});
+var _concourse$atc$EventSource$ESErrored = function (a) {
+	return {ctor: 'ESErrored', _0: a};
+};
+var _concourse$atc$EventSource$ESOpened = F2(
+	function (a, b) {
+		return {ctor: 'ESOpened', _0: a, _1: b};
+	});
+var _concourse$atc$EventSource$ESEvent = F2(
+	function (a, b) {
+		return {ctor: 'ESEvent', _0: a, _1: b};
+	});
+var _concourse$atc$EventSource$open = F2(
+	function (router, _p4) {
+		var _p5 = _p4;
+		var _p10 = _p5._0;
+		var _p9 = _p5._1;
+		return A2(
+			_concourse$atc$EventSource_LowLevel$open,
+			_p10,
+			{
+				events: _p9,
+				onEvent: function (_p6) {
+					return A2(
+						_elm_lang$core$Platform$sendToSelf,
+						router,
+						A2(
+							_concourse$atc$EventSource$ESEvent,
+							{ctor: '_Tuple2', _0: _p10, _1: _p9},
+							_p6));
+				},
+				onOpen: function (_p7) {
+					return A2(
+						_elm_lang$core$Platform$sendToSelf,
+						router,
+						A2(
+							_concourse$atc$EventSource$ESOpened,
+							{ctor: '_Tuple2', _0: _p10, _1: _p9},
+							_p7));
+				},
+				onError: function (_p8) {
+					return A2(
+						_elm_lang$core$Platform$sendToSelf,
+						router,
+						A2(
+							_elm_lang$core$Basics$always,
+							_concourse$atc$EventSource$ESErrored(
+								{ctor: '_Tuple2', _0: _p10, _1: _p9}),
+							_p8));
+				}
+			});
+	});
+var _concourse$atc$EventSource$createSource = F4(
+	function (router, key, subs, rest) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			rest,
+			function (state) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					_elm_lang$core$Process$spawn(
+						A2(_concourse$atc$EventSource$open, router, key)),
+					function (processId) {
+						return _elm_lang$core$Task$succeed(
+							A3(
+								_elm_lang$core$Dict$insert,
+								key,
+								{subs: subs, watcher: processId, source: _elm_lang$core$Maybe$Nothing},
+								state));
+					});
+			});
+	});
+var _concourse$atc$EventSource$Errored = {ctor: 'Errored'};
+var _concourse$atc$EventSource$Opened = {ctor: 'Opened'};
+var _concourse$atc$EventSource$Event = function (a) {
+	return {ctor: 'Event', _0: a};
+};
+var _concourse$atc$EventSource$onSelfMsg = F3(
+	function (router, msg, state) {
+		var _p11 = msg;
+		switch (_p11.ctor) {
+			case 'ESEvent':
+				var _p12 = A2(_elm_lang$core$Dict$get, _p11._0, state);
+				if (_p12.ctor === 'Nothing') {
+					return _elm_lang$core$Task$succeed(state);
+				} else {
+					return A2(
+						_elm_lang$core$Task$andThen,
+						A3(
+							_concourse$atc$EventSource$broadcast,
+							router,
+							_concourse$atc$EventSource$Event(_p11._1),
+							_p12._0.subs),
+						function (_p13) {
+							return _elm_lang$core$Task$succeed(state);
+						});
+				}
+			case 'ESOpened':
+				var _p17 = _p11._0;
+				var _p14 = A2(_elm_lang$core$Dict$get, _p17, state);
+				if (_p14.ctor === 'Nothing') {
+					return _elm_lang$core$Task$succeed(state);
+				} else {
+					var _p16 = _p14._0;
+					return A2(
+						_elm_lang$core$Task$andThen,
+						A3(_concourse$atc$EventSource$broadcast, router, _concourse$atc$EventSource$Opened, _p16.subs),
+						function (_p15) {
+							return _elm_lang$core$Task$succeed(
+								A3(
+									_elm_lang$core$Dict$insert,
+									_p17,
+									_elm_lang$core$Native_Utils.update(
+										_p16,
+										{
+											source: _elm_lang$core$Maybe$Just(_p11._1)
+										}),
+									state));
+						});
+				}
+			default:
+				var _p18 = A2(_elm_lang$core$Dict$get, _p11._0, state);
+				if (_p18.ctor === 'Nothing') {
+					return _elm_lang$core$Task$succeed(state);
+				} else {
+					return A2(
+						_elm_lang$core$Task$andThen,
+						A3(_concourse$atc$EventSource$broadcast, router, _concourse$atc$EventSource$Errored, _p18._0.subs),
+						function (_p19) {
+							return _elm_lang$core$Task$succeed(state);
+						});
+				}
+		}
+	});
+var _concourse$atc$EventSource$MySub = F2(
+	function (a, b) {
+		return {ctor: 'MySub', _0: a, _1: b};
+	});
+var _concourse$atc$EventSource$listen = F2(
+	function (key, tagger) {
+		return _concourse$atc$EventSource$subscription(
+			A2(_concourse$atc$EventSource$MySub, key, tagger));
+	});
+var _concourse$atc$EventSource$subMap = F2(
+	function (func, _p20) {
+		var _p21 = _p20;
+		return A2(
+			_concourse$atc$EventSource$MySub,
+			_p21._0,
+			function (_p22) {
+				return func(
+					_p21._1(_p22));
+			});
+	});
+var _concourse$atc$EventSource$onEffects = F3(
+	function (router, subs, state) {
+		var addSub = F3(
+			function (key, tagger, msubs) {
+				return _elm_lang$core$Maybe$Just(
+					A2(
+						_elm_lang$core$List_ops['::'],
+						A2(_concourse$atc$EventSource$MySub, key, tagger),
+						A2(
+							_elm_lang$core$Maybe$withDefault,
+							_elm_lang$core$Native_List.fromArray(
+								[]),
+							msubs)));
+			});
+		var insertSub = F2(
+			function (_p23, state) {
+				var _p24 = _p23;
+				var _p25 = _p24._0;
+				return A3(
+					_elm_lang$core$Dict$update,
+					_p25,
+					A2(addSub, _p25, _p24._1),
+					state);
+			});
+		var desiredSubs = A3(_elm_lang$core$List$foldl, insertSub, _elm_lang$core$Dict$empty, subs);
+		return A6(
+			_elm_lang$core$Dict$merge,
+			_concourse$atc$EventSource$createSource(router),
+			_concourse$atc$EventSource$updateSourceSubs,
+			_concourse$atc$EventSource$closeSource,
+			desiredSubs,
+			state,
+			_elm_lang$core$Task$succeed(_elm_lang$core$Dict$empty));
+	});
+_elm_lang$core$Native_Platform.effectManagers['EventSource'] = {pkg: 'concourse/atc', init: _concourse$atc$EventSource$init, onEffects: _concourse$atc$EventSource$onEffects, onSelfMsg: _concourse$atc$EventSource$onSelfMsg, tag: 'sub', subMap: _concourse$atc$EventSource$subMap};
 
 var _concourse$atc$Concourse_BuildEvents$dateFromSeconds = function (_p0) {
 	return _elm_lang$core$Date$fromTime(
@@ -11313,56 +11096,65 @@ var _concourse$atc$Concourse_BuildEvents$Event = function (a) {
 };
 var _concourse$atc$Concourse_BuildEvents$Errored = {ctor: 'Errored'};
 var _concourse$atc$Concourse_BuildEvents$Opened = {ctor: 'Opened'};
-var _concourse$atc$Concourse_BuildEvents$EventMessage = F2(
-	function (a, b) {
-		return {ctor: 'EventMessage', _0: a, _1: b};
-	});
-var _concourse$atc$Concourse_BuildEvents$decodeMessage = A3(
-	_elm_lang$core$Json_Decode$object2,
-	_concourse$atc$Concourse_BuildEvents$EventMessage,
-	A2(_elm_lang$core$Json_Decode_ops[':='], 'type', _elm_lang$core$Json_Decode$string),
-	_elm_lang$core$Json_Decode$maybe(
-		A2(_elm_lang$core$Json_Decode_ops[':='], 'payload', _elm_lang$core$Json_Decode$string)));
 var _concourse$atc$Concourse_BuildEvents$parseAction = function (msg) {
-	var _p5 = A2(_elm_lang$core$Json_Decode$decodeString, _concourse$atc$Concourse_BuildEvents$decodeMessage, msg);
-	_v1_3:
-	do {
-		if (_p5.ctor === 'Err') {
-			return _concourse$atc$Concourse_BuildEvents$Event(
-				_elm_lang$core$Result$Err(_p5._0));
-		} else {
-			switch (_p5._0._0) {
-				case 'end':
-					return _concourse$atc$Concourse_BuildEvents$End;
-				case 'event':
-					if (_p5._0._1.ctor === 'Just') {
-						return _concourse$atc$Concourse_BuildEvents$Event(
-							_concourse$atc$Concourse_BuildEvents$parseEvent(_p5._0._1._0));
-					} else {
-						break _v1_3;
+	var _p5 = msg;
+	switch (_p5.ctor) {
+		case 'Event':
+			var _p8 = _p5._0.name;
+			var _p7 = _p5._0.data;
+			var _p6 = _p8;
+			_v2_2:
+			do {
+				if (_p6.ctor === 'Just') {
+					switch (_p6._0) {
+						case 'end':
+							return _concourse$atc$Concourse_BuildEvents$End;
+						case 'event':
+							return _concourse$atc$Concourse_BuildEvents$Event(
+								_concourse$atc$Concourse_BuildEvents$parseEvent(_p7));
+						default:
+							break _v2_2;
 					}
-				default:
-					break _v1_3;
-			}
-		}
-	} while(false);
-	return _concourse$atc$Concourse_BuildEvents$Event(
-		_elm_lang$core$Result$Err(
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				'unknown message type: ',
-				_elm_lang$core$Basics$toString(_p5._0))));
+				} else {
+					break _v2_2;
+				}
+			} while(false);
+			return _concourse$atc$Concourse_BuildEvents$Event(
+				_elm_lang$core$Result$Err(
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						'unknown event type: ',
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							_elm_lang$core$Basics$toString(_p8),
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								' (data: ',
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									_elm_lang$core$Basics$toString(_p7),
+									')'))))));
+		case 'Opened':
+			return _concourse$atc$Concourse_BuildEvents$Opened;
+		default:
+			return _concourse$atc$Concourse_BuildEvents$Errored;
+	}
 };
 var _concourse$atc$Concourse_BuildEvents$subscribe = function (build) {
 	return A2(
-		_elm_lang$websocket$WebSocket$listen,
-		A2(
-			_elm_lang$core$Basics_ops['++'],
-			'/api/v1/builds/',
-			A2(
+		_concourse$atc$EventSource$listen,
+		{
+			ctor: '_Tuple2',
+			_0: A2(
 				_elm_lang$core$Basics_ops['++'],
-				_elm_lang$core$Basics$toString(build),
-				'/events')),
+				'/api/v1/builds/',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_elm_lang$core$Basics$toString(build),
+					'/events')),
+			_1: _elm_lang$core$Native_List.fromArray(
+				['end', 'event'])
+		},
 		_concourse$atc$Concourse_BuildEvents$parseAction);
 };
 
@@ -12981,9 +12773,6 @@ var _concourse$atc$BuildOutput$viewErrors = function (errors) {
 				]));
 	}
 };
-var _concourse$atc$BuildOutput$subscribeToEvents = function (build) {
-	return _elm_lang$core$Platform_Sub$none;
-};
 var _concourse$atc$BuildOutput$setStepState = F2(
 	function (state, tree) {
 		return A2(
@@ -13226,15 +13015,80 @@ var _concourse$atc$BuildOutput$handleEventsAction = F2(
 				};
 		}
 	});
+var _concourse$atc$BuildOutput$StepsLiveUpdating = {ctor: 'StepsLiveUpdating'};
+var _concourse$atc$BuildOutput$StepsLoading = {ctor: 'StepsLoading'};
+var _concourse$atc$BuildOutput$StepTreeAction = function (a) {
+	return {ctor: 'StepTreeAction', _0: a};
+};
+var _concourse$atc$BuildOutput$viewStepTree = F3(
+	function (build, steps, state) {
+		var _p7 = {ctor: '_Tuple2', _0: state, _1: steps};
+		_v3_4:
+		do {
+			switch (_p7._0.ctor) {
+				case 'StepsLoading':
+					return _concourse$atc$LoadingIndicator$view;
+				case 'LoginRequired':
+					return _concourse$atc$BuildOutput$viewLoginButton(build);
+				case 'StepsLiveUpdating':
+					if (_p7._1.ctor === 'Just') {
+						return A2(
+							_elm_lang$html$Html_App$map,
+							_concourse$atc$BuildOutput$StepTreeAction,
+							_concourse$atc$StepTree$view(_p7._1._0));
+					} else {
+						break _v3_4;
+					}
+				default:
+					if (_p7._1.ctor === 'Just') {
+						return A2(
+							_elm_lang$html$Html_App$map,
+							_concourse$atc$BuildOutput$StepTreeAction,
+							_concourse$atc$StepTree$view(_p7._1._0));
+					} else {
+						break _v3_4;
+					}
+			}
+		} while(false);
+		return A2(
+			_elm_lang$html$Html$div,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			_elm_lang$core$Native_List.fromArray(
+				[]));
+	});
+var _concourse$atc$BuildOutput$view = function (_p8) {
+	var _p9 = _p8;
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('steps')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_concourse$atc$BuildOutput$viewErrors(_p9.errors),
+				A3(_concourse$atc$BuildOutput$viewStepTree, _p9.build, _p9.steps, _p9.state)
+			]));
+};
+var _concourse$atc$BuildOutput$BuildEventsAction = function (a) {
+	return {ctor: 'BuildEventsAction', _0: a};
+};
+var _concourse$atc$BuildOutput$subscribeToEvents = function (build) {
+	return A2(
+		_elm_lang$core$Platform_Sub$map,
+		_concourse$atc$BuildOutput$BuildEventsAction,
+		_concourse$atc$Concourse_BuildEvents$subscribe(build));
+};
 var _concourse$atc$BuildOutput$update = F2(
 	function (action, model) {
-		var _p7 = action;
-		switch (_p7.ctor) {
+		var _p10 = action;
+		switch (_p10.ctor) {
 			case 'Noop':
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'PlanAndResourcesFetched':
-				if (_p7._0.ctor === 'Err') {
-					if ((_p7._0._0.ctor === 'BadResponse') && (_p7._0._0._0 === 404)) {
+				if (_p10._0.ctor === 'Err') {
+					if ((_p10._0._0.ctor === 'BadResponse') && (_p10._0._0._0 === 404)) {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -13250,7 +13104,7 @@ var _concourse$atc$BuildOutput$update = F2(
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								'failed to fetch plan: ',
-								_elm_lang$core$Basics$toString(_p7._0._0)),
+								_elm_lang$core$Basics$toString(_p10._0._0)),
 							{ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none});
 					}
 				} else {
@@ -13260,22 +13114,14 @@ var _concourse$atc$BuildOutput$update = F2(
 							model,
 							{
 								steps: _elm_lang$core$Maybe$Just(
-									A2(_concourse$atc$StepTree$init, _p7._0._0._1, _p7._0._0._0)),
+									A2(_concourse$atc$StepTree$init, _p10._0._0._1, _p10._0._0._0)),
 								events: _concourse$atc$BuildOutput$subscribeToEvents(model.build.id)
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
 			case 'BuildEventsAction':
-				return A2(_concourse$atc$BuildOutput$handleEventsAction, _p7._0, model);
-			case 'BuildEventsClosed':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{events: _elm_lang$core$Platform_Sub$none}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+				return A2(_concourse$atc$BuildOutput$handleEventsAction, _p10._0, model);
 			default:
 				return {
 					ctor: '_Tuple2',
@@ -13284,73 +13130,13 @@ var _concourse$atc$BuildOutput$update = F2(
 						{
 							steps: A2(
 								_elm_lang$core$Maybe$map,
-								_concourse$atc$StepTree$update(_p7._0),
+								_concourse$atc$StepTree$update(_p10._0),
 								model.steps)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
 	});
-var _concourse$atc$BuildOutput$StepsLiveUpdating = {ctor: 'StepsLiveUpdating'};
-var _concourse$atc$BuildOutput$StepsLoading = {ctor: 'StepsLoading'};
-var _concourse$atc$BuildOutput$StepTreeAction = function (a) {
-	return {ctor: 'StepTreeAction', _0: a};
-};
-var _concourse$atc$BuildOutput$viewStepTree = F3(
-	function (build, steps, state) {
-		var _p8 = {ctor: '_Tuple2', _0: state, _1: steps};
-		_v4_4:
-		do {
-			switch (_p8._0.ctor) {
-				case 'StepsLoading':
-					return _concourse$atc$LoadingIndicator$view;
-				case 'LoginRequired':
-					return _concourse$atc$BuildOutput$viewLoginButton(build);
-				case 'StepsLiveUpdating':
-					if (_p8._1.ctor === 'Just') {
-						return A2(
-							_elm_lang$html$Html_App$map,
-							_concourse$atc$BuildOutput$StepTreeAction,
-							_concourse$atc$StepTree$view(_p8._1._0));
-					} else {
-						break _v4_4;
-					}
-				default:
-					if (_p8._1.ctor === 'Just') {
-						return A2(
-							_elm_lang$html$Html_App$map,
-							_concourse$atc$BuildOutput$StepTreeAction,
-							_concourse$atc$StepTree$view(_p8._1._0));
-					} else {
-						break _v4_4;
-					}
-			}
-		} while(false);
-		return A2(
-			_elm_lang$html$Html$div,
-			_elm_lang$core$Native_List.fromArray(
-				[]),
-			_elm_lang$core$Native_List.fromArray(
-				[]));
-	});
-var _concourse$atc$BuildOutput$view = function (_p9) {
-	var _p10 = _p9;
-	return A2(
-		_elm_lang$html$Html$div,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html_Attributes$class('steps')
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_concourse$atc$BuildOutput$viewErrors(_p10.errors),
-				A3(_concourse$atc$BuildOutput$viewStepTree, _p10.build, _p10.steps, _p10.state)
-			]));
-};
-var _concourse$atc$BuildOutput$BuildEventsClosed = {ctor: 'BuildEventsClosed'};
-var _concourse$atc$BuildOutput$BuildEventsAction = function (a) {
-	return {ctor: 'BuildEventsAction', _0: a};
-};
 var _concourse$atc$BuildOutput$PlanAndResourcesFetched = function (a) {
 	return {ctor: 'PlanAndResourcesFetched', _0: a};
 };
