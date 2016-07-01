@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/garden"
-	gfakes "github.com/cloudfoundry-incubator/garden/fakes"
+	gfakes "github.com/cloudfoundry-incubator/garden/gardenfakes"
 	"github.com/tedsuo/ifrit"
 
 	. "github.com/onsi/ginkgo"

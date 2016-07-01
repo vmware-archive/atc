@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/garden"
-	gfakes "github.com/cloudfoundry-incubator/garden/fakes"
+	gfakes "github.com/cloudfoundry-incubator/garden/gardenfakes"
 	"github.com/cloudfoundry-incubator/garden/server"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/db"
