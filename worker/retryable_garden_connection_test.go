@@ -6,7 +6,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/garden"
 	fconn "github.com/cloudfoundry-incubator/garden/client/connection/fakes"
-	gfakes "github.com/cloudfoundry-incubator/garden/fakes"
+	gfakes "github.com/cloudfoundry-incubator/garden/gardenfakes"
 	"github.com/concourse/atc/worker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
