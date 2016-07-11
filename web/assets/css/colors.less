@@ -92,71 +92,75 @@ span.error { color: @base08; }
 }
 
 .legend dt.started {
-  .ripple-animation("small-started-ripple-@{theme}", 2px, @base0A);
+  .ripple-outline(1px, 2px, @base0A);
 }
 
 .legend dt.pending {
-  .ripple-animation("small-pending-ripple-@{theme}", 2px, @base04);
+  .ripple-outline(1px, 2px, @base04);
 }
 
 .legend dt.failed {
-  .failed-outline(2px, 3px);
+  .ripple-outline(1px, 2px, @base08);
 }
 
 .job-animation-node {
   &.pending .animation-xlarge{.ripple-animation("xlarge-pending-ripples-@{theme}", 20px, @base04);}
   &.started .animation-xlarge{.ripple-animation("xlarge-started-ripples-@{theme}", 20px, @base0A);}
-  &.failed .animation-xlarge{.failed-outline(24px, 36px);}
+  &.failed .animation-xlarge{.ripple-outline(24px, 36px, @base08);}
 
   &.pending .animation-large{.ripple-animation("large-pending-ripples-@{theme}", 15px, @base04);}
   &.started .animation-large{.ripple-animation("large-started-ripples-@{theme}", 15px, @base0A);}
-  &.failed .animation-large{.failed-outline(18px, 27px);}
+  &.failed .animation-large{.ripple-outline(18px, 27px, @base08);}
 
   &.pending .animation-medium{.ripple-animation("medium-pending-ripples-@{theme}", 7px, @base04);}
   &.started .animation-medium{.ripple-animation("medium-started-ripples-@{theme}", 7px, @base0A);}
-  &.failed .animation-medium{.failed-outline(8px, 12px);}
+  &.failed .animation-medium{.ripple-outline(8px, 12px, @base08);}
 
   &.pending .animation-small{.ripple-animation("small-pending-ripples-@{theme}", 3px, @base04);}
   &.started .animation-small{.ripple-animation("small-started-ripples-@{theme}", 3px, @base0A);}
-  &.failed .animation-small{.failed-outline(4px, 6px);}
+  &.failed .animation-small{.ripple-outline(4px, 6px, @base08);}
 
 }
 
-.failed-outline(@blue-radius, @red-radius) {
-  box-shadow: 0 0 0 @blue-radius @base01, 0 0 0 @blue-radius + @red-radius fade(@base08, 70%)
+.ripple-outline(@blue-radius, @red-radius, @ripple-color) {
+  box-shadow: 0 0 0 @blue-radius @base01, 0 0 0 @blue-radius + @red-radius fade(@ripple-color, 70%)
 }
 
 .ripple-animation(@name, @ripple-factor, @ripple-color) {
+  box-shadow:
+    0 0 0 @ripple-factor @ripple-color,
+    0 0 0 @ripple-factor * 2 @base01,
+    0 0 0 @ripple-factor * 4 darken(@ripple-color, 30%);
+  transform: scale(0.9, 0.9);
   -webkit-animation: @name 1s linear infinite;
-  animation: @name 1s linear infinite;
+  animation: @name 1.5s ease-out infinite;
 
   @-webkit-keyframes @name {
     0% {
-      box-shadow: 0 0 0 -@ripple-factor @base01, 0 0 0 0px @ripple-color, 0 0 0 @ripple-factor @base01, 0 0 0 @ripple-factor * 2 @ripple-color;
+        opacity: 0.0;
     }
-
-    50% {
-      box-shadow: 0 0 0 0px @base01, 0 0 0 @ripple-factor @ripple-color, 0 0 0 @ripple-factor * 2  @base01, 0 0 0 @ripple-factor * 3 fade(@ripple-color, 50%);
+    30% {
+        opacity: 1.0;
     }
-
     100% {
-      box-shadow: 0 0 0 @ripple-factor @base01, 0 0 0 @ripple-factor * 2  @ripple-color, 0 0 0 @ripple-factor * 3 @base01, 0 0 0 @ripple-factor * 4 transparent;
+      opacity: 0.0;
+      transform: scale(1.2, 1.2);
     }
   }
 
   @keyframes @name {
     0% {
-      box-shadow: 0 0 0 -@ripple-factor @base01, 0 0 0 0px @ripple-color, 0 0 0 @ripple-factor @base01, 0 0 0 @ripple-factor * 2 @ripple-color;
+        opacity: 0.0;
     }
-
-    50% {
-      box-shadow: 0 0 0 0px @base01, 0 0 0 @ripple-factor @ripple-color, 0 0 0 @ripple-factor * 2  @base01, 0 0 0 @ripple-factor * 3 fade(@ripple-color, 50%);
+    30% {
+        opacity: 1.0;
     }
-
     100% {
-      box-shadow: 0 0 0 @ripple-factor @base01, 0 0 0 @ripple-factor * 2  @ripple-color, 0 0 0 @ripple-factor * 3 @base01, 0 0 0 @ripple-factor * 4 transparent;
+      opacity: 0.0;
+      transform: scale(1.2, 1.2);
     }
   }
+
 }
 
 .build-number {
