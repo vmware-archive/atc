@@ -12226,9 +12226,11 @@ Elm.Concourse.Pagination.make = function (_elm) {
       var query = _p7._1;
       return A2(setQuery,baseURL,A2($Dict.union,query,toQuery(page)));
    });
+   var fstToLower = function (_p8) {    var _p9 = _p8;return {ctor: "_Tuple2",_0: $String.toLower(_p9._0),_1: _p9._1};};
+   var keysToLower = function (_p10) {    return $Dict.fromList(A2($List.map,fstToLower,$Dict.toList(_p10)));};
    var promoteHttpError = function (rawError) {
-      var _p8 = rawError;
-      if (_p8.ctor === "RawTimeout") {
+      var _p11 = rawError;
+      if (_p11.ctor === "RawTimeout") {
             return $Http.Timeout;
          } else {
             return $Http.NetworkError;
@@ -12236,9 +12238,9 @@ Elm.Concourse.Pagination.make = function (_elm) {
    };
    var handleResponse = function (response) {
       if (_U.cmp(200,response.status) < 1 && _U.cmp(response.status,300) < 0) {
-            var _p9 = response.value;
-            if (_p9.ctor === "Text") {
-                  return $Result.Ok(_p9._0);
+            var _p12 = response.value;
+            if (_p12.ctor === "Text") {
+                  return $Result.Ok(_p12._0);
                } else {
                   return $Result.Err($Http.UnexpectedPayload("Response body is a blob, expecting a string."));
                }
@@ -12250,13 +12252,13 @@ Elm.Concourse.Pagination.make = function (_elm) {
    "<([^>]+)>; rel=\"(",
    A2($Basics._op["++"],previousRel,A2($Basics._op["++"],"|",A2($Basics._op["++"],nextRel,")\"")))));
    var parseLinkTuple = function (header) {
-      var _p10 = A3($Regex.find,$Regex.AtMost(1),linkHeaderRegex,header);
-      if (_p10.ctor === "[]") {
+      var _p13 = A3($Regex.find,$Regex.AtMost(1),linkHeaderRegex,header);
+      if (_p13.ctor === "[]") {
             return $Maybe.Nothing;
          } else {
-            var _p11 = _p10._0.submatches;
-            if (_p11.ctor === "::" && _p11._0.ctor === "Just" && _p11._1.ctor === "::" && _p11._1._0.ctor === "Just") {
-                  return $Maybe.Just({ctor: "_Tuple2",_0: _p11._1._0._0,_1: _p11._0._0});
+            var _p14 = _p13._0.submatches;
+            if (_p14.ctor === "::" && _p14._0.ctor === "Just" && _p14._1.ctor === "::" && _p14._1._0.ctor === "Just") {
+                  return $Maybe.Just({ctor: "_Tuple2",_0: _p14._1._0._0,_1: _p14._0._0});
                } else {
                   return $Maybe.Nothing;
                }
@@ -12270,15 +12272,15 @@ Elm.Concourse.Pagination.make = function (_elm) {
       var limit = A2($Maybe.withDefault,0,A2($Maybe.andThen,A2($Dict.get,"limit",query),parseNum));
       return A2($Maybe.map,function (direction) {    return {direction: direction,limit: limit};},$Maybe.oneOf(_U.list([until,since])));
    };
-   var parseParams = function (_p12) {    return fromQuery($Basics.snd(extractQuery(_p12)));};
+   var parseParams = function (_p15) {    return fromQuery($Basics.snd(extractQuery(_p15)));};
    var Page = F2(function (a,b) {    return {direction: a,limit: b};});
    var Pagination = F2(function (a,b) {    return {previousPage: a,nextPage: b};});
    var parseLinks = function (response) {
-      var _p13 = A2($Dict.get,"Link",response.headers);
-      if (_p13.ctor === "Nothing") {
+      var _p16 = A2($Dict.get,"link",keysToLower(response.headers));
+      if (_p16.ctor === "Nothing") {
             return A2(Pagination,$Maybe.Nothing,$Maybe.Nothing);
          } else {
-            var headers = A2($String.split,", ",_p13._0);
+            var headers = A2($String.split,", ",_p16._0);
             var parsed = $Dict.fromList(A2($List.filterMap,parseLinkTuple,headers));
             return A2(Pagination,A2($Maybe.andThen,A2($Dict.get,previousRel,parsed),parseParams),A2($Maybe.andThen,A2($Dict.get,nextRel,parsed),parseParams));
          }
@@ -12290,11 +12292,11 @@ Elm.Concourse.Pagination.make = function (_elm) {
          return A2($Result.formatError,$Http.UnexpectedPayload,A2($Json$Decode.decodeString,$Json$Decode.list(decode),body));
       });
       var pagination = parseLinks(response);
-      var _p14 = decoded;
-      if (_p14.ctor === "Err") {
-            return $Task.fail(_p14._0);
+      var _p17 = decoded;
+      if (_p17.ctor === "Err") {
+            return $Task.fail(_p17._0);
          } else {
-            return $Task.succeed({content: _p14._0,pagination: pagination});
+            return $Task.succeed({content: _p17._0,pagination: pagination});
          }
    });
    var fetch = F3(function (decode,url,page) {
