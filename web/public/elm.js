@@ -14636,12 +14636,19 @@ var _concourse$atc$Build$durationTitle = F2(
 				]),
 			content);
 	});
+var _concourse$atc$Build$assertLeftButton = F2(
+	function (action, button) {
+		return _elm_lang$core$Native_Utils.eq(button, 0) ? _elm_lang$core$Result$Ok(action) : _elm_lang$core$Result$Err('placeholder error, nothing is wrong');
+	});
 var _concourse$atc$Build$overrideClick = function (action) {
 	return A3(
 		_elm_lang$html$Html_Events$onWithOptions,
 		'click',
 		{stopPropagation: true, preventDefault: true},
-		_elm_lang$core$Json_Decode$succeed(action));
+		A2(
+			_elm_lang$core$Json_Decode$customDecoder,
+			A2(_elm_lang$core$Json_Decode_ops[':='], 'button', _elm_lang$core$Json_Decode$int),
+			_concourse$atc$Build$assertLeftButton(action)));
 };
 var _concourse$atc$Build$viewBuildPrepStatus = function (status) {
 	var _p0 = status;
