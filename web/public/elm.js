@@ -7950,7 +7950,7 @@ var _concourse$atc$Scroll$onSelfMsg = F3(
 	});
 var _concourse$atc$Scroll$init = _elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing);
 var _concourse$atc$Scroll$scrollIntoView = _concourse$atc$Native_Scroll.scrollIntoView;
-var _concourse$atc$Scroll$scroll = _concourse$atc$Native_Scroll.scroll;
+var _concourse$atc$Scroll$scroll = _concourse$atc$Native_Scroll.scrollElement;
 var _concourse$atc$Scroll$toBottom = _concourse$atc$Native_Scroll.toBottom(
 	{ctor: '_Tuple0'});
 var _concourse$atc$Scroll$decodeComparators = A4(
