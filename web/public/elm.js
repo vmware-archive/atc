@@ -3716,6 +3716,367 @@ var _elm_lang$core$Array$repeat = F2(
 	});
 var _elm_lang$core$Array$Array = {ctor: 'Array'};
 
+var _chendrix$elm_matrix$Matrix$rowCount = function (m) {
+	return _elm_lang$core$Array$length(m);
+};
+var _chendrix$elm_matrix$Matrix$colCount = function (m) {
+	return A2(
+		_elm_lang$core$Maybe$withDefault,
+		0,
+		A2(
+			_elm_lang$core$Maybe$map,
+			_elm_lang$core$Array$length,
+			A2(_elm_lang$core$Array$get, 0, m)));
+};
+var _chendrix$elm_matrix$Matrix$fromList = function (l) {
+	return _elm_lang$core$Array$fromList(
+		A2(_elm_lang$core$List$map, _elm_lang$core$Array$fromList, l));
+};
+var _chendrix$elm_matrix$Matrix$toList = function (m) {
+	return _elm_lang$core$Array$toList(
+		A2(_elm_lang$core$Array$map, _elm_lang$core$Array$toList, m));
+};
+var _chendrix$elm_matrix$Matrix$flatten = function (m) {
+	return _elm_lang$core$List$concat(
+		_chendrix$elm_matrix$Matrix$toList(m));
+};
+var _chendrix$elm_matrix$Matrix$map = F2(
+	function (f, m) {
+		return A2(
+			_elm_lang$core$Array$map,
+			_elm_lang$core$Array$map(f),
+			m);
+	});
+var _chendrix$elm_matrix$Matrix$col = _elm_lang$core$Basics$snd;
+var _chendrix$elm_matrix$Matrix$row = _elm_lang$core$Basics$fst;
+var _chendrix$elm_matrix$Matrix$get = F2(
+	function (location, m) {
+		return A2(
+			_elm_lang$core$Maybe$andThen,
+			A2(
+				_elm_lang$core$Array$get,
+				_chendrix$elm_matrix$Matrix$row(location),
+				m),
+			_elm_lang$core$Array$get(
+				_chendrix$elm_matrix$Matrix$col(location)));
+	});
+var _chendrix$elm_matrix$Matrix$update = F3(
+	function (location, f, m) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			m,
+			A2(
+				_elm_lang$core$Maybe$map,
+				function (current) {
+					return A2(
+						_elm_lang$core$Maybe$withDefault,
+						m,
+						A2(
+							_elm_lang$core$Maybe$map,
+							function (oldRow) {
+								return function (newRow) {
+									return A3(
+										_elm_lang$core$Array$set,
+										_chendrix$elm_matrix$Matrix$row(location),
+										newRow,
+										m);
+								}(
+									A3(
+										_elm_lang$core$Array$set,
+										_chendrix$elm_matrix$Matrix$col(location),
+										f(current),
+										oldRow));
+							},
+							A2(
+								_elm_lang$core$Array$get,
+								_chendrix$elm_matrix$Matrix$row(location),
+								m)));
+				},
+				A2(_chendrix$elm_matrix$Matrix$get, location, m)));
+	});
+var _chendrix$elm_matrix$Matrix$set = F3(
+	function (location, value, m) {
+		return A3(
+			_chendrix$elm_matrix$Matrix$update,
+			location,
+			_elm_lang$core$Basics$always(value),
+			m);
+	});
+var _chendrix$elm_matrix$Matrix$loc = F2(
+	function (v0, v1) {
+		return {ctor: '_Tuple2', _0: v0, _1: v1};
+	});
+var _chendrix$elm_matrix$Matrix$matrix = F3(
+	function (numRows, numCols, f) {
+		return A2(
+			_elm_lang$core$Array$initialize,
+			numRows,
+			function (row) {
+				return A2(
+					_elm_lang$core$Array$initialize,
+					numCols,
+					function (col) {
+						return f(
+							A2(_chendrix$elm_matrix$Matrix$loc, row, col));
+					});
+			});
+	});
+var _chendrix$elm_matrix$Matrix$square = function (size) {
+	return A2(_chendrix$elm_matrix$Matrix$matrix, size, size);
+};
+var _chendrix$elm_matrix$Matrix$mapWithLocation = F2(
+	function (f, m) {
+		return A2(
+			_elm_lang$core$Array$indexedMap,
+			F2(
+				function (rowNum, row) {
+					return A2(
+						_elm_lang$core$Array$indexedMap,
+						F2(
+							function (colNum, element) {
+								return A2(
+									f,
+									A2(_chendrix$elm_matrix$Matrix$loc, rowNum, colNum),
+									element);
+							}),
+						row);
+				}),
+			m);
+	});
+
+var _elm_lang$core$Task$onError = _elm_lang$core$Native_Scheduler.onError;
+var _elm_lang$core$Task$andThen = _elm_lang$core$Native_Scheduler.andThen;
+var _elm_lang$core$Task$spawnCmd = F2(
+	function (router, _p0) {
+		var _p1 = _p0;
+		return _elm_lang$core$Native_Scheduler.spawn(
+			A2(
+				_elm_lang$core$Task$andThen,
+				_p1._0,
+				_elm_lang$core$Platform$sendToApp(router)));
+	});
+var _elm_lang$core$Task$fail = _elm_lang$core$Native_Scheduler.fail;
+var _elm_lang$core$Task$mapError = F2(
+	function (f, task) {
+		return A2(
+			_elm_lang$core$Task$onError,
+			task,
+			function (err) {
+				return _elm_lang$core$Task$fail(
+					f(err));
+			});
+	});
+var _elm_lang$core$Task$succeed = _elm_lang$core$Native_Scheduler.succeed;
+var _elm_lang$core$Task$map = F2(
+	function (func, taskA) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskA,
+			function (a) {
+				return _elm_lang$core$Task$succeed(
+					func(a));
+			});
+	});
+var _elm_lang$core$Task$map2 = F3(
+	function (func, taskA, taskB) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskA,
+			function (a) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					taskB,
+					function (b) {
+						return _elm_lang$core$Task$succeed(
+							A2(func, a, b));
+					});
+			});
+	});
+var _elm_lang$core$Task$map3 = F4(
+	function (func, taskA, taskB, taskC) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskA,
+			function (a) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					taskB,
+					function (b) {
+						return A2(
+							_elm_lang$core$Task$andThen,
+							taskC,
+							function (c) {
+								return _elm_lang$core$Task$succeed(
+									A3(func, a, b, c));
+							});
+					});
+			});
+	});
+var _elm_lang$core$Task$map4 = F5(
+	function (func, taskA, taskB, taskC, taskD) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskA,
+			function (a) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					taskB,
+					function (b) {
+						return A2(
+							_elm_lang$core$Task$andThen,
+							taskC,
+							function (c) {
+								return A2(
+									_elm_lang$core$Task$andThen,
+									taskD,
+									function (d) {
+										return _elm_lang$core$Task$succeed(
+											A4(func, a, b, c, d));
+									});
+							});
+					});
+			});
+	});
+var _elm_lang$core$Task$map5 = F6(
+	function (func, taskA, taskB, taskC, taskD, taskE) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskA,
+			function (a) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					taskB,
+					function (b) {
+						return A2(
+							_elm_lang$core$Task$andThen,
+							taskC,
+							function (c) {
+								return A2(
+									_elm_lang$core$Task$andThen,
+									taskD,
+									function (d) {
+										return A2(
+											_elm_lang$core$Task$andThen,
+											taskE,
+											function (e) {
+												return _elm_lang$core$Task$succeed(
+													A5(func, a, b, c, d, e));
+											});
+									});
+							});
+					});
+			});
+	});
+var _elm_lang$core$Task$andMap = F2(
+	function (taskFunc, taskValue) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			taskFunc,
+			function (func) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					taskValue,
+					function (value) {
+						return _elm_lang$core$Task$succeed(
+							func(value));
+					});
+			});
+	});
+var _elm_lang$core$Task$sequence = function (tasks) {
+	var _p2 = tasks;
+	if (_p2.ctor === '[]') {
+		return _elm_lang$core$Task$succeed(
+			_elm_lang$core$Native_List.fromArray(
+				[]));
+	} else {
+		return A3(
+			_elm_lang$core$Task$map2,
+			F2(
+				function (x, y) {
+					return A2(_elm_lang$core$List_ops['::'], x, y);
+				}),
+			_p2._0,
+			_elm_lang$core$Task$sequence(_p2._1));
+	}
+};
+var _elm_lang$core$Task$onEffects = F3(
+	function (router, commands, state) {
+		return A2(
+			_elm_lang$core$Task$map,
+			function (_p3) {
+				return {ctor: '_Tuple0'};
+			},
+			_elm_lang$core$Task$sequence(
+				A2(
+					_elm_lang$core$List$map,
+					_elm_lang$core$Task$spawnCmd(router),
+					commands)));
+	});
+var _elm_lang$core$Task$toMaybe = function (task) {
+	return A2(
+		_elm_lang$core$Task$onError,
+		A2(_elm_lang$core$Task$map, _elm_lang$core$Maybe$Just, task),
+		function (_p4) {
+			return _elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing);
+		});
+};
+var _elm_lang$core$Task$fromMaybe = F2(
+	function ($default, maybe) {
+		var _p5 = maybe;
+		if (_p5.ctor === 'Just') {
+			return _elm_lang$core$Task$succeed(_p5._0);
+		} else {
+			return _elm_lang$core$Task$fail($default);
+		}
+	});
+var _elm_lang$core$Task$toResult = function (task) {
+	return A2(
+		_elm_lang$core$Task$onError,
+		A2(_elm_lang$core$Task$map, _elm_lang$core$Result$Ok, task),
+		function (msg) {
+			return _elm_lang$core$Task$succeed(
+				_elm_lang$core$Result$Err(msg));
+		});
+};
+var _elm_lang$core$Task$fromResult = function (result) {
+	var _p6 = result;
+	if (_p6.ctor === 'Ok') {
+		return _elm_lang$core$Task$succeed(_p6._0);
+	} else {
+		return _elm_lang$core$Task$fail(_p6._0);
+	}
+};
+var _elm_lang$core$Task$init = _elm_lang$core$Task$succeed(
+	{ctor: '_Tuple0'});
+var _elm_lang$core$Task$onSelfMsg = F3(
+	function (_p9, _p8, _p7) {
+		return _elm_lang$core$Task$succeed(
+			{ctor: '_Tuple0'});
+	});
+var _elm_lang$core$Task$command = _elm_lang$core$Native_Platform.leaf('Task');
+var _elm_lang$core$Task$T = function (a) {
+	return {ctor: 'T', _0: a};
+};
+var _elm_lang$core$Task$perform = F3(
+	function (onFail, onSuccess, task) {
+		return _elm_lang$core$Task$command(
+			_elm_lang$core$Task$T(
+				A2(
+					_elm_lang$core$Task$onError,
+					A2(_elm_lang$core$Task$map, onSuccess, task),
+					function (x) {
+						return _elm_lang$core$Task$succeed(
+							onFail(x));
+					})));
+	});
+var _elm_lang$core$Task$cmdMap = F2(
+	function (tagger, _p10) {
+		var _p11 = _p10;
+		return _elm_lang$core$Task$T(
+			A2(_elm_lang$core$Task$map, tagger, _p11._0));
+	});
+_elm_lang$core$Native_Platform.effectManagers['Task'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Task$init, onEffects: _elm_lang$core$Task$onEffects, onSelfMsg: _elm_lang$core$Task$onSelfMsg, tag: 'cmd', cmdMap: _elm_lang$core$Task$cmdMap};
+
 //import Maybe, Native.List, Native.Utils, Result //
 
 var _elm_lang$core$Native_String = function() {
@@ -5046,6 +5407,222 @@ var _elm_lang$core$Dict$diff = F2(
 			t1,
 			t2);
 	});
+
+//import Native.Scheduler //
+
+var _elm_lang$core$Native_Time = function() {
+
+var now = _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+{
+	callback(_elm_lang$core$Native_Scheduler.succeed(Date.now()));
+});
+
+function setInterval_(interval, task)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		var id = setInterval(function() {
+			_elm_lang$core$Native_Scheduler.rawSpawn(task);
+		}, interval);
+
+		return function() { clearInterval(id); };
+	});
+}
+
+return {
+	now: now,
+	setInterval_: F2(setInterval_)
+};
+
+}();
+var _elm_lang$core$Time$setInterval = _elm_lang$core$Native_Time.setInterval_;
+var _elm_lang$core$Time$spawnHelp = F3(
+	function (router, intervals, processes) {
+		var _p0 = intervals;
+		if (_p0.ctor === '[]') {
+			return _elm_lang$core$Task$succeed(processes);
+		} else {
+			var _p1 = _p0._0;
+			return A2(
+				_elm_lang$core$Task$andThen,
+				_elm_lang$core$Native_Scheduler.spawn(
+					A2(
+						_elm_lang$core$Time$setInterval,
+						_p1,
+						A2(_elm_lang$core$Platform$sendToSelf, router, _p1))),
+				function (id) {
+					return A3(
+						_elm_lang$core$Time$spawnHelp,
+						router,
+						_p0._1,
+						A3(_elm_lang$core$Dict$insert, _p1, id, processes));
+				});
+		}
+	});
+var _elm_lang$core$Time$addMySub = F2(
+	function (_p2, state) {
+		var _p3 = _p2;
+		var _p6 = _p3._1;
+		var _p5 = _p3._0;
+		var _p4 = A2(_elm_lang$core$Dict$get, _p5, state);
+		if (_p4.ctor === 'Nothing') {
+			return A3(
+				_elm_lang$core$Dict$insert,
+				_p5,
+				_elm_lang$core$Native_List.fromArray(
+					[_p6]),
+				state);
+		} else {
+			return A3(
+				_elm_lang$core$Dict$insert,
+				_p5,
+				A2(_elm_lang$core$List_ops['::'], _p6, _p4._0),
+				state);
+		}
+	});
+var _elm_lang$core$Time$inMilliseconds = function (t) {
+	return t;
+};
+var _elm_lang$core$Time$millisecond = 1;
+var _elm_lang$core$Time$second = 1000 * _elm_lang$core$Time$millisecond;
+var _elm_lang$core$Time$minute = 60 * _elm_lang$core$Time$second;
+var _elm_lang$core$Time$hour = 60 * _elm_lang$core$Time$minute;
+var _elm_lang$core$Time$inHours = function (t) {
+	return t / _elm_lang$core$Time$hour;
+};
+var _elm_lang$core$Time$inMinutes = function (t) {
+	return t / _elm_lang$core$Time$minute;
+};
+var _elm_lang$core$Time$inSeconds = function (t) {
+	return t / _elm_lang$core$Time$second;
+};
+var _elm_lang$core$Time$now = _elm_lang$core$Native_Time.now;
+var _elm_lang$core$Time$onSelfMsg = F3(
+	function (router, interval, state) {
+		var _p7 = A2(_elm_lang$core$Dict$get, interval, state.taggers);
+		if (_p7.ctor === 'Nothing') {
+			return _elm_lang$core$Task$succeed(state);
+		} else {
+			return A2(
+				_elm_lang$core$Task$andThen,
+				_elm_lang$core$Time$now,
+				function (time) {
+					return A2(
+						_elm_lang$core$Task$andThen,
+						_elm_lang$core$Task$sequence(
+							A2(
+								_elm_lang$core$List$map,
+								function (tagger) {
+									return A2(
+										_elm_lang$core$Platform$sendToApp,
+										router,
+										tagger(time));
+								},
+								_p7._0)),
+						function (_p8) {
+							return _elm_lang$core$Task$succeed(state);
+						});
+				});
+		}
+	});
+var _elm_lang$core$Time$subscription = _elm_lang$core$Native_Platform.leaf('Time');
+var _elm_lang$core$Time$State = F2(
+	function (a, b) {
+		return {taggers: a, processes: b};
+	});
+var _elm_lang$core$Time$init = _elm_lang$core$Task$succeed(
+	A2(_elm_lang$core$Time$State, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty));
+var _elm_lang$core$Time$onEffects = F3(
+	function (router, subs, _p9) {
+		var _p10 = _p9;
+		var rightStep = F3(
+			function (_p12, id, _p11) {
+				var _p13 = _p11;
+				return {
+					ctor: '_Tuple3',
+					_0: _p13._0,
+					_1: _p13._1,
+					_2: A2(
+						_elm_lang$core$Task$andThen,
+						_elm_lang$core$Native_Scheduler.kill(id),
+						function (_p14) {
+							return _p13._2;
+						})
+				};
+			});
+		var bothStep = F4(
+			function (interval, taggers, id, _p15) {
+				var _p16 = _p15;
+				return {
+					ctor: '_Tuple3',
+					_0: _p16._0,
+					_1: A3(_elm_lang$core$Dict$insert, interval, id, _p16._1),
+					_2: _p16._2
+				};
+			});
+		var leftStep = F3(
+			function (interval, taggers, _p17) {
+				var _p18 = _p17;
+				return {
+					ctor: '_Tuple3',
+					_0: A2(_elm_lang$core$List_ops['::'], interval, _p18._0),
+					_1: _p18._1,
+					_2: _p18._2
+				};
+			});
+		var newTaggers = A3(_elm_lang$core$List$foldl, _elm_lang$core$Time$addMySub, _elm_lang$core$Dict$empty, subs);
+		var _p19 = A6(
+			_elm_lang$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			newTaggers,
+			_p10.processes,
+			{
+				ctor: '_Tuple3',
+				_0: _elm_lang$core$Native_List.fromArray(
+					[]),
+				_1: _elm_lang$core$Dict$empty,
+				_2: _elm_lang$core$Task$succeed(
+					{ctor: '_Tuple0'})
+			});
+		var spawnList = _p19._0;
+		var existingDict = _p19._1;
+		var killTask = _p19._2;
+		return A2(
+			_elm_lang$core$Task$andThen,
+			killTask,
+			function (_p20) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					A3(_elm_lang$core$Time$spawnHelp, router, spawnList, existingDict),
+					function (newProcesses) {
+						return _elm_lang$core$Task$succeed(
+							A2(_elm_lang$core$Time$State, newTaggers, newProcesses));
+					});
+			});
+	});
+var _elm_lang$core$Time$Every = F2(
+	function (a, b) {
+		return {ctor: 'Every', _0: a, _1: b};
+	});
+var _elm_lang$core$Time$every = F2(
+	function (interval, tagger) {
+		return _elm_lang$core$Time$subscription(
+			A2(_elm_lang$core$Time$Every, interval, tagger));
+	});
+var _elm_lang$core$Time$subMap = F2(
+	function (f, _p21) {
+		var _p22 = _p21;
+		return A2(
+			_elm_lang$core$Time$Every,
+			_p22._0,
+			function (_p23) {
+				return f(
+					_p22._1(_p23));
+			});
+	});
+_elm_lang$core$Native_Platform.effectManagers['Time'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Time$init, onEffects: _elm_lang$core$Time$onEffects, onSelfMsg: _elm_lang$core$Time$onSelfMsg, tag: 'sub', subMap: _elm_lang$core$Time$subMap};
 
 //import Maybe, Native.Array, Native.List, Native.Utils, Result //
 
@@ -7407,239 +7984,6 @@ var _elm_lang$html$Html_App$beginnerProgram = function (_p1) {
 };
 var _elm_lang$html$Html_App$map = _elm_lang$virtual_dom$VirtualDom$map;
 
-var _elm_lang$core$Task$onError = _elm_lang$core$Native_Scheduler.onError;
-var _elm_lang$core$Task$andThen = _elm_lang$core$Native_Scheduler.andThen;
-var _elm_lang$core$Task$spawnCmd = F2(
-	function (router, _p0) {
-		var _p1 = _p0;
-		return _elm_lang$core$Native_Scheduler.spawn(
-			A2(
-				_elm_lang$core$Task$andThen,
-				_p1._0,
-				_elm_lang$core$Platform$sendToApp(router)));
-	});
-var _elm_lang$core$Task$fail = _elm_lang$core$Native_Scheduler.fail;
-var _elm_lang$core$Task$mapError = F2(
-	function (f, task) {
-		return A2(
-			_elm_lang$core$Task$onError,
-			task,
-			function (err) {
-				return _elm_lang$core$Task$fail(
-					f(err));
-			});
-	});
-var _elm_lang$core$Task$succeed = _elm_lang$core$Native_Scheduler.succeed;
-var _elm_lang$core$Task$map = F2(
-	function (func, taskA) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskA,
-			function (a) {
-				return _elm_lang$core$Task$succeed(
-					func(a));
-			});
-	});
-var _elm_lang$core$Task$map2 = F3(
-	function (func, taskA, taskB) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskA,
-			function (a) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					taskB,
-					function (b) {
-						return _elm_lang$core$Task$succeed(
-							A2(func, a, b));
-					});
-			});
-	});
-var _elm_lang$core$Task$map3 = F4(
-	function (func, taskA, taskB, taskC) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskA,
-			function (a) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					taskB,
-					function (b) {
-						return A2(
-							_elm_lang$core$Task$andThen,
-							taskC,
-							function (c) {
-								return _elm_lang$core$Task$succeed(
-									A3(func, a, b, c));
-							});
-					});
-			});
-	});
-var _elm_lang$core$Task$map4 = F5(
-	function (func, taskA, taskB, taskC, taskD) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskA,
-			function (a) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					taskB,
-					function (b) {
-						return A2(
-							_elm_lang$core$Task$andThen,
-							taskC,
-							function (c) {
-								return A2(
-									_elm_lang$core$Task$andThen,
-									taskD,
-									function (d) {
-										return _elm_lang$core$Task$succeed(
-											A4(func, a, b, c, d));
-									});
-							});
-					});
-			});
-	});
-var _elm_lang$core$Task$map5 = F6(
-	function (func, taskA, taskB, taskC, taskD, taskE) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskA,
-			function (a) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					taskB,
-					function (b) {
-						return A2(
-							_elm_lang$core$Task$andThen,
-							taskC,
-							function (c) {
-								return A2(
-									_elm_lang$core$Task$andThen,
-									taskD,
-									function (d) {
-										return A2(
-											_elm_lang$core$Task$andThen,
-											taskE,
-											function (e) {
-												return _elm_lang$core$Task$succeed(
-													A5(func, a, b, c, d, e));
-											});
-									});
-							});
-					});
-			});
-	});
-var _elm_lang$core$Task$andMap = F2(
-	function (taskFunc, taskValue) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			taskFunc,
-			function (func) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					taskValue,
-					function (value) {
-						return _elm_lang$core$Task$succeed(
-							func(value));
-					});
-			});
-	});
-var _elm_lang$core$Task$sequence = function (tasks) {
-	var _p2 = tasks;
-	if (_p2.ctor === '[]') {
-		return _elm_lang$core$Task$succeed(
-			_elm_lang$core$Native_List.fromArray(
-				[]));
-	} else {
-		return A3(
-			_elm_lang$core$Task$map2,
-			F2(
-				function (x, y) {
-					return A2(_elm_lang$core$List_ops['::'], x, y);
-				}),
-			_p2._0,
-			_elm_lang$core$Task$sequence(_p2._1));
-	}
-};
-var _elm_lang$core$Task$onEffects = F3(
-	function (router, commands, state) {
-		return A2(
-			_elm_lang$core$Task$map,
-			function (_p3) {
-				return {ctor: '_Tuple0'};
-			},
-			_elm_lang$core$Task$sequence(
-				A2(
-					_elm_lang$core$List$map,
-					_elm_lang$core$Task$spawnCmd(router),
-					commands)));
-	});
-var _elm_lang$core$Task$toMaybe = function (task) {
-	return A2(
-		_elm_lang$core$Task$onError,
-		A2(_elm_lang$core$Task$map, _elm_lang$core$Maybe$Just, task),
-		function (_p4) {
-			return _elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing);
-		});
-};
-var _elm_lang$core$Task$fromMaybe = F2(
-	function ($default, maybe) {
-		var _p5 = maybe;
-		if (_p5.ctor === 'Just') {
-			return _elm_lang$core$Task$succeed(_p5._0);
-		} else {
-			return _elm_lang$core$Task$fail($default);
-		}
-	});
-var _elm_lang$core$Task$toResult = function (task) {
-	return A2(
-		_elm_lang$core$Task$onError,
-		A2(_elm_lang$core$Task$map, _elm_lang$core$Result$Ok, task),
-		function (msg) {
-			return _elm_lang$core$Task$succeed(
-				_elm_lang$core$Result$Err(msg));
-		});
-};
-var _elm_lang$core$Task$fromResult = function (result) {
-	var _p6 = result;
-	if (_p6.ctor === 'Ok') {
-		return _elm_lang$core$Task$succeed(_p6._0);
-	} else {
-		return _elm_lang$core$Task$fail(_p6._0);
-	}
-};
-var _elm_lang$core$Task$init = _elm_lang$core$Task$succeed(
-	{ctor: '_Tuple0'});
-var _elm_lang$core$Task$onSelfMsg = F3(
-	function (_p9, _p8, _p7) {
-		return _elm_lang$core$Task$succeed(
-			{ctor: '_Tuple0'});
-	});
-var _elm_lang$core$Task$command = _elm_lang$core$Native_Platform.leaf('Task');
-var _elm_lang$core$Task$T = function (a) {
-	return {ctor: 'T', _0: a};
-};
-var _elm_lang$core$Task$perform = F3(
-	function (onFail, onSuccess, task) {
-		return _elm_lang$core$Task$command(
-			_elm_lang$core$Task$T(
-				A2(
-					_elm_lang$core$Task$onError,
-					A2(_elm_lang$core$Task$map, onSuccess, task),
-					function (x) {
-						return _elm_lang$core$Task$succeed(
-							onFail(x));
-					})));
-	});
-var _elm_lang$core$Task$cmdMap = F2(
-	function (tagger, _p10) {
-		var _p11 = _p10;
-		return _elm_lang$core$Task$T(
-			A2(_elm_lang$core$Task$map, tagger, _p11._0));
-	});
-_elm_lang$core$Native_Platform.effectManagers['Task'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Task$init, onEffects: _elm_lang$core$Task$onEffects, onSelfMsg: _elm_lang$core$Task$onSelfMsg, tag: 'cmd', cmdMap: _elm_lang$core$Task$cmdMap};
-
 var _elm_lang$dom$Native_Dom = function() {
 
 function on(node)
@@ -7676,222 +8020,6 @@ return {
 
 var _elm_lang$dom$Dom_LowLevel$onWindow = _elm_lang$dom$Native_Dom.onWindow;
 var _elm_lang$dom$Dom_LowLevel$onDocument = _elm_lang$dom$Native_Dom.onDocument;
-
-//import Native.Scheduler //
-
-var _elm_lang$core$Native_Time = function() {
-
-var now = _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
-{
-	callback(_elm_lang$core$Native_Scheduler.succeed(Date.now()));
-});
-
-function setInterval_(interval, task)
-{
-	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
-	{
-		var id = setInterval(function() {
-			_elm_lang$core$Native_Scheduler.rawSpawn(task);
-		}, interval);
-
-		return function() { clearInterval(id); };
-	});
-}
-
-return {
-	now: now,
-	setInterval_: F2(setInterval_)
-};
-
-}();
-var _elm_lang$core$Time$setInterval = _elm_lang$core$Native_Time.setInterval_;
-var _elm_lang$core$Time$spawnHelp = F3(
-	function (router, intervals, processes) {
-		var _p0 = intervals;
-		if (_p0.ctor === '[]') {
-			return _elm_lang$core$Task$succeed(processes);
-		} else {
-			var _p1 = _p0._0;
-			return A2(
-				_elm_lang$core$Task$andThen,
-				_elm_lang$core$Native_Scheduler.spawn(
-					A2(
-						_elm_lang$core$Time$setInterval,
-						_p1,
-						A2(_elm_lang$core$Platform$sendToSelf, router, _p1))),
-				function (id) {
-					return A3(
-						_elm_lang$core$Time$spawnHelp,
-						router,
-						_p0._1,
-						A3(_elm_lang$core$Dict$insert, _p1, id, processes));
-				});
-		}
-	});
-var _elm_lang$core$Time$addMySub = F2(
-	function (_p2, state) {
-		var _p3 = _p2;
-		var _p6 = _p3._1;
-		var _p5 = _p3._0;
-		var _p4 = A2(_elm_lang$core$Dict$get, _p5, state);
-		if (_p4.ctor === 'Nothing') {
-			return A3(
-				_elm_lang$core$Dict$insert,
-				_p5,
-				_elm_lang$core$Native_List.fromArray(
-					[_p6]),
-				state);
-		} else {
-			return A3(
-				_elm_lang$core$Dict$insert,
-				_p5,
-				A2(_elm_lang$core$List_ops['::'], _p6, _p4._0),
-				state);
-		}
-	});
-var _elm_lang$core$Time$inMilliseconds = function (t) {
-	return t;
-};
-var _elm_lang$core$Time$millisecond = 1;
-var _elm_lang$core$Time$second = 1000 * _elm_lang$core$Time$millisecond;
-var _elm_lang$core$Time$minute = 60 * _elm_lang$core$Time$second;
-var _elm_lang$core$Time$hour = 60 * _elm_lang$core$Time$minute;
-var _elm_lang$core$Time$inHours = function (t) {
-	return t / _elm_lang$core$Time$hour;
-};
-var _elm_lang$core$Time$inMinutes = function (t) {
-	return t / _elm_lang$core$Time$minute;
-};
-var _elm_lang$core$Time$inSeconds = function (t) {
-	return t / _elm_lang$core$Time$second;
-};
-var _elm_lang$core$Time$now = _elm_lang$core$Native_Time.now;
-var _elm_lang$core$Time$onSelfMsg = F3(
-	function (router, interval, state) {
-		var _p7 = A2(_elm_lang$core$Dict$get, interval, state.taggers);
-		if (_p7.ctor === 'Nothing') {
-			return _elm_lang$core$Task$succeed(state);
-		} else {
-			return A2(
-				_elm_lang$core$Task$andThen,
-				_elm_lang$core$Time$now,
-				function (time) {
-					return A2(
-						_elm_lang$core$Task$andThen,
-						_elm_lang$core$Task$sequence(
-							A2(
-								_elm_lang$core$List$map,
-								function (tagger) {
-									return A2(
-										_elm_lang$core$Platform$sendToApp,
-										router,
-										tagger(time));
-								},
-								_p7._0)),
-						function (_p8) {
-							return _elm_lang$core$Task$succeed(state);
-						});
-				});
-		}
-	});
-var _elm_lang$core$Time$subscription = _elm_lang$core$Native_Platform.leaf('Time');
-var _elm_lang$core$Time$State = F2(
-	function (a, b) {
-		return {taggers: a, processes: b};
-	});
-var _elm_lang$core$Time$init = _elm_lang$core$Task$succeed(
-	A2(_elm_lang$core$Time$State, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty));
-var _elm_lang$core$Time$onEffects = F3(
-	function (router, subs, _p9) {
-		var _p10 = _p9;
-		var rightStep = F3(
-			function (_p12, id, _p11) {
-				var _p13 = _p11;
-				return {
-					ctor: '_Tuple3',
-					_0: _p13._0,
-					_1: _p13._1,
-					_2: A2(
-						_elm_lang$core$Task$andThen,
-						_elm_lang$core$Native_Scheduler.kill(id),
-						function (_p14) {
-							return _p13._2;
-						})
-				};
-			});
-		var bothStep = F4(
-			function (interval, taggers, id, _p15) {
-				var _p16 = _p15;
-				return {
-					ctor: '_Tuple3',
-					_0: _p16._0,
-					_1: A3(_elm_lang$core$Dict$insert, interval, id, _p16._1),
-					_2: _p16._2
-				};
-			});
-		var leftStep = F3(
-			function (interval, taggers, _p17) {
-				var _p18 = _p17;
-				return {
-					ctor: '_Tuple3',
-					_0: A2(_elm_lang$core$List_ops['::'], interval, _p18._0),
-					_1: _p18._1,
-					_2: _p18._2
-				};
-			});
-		var newTaggers = A3(_elm_lang$core$List$foldl, _elm_lang$core$Time$addMySub, _elm_lang$core$Dict$empty, subs);
-		var _p19 = A6(
-			_elm_lang$core$Dict$merge,
-			leftStep,
-			bothStep,
-			rightStep,
-			newTaggers,
-			_p10.processes,
-			{
-				ctor: '_Tuple3',
-				_0: _elm_lang$core$Native_List.fromArray(
-					[]),
-				_1: _elm_lang$core$Dict$empty,
-				_2: _elm_lang$core$Task$succeed(
-					{ctor: '_Tuple0'})
-			});
-		var spawnList = _p19._0;
-		var existingDict = _p19._1;
-		var killTask = _p19._2;
-		return A2(
-			_elm_lang$core$Task$andThen,
-			killTask,
-			function (_p20) {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					A3(_elm_lang$core$Time$spawnHelp, router, spawnList, existingDict),
-					function (newProcesses) {
-						return _elm_lang$core$Task$succeed(
-							A2(_elm_lang$core$Time$State, newTaggers, newProcesses));
-					});
-			});
-	});
-var _elm_lang$core$Time$Every = F2(
-	function (a, b) {
-		return {ctor: 'Every', _0: a, _1: b};
-	});
-var _elm_lang$core$Time$every = F2(
-	function (interval, tagger) {
-		return _elm_lang$core$Time$subscription(
-			A2(_elm_lang$core$Time$Every, interval, tagger));
-	});
-var _elm_lang$core$Time$subMap = F2(
-	function (f, _p21) {
-		var _p22 = _p21;
-		return A2(
-			_elm_lang$core$Time$Every,
-			_p22._0,
-			function (_p23) {
-				return f(
-					_p22._1(_p23));
-			});
-	});
-_elm_lang$core$Native_Platform.effectManagers['Time'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Time$init, onEffects: _elm_lang$core$Time$onEffects, onSelfMsg: _elm_lang$core$Time$onSelfMsg, tag: 'sub', subMap: _elm_lang$core$Time$subMap};
 
 var _elm_lang$core$Process$kill = _elm_lang$core$Native_Scheduler.kill;
 var _elm_lang$core$Process$sleep = _elm_lang$core$Native_Scheduler.sleep;
@@ -11498,9 +11626,9 @@ var _concourse$atc$Concourse_Build$abort = function (buildId) {
 		A2(_elm_lang$core$Task$mapError, _concourse$atc$Concourse_Build$promoteHttpError, post),
 		_concourse$atc$Concourse_Build$handleResponse);
 };
-var _concourse$atc$Concourse_Build$Build = F6(
-	function (a, b, c, d, e, f) {
-		return {id: a, name: b, job: c, status: d, duration: e, reapTime: f};
+var _concourse$atc$Concourse_Build$Build = F7(
+	function (a, b, c, d, e, f, g) {
+		return {id: a, url: b, name: c, job: d, status: e, duration: f, reapTime: g};
 	});
 var _concourse$atc$Concourse_Build$BuildJob = F3(
 	function (a, b, c) {
@@ -11510,10 +11638,11 @@ var _concourse$atc$Concourse_Build$BuildDuration = F2(
 	function (a, b) {
 		return {startedAt: a, finishedAt: b};
 	});
-var _concourse$atc$Concourse_Build$decode = A7(
-	_elm_lang$core$Json_Decode$object6,
+var _concourse$atc$Concourse_Build$decode = A8(
+	_elm_lang$core$Json_Decode$object7,
 	_concourse$atc$Concourse_Build$Build,
 	A2(_elm_lang$core$Json_Decode_ops[':='], 'id', _elm_lang$core$Json_Decode$int),
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'url', _elm_lang$core$Json_Decode$string),
 	A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
 	_elm_lang$core$Json_Decode$maybe(
 		A4(
@@ -14501,6 +14630,217 @@ var _concourse$atc$Native_Redirect = function() {
 
 var _concourse$atc$Redirect$to = _concourse$atc$Native_Redirect.to;
 
+var _elm_lang$core$Set$foldr = F3(
+	function (f, b, _p0) {
+		var _p1 = _p0;
+		return A3(
+			_elm_lang$core$Dict$foldr,
+			F3(
+				function (k, _p2, b) {
+					return A2(f, k, b);
+				}),
+			b,
+			_p1._0);
+	});
+var _elm_lang$core$Set$foldl = F3(
+	function (f, b, _p3) {
+		var _p4 = _p3;
+		return A3(
+			_elm_lang$core$Dict$foldl,
+			F3(
+				function (k, _p5, b) {
+					return A2(f, k, b);
+				}),
+			b,
+			_p4._0);
+	});
+var _elm_lang$core$Set$toList = function (_p6) {
+	var _p7 = _p6;
+	return _elm_lang$core$Dict$keys(_p7._0);
+};
+var _elm_lang$core$Set$size = function (_p8) {
+	var _p9 = _p8;
+	return _elm_lang$core$Dict$size(_p9._0);
+};
+var _elm_lang$core$Set$member = F2(
+	function (k, _p10) {
+		var _p11 = _p10;
+		return A2(_elm_lang$core$Dict$member, k, _p11._0);
+	});
+var _elm_lang$core$Set$isEmpty = function (_p12) {
+	var _p13 = _p12;
+	return _elm_lang$core$Dict$isEmpty(_p13._0);
+};
+var _elm_lang$core$Set$Set_elm_builtin = function (a) {
+	return {ctor: 'Set_elm_builtin', _0: a};
+};
+var _elm_lang$core$Set$empty = _elm_lang$core$Set$Set_elm_builtin(_elm_lang$core$Dict$empty);
+var _elm_lang$core$Set$singleton = function (k) {
+	return _elm_lang$core$Set$Set_elm_builtin(
+		A2(
+			_elm_lang$core$Dict$singleton,
+			k,
+			{ctor: '_Tuple0'}));
+};
+var _elm_lang$core$Set$insert = F2(
+	function (k, _p14) {
+		var _p15 = _p14;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A3(
+				_elm_lang$core$Dict$insert,
+				k,
+				{ctor: '_Tuple0'},
+				_p15._0));
+	});
+var _elm_lang$core$Set$fromList = function (xs) {
+	return A3(_elm_lang$core$List$foldl, _elm_lang$core$Set$insert, _elm_lang$core$Set$empty, xs);
+};
+var _elm_lang$core$Set$map = F2(
+	function (f, s) {
+		return _elm_lang$core$Set$fromList(
+			A2(
+				_elm_lang$core$List$map,
+				f,
+				_elm_lang$core$Set$toList(s)));
+	});
+var _elm_lang$core$Set$remove = F2(
+	function (k, _p16) {
+		var _p17 = _p16;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$remove, k, _p17._0));
+	});
+var _elm_lang$core$Set$union = F2(
+	function (_p19, _p18) {
+		var _p20 = _p19;
+		var _p21 = _p18;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$union, _p20._0, _p21._0));
+	});
+var _elm_lang$core$Set$intersect = F2(
+	function (_p23, _p22) {
+		var _p24 = _p23;
+		var _p25 = _p22;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$intersect, _p24._0, _p25._0));
+	});
+var _elm_lang$core$Set$diff = F2(
+	function (_p27, _p26) {
+		var _p28 = _p27;
+		var _p29 = _p26;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$diff, _p28._0, _p29._0));
+	});
+var _elm_lang$core$Set$filter = F2(
+	function (p, _p30) {
+		var _p31 = _p30;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(
+				_elm_lang$core$Dict$filter,
+				F2(
+					function (k, _p32) {
+						return p(k);
+					}),
+				_p31._0));
+	});
+var _elm_lang$core$Set$partition = F2(
+	function (p, _p33) {
+		var _p34 = _p33;
+		var _p35 = A2(
+			_elm_lang$core$Dict$partition,
+			F2(
+				function (k, _p36) {
+					return p(k);
+				}),
+			_p34._0);
+		var p1 = _p35._0;
+		var p2 = _p35._1;
+		return {
+			ctor: '_Tuple2',
+			_0: _elm_lang$core$Set$Set_elm_builtin(p1),
+			_1: _elm_lang$core$Set$Set_elm_builtin(p2)
+		};
+	});
+
+var _elm_community$json_extra$Json_Decode_Extra$lazy = function (getDecoder) {
+	return A2(
+		_elm_lang$core$Json_Decode$customDecoder,
+		_elm_lang$core$Json_Decode$value,
+		function (rawValue) {
+			return A2(
+				_elm_lang$core$Json_Decode$decodeValue,
+				getDecoder(
+					{ctor: '_Tuple0'}),
+				rawValue);
+		});
+};
+var _elm_community$json_extra$Json_Decode_Extra$maybeNull = function (decoder) {
+	return _elm_lang$core$Json_Decode$oneOf(
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing),
+				A2(_elm_lang$core$Json_Decode$map, _elm_lang$core$Maybe$Just, decoder)
+			]));
+};
+var _elm_community$json_extra$Json_Decode_Extra$withDefault = F2(
+	function (fallback, decoder) {
+		return A2(
+			_elm_lang$core$Json_Decode$andThen,
+			_elm_lang$core$Json_Decode$maybe(decoder),
+			function (_p0) {
+				return _elm_lang$core$Json_Decode$succeed(
+					A2(_elm_lang$core$Maybe$withDefault, fallback, _p0));
+			});
+	});
+var _elm_community$json_extra$Json_Decode_Extra$decodeDictFromTuples = F2(
+	function (keyDecoder, tuples) {
+		var _p1 = tuples;
+		if (_p1.ctor === '[]') {
+			return _elm_lang$core$Json_Decode$succeed(_elm_lang$core$Dict$empty);
+		} else {
+			var _p2 = A2(_elm_lang$core$Json_Decode$decodeString, keyDecoder, _p1._0._0);
+			if (_p2.ctor === 'Ok') {
+				return A2(
+					_elm_lang$core$Json_Decode$andThen,
+					A2(_elm_community$json_extra$Json_Decode_Extra$decodeDictFromTuples, keyDecoder, _p1._1),
+					function (_p3) {
+						return _elm_lang$core$Json_Decode$succeed(
+							A3(_elm_lang$core$Dict$insert, _p2._0, _p1._0._1, _p3));
+					});
+			} else {
+				return _elm_lang$core$Json_Decode$fail(_p2._0);
+			}
+		}
+	});
+var _elm_community$json_extra$Json_Decode_Extra$dict2 = F2(
+	function (keyDecoder, valueDecoder) {
+		return A2(
+			_elm_lang$core$Json_Decode$andThen,
+			_elm_lang$core$Json_Decode$dict(valueDecoder),
+			function (_p4) {
+				return A2(
+					_elm_community$json_extra$Json_Decode_Extra$decodeDictFromTuples,
+					keyDecoder,
+					_elm_lang$core$Dict$toList(_p4));
+			});
+	});
+var _elm_community$json_extra$Json_Decode_Extra$set = function (decoder) {
+	return A2(
+		_elm_lang$core$Json_Decode$andThen,
+		_elm_lang$core$Json_Decode$list(decoder),
+		function (_p5) {
+			return _elm_lang$core$Json_Decode$succeed(
+				_elm_lang$core$Set$fromList(_p5));
+		});
+};
+var _elm_community$json_extra$Json_Decode_Extra$date = A2(_elm_lang$core$Json_Decode$customDecoder, _elm_lang$core$Json_Decode$string, _elm_lang$core$Date$fromString);
+var _elm_community$json_extra$Json_Decode_Extra$apply = _elm_lang$core$Json_Decode$object2(
+	F2(
+		function (x, y) {
+			return x(y);
+		}));
+var _elm_community$json_extra$Json_Decode_Extra_ops = _elm_community$json_extra$Json_Decode_Extra_ops || {};
+_elm_community$json_extra$Json_Decode_Extra_ops['|:'] = _elm_community$json_extra$Json_Decode_Extra$apply;
+
 var _concourse$atc$Concourse_Job$promoteHttpError = function (rawError) {
 	var _p0 = rawError;
 	if (_p0.ctor === 'RawTimeout') {
@@ -14556,43 +14896,130 @@ var _concourse$atc$Concourse_Job$unpause = function (jobInfo) {
 var _concourse$atc$Concourse_Job$pause = function (jobInfo) {
 	return A2(_concourse$atc$Concourse_Job$pauseUnpause, true, jobInfo);
 };
-var _concourse$atc$Concourse_Job$init = F6(
-	function (teamName, pipelineName, name, finishedBuild, maybePaused, maybeDisableManualTrigger) {
-		return {
-			name: name,
-			teamName: teamName,
-			pipelineName: pipelineName,
-			finishedBuild: finishedBuild,
-			paused: function () {
-				var _p1 = maybePaused;
-				if (_p1.ctor === 'Nothing') {
-					return false;
-				} else {
-					return _p1._0;
-				}
-			}(),
-			disableManualTrigger: function () {
-				var _p2 = maybeDisableManualTrigger;
-				if (_p2.ctor === 'Nothing') {
-					return false;
-				} else {
-					return _p2._0;
-				}
-			}()
+var _concourse$atc$Concourse_Job$optional = function ($default) {
+	return _elm_lang$core$Json_Decode$map(
+		_elm_lang$core$Maybe$withDefault($default));
+};
+var _concourse$atc$Concourse_Job$Job = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return {teamName: a, pipelineName: b, name: c, url: d, nextBuild: e, finishedBuild: f, paused: g, disableManualTrigger: h, inputs: i, outputs: j, groups: k};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
 		};
+	};
+};
+var _concourse$atc$Concourse_Job$Input = F4(
+	function (a, b, c, d) {
+		return {name: a, resource: b, passed: c, trigger: d};
 	});
+var _concourse$atc$Concourse_Job$decodeInput = A5(
+	_elm_lang$core$Json_Decode$object4,
+	_concourse$atc$Concourse_Job$Input,
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'resource', _elm_lang$core$Json_Decode$string),
+	A2(
+		_concourse$atc$Concourse_Job$optional,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Json_Decode$maybe(
+			A2(
+				_elm_lang$core$Json_Decode_ops[':='],
+				'passed',
+				_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string)))),
+	A2(
+		_concourse$atc$Concourse_Job$optional,
+		false,
+		_elm_lang$core$Json_Decode$maybe(
+			A2(_elm_lang$core$Json_Decode_ops[':='], 'trigger', _elm_lang$core$Json_Decode$bool))));
+var _concourse$atc$Concourse_Job$Output = F2(
+	function (a, b) {
+		return {name: a, resource: b};
+	});
+var _concourse$atc$Concourse_Job$decodeOutput = A3(
+	_elm_lang$core$Json_Decode$object2,
+	_concourse$atc$Concourse_Job$Output,
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'resource', _elm_lang$core$Json_Decode$string));
 var _concourse$atc$Concourse_Job$decode = F2(
 	function (teamName, pipelineName) {
-		return A5(
-			_elm_lang$core$Json_Decode$object4,
-			A2(_concourse$atc$Concourse_Job$init, teamName, pipelineName),
-			A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
-			_elm_lang$core$Json_Decode$maybe(
-				A2(_elm_lang$core$Json_Decode_ops[':='], 'finished_build', _concourse$atc$Concourse_Build$decode)),
-			_elm_lang$core$Json_Decode$maybe(
-				A2(_elm_lang$core$Json_Decode_ops[':='], 'paused', _elm_lang$core$Json_Decode$bool)),
-			_elm_lang$core$Json_Decode$maybe(
-				A2(_elm_lang$core$Json_Decode_ops[':='], 'disable_manual_trigger', _elm_lang$core$Json_Decode$bool)));
+		return A2(
+			_elm_community$json_extra$Json_Decode_Extra_ops['|:'],
+			A2(
+				_elm_community$json_extra$Json_Decode_Extra_ops['|:'],
+				A2(
+					_elm_community$json_extra$Json_Decode_Extra_ops['|:'],
+					A2(
+						_elm_community$json_extra$Json_Decode_Extra_ops['|:'],
+						A2(
+							_elm_community$json_extra$Json_Decode_Extra_ops['|:'],
+							A2(
+								_elm_community$json_extra$Json_Decode_Extra_ops['|:'],
+								A2(
+									_elm_community$json_extra$Json_Decode_Extra_ops['|:'],
+									A2(
+										_elm_community$json_extra$Json_Decode_Extra_ops['|:'],
+										A2(
+											_elm_community$json_extra$Json_Decode_Extra_ops['|:'],
+											_elm_lang$core$Json_Decode$succeed(
+												A2(_concourse$atc$Concourse_Job$Job, teamName, pipelineName)),
+											A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string)),
+										A2(_elm_lang$core$Json_Decode_ops[':='], 'url', _elm_lang$core$Json_Decode$string)),
+									_elm_lang$core$Json_Decode$maybe(
+										A2(_elm_lang$core$Json_Decode_ops[':='], 'next_build', _concourse$atc$Concourse_Build$decode))),
+								_elm_lang$core$Json_Decode$maybe(
+									A2(_elm_lang$core$Json_Decode_ops[':='], 'finished_build', _concourse$atc$Concourse_Build$decode))),
+							A2(
+								_concourse$atc$Concourse_Job$optional,
+								false,
+								_elm_lang$core$Json_Decode$maybe(
+									A2(_elm_lang$core$Json_Decode_ops[':='], 'paused', _elm_lang$core$Json_Decode$bool)))),
+						A2(
+							_concourse$atc$Concourse_Job$optional,
+							false,
+							_elm_lang$core$Json_Decode$maybe(
+								A2(_elm_lang$core$Json_Decode_ops[':='], 'disable_manual_trigger', _elm_lang$core$Json_Decode$bool)))),
+					A2(
+						_concourse$atc$Concourse_Job$optional,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Json_Decode$maybe(
+							A2(
+								_elm_lang$core$Json_Decode_ops[':='],
+								'inputs',
+								_elm_lang$core$Json_Decode$list(_concourse$atc$Concourse_Job$decodeInput))))),
+				A2(
+					_concourse$atc$Concourse_Job$optional,
+					_elm_lang$core$Native_List.fromArray(
+						[]),
+					_elm_lang$core$Json_Decode$maybe(
+						A2(
+							_elm_lang$core$Json_Decode_ops[':='],
+							'outputs',
+							_elm_lang$core$Json_Decode$list(_concourse$atc$Concourse_Job$decodeOutput))))),
+			A2(
+				_concourse$atc$Concourse_Job$optional,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Json_Decode$maybe(
+					A2(
+						_elm_lang$core$Json_Decode_ops[':='],
+						'groups',
+						_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string)))));
 	});
 var _concourse$atc$Concourse_Job$fetchJob = function (job) {
 	return A2(
@@ -14612,9 +15039,28 @@ var _concourse$atc$Concourse_Job$fetchJob = function (job) {
 						job.pipelineName,
 						A2(_elm_lang$core$Basics_ops['++'], '/jobs/', job.name))))));
 };
-var _concourse$atc$Concourse_Job$Job = F6(
-	function (a, b, c, d, e, f) {
-		return {name: a, pipelineName: b, teamName: c, finishedBuild: d, paused: e, disableManualTrigger: f};
+var _concourse$atc$Concourse_Job$fetchJobs = function (_p1) {
+	var _p2 = _p1;
+	var _p4 = _p2.teamName;
+	var _p3 = _p2.pipelineName;
+	return A2(
+		_evancz$elm_http$Http$get,
+		_elm_lang$core$Json_Decode$list(
+			A2(_concourse$atc$Concourse_Job$decode, _p4, _p3)),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'/api/v1/teams/',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_p4,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'/pipelines/',
+					A2(_elm_lang$core$Basics_ops['++'], _p3, '/jobs')))));
+};
+var _concourse$atc$Concourse_Job$PipelineLocator = F2(
+	function (a, b) {
+		return {teamName: a, pipelineName: b};
 	});
 
 var _concourse$atc$Build$decodeScrollEvent = A3(
@@ -15874,6 +16320,2836 @@ var _concourse$atc$BuildPage$main = {
 		})
 };
 
+var _imeckler$queue$Queue_Internal$Queue = F2(
+	function (a, b) {
+		return {ctor: 'Queue', _0: a, _1: b};
+	});
+
+var _imeckler$queue$Queue$toList = function (_p0) {
+	var _p1 = _p0;
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		_p1._0,
+		_elm_lang$core$List$reverse(_p1._1));
+};
+var _imeckler$queue$Queue$map = F2(
+	function (g, _p2) {
+		var _p3 = _p2;
+		return A2(
+			_imeckler$queue$Queue_Internal$Queue,
+			A2(_elm_lang$core$List$map, g, _p3._0),
+			A2(_elm_lang$core$List$map, g, _p3._1));
+	});
+var _imeckler$queue$Queue$length = function (_p4) {
+	var _p5 = _p4;
+	return _elm_lang$core$List$length(_p5._0) + _elm_lang$core$List$length(_p5._1);
+};
+var _imeckler$queue$Queue$isEmpty = function (q) {
+	var _p6 = q;
+	if ((_p6._0.ctor === '[]') && (_p6._1.ctor === '[]')) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var _imeckler$queue$Queue$pop = function (_p7) {
+	var _p8 = _p7;
+	var _p13 = _p8._1;
+	var _p9 = _p8._0;
+	if (_p9.ctor === '::') {
+		return _elm_lang$core$Maybe$Just(
+			{
+				ctor: '_Tuple2',
+				_0: _p9._0,
+				_1: A2(_imeckler$queue$Queue_Internal$Queue, _p9._1, _p13)
+			});
+	} else {
+		var _p10 = _p13;
+		if (_p10.ctor === '[]') {
+			return _elm_lang$core$Maybe$Nothing;
+		} else {
+			var _p11 = _elm_lang$core$List$reverse(_p13);
+			if (_p11.ctor === '::') {
+				return _elm_lang$core$Maybe$Just(
+					{
+						ctor: '_Tuple2',
+						_0: _p11._0,
+						_1: A2(
+							_imeckler$queue$Queue_Internal$Queue,
+							_p11._1,
+							_elm_lang$core$Native_List.fromArray(
+								[]))
+					});
+			} else {
+				return _elm_lang$core$Native_Utils.crashCase(
+					'Queue',
+					{
+						start: {line: 57, column: 11},
+						end: {line: 59, column: 44}
+					},
+					_p11)('Impossible!');
+			}
+		}
+	}
+};
+var _imeckler$queue$Queue$push = F2(
+	function (x, _p14) {
+		var _p15 = _p14;
+		return A2(
+			_imeckler$queue$Queue_Internal$Queue,
+			_p15._0,
+			A2(_elm_lang$core$List_ops['::'], x, _p15._1));
+	});
+var _imeckler$queue$Queue$empty = A2(
+	_imeckler$queue$Queue_Internal$Queue,
+	_elm_lang$core$Native_List.fromArray(
+		[]),
+	_elm_lang$core$Native_List.fromArray(
+		[]));
+
+var _elm_community$graph$Graph_Tree$pushMany = F2(
+	function (vals, queue) {
+		return A3(_elm_lang$core$List$foldl, _imeckler$queue$Queue$push, queue, vals);
+	});
+var _elm_community$graph$Graph_Tree$listForTraversal = F2(
+	function (traversal, tree) {
+		var acc = _elm_lang$core$Basics$identity;
+		var f = F3(
+			function (label, children, rest) {
+				return function (_p0) {
+					return rest(
+						A2(
+							F2(
+								function (x, y) {
+									return A2(_elm_lang$core$List_ops['::'], x, y);
+								}),
+							label,
+							_p0));
+				};
+			});
+		return A4(
+			traversal,
+			f,
+			acc,
+			tree,
+			_elm_lang$core$Native_List.fromArray(
+				[]));
+	});
+var _elm_community$graph$Graph_Tree$size = function (tree) {
+	var _p1 = tree;
+	return _p1._0;
+};
+var _elm_community$graph$Graph_Tree$root = function (tree) {
+	var _p2 = tree;
+	return _p2._1;
+};
+var _elm_community$graph$Graph_Tree$height = function (tree) {
+	var go = F2(
+		function (h, t) {
+			var _p3 = _elm_community$graph$Graph_Tree$root(t);
+			if (_p3.ctor === 'Just') {
+				return A3(
+					_elm_lang$core$List$foldl,
+					function (_p4) {
+						return _elm_lang$core$Basics$max(
+							A2(go, h + 1, _p4));
+					},
+					h + 1,
+					_p3._0._1);
+			} else {
+				return h;
+			}
+		});
+	return A2(go, 0, tree);
+};
+var _elm_community$graph$Graph_Tree$levelOrder = F3(
+	function (visit, acc, tree) {
+		var go = F2(
+			function (acc, toVisit) {
+				go:
+				while (true) {
+					var _p5 = _imeckler$queue$Queue$pop(toVisit);
+					if (_p5.ctor === 'Nothing') {
+						return acc;
+					} else {
+						var _p8 = _p5._0._1;
+						var _p6 = _elm_community$graph$Graph_Tree$root(_p5._0._0);
+						if (_p6.ctor === 'Nothing') {
+							var _v5 = acc,
+								_v6 = _p8;
+							acc = _v5;
+							toVisit = _v6;
+							continue go;
+						} else {
+							var _p7 = _p6._0._1;
+							var _v7 = A3(visit, _p6._0._0, _p7, acc),
+								_v8 = A2(_elm_community$graph$Graph_Tree$pushMany, _p7, _p8);
+							acc = _v7;
+							toVisit = _v8;
+							continue go;
+						}
+					}
+				}
+			});
+		return A2(
+			go,
+			acc,
+			A2(_imeckler$queue$Queue$push, tree, _imeckler$queue$Queue$empty));
+	});
+var _elm_community$graph$Graph_Tree$levelOrderList = _elm_community$graph$Graph_Tree$listForTraversal(_elm_community$graph$Graph_Tree$levelOrder);
+var _elm_community$graph$Graph_Tree$postOrder = F3(
+	function (visit, acc, tree) {
+		var folder = _elm_lang$core$Basics$flip(
+			_elm_community$graph$Graph_Tree$postOrder(visit));
+		var _p9 = _elm_community$graph$Graph_Tree$root(tree);
+		if (_p9.ctor === 'Nothing') {
+			return acc;
+		} else {
+			var _p10 = _p9._0._1;
+			return A3(
+				visit,
+				_p9._0._0,
+				_p10,
+				A3(_elm_lang$core$List$foldl, folder, acc, _p10));
+		}
+	});
+var _elm_community$graph$Graph_Tree$postOrderList = _elm_community$graph$Graph_Tree$listForTraversal(_elm_community$graph$Graph_Tree$postOrder);
+var _elm_community$graph$Graph_Tree$preOrder = F3(
+	function (visit, acc, tree) {
+		var folder = _elm_lang$core$Basics$flip(
+			_elm_community$graph$Graph_Tree$preOrder(visit));
+		var _p11 = _elm_community$graph$Graph_Tree$root(tree);
+		if (_p11.ctor === 'Nothing') {
+			return acc;
+		} else {
+			var _p12 = _p11._0._1;
+			return A3(
+				_elm_lang$core$List$foldl,
+				folder,
+				A3(visit, _p11._0._0, _p12, acc),
+				_p12);
+		}
+	});
+var _elm_community$graph$Graph_Tree$preOrderList = _elm_community$graph$Graph_Tree$listForTraversal(_elm_community$graph$Graph_Tree$preOrder);
+var _elm_community$graph$Graph_Tree$MkTree = F2(
+	function (a, b) {
+		return {ctor: 'MkTree', _0: a, _1: b};
+	});
+var _elm_community$graph$Graph_Tree$empty = A2(_elm_community$graph$Graph_Tree$MkTree, 0, _elm_lang$core$Maybe$Nothing);
+var _elm_community$graph$Graph_Tree$isEmpty = function (tree) {
+	return _elm_lang$core$Native_Utils.eq(tree, _elm_community$graph$Graph_Tree$empty);
+};
+var _elm_community$graph$Graph_Tree$inner = F2(
+	function (label, children) {
+		var children$ = A2(
+			_elm_lang$core$List$filter,
+			function (_p13) {
+				return _elm_lang$core$Basics$not(
+					_elm_community$graph$Graph_Tree$isEmpty(_p13));
+			},
+			children);
+		var size$ = A3(
+			_elm_lang$core$List$foldl,
+			function (_p14) {
+				return F2(
+					function (x, y) {
+						return x + y;
+					})(
+					_elm_community$graph$Graph_Tree$size(_p14));
+			},
+			1,
+			children$);
+		return A2(
+			_elm_community$graph$Graph_Tree$MkTree,
+			size$,
+			_elm_lang$core$Maybe$Just(
+				{ctor: '_Tuple2', _0: label, _1: children$}));
+	});
+var _elm_community$graph$Graph_Tree$leaf = function (val) {
+	return A2(
+		_elm_community$graph$Graph_Tree$inner,
+		val,
+		_elm_lang$core$Native_List.fromArray(
+			[]));
+};
+var _elm_community$graph$Graph_Tree$unfoldTree = F2(
+	function (next, seed) {
+		var _p15 = next(seed);
+		var label = _p15._0;
+		var seeds = _p15._1;
+		return A2(
+			_elm_community$graph$Graph_Tree$inner,
+			label,
+			A2(
+				_elm_lang$core$List$map,
+				_elm_community$graph$Graph_Tree$unfoldTree(next),
+				seeds));
+	});
+var _elm_community$graph$Graph_Tree$unfoldForest = F2(
+	function (next, seeds) {
+		return A2(
+			_elm_lang$core$List$map,
+			_elm_community$graph$Graph_Tree$unfoldTree(next),
+			seeds);
+	});
+
+var _elm_lang$core$Native_Bitwise = function() {
+
+return {
+	and: F2(function and(a, b) { return a & b; }),
+	or: F2(function or(a, b) { return a | b; }),
+	xor: F2(function xor(a, b) { return a ^ b; }),
+	complement: function complement(a) { return ~a; },
+	shiftLeft: F2(function sll(a, offset) { return a << offset; }),
+	shiftRightArithmatic: F2(function sra(a, offset) { return a >> offset; }),
+	shiftRightLogical: F2(function srl(a, offset) { return a >>> offset; })
+};
+
+}();
+
+var _elm_lang$core$Bitwise$shiftRightLogical = _elm_lang$core$Native_Bitwise.shiftRightLogical;
+var _elm_lang$core$Bitwise$shiftRight = _elm_lang$core$Native_Bitwise.shiftRightArithmatic;
+var _elm_lang$core$Bitwise$shiftLeft = _elm_lang$core$Native_Bitwise.shiftLeft;
+var _elm_lang$core$Bitwise$complement = _elm_lang$core$Native_Bitwise.complement;
+var _elm_lang$core$Bitwise$xor = _elm_lang$core$Native_Bitwise.xor;
+var _elm_lang$core$Bitwise$or = _elm_lang$core$Native_Bitwise.or;
+var _elm_lang$core$Bitwise$and = _elm_lang$core$Native_Bitwise.and;
+
+var _elm_community$intdict$IntDict$combineBits = F3(
+	function (a, b, mask) {
+		return A2(
+			_elm_lang$core$Bitwise$or,
+			A2(
+				_elm_lang$core$Bitwise$and,
+				a,
+				_elm_lang$core$Bitwise$complement(mask)),
+			A2(_elm_lang$core$Bitwise$and, b, mask));
+	});
+var _elm_community$intdict$IntDict$foldr = F3(
+	function (f, acc, dict) {
+		foldr:
+		while (true) {
+			var _p0 = dict;
+			switch (_p0.ctor) {
+				case 'Empty':
+					return acc;
+				case 'Leaf':
+					var _p1 = _p0._0;
+					return A3(f, _p1.key, _p1.value, acc);
+				default:
+					var _p2 = _p0._0;
+					var _v1 = f,
+						_v2 = A3(_elm_community$intdict$IntDict$foldr, f, acc, _p2.right),
+						_v3 = _p2.left;
+					f = _v1;
+					acc = _v2;
+					dict = _v3;
+					continue foldr;
+			}
+		}
+	});
+var _elm_community$intdict$IntDict$keys = function (dict) {
+	return A3(
+		_elm_community$intdict$IntDict$foldr,
+		F3(
+			function (key, value, keyList) {
+				return A2(_elm_lang$core$List_ops['::'], key, keyList);
+			}),
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		dict);
+};
+var _elm_community$intdict$IntDict$values = function (dict) {
+	return A3(
+		_elm_community$intdict$IntDict$foldr,
+		F3(
+			function (key, value, valueList) {
+				return A2(_elm_lang$core$List_ops['::'], value, valueList);
+			}),
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		dict);
+};
+var _elm_community$intdict$IntDict$toList = function (dict) {
+	return A3(
+		_elm_community$intdict$IntDict$foldr,
+		F3(
+			function (key, value, list) {
+				return A2(
+					_elm_lang$core$List_ops['::'],
+					{ctor: '_Tuple2', _0: key, _1: value},
+					list);
+			}),
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		dict);
+};
+var _elm_community$intdict$IntDict$toString$ = function (dict) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		'IntDict.fromList ',
+		_elm_lang$core$Basics$toString(
+			_elm_community$intdict$IntDict$toList(dict)));
+};
+var _elm_community$intdict$IntDict$foldl = F3(
+	function (f, acc, dict) {
+		foldl:
+		while (true) {
+			var _p3 = dict;
+			switch (_p3.ctor) {
+				case 'Empty':
+					return acc;
+				case 'Leaf':
+					var _p4 = _p3._0;
+					return A3(f, _p4.key, _p4.value, acc);
+				default:
+					var _p5 = _p3._0;
+					var _v5 = f,
+						_v6 = A3(_elm_community$intdict$IntDict$foldl, f, acc, _p5.left),
+						_v7 = _p5.right;
+					f = _v5;
+					acc = _v6;
+					dict = _v7;
+					continue foldl;
+			}
+		}
+	});
+var _elm_community$intdict$IntDict$findMax = function (dict) {
+	findMax:
+	while (true) {
+		var _p6 = dict;
+		switch (_p6.ctor) {
+			case 'Empty':
+				return _elm_lang$core$Maybe$Nothing;
+			case 'Leaf':
+				var _p7 = _p6._0;
+				return _elm_lang$core$Maybe$Just(
+					{ctor: '_Tuple2', _0: _p7.key, _1: _p7.value});
+			default:
+				var _v9 = _p6._0.right;
+				dict = _v9;
+				continue findMax;
+		}
+	}
+};
+var _elm_community$intdict$IntDict$findMin = function (dict) {
+	findMin:
+	while (true) {
+		var _p8 = dict;
+		switch (_p8.ctor) {
+			case 'Empty':
+				return _elm_lang$core$Maybe$Nothing;
+			case 'Leaf':
+				var _p9 = _p8._0;
+				return _elm_lang$core$Maybe$Just(
+					{ctor: '_Tuple2', _0: _p9.key, _1: _p9.value});
+			default:
+				var _v11 = _p8._0.left;
+				dict = _v11;
+				continue findMin;
+		}
+	}
+};
+var _elm_community$intdict$IntDict$size = function (dict) {
+	var _p10 = dict;
+	switch (_p10.ctor) {
+		case 'Empty':
+			return 0;
+		case 'Leaf':
+			return 1;
+		default:
+			return _p10._0.size;
+	}
+};
+var _elm_community$intdict$IntDict$isEmpty = function (dict) {
+	var _p11 = dict;
+	if (_p11.ctor === 'Empty') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var _elm_community$intdict$IntDict$highestBitSet = function (n) {
+	var shiftOr = F2(
+		function (n$, shift) {
+			return A2(
+				_elm_lang$core$Bitwise$or,
+				n$,
+				A2(_elm_lang$core$Bitwise$shiftRightLogical, n$, shift));
+		});
+	var n1 = A2(shiftOr, n, 1);
+	var n2 = A2(shiftOr, n1, 2);
+	var n3 = A2(shiftOr, n2, 4);
+	var n4 = A2(shiftOr, n3, 8);
+	var n5 = A2(shiftOr, n4, 16);
+	return A2(
+		_elm_lang$core$Bitwise$and,
+		n5,
+		_elm_lang$core$Bitwise$complement(
+			A2(_elm_lang$core$Bitwise$shiftRightLogical, n5, 1)));
+};
+var _elm_community$intdict$IntDict$signBit = _elm_community$intdict$IntDict$highestBitSet(-1);
+var _elm_community$intdict$IntDict$isBranchingBitSet = F2(
+	function (p, n) {
+		var n$ = A2(_elm_lang$core$Bitwise$xor, n, _elm_community$intdict$IntDict$signBit);
+		return !_elm_lang$core$Native_Utils.eq(
+			A2(_elm_lang$core$Bitwise$and, n$, p.branchingBit),
+			0);
+	});
+var _elm_community$intdict$IntDict$higherBitMask = function (branchingBit) {
+	return _elm_lang$core$Bitwise$complement((branchingBit * 2) - 1);
+};
+var _elm_community$intdict$IntDict$prefixMatches = F2(
+	function (p, n) {
+		return _elm_lang$core$Native_Utils.eq(
+			A2(
+				_elm_lang$core$Bitwise$and,
+				n,
+				_elm_community$intdict$IntDict$higherBitMask(p.branchingBit)),
+			p.prefixBits);
+	});
+var _elm_community$intdict$IntDict$get = F2(
+	function (key, dict) {
+		get:
+		while (true) {
+			var _p12 = dict;
+			switch (_p12.ctor) {
+				case 'Empty':
+					return _elm_lang$core$Maybe$Nothing;
+				case 'Leaf':
+					var _p13 = _p12._0;
+					return _elm_lang$core$Native_Utils.eq(_p13.key, key) ? _elm_lang$core$Maybe$Just(_p13.value) : _elm_lang$core$Maybe$Nothing;
+				default:
+					var _p14 = _p12._0;
+					if (_elm_lang$core$Basics$not(
+						A2(_elm_community$intdict$IntDict$prefixMatches, _p14.prefix, key))) {
+						return _elm_lang$core$Maybe$Nothing;
+					} else {
+						if (A2(_elm_community$intdict$IntDict$isBranchingBitSet, _p14.prefix, key)) {
+							var _v15 = key,
+								_v16 = _p14.right;
+							key = _v15;
+							dict = _v16;
+							continue get;
+						} else {
+							var _v17 = key,
+								_v18 = _p14.left;
+							key = _v17;
+							dict = _v18;
+							continue get;
+						}
+					}
+			}
+		}
+	});
+var _elm_community$intdict$IntDict$member = F2(
+	function (key, dict) {
+		var _p15 = A2(_elm_community$intdict$IntDict$get, key, dict);
+		if (_p15.ctor === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var _elm_community$intdict$IntDict$lcp = F2(
+	function (x, y) {
+		var diff = A2(_elm_lang$core$Bitwise$xor, x, y);
+		var branchingBit = _elm_community$intdict$IntDict$highestBitSet(diff);
+		var mask = _elm_community$intdict$IntDict$higherBitMask(branchingBit);
+		var prefixBits = A2(_elm_lang$core$Bitwise$and, x, mask);
+		return {prefixBits: prefixBits, branchingBit: branchingBit};
+	});
+var _elm_community$intdict$IntDict$isValidKey = function (k) {
+	return _elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$Bitwise$or, k, 0),
+		k);
+};
+var _elm_community$intdict$IntDict$KeyPrefix = F2(
+	function (a, b) {
+		return {prefixBits: a, branchingBit: b};
+	});
+var _elm_community$intdict$IntDict$InnerType = F4(
+	function (a, b, c, d) {
+		return {prefix: a, left: b, right: c, size: d};
+	});
+var _elm_community$intdict$IntDict$Inner = function (a) {
+	return {ctor: 'Inner', _0: a};
+};
+var _elm_community$intdict$IntDict$inner = F3(
+	function (p, l, r) {
+		var _p16 = {ctor: '_Tuple2', _0: l, _1: r};
+		if (_p16._0.ctor === 'Empty') {
+			return r;
+		} else {
+			if (_p16._1.ctor === 'Empty') {
+				return l;
+			} else {
+				return _elm_community$intdict$IntDict$Inner(
+					{
+						prefix: p,
+						left: l,
+						right: r,
+						size: _elm_community$intdict$IntDict$size(l) + _elm_community$intdict$IntDict$size(r)
+					});
+			}
+		}
+	});
+var _elm_community$intdict$IntDict$Leaf = function (a) {
+	return {ctor: 'Leaf', _0: a};
+};
+var _elm_community$intdict$IntDict$leaf = F2(
+	function (k, v) {
+		return _elm_community$intdict$IntDict$Leaf(
+			{key: k, value: v});
+	});
+var _elm_community$intdict$IntDict$singleton = F2(
+	function (key, value) {
+		return A2(_elm_community$intdict$IntDict$leaf, key, value);
+	});
+var _elm_community$intdict$IntDict$Empty = {ctor: 'Empty'};
+var _elm_community$intdict$IntDict$empty = _elm_community$intdict$IntDict$Empty;
+var _elm_community$intdict$IntDict$update = F3(
+	function (key, alter, dict) {
+		var join = F2(
+			function (_p18, _p17) {
+				var _p19 = _p18;
+				var _p23 = _p19._1;
+				var _p20 = _p17;
+				var _p22 = _p20._1;
+				var _p21 = _p20._0;
+				var prefix = A2(_elm_community$intdict$IntDict$lcp, _p19._0, _p21);
+				return A2(_elm_community$intdict$IntDict$isBranchingBitSet, prefix, _p21) ? A3(_elm_community$intdict$IntDict$inner, prefix, _p23, _p22) : A3(_elm_community$intdict$IntDict$inner, prefix, _p22, _p23);
+			});
+		var alteredNode = function (v) {
+			var _p24 = alter(v);
+			if (_p24.ctor === 'Just') {
+				return A2(_elm_community$intdict$IntDict$leaf, key, _p24._0);
+			} else {
+				return _elm_community$intdict$IntDict$empty;
+			}
+		};
+		var _p25 = dict;
+		switch (_p25.ctor) {
+			case 'Empty':
+				return alteredNode(_elm_lang$core$Maybe$Nothing);
+			case 'Leaf':
+				var _p26 = _p25._0;
+				return _elm_lang$core$Native_Utils.eq(_p26.key, key) ? alteredNode(
+					_elm_lang$core$Maybe$Just(_p26.value)) : A2(
+					join,
+					{
+						ctor: '_Tuple2',
+						_0: key,
+						_1: alteredNode(_elm_lang$core$Maybe$Nothing)
+					},
+					{ctor: '_Tuple2', _0: _p26.key, _1: dict});
+			default:
+				var _p27 = _p25._0;
+				return A2(_elm_community$intdict$IntDict$prefixMatches, _p27.prefix, key) ? (A2(_elm_community$intdict$IntDict$isBranchingBitSet, _p27.prefix, key) ? A3(
+					_elm_community$intdict$IntDict$inner,
+					_p27.prefix,
+					_p27.left,
+					A3(_elm_community$intdict$IntDict$update, key, alter, _p27.right)) : A3(
+					_elm_community$intdict$IntDict$inner,
+					_p27.prefix,
+					A3(_elm_community$intdict$IntDict$update, key, alter, _p27.left),
+					_p27.right)) : A2(
+					join,
+					{
+						ctor: '_Tuple2',
+						_0: key,
+						_1: alteredNode(_elm_lang$core$Maybe$Nothing)
+					},
+					{ctor: '_Tuple2', _0: _p27.prefix.prefixBits, _1: dict});
+		}
+	});
+var _elm_community$intdict$IntDict$insert = F3(
+	function (key, value, dict) {
+		return A3(
+			_elm_community$intdict$IntDict$update,
+			key,
+			_elm_lang$core$Basics$always(
+				_elm_lang$core$Maybe$Just(value)),
+			dict);
+	});
+var _elm_community$intdict$IntDict$remove = F2(
+	function (key, dict) {
+		return A3(
+			_elm_community$intdict$IntDict$update,
+			key,
+			_elm_lang$core$Basics$always(_elm_lang$core$Maybe$Nothing),
+			dict);
+	});
+var _elm_community$intdict$IntDict$filter = F2(
+	function (predicate, dict) {
+		var add = F3(
+			function (k, v, d) {
+				return A2(predicate, k, v) ? A3(_elm_community$intdict$IntDict$insert, k, v, d) : d;
+			});
+		return A3(_elm_community$intdict$IntDict$foldl, add, _elm_community$intdict$IntDict$empty, dict);
+	});
+var _elm_community$intdict$IntDict$map = F2(
+	function (f, dict) {
+		var _p28 = dict;
+		switch (_p28.ctor) {
+			case 'Empty':
+				return _elm_community$intdict$IntDict$empty;
+			case 'Leaf':
+				var _p29 = _p28._0;
+				return A2(
+					_elm_community$intdict$IntDict$leaf,
+					_p29.key,
+					A2(f, _p29.key, _p29.value));
+			default:
+				var _p30 = _p28._0;
+				return A3(
+					_elm_community$intdict$IntDict$inner,
+					_p30.prefix,
+					A2(_elm_community$intdict$IntDict$map, f, _p30.left),
+					A2(_elm_community$intdict$IntDict$map, f, _p30.right));
+		}
+	});
+var _elm_community$intdict$IntDict$partition = F2(
+	function (predicate, dict) {
+		var add = F3(
+			function (key, value, _p31) {
+				var _p32 = _p31;
+				var _p34 = _p32._1;
+				var _p33 = _p32._0;
+				return A2(predicate, key, value) ? {
+					ctor: '_Tuple2',
+					_0: A3(_elm_community$intdict$IntDict$insert, key, value, _p33),
+					_1: _p34
+				} : {
+					ctor: '_Tuple2',
+					_0: _p33,
+					_1: A3(_elm_community$intdict$IntDict$insert, key, value, _p34)
+				};
+			});
+		return A3(
+			_elm_community$intdict$IntDict$foldl,
+			add,
+			{ctor: '_Tuple2', _0: _elm_community$intdict$IntDict$empty, _1: _elm_community$intdict$IntDict$empty},
+			dict);
+	});
+var _elm_community$intdict$IntDict$fromList = function (pairs) {
+	var insert$ = F2(
+		function (_p35, dict) {
+			var _p36 = _p35;
+			return A3(_elm_community$intdict$IntDict$insert, _p36._0, _p36._1, dict);
+		});
+	return A3(_elm_lang$core$List$foldl, insert$, _elm_community$intdict$IntDict$empty, pairs);
+};
+var _elm_community$intdict$IntDict$Right = {ctor: 'Right'};
+var _elm_community$intdict$IntDict$Left = {ctor: 'Left'};
+var _elm_community$intdict$IntDict$Disjunct = F2(
+	function (a, b) {
+		return {ctor: 'Disjunct', _0: a, _1: b};
+	});
+var _elm_community$intdict$IntDict$Parent = F2(
+	function (a, b) {
+		return {ctor: 'Parent', _0: a, _1: b};
+	});
+var _elm_community$intdict$IntDict$SamePrefix = {ctor: 'SamePrefix'};
+var _elm_community$intdict$IntDict$determineBranchRelation = F2(
+	function (l, r) {
+		var childEdge = F2(
+			function (prefix, c) {
+				return A2(_elm_community$intdict$IntDict$isBranchingBitSet, prefix, c.prefix.prefixBits) ? _elm_community$intdict$IntDict$Right : _elm_community$intdict$IntDict$Left;
+			});
+		var rp = r.prefix;
+		var lp = l.prefix;
+		var mask = _elm_community$intdict$IntDict$highestBitSet(
+			A2(_elm_lang$core$Basics$max, lp.branchingBit, rp.branchingBit));
+		var modifiedRightPrefix = A3(
+			_elm_community$intdict$IntDict$combineBits,
+			rp.prefixBits,
+			_elm_lang$core$Bitwise$complement(lp.prefixBits),
+			mask);
+		var prefix = A2(_elm_community$intdict$IntDict$lcp, lp.prefixBits, modifiedRightPrefix);
+		return _elm_lang$core$Native_Utils.eq(lp, rp) ? _elm_community$intdict$IntDict$SamePrefix : (_elm_lang$core$Native_Utils.eq(prefix, lp) ? A2(
+			_elm_community$intdict$IntDict$Parent,
+			_elm_community$intdict$IntDict$Left,
+			A2(childEdge, l.prefix, r)) : (_elm_lang$core$Native_Utils.eq(prefix, rp) ? A2(
+			_elm_community$intdict$IntDict$Parent,
+			_elm_community$intdict$IntDict$Right,
+			A2(childEdge, r.prefix, l)) : A2(
+			_elm_community$intdict$IntDict$Disjunct,
+			prefix,
+			A2(childEdge, prefix, l))));
+	});
+var _elm_community$intdict$IntDict$uniteWith = F3(
+	function (merger, l, r) {
+		var mergeWith = F3(
+			function (key, left, right) {
+				var _p37 = {ctor: '_Tuple2', _0: left, _1: right};
+				if (_p37._0.ctor === 'Just') {
+					if (_p37._1.ctor === 'Just') {
+						return _elm_lang$core$Maybe$Just(
+							A3(merger, key, _p37._0._0, _p37._1._0));
+					} else {
+						return left;
+					}
+				} else {
+					if (_p37._1.ctor === 'Just') {
+						return right;
+					} else {
+						return _elm_lang$core$Native_Utils.crashCase(
+							'IntDict',
+							{
+								start: {line: 426, column: 7},
+								end: {line: 431, column: 144}
+							},
+							_p37)('IntDict.uniteWith: mergeWith was called with 2 Nothings. This is a bug in the implementation, please file a bug report!');
+					}
+				}
+			});
+		var _p39 = {ctor: '_Tuple2', _0: l, _1: r};
+		_v29_2:
+		do {
+			_v29_1:
+			do {
+				switch (_p39._0.ctor) {
+					case 'Empty':
+						return r;
+					case 'Leaf':
+						switch (_p39._1.ctor) {
+							case 'Empty':
+								break _v29_1;
+							case 'Leaf':
+								break _v29_2;
+							default:
+								break _v29_2;
+						}
+					default:
+						switch (_p39._1.ctor) {
+							case 'Empty':
+								break _v29_1;
+							case 'Leaf':
+								var _p41 = _p39._1._0;
+								return A3(
+									_elm_community$intdict$IntDict$update,
+									_p41.key,
+									function (l$) {
+										return A3(
+											mergeWith,
+											_p41.key,
+											l$,
+											_elm_lang$core$Maybe$Just(_p41.value));
+									},
+									l);
+							default:
+								var _p44 = _p39._1._0;
+								var _p43 = _p39._0._0;
+								var _p42 = A2(_elm_community$intdict$IntDict$determineBranchRelation, _p43, _p44);
+								switch (_p42.ctor) {
+									case 'SamePrefix':
+										return A3(
+											_elm_community$intdict$IntDict$inner,
+											_p43.prefix,
+											A3(_elm_community$intdict$IntDict$uniteWith, merger, _p43.left, _p44.left),
+											A3(_elm_community$intdict$IntDict$uniteWith, merger, _p43.right, _p44.right));
+									case 'Parent':
+										if (_p42._0.ctor === 'Left') {
+											if (_p42._1.ctor === 'Right') {
+												return A3(
+													_elm_community$intdict$IntDict$inner,
+													_p43.prefix,
+													_p43.left,
+													A3(_elm_community$intdict$IntDict$uniteWith, merger, _p43.right, r));
+											} else {
+												return A3(
+													_elm_community$intdict$IntDict$inner,
+													_p43.prefix,
+													A3(_elm_community$intdict$IntDict$uniteWith, merger, _p43.left, r),
+													_p43.right);
+											}
+										} else {
+											if (_p42._1.ctor === 'Right') {
+												return A3(
+													_elm_community$intdict$IntDict$inner,
+													_p44.prefix,
+													_p44.left,
+													A3(_elm_community$intdict$IntDict$uniteWith, merger, l, _p44.right));
+											} else {
+												return A3(
+													_elm_community$intdict$IntDict$inner,
+													_p44.prefix,
+													A3(_elm_community$intdict$IntDict$uniteWith, merger, l, _p44.left),
+													_p44.right);
+											}
+										}
+									default:
+										if (_p42._1.ctor === 'Left') {
+											return A3(_elm_community$intdict$IntDict$inner, _p42._0, l, r);
+										} else {
+											return A3(_elm_community$intdict$IntDict$inner, _p42._0, r, l);
+										}
+								}
+						}
+				}
+			} while(false);
+			return l;
+		} while(false);
+		var _p40 = _p39._0._0;
+		return A3(
+			_elm_community$intdict$IntDict$update,
+			_p40.key,
+			function (r$) {
+				return A3(
+					mergeWith,
+					_p40.key,
+					_elm_lang$core$Maybe$Just(_p40.value),
+					r$);
+			},
+			r);
+	});
+var _elm_community$intdict$IntDict$union = _elm_community$intdict$IntDict$uniteWith(
+	F3(
+		function (key, old, $new) {
+			return old;
+		}));
+var _elm_community$intdict$IntDict$intersect = F2(
+	function (l, r) {
+		intersect:
+		while (true) {
+			var _p45 = {ctor: '_Tuple2', _0: l, _1: r};
+			_v31_2:
+			do {
+				_v31_1:
+				do {
+					switch (_p45._0.ctor) {
+						case 'Empty':
+							return _elm_community$intdict$IntDict$Empty;
+						case 'Leaf':
+							switch (_p45._1.ctor) {
+								case 'Empty':
+									break _v31_1;
+								case 'Leaf':
+									break _v31_2;
+								default:
+									break _v31_2;
+							}
+						default:
+							switch (_p45._1.ctor) {
+								case 'Empty':
+									break _v31_1;
+								case 'Leaf':
+									var _p47 = _p45._1._0;
+									var _p46 = A2(_elm_community$intdict$IntDict$get, _p47.key, l);
+									if (_p46.ctor === 'Just') {
+										return A2(_elm_community$intdict$IntDict$leaf, _p47.key, _p46._0);
+									} else {
+										return _elm_community$intdict$IntDict$Empty;
+									}
+								default:
+									var _p50 = _p45._1._0;
+									var _p49 = _p45._0._0;
+									var _p48 = A2(_elm_community$intdict$IntDict$determineBranchRelation, _p49, _p50);
+									switch (_p48.ctor) {
+										case 'SamePrefix':
+											return A3(
+												_elm_community$intdict$IntDict$inner,
+												_p49.prefix,
+												A2(_elm_community$intdict$IntDict$intersect, _p49.left, _p50.left),
+												A2(_elm_community$intdict$IntDict$intersect, _p49.right, _p50.right));
+										case 'Parent':
+											if (_p48._0.ctor === 'Left') {
+												if (_p48._1.ctor === 'Right') {
+													var _v34 = _p49.right,
+														_v35 = r;
+													l = _v34;
+													r = _v35;
+													continue intersect;
+												} else {
+													var _v36 = _p49.left,
+														_v37 = r;
+													l = _v36;
+													r = _v37;
+													continue intersect;
+												}
+											} else {
+												if (_p48._1.ctor === 'Right') {
+													var _v38 = l,
+														_v39 = _p50.right;
+													l = _v38;
+													r = _v39;
+													continue intersect;
+												} else {
+													var _v40 = l,
+														_v41 = _p50.left;
+													l = _v40;
+													r = _v41;
+													continue intersect;
+												}
+											}
+										default:
+											return _elm_community$intdict$IntDict$Empty;
+									}
+							}
+					}
+				} while(false);
+				return _elm_community$intdict$IntDict$Empty;
+			} while(false);
+			return A2(_elm_community$intdict$IntDict$member, _p45._0._0.key, r) ? l : _elm_community$intdict$IntDict$Empty;
+		}
+	});
+var _elm_community$intdict$IntDict$diff = F2(
+	function (l, r) {
+		diff:
+		while (true) {
+			var _p51 = {ctor: '_Tuple2', _0: l, _1: r};
+			_v42_2:
+			do {
+				_v42_1:
+				do {
+					switch (_p51._0.ctor) {
+						case 'Empty':
+							return _elm_community$intdict$IntDict$Empty;
+						case 'Leaf':
+							switch (_p51._1.ctor) {
+								case 'Empty':
+									break _v42_1;
+								case 'Leaf':
+									break _v42_2;
+								default:
+									break _v42_2;
+							}
+						default:
+							switch (_p51._1.ctor) {
+								case 'Empty':
+									break _v42_1;
+								case 'Leaf':
+									return A2(_elm_community$intdict$IntDict$remove, _p51._1._0.key, l);
+								default:
+									var _p54 = _p51._1._0;
+									var _p53 = _p51._0._0;
+									var _p52 = A2(_elm_community$intdict$IntDict$determineBranchRelation, _p53, _p54);
+									switch (_p52.ctor) {
+										case 'SamePrefix':
+											return A3(
+												_elm_community$intdict$IntDict$inner,
+												_p53.prefix,
+												A2(_elm_community$intdict$IntDict$diff, _p53.left, _p54.left),
+												A2(_elm_community$intdict$IntDict$diff, _p53.right, _p54.right));
+										case 'Parent':
+											if (_p52._0.ctor === 'Left') {
+												if (_p52._1.ctor === 'Left') {
+													return A3(
+														_elm_community$intdict$IntDict$inner,
+														_p53.prefix,
+														A2(_elm_community$intdict$IntDict$diff, _p53.left, r),
+														_p53.right);
+												} else {
+													return A3(
+														_elm_community$intdict$IntDict$inner,
+														_p53.prefix,
+														_p53.left,
+														A2(_elm_community$intdict$IntDict$diff, _p53.right, r));
+												}
+											} else {
+												if (_p52._1.ctor === 'Left') {
+													var _v44 = l,
+														_v45 = _p54.left;
+													l = _v44;
+													r = _v45;
+													continue diff;
+												} else {
+													var _v46 = l,
+														_v47 = _p54.right;
+													l = _v46;
+													r = _v47;
+													continue diff;
+												}
+											}
+										default:
+											return l;
+									}
+							}
+					}
+				} while(false);
+				return l;
+			} while(false);
+			return A2(_elm_community$intdict$IntDict$member, _p51._0._0.key, r) ? _elm_community$intdict$IntDict$Empty : l;
+		}
+	});
+var _elm_community$intdict$IntDict$merge = F6(
+	function (left, both, right, l, r, acc) {
+		var m = A3(_elm_community$intdict$IntDict$merge, left, both, right);
+		var _p55 = {ctor: '_Tuple2', _0: l, _1: r};
+		_v48_2:
+		do {
+			_v48_1:
+			do {
+				switch (_p55._0.ctor) {
+					case 'Empty':
+						return A3(_elm_community$intdict$IntDict$foldl, right, acc, r);
+					case 'Leaf':
+						switch (_p55._1.ctor) {
+							case 'Empty':
+								break _v48_1;
+							case 'Leaf':
+								break _v48_2;
+							default:
+								break _v48_2;
+						}
+					default:
+						switch (_p55._1.ctor) {
+							case 'Empty':
+								break _v48_1;
+							case 'Leaf':
+								var _p59 = _p55._1._0;
+								var _p58 = A2(_elm_community$intdict$IntDict$get, _p59.key, l);
+								if (_p58.ctor === 'Nothing') {
+									return A3(
+										m,
+										l,
+										_elm_community$intdict$IntDict$Empty,
+										A3(right, _p59.key, _p59.value, acc));
+								} else {
+									return A3(
+										m,
+										A2(_elm_community$intdict$IntDict$remove, _p59.key, l),
+										_elm_community$intdict$IntDict$Empty,
+										A4(both, _p59.key, _p58._0, _p59.value, acc));
+								}
+							default:
+								var _p62 = _p55._1._0;
+								var _p61 = _p55._0._0;
+								var _p60 = A2(_elm_community$intdict$IntDict$determineBranchRelation, _p61, _p62);
+								switch (_p60.ctor) {
+									case 'SamePrefix':
+										return A3(
+											m,
+											_p61.right,
+											_p62.right,
+											A3(m, _p61.left, _p62.left, acc));
+									case 'Parent':
+										if (_p60._0.ctor === 'Left') {
+											if (_p60._1.ctor === 'Left') {
+												return A3(
+													m,
+													_p61.right,
+													_elm_community$intdict$IntDict$Empty,
+													A3(m, _p61.left, r, acc));
+											} else {
+												return A3(
+													m,
+													_p61.right,
+													r,
+													A3(m, _p61.left, _elm_community$intdict$IntDict$Empty, acc));
+											}
+										} else {
+											if (_p60._1.ctor === 'Left') {
+												return A3(
+													m,
+													_elm_community$intdict$IntDict$Empty,
+													_p62.right,
+													A3(m, l, _p62.left, acc));
+											} else {
+												return A3(
+													m,
+													l,
+													_p62.right,
+													A3(m, _elm_community$intdict$IntDict$Empty, _p62.left, acc));
+											}
+										}
+									default:
+										if (_p60._1.ctor === 'Left') {
+											return A3(
+												m,
+												_elm_community$intdict$IntDict$Empty,
+												r,
+												A3(m, l, _elm_community$intdict$IntDict$Empty, acc));
+										} else {
+											return A3(
+												m,
+												l,
+												_elm_community$intdict$IntDict$Empty,
+												A3(m, _elm_community$intdict$IntDict$Empty, r, acc));
+										}
+								}
+						}
+				}
+			} while(false);
+			return A3(_elm_community$intdict$IntDict$foldl, left, acc, l);
+		} while(false);
+		var _p57 = _p55._0._0;
+		var _p56 = A2(_elm_community$intdict$IntDict$get, _p57.key, r);
+		if (_p56.ctor === 'Nothing') {
+			return A3(
+				m,
+				_elm_community$intdict$IntDict$Empty,
+				r,
+				A3(left, _p57.key, _p57.value, acc));
+		} else {
+			return A3(
+				m,
+				_elm_community$intdict$IntDict$Empty,
+				A2(_elm_community$intdict$IntDict$remove, _p57.key, r),
+				A4(both, _p57.key, _p57.value, _p56._0, acc));
+		}
+	});
+
+var _evancz$focus$Focus$update = F3(
+	function (_p0, f, big) {
+		var _p1 = _p0;
+		return A2(_p1._0.update, f, big);
+	});
+var _evancz$focus$Focus$set = F3(
+	function (_p2, small, big) {
+		var _p3 = _p2;
+		return A2(
+			_p3._0.update,
+			_elm_lang$core$Basics$always(small),
+			big);
+	});
+var _evancz$focus$Focus$get = F2(
+	function (_p4, big) {
+		var _p5 = _p4;
+		return _p5._0.get(big);
+	});
+var _evancz$focus$Focus$Focus = function (a) {
+	return {ctor: 'Focus', _0: a};
+};
+var _evancz$focus$Focus$create = F2(
+	function (get, update) {
+		return _evancz$focus$Focus$Focus(
+			{get: get, update: update});
+	});
+var _evancz$focus$Focus_ops = _evancz$focus$Focus_ops || {};
+_evancz$focus$Focus_ops['=>'] = F2(
+	function (_p7, _p6) {
+		var _p8 = _p7;
+		var _p11 = _p8._0;
+		var _p9 = _p6;
+		var _p10 = _p9._0;
+		var update = F2(
+			function (f, big) {
+				return A2(
+					_p11.update,
+					_p10.update(f),
+					big);
+			});
+		var get = function (big) {
+			return _p10.get(
+				_p11.get(big));
+		};
+		return _evancz$focus$Focus$Focus(
+			{get: get, update: update});
+	});
+
+var _elm_community$graph$Graph$ignorePath = F4(
+	function (visit, path, _p0, acc) {
+		var _p1 = path;
+		if (_p1.ctor === '[]') {
+			return _elm_lang$core$Native_Utils.crashCase(
+				'Graph',
+				{
+					start: {line: 990, column: 3},
+					end: {line: 994, column: 20}
+				},
+				_p1)('Graph.ignorePath: No algorithm should ever pass an empty path into this BfsNodeVisitor.');
+		} else {
+			return A2(visit, _p1._0, acc);
+		}
+	});
+var _elm_community$graph$Graph$onFinish = F3(
+	function (visitor, ctx, acc) {
+		return {
+			ctor: '_Tuple2',
+			_0: acc,
+			_1: visitor(ctx)
+		};
+	});
+var _elm_community$graph$Graph$onDiscovery = F3(
+	function (visitor, ctx, acc) {
+		return {
+			ctor: '_Tuple2',
+			_0: A2(visitor, ctx, acc),
+			_1: _elm_lang$core$Basics$identity
+		};
+	});
+var _elm_community$graph$Graph$alongIncomingEdges = function (ctx) {
+	return _elm_community$intdict$IntDict$keys(ctx.incoming);
+};
+var _elm_community$graph$Graph$alongOutgoingEdges = function (ctx) {
+	return _elm_community$intdict$IntDict$keys(ctx.outgoing);
+};
+var _elm_community$graph$Graph$lookup = function (nodeId) {
+	return A2(
+		_evancz$focus$Focus$create,
+		_elm_community$intdict$IntDict$get(nodeId),
+		_elm_community$intdict$IntDict$update(nodeId));
+};
+var _elm_community$graph$Graph$outgoing = A2(
+	_evancz$focus$Focus$create,
+	function (_) {
+		return _.outgoing;
+	},
+	F2(
+		function (update, record) {
+			return _elm_lang$core$Native_Utils.update(
+				record,
+				{
+					outgoing: update(record.outgoing)
+				});
+		}));
+var _elm_community$graph$Graph$incoming = A2(
+	_evancz$focus$Focus$create,
+	function (_) {
+		return _.incoming;
+	},
+	F2(
+		function (update, record) {
+			return _elm_lang$core$Native_Utils.update(
+				record,
+				{
+					incoming: update(record.incoming)
+				});
+		}));
+var _elm_community$graph$Graph$node = A2(
+	_evancz$focus$Focus$create,
+	function (_) {
+		return _.node;
+	},
+	F2(
+		function (update, record) {
+			return _elm_lang$core$Native_Utils.update(
+				record,
+				{
+					node: update(record.node)
+				});
+		}));
+var _elm_community$graph$Graph$to = A2(
+	_evancz$focus$Focus$create,
+	function (_) {
+		return _.to;
+	},
+	F2(
+		function (update, record) {
+			return _elm_lang$core$Native_Utils.update(
+				record,
+				{
+					to: update(record.to)
+				});
+		}));
+var _elm_community$graph$Graph$from = A2(
+	_evancz$focus$Focus$create,
+	function (_) {
+		return _.from;
+	},
+	F2(
+		function (update, record) {
+			return _elm_lang$core$Native_Utils.update(
+				record,
+				{
+					from: update(record.from)
+				});
+		}));
+var _elm_community$graph$Graph$label = A2(
+	_evancz$focus$Focus$create,
+	function (_) {
+		return _.label;
+	},
+	F2(
+		function (update, record) {
+			return _elm_lang$core$Native_Utils.update(
+				record,
+				{
+					label: update(record.label)
+				});
+		}));
+var _elm_community$graph$Graph$id = A2(
+	_evancz$focus$Focus$create,
+	function (_) {
+		return _.id;
+	},
+	F2(
+		function (update, record) {
+			return _elm_lang$core$Native_Utils.update(
+				record,
+				{
+					id: update(record.id)
+				});
+		}));
+var _elm_community$graph$Graph$applyEdgeDiff = F3(
+	function (nodeId, diff, graphRep) {
+		var edgeUpdateToMaybe = function (edgeUpdate) {
+			var _p3 = edgeUpdate;
+			if (_p3.ctor === 'Insert') {
+				return _elm_lang$core$Maybe$Just(_p3._0);
+			} else {
+				return _elm_lang$core$Maybe$Nothing;
+			}
+		};
+		var updateAdjacency = F3(
+			function (edgeFocus, updatedId, edgeUpdate) {
+				var updateLbl = A2(
+					_evancz$focus$Focus$set,
+					edgeFocus,
+					edgeUpdateToMaybe(edgeUpdate));
+				return A2(
+					_elm_community$intdict$IntDict$update,
+					updatedId,
+					_elm_lang$core$Maybe$map(updateLbl));
+			});
+		var foldl$ = F3(
+			function (f, dict, acc) {
+				return A3(_elm_community$intdict$IntDict$foldl, f, acc, dict);
+			});
+		return A3(
+			foldl$,
+			updateAdjacency(
+				A2(
+					_evancz$focus$Focus_ops['=>'],
+					_elm_community$graph$Graph$outgoing,
+					_elm_community$graph$Graph$lookup(nodeId))),
+			diff.outgoing,
+			A3(
+				foldl$,
+				updateAdjacency(
+					A2(
+						_evancz$focus$Focus_ops['=>'],
+						_elm_community$graph$Graph$incoming,
+						_elm_community$graph$Graph$lookup(nodeId))),
+				diff.incoming,
+				graphRep));
+	});
+var _elm_community$graph$Graph$emptyDiff = {incoming: _elm_community$intdict$IntDict$empty, outgoing: _elm_community$intdict$IntDict$empty};
+var _elm_community$graph$Graph$unGraph = function (graph) {
+	var _p4 = graph;
+	return _p4._0;
+};
+var _elm_community$graph$Graph$edges = function (graph) {
+	var foldl$ = F3(
+		function (f, dict, list) {
+			return A3(_elm_community$intdict$IntDict$foldl, f, list, dict);
+		});
+	var prependEdges = F2(
+		function (node1, ctx) {
+			return A2(
+				foldl$,
+				F2(
+					function (node2, e) {
+						return F2(
+							function (x, y) {
+								return A2(_elm_lang$core$List_ops['::'], x, y);
+							})(
+							{to: node2, from: node1, label: e});
+					}),
+				ctx.outgoing);
+		});
+	return A3(
+		foldl$,
+		prependEdges,
+		_elm_community$graph$Graph$unGraph(graph),
+		_elm_lang$core$Native_List.fromArray(
+			[]));
+};
+var _elm_community$graph$Graph$Node = F2(
+	function (a, b) {
+		return {id: a, label: b};
+	});
+var _elm_community$graph$Graph$Edge = F3(
+	function (a, b, c) {
+		return {from: a, to: b, label: c};
+	});
+var _elm_community$graph$Graph$NodeContext = F3(
+	function (a, b, c) {
+		return {node: a, incoming: b, outgoing: c};
+	});
+var _elm_community$graph$Graph$EdgeDiff = F2(
+	function (a, b) {
+		return {incoming: a, outgoing: b};
+	});
+var _elm_community$graph$Graph$Graph = function (a) {
+	return {ctor: 'Graph', _0: a};
+};
+var _elm_community$graph$Graph$empty = _elm_community$graph$Graph$Graph(_elm_community$intdict$IntDict$empty);
+var _elm_community$graph$Graph$isEmpty = function (graph) {
+	return _elm_lang$core$Native_Utils.eq(graph, _elm_community$graph$Graph$empty);
+};
+var _elm_community$graph$Graph$fromNodesAndEdges = F2(
+	function (nodes, edges) {
+		var addEdge = F2(
+			function (edge, rep) {
+				var updateIncoming = function (ctx) {
+					return _elm_lang$core$Native_Utils.update(
+						ctx,
+						{
+							incoming: A3(_elm_community$intdict$IntDict$insert, edge.from, edge.label, ctx.incoming)
+						});
+				};
+				var updateOutgoing = function (ctx) {
+					return _elm_lang$core$Native_Utils.update(
+						ctx,
+						{
+							outgoing: A3(_elm_community$intdict$IntDict$insert, edge.to, edge.label, ctx.outgoing)
+						});
+				};
+				return A3(
+					_elm_community$intdict$IntDict$update,
+					edge.to,
+					_elm_lang$core$Maybe$map(updateIncoming),
+					A3(
+						_elm_community$intdict$IntDict$update,
+						edge.from,
+						_elm_lang$core$Maybe$map(updateOutgoing),
+						rep));
+			});
+		var nodeRep = A3(
+			_elm_lang$core$List$foldl,
+			function (n) {
+				return A2(
+					_elm_community$intdict$IntDict$insert,
+					n.id,
+					A3(_elm_community$graph$Graph$NodeContext, n, _elm_community$intdict$IntDict$empty, _elm_community$intdict$IntDict$empty));
+			},
+			_elm_community$intdict$IntDict$empty,
+			nodes);
+		return _elm_community$graph$Graph$Graph(
+			A3(_elm_lang$core$List$foldl, addEdge, nodeRep, edges));
+	});
+var _elm_community$graph$Graph$fromNodeLabelsAndEdgePairs = F2(
+	function (labels, edges) {
+		var edges$ = A2(
+			_elm_lang$core$List$map,
+			function (_p5) {
+				var _p6 = _p5;
+				return A3(
+					_elm_community$graph$Graph$Edge,
+					_p6._0,
+					_p6._1,
+					{ctor: '_Tuple0'});
+			},
+			edges);
+		var nodes = _elm_lang$core$Basics$snd(
+			A3(
+				_elm_lang$core$List$foldl,
+				F2(
+					function (lbl, _p7) {
+						var _p8 = _p7;
+						var _p9 = _p8._0;
+						return {
+							ctor: '_Tuple2',
+							_0: _p9 + 1,
+							_1: A2(
+								_elm_lang$core$List_ops['::'],
+								A2(_elm_community$graph$Graph$Node, _p9, lbl),
+								_p8._1)
+						};
+					}),
+				{
+					ctor: '_Tuple2',
+					_0: 0,
+					_1: _elm_lang$core$Native_List.fromArray(
+						[])
+				},
+				labels));
+		return A2(_elm_community$graph$Graph$fromNodesAndEdges, nodes, edges$);
+	});
+var _elm_community$graph$Graph$graphRep = A2(
+	_evancz$focus$Focus$create,
+	_elm_community$graph$Graph$unGraph,
+	function (update) {
+		return function (_p10) {
+			return _elm_community$graph$Graph$Graph(
+				update(
+					_elm_community$graph$Graph$unGraph(_p10)));
+		};
+	});
+var _elm_community$graph$Graph$size = function (_p11) {
+	return _elm_community$intdict$IntDict$size(
+		A2(_evancz$focus$Focus$get, _elm_community$graph$Graph$graphRep, _p11));
+};
+var _elm_community$graph$Graph$member = function (nodeId) {
+	return function (_p12) {
+		return A2(
+			_elm_community$intdict$IntDict$member,
+			nodeId,
+			A2(_evancz$focus$Focus$get, _elm_community$graph$Graph$graphRep, _p12));
+	};
+};
+var _elm_community$graph$Graph$get = function (nodeId) {
+	return _evancz$focus$Focus$get(
+		A2(
+			_evancz$focus$Focus_ops['=>'],
+			_elm_community$graph$Graph$graphRep,
+			_elm_community$graph$Graph$lookup(nodeId)));
+};
+var _elm_community$graph$Graph$nodeIdRange = function (graph) {
+	var rep = A2(_evancz$focus$Focus$get, _elm_community$graph$Graph$graphRep, graph);
+	return A2(
+		_elm_lang$core$Maybe$andThen,
+		_elm_community$intdict$IntDict$findMin(rep),
+		function (_p13) {
+			var _p14 = _p13;
+			return A2(
+				_elm_lang$core$Maybe$andThen,
+				_elm_community$intdict$IntDict$findMax(rep),
+				function (_p15) {
+					var _p16 = _p15;
+					return _elm_lang$core$Maybe$Just(
+						{ctor: '_Tuple2', _0: _p14._0, _1: _p16._0});
+				});
+		});
+};
+var _elm_community$graph$Graph$nodes = function (_p17) {
+	return A2(
+		_elm_lang$core$List$map,
+		function (_) {
+			return _.node;
+		},
+		_elm_community$intdict$IntDict$values(
+			A2(_evancz$focus$Focus$get, _elm_community$graph$Graph$graphRep, _p17)));
+};
+var _elm_community$graph$Graph$toString$ = function (graph) {
+	var edgeList = _elm_community$graph$Graph$edges(graph);
+	var nodeList = _elm_community$graph$Graph$nodes(graph);
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		'Graph.fromNodesAndEdges ',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Basics$toString(nodeList),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				' ',
+				_elm_lang$core$Basics$toString(edgeList))));
+};
+var _elm_community$graph$Graph$nodeIds = function (_p18) {
+	return _elm_community$intdict$IntDict$keys(
+		A2(_evancz$focus$Focus$get, _elm_community$graph$Graph$graphRep, _p18));
+};
+var _elm_community$graph$Graph$symmetricClosure = function (edgeMerger) {
+	var orderedEdgeMerger = F4(
+		function (from, to, outgoing, incoming) {
+			return (_elm_lang$core$Native_Utils.cmp(from, to) < 1) ? A4(edgeMerger, from, to, outgoing, incoming) : A4(edgeMerger, to, from, incoming, outgoing);
+		});
+	var updateContext = F2(
+		function (nodeId, ctx) {
+			var edges = A3(
+				_elm_community$intdict$IntDict$uniteWith,
+				orderedEdgeMerger(nodeId),
+				ctx.outgoing,
+				ctx.incoming);
+			return _elm_lang$core$Native_Utils.update(
+				ctx,
+				{outgoing: edges, incoming: edges});
+		});
+	return A2(
+		_evancz$focus$Focus$update,
+		_elm_community$graph$Graph$graphRep,
+		_elm_community$intdict$IntDict$map(updateContext));
+};
+var _elm_community$graph$Graph$reverseEdges = function () {
+	var updateContext = F2(
+		function (nodeId, ctx) {
+			return _elm_lang$core$Native_Utils.update(
+				ctx,
+				{outgoing: ctx.incoming, incoming: ctx.outgoing});
+		});
+	return A2(
+		_evancz$focus$Focus$update,
+		_elm_community$graph$Graph$graphRep,
+		_elm_community$intdict$IntDict$map(updateContext));
+}();
+var _elm_community$graph$Graph$Remove = function (a) {
+	return {ctor: 'Remove', _0: a};
+};
+var _elm_community$graph$Graph$Insert = function (a) {
+	return {ctor: 'Insert', _0: a};
+};
+var _elm_community$graph$Graph$computeEdgeDiff = F2(
+	function (old, $new) {
+		var collectUpdates = F3(
+			function (edgeUpdate, updatedId, label) {
+				var replaceUpdate = function (old) {
+					var _p19 = {
+						ctor: '_Tuple2',
+						_0: old,
+						_1: edgeUpdate(label)
+					};
+					if (_p19._0.ctor === 'Just') {
+						if (_p19._0._0.ctor === 'Remove') {
+							if (_p19._1.ctor === 'Insert') {
+								var _p20 = _p19._1._0;
+								return _elm_lang$core$Native_Utils.eq(_p19._0._0._0, _p20) ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(
+									_elm_community$graph$Graph$Insert(_p20));
+							} else {
+								return _elm_lang$core$Native_Utils.crashCase(
+									'Graph',
+									{
+										start: {line: 196, column: 11},
+										end: {line: 206, column: 22}
+									},
+									_p19)('Graph.computeEdgeDiff: Collected two removals for the same edge. This is an error in the implementation of Graph and you should file a bug report!');
+							}
+						} else {
+							return _elm_lang$core$Native_Utils.crashCase(
+								'Graph',
+								{
+									start: {line: 196, column: 11},
+									end: {line: 206, column: 22}
+								},
+								_p19)('Graph.computeEdgeDiff: Collected inserts before removals. This is an error in the implementation of Graph and you should file a bug report!');
+						}
+					} else {
+						return _elm_lang$core$Maybe$Just(_p19._1);
+					}
+				};
+				return A2(_elm_community$intdict$IntDict$update, updatedId, replaceUpdate);
+			});
+		var collect = F3(
+			function (edgeUpdate, adj, updates) {
+				return A3(
+					_elm_community$intdict$IntDict$foldl,
+					collectUpdates(edgeUpdate),
+					updates,
+					adj);
+			});
+		var _p23 = {ctor: '_Tuple2', _0: old, _1: $new};
+		if (_p23._0.ctor === 'Nothing') {
+			if (_p23._1.ctor === 'Nothing') {
+				return _elm_community$graph$Graph$emptyDiff;
+			} else {
+				var _p25 = _p23._1._0;
+				return {
+					outgoing: A3(collect, _elm_community$graph$Graph$Insert, _p25.incoming, _elm_community$intdict$IntDict$empty),
+					incoming: A3(collect, _elm_community$graph$Graph$Insert, _p25.outgoing, _elm_community$intdict$IntDict$empty)
+				};
+			}
+		} else {
+			if (_p23._1.ctor === 'Nothing') {
+				var _p24 = _p23._0._0;
+				return {
+					outgoing: A3(collect, _elm_community$graph$Graph$Remove, _p24.incoming, _elm_community$intdict$IntDict$empty),
+					incoming: A3(collect, _elm_community$graph$Graph$Remove, _p24.outgoing, _elm_community$intdict$IntDict$empty)
+				};
+			} else {
+				var _p27 = _p23._0._0;
+				var _p26 = _p23._1._0;
+				return _elm_lang$core$Native_Utils.eq(_p27, _p26) ? _elm_community$graph$Graph$emptyDiff : {
+					outgoing: A3(
+						collect,
+						_elm_community$graph$Graph$Insert,
+						_p26.incoming,
+						A3(collect, _elm_community$graph$Graph$Remove, _p27.incoming, _elm_community$intdict$IntDict$empty)),
+					incoming: A3(
+						collect,
+						_elm_community$graph$Graph$Insert,
+						_p26.outgoing,
+						A3(collect, _elm_community$graph$Graph$Remove, _p27.outgoing, _elm_community$intdict$IntDict$empty))
+				};
+			}
+		}
+	});
+var _elm_community$graph$Graph$update = F2(
+	function (nodeId, updater) {
+		var updater$ = function (rep) {
+			var filterInvalidEdges = function (ctx) {
+				return _elm_community$intdict$IntDict$filter(
+					F2(
+						function (id, _p28) {
+							return _elm_lang$core$Native_Utils.eq(id, ctx.node.id) || A2(_elm_community$intdict$IntDict$member, id, rep);
+						}));
+			};
+			var cleanUpEdges = function (ctx) {
+				return A3(
+					_evancz$focus$Focus$update,
+					_elm_community$graph$Graph$outgoing,
+					filterInvalidEdges(ctx),
+					A3(
+						_evancz$focus$Focus$update,
+						_elm_community$graph$Graph$incoming,
+						filterInvalidEdges(ctx),
+						ctx));
+			};
+			var old = A2(_elm_community$intdict$IntDict$get, nodeId, rep);
+			var $new = A2(
+				_elm_lang$core$Maybe$map,
+				cleanUpEdges,
+				updater(old));
+			var diff = A2(_elm_community$graph$Graph$computeEdgeDiff, old, $new);
+			return A3(
+				_elm_community$intdict$IntDict$update,
+				nodeId,
+				_elm_lang$core$Basics$always($new),
+				A3(_elm_community$graph$Graph$applyEdgeDiff, nodeId, diff, rep));
+		};
+		return A2(_evancz$focus$Focus$update, _elm_community$graph$Graph$graphRep, updater$);
+	});
+var _elm_community$graph$Graph$insert = F2(
+	function (nodeContext, graph) {
+		return A3(
+			_elm_community$graph$Graph$update,
+			nodeContext.node.id,
+			_elm_lang$core$Basics$always(
+				_elm_lang$core$Maybe$Just(nodeContext)),
+			graph);
+	});
+var _elm_community$graph$Graph$inducedSubgraph = F2(
+	function (nodeIds, graph) {
+		var insertContextById = F2(
+			function (nodeId, acc) {
+				var _p29 = A2(_elm_community$graph$Graph$get, nodeId, graph);
+				if (_p29.ctor === 'Just') {
+					return A2(_elm_community$graph$Graph$insert, _p29._0, acc);
+				} else {
+					return acc;
+				}
+			});
+		return A3(_elm_lang$core$List$foldl, insertContextById, _elm_community$graph$Graph$empty, nodeIds);
+	});
+var _elm_community$graph$Graph$remove = F2(
+	function (nodeId, graph) {
+		return A3(
+			_elm_community$graph$Graph$update,
+			nodeId,
+			_elm_lang$core$Basics$always(_elm_lang$core$Maybe$Nothing),
+			graph);
+	});
+var _elm_community$graph$Graph$fold = F3(
+	function (f, acc, graph) {
+		var go = F2(
+			function (acc, graph1) {
+				go:
+				while (true) {
+					var maybeContext = A3(
+						_elm_lang$core$Basics$flip,
+						_elm_lang$core$Maybe$andThen,
+						function (id) {
+							return A2(_elm_community$graph$Graph$get, id, graph);
+						},
+						A2(
+							_elm_lang$core$Maybe$map,
+							_elm_lang$core$Basics$fst,
+							_elm_community$graph$Graph$nodeIdRange(graph1)));
+					var _p30 = maybeContext;
+					if (_p30.ctor === 'Just') {
+						var _p31 = _p30._0;
+						var _v11 = A2(f, _p31, acc),
+							_v12 = A2(_elm_community$graph$Graph$remove, _p31.node.id, graph1);
+						acc = _v11;
+						graph1 = _v12;
+						continue go;
+					} else {
+						return acc;
+					}
+				}
+			});
+		return A2(go, acc, graph);
+	});
+var _elm_community$graph$Graph$mapContexts = function (f) {
+	return A2(
+		_elm_community$graph$Graph$fold,
+		function (ctx) {
+			return _elm_community$graph$Graph$insert(
+				f(ctx));
+		},
+		_elm_community$graph$Graph$empty);
+};
+var _elm_community$graph$Graph$mapNodes = function (f) {
+	return A2(
+		_elm_community$graph$Graph$fold,
+		function (ctx) {
+			return _elm_community$graph$Graph$insert(
+				_elm_lang$core$Native_Utils.update(
+					ctx,
+					{
+						node: {
+							id: ctx.node.id,
+							label: f(ctx.node.label)
+						}
+					}));
+		},
+		_elm_community$graph$Graph$empty);
+};
+var _elm_community$graph$Graph$mapEdges = function (f) {
+	return A2(
+		_elm_community$graph$Graph$fold,
+		function (ctx) {
+			return _elm_community$graph$Graph$insert(
+				_elm_lang$core$Native_Utils.update(
+					ctx,
+					{
+						outgoing: A2(
+							_elm_community$intdict$IntDict$map,
+							F2(
+								function (n, e) {
+									return f(e);
+								}),
+							ctx.outgoing),
+						incoming: A2(
+							_elm_community$intdict$IntDict$map,
+							F2(
+								function (n, e) {
+									return f(e);
+								}),
+							ctx.incoming)
+					}));
+		},
+		_elm_community$graph$Graph$empty);
+};
+var _elm_community$graph$Graph$guidedDfs = F5(
+	function (selectNeighbors, visitNode, seeds, acc, graph) {
+		var go = F3(
+			function (seeds, acc, graph) {
+				go:
+				while (true) {
+					var _p32 = seeds;
+					if (_p32.ctor === '[]') {
+						return {ctor: '_Tuple2', _0: acc, _1: graph};
+					} else {
+						var _p38 = _p32._1;
+						var _p37 = _p32._0;
+						var _p33 = A2(_elm_community$graph$Graph$get, _p37, graph);
+						if (_p33.ctor === 'Nothing') {
+							var _v15 = _p38,
+								_v16 = acc,
+								_v17 = graph;
+							seeds = _v15;
+							acc = _v16;
+							graph = _v17;
+							continue go;
+						} else {
+							var _p36 = _p33._0;
+							var _p34 = A2(visitNode, _p36, acc);
+							var accAfterDiscovery = _p34._0;
+							var finishNode = _p34._1;
+							var _p35 = A3(
+								go,
+								selectNeighbors(_p36),
+								accAfterDiscovery,
+								A2(_elm_community$graph$Graph$remove, _p37, graph));
+							var accBeforeFinish = _p35._0;
+							var graph1 = _p35._1;
+							var accAfterFinish = finishNode(accBeforeFinish);
+							var _v18 = _p38,
+								_v19 = accAfterFinish,
+								_v20 = graph1;
+							seeds = _v18;
+							acc = _v19;
+							graph = _v20;
+							continue go;
+						}
+					}
+				}
+			});
+		return A3(go, seeds, acc, graph);
+	});
+var _elm_community$graph$Graph$dfs = F3(
+	function (visitNode, acc, graph) {
+		return _elm_lang$core$Basics$fst(
+			A5(
+				_elm_community$graph$Graph$guidedDfs,
+				_elm_community$graph$Graph$alongOutgoingEdges,
+				visitNode,
+				_elm_community$graph$Graph$nodeIds(graph),
+				acc,
+				graph));
+	});
+var _elm_community$graph$Graph$dfsForest = F2(
+	function (seeds, graph) {
+		var visitNode = F2(
+			function (ctx, trees) {
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_List.fromArray(
+						[]),
+					_1: function (children) {
+						return A2(
+							_elm_lang$core$List_ops['::'],
+							A2(_elm_community$graph$Graph_Tree$inner, ctx, children),
+							trees);
+					}
+				};
+			});
+		return _elm_lang$core$List$reverse(
+			_elm_lang$core$Basics$fst(
+				A5(
+					_elm_community$graph$Graph$guidedDfs,
+					_elm_community$graph$Graph$alongOutgoingEdges,
+					visitNode,
+					seeds,
+					_elm_lang$core$Native_List.fromArray(
+						[]),
+					graph)));
+	});
+var _elm_community$graph$Graph$dfsTree = F2(
+	function (seed, graph) {
+		var _p39 = A2(
+			_elm_community$graph$Graph$dfsForest,
+			_elm_lang$core$Native_List.fromArray(
+				[seed]),
+			graph);
+		if (_p39.ctor === '[]') {
+			return _elm_community$graph$Graph_Tree$empty;
+		} else {
+			if (_p39._1.ctor === '[]') {
+				return _p39._0;
+			} else {
+				return _elm_lang$core$Native_Utils.crashCase(
+					'Graph',
+					{
+						start: {line: 932, column: 3},
+						end: {line: 938, column: 120}
+					},
+					_p39)('dfsTree: There can\'t be more than one DFS tree. This invariant is violated, please report this bug.');
+			}
+		}
+	});
+var _elm_community$graph$Graph$topologicalSort = function (graph) {
+	return A2(
+		_elm_lang$core$List$concatMap,
+		_elm_community$graph$Graph_Tree$preOrderList,
+		_elm_lang$core$List$reverse(
+			A2(
+				_elm_community$graph$Graph$dfsForest,
+				_elm_community$graph$Graph$nodeIds(graph),
+				graph)));
+};
+var _elm_community$graph$Graph$stronglyConnectedComponents = function (graph) {
+	var timestamps = A3(
+		_elm_community$graph$Graph$dfs,
+		_elm_community$graph$Graph$onFinish(
+			function (_p41) {
+				return F2(
+					function (x, y) {
+						return A2(_elm_lang$core$List_ops['::'], x, y);
+					})(
+					function (_) {
+						return _.id;
+					}(
+						function (_) {
+							return _.node;
+						}(_p41)));
+			}),
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		graph);
+	var forest = A2(
+		_elm_community$graph$Graph$dfsForest,
+		timestamps,
+		_elm_community$graph$Graph$reverseEdges(graph));
+	var components = A2(
+		_elm_lang$core$List$map,
+		function (_p42) {
+			return _elm_community$graph$Graph$reverseEdges(
+				A3(
+					_elm_lang$core$List$foldr,
+					_elm_community$graph$Graph$insert,
+					_elm_community$graph$Graph$empty,
+					_elm_community$graph$Graph_Tree$preOrderList(_p42)));
+		},
+		forest);
+	return components;
+};
+var _elm_community$graph$Graph$guidedBfs = F5(
+	function (selectNeighbors, visitNode, seeds, acc, graph) {
+		var enqueueMany = F4(
+			function (distance, parentPath, nodeIds, queue) {
+				return A3(
+					_elm_lang$core$List$foldl,
+					_imeckler$queue$Queue$push,
+					queue,
+					A2(
+						_elm_lang$core$List$map,
+						function (id) {
+							return {ctor: '_Tuple3', _0: id, _1: parentPath, _2: distance};
+						},
+						nodeIds));
+			});
+		var go = F3(
+			function (seeds, acc, graph) {
+				go:
+				while (true) {
+					var _p43 = _imeckler$queue$Queue$pop(seeds);
+					if (_p43.ctor === 'Nothing') {
+						return {ctor: '_Tuple2', _0: acc, _1: graph};
+					} else {
+						var _p48 = _p43._0._1;
+						var _p47 = _p43._0._0._0;
+						var _p46 = _p43._0._0._2;
+						var _p44 = A2(_elm_community$graph$Graph$get, _p47, graph);
+						if (_p44.ctor === 'Nothing') {
+							var _v24 = _p48,
+								_v25 = acc,
+								_v26 = graph;
+							seeds = _v24;
+							acc = _v25;
+							graph = _v26;
+							continue go;
+						} else {
+							var _p45 = _p44._0;
+							var path = A2(_elm_lang$core$List_ops['::'], _p45, _p43._0._0._1);
+							var acc$ = A3(visitNode, path, _p46, acc);
+							var seeds$$ = A4(
+								enqueueMany,
+								_p46 + 1,
+								path,
+								selectNeighbors(_p45),
+								_p48);
+							var _v27 = seeds$$,
+								_v28 = acc$,
+								_v29 = A2(_elm_community$graph$Graph$remove, _p47, graph);
+							seeds = _v27;
+							acc = _v28;
+							graph = _v29;
+							continue go;
+						}
+					}
+				}
+			});
+		return A3(
+			go,
+			A4(
+				enqueueMany,
+				0,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				seeds,
+				_imeckler$queue$Queue$empty),
+			acc,
+			graph);
+	});
+var _elm_community$graph$Graph$bfs = F3(
+	function (visitNode, acc, graph) {
+		bfs:
+		while (true) {
+			var _p49 = A5(
+				_elm_community$graph$Graph$guidedBfs,
+				_elm_community$graph$Graph$alongOutgoingEdges,
+				visitNode,
+				_elm_community$graph$Graph$nodeIds(graph),
+				acc,
+				graph);
+			var acc$ = _p49._0;
+			var restgraph1 = _p49._1;
+			var _p50 = _elm_community$graph$Graph$nodeIdRange(graph);
+			if (_p50.ctor === 'Nothing') {
+				return acc;
+			} else {
+				var _p51 = A5(
+					_elm_community$graph$Graph$guidedBfs,
+					_elm_community$graph$Graph$alongOutgoingEdges,
+					visitNode,
+					_elm_lang$core$Native_List.fromArray(
+						[_p50._0._0]),
+					acc,
+					graph);
+				var acc$ = _p51._0;
+				var restgraph1 = _p51._1;
+				var _v31 = visitNode,
+					_v32 = acc$,
+					_v33 = restgraph1;
+				visitNode = _v31;
+				acc = _v32;
+				graph = _v33;
+				continue bfs;
+			}
+		}
+	});
+var _elm_community$graph$Graph$heightLevels = function (graph) {
+	var subtract = F2(
+		function (a, b) {
+			return b - a;
+		});
+	var decrementAndNoteSources = F3(
+		function (id, _p53, _p52) {
+			var _p54 = _p52;
+			var _p58 = _p54._0;
+			var indegrees$ = A3(
+				_elm_community$intdict$IntDict$update,
+				id,
+				_elm_lang$core$Maybe$map(
+					subtract(1)),
+				_p54._1);
+			var _p55 = A2(_elm_community$intdict$IntDict$get, id, indegrees$);
+			if ((_p55.ctor === 'Just') && (_p55._0 === 0)) {
+				var _p56 = A2(_elm_community$graph$Graph$get, id, graph);
+				if (_p56.ctor === 'Just') {
+					return {
+						ctor: '_Tuple2',
+						_0: A2(_elm_lang$core$List_ops['::'], _p56._0, _p58),
+						_1: indegrees$
+					};
+				} else {
+					return _elm_lang$core$Native_Utils.crashCase(
+						'Graph',
+						{
+							start: {line: 1115, column: 13},
+							end: {line: 1117, column: 154}
+						},
+						_p56)('Graph.heightLevels: Could not get a node of a graph which should be there by invariants. Please file a bug report!');
+				}
+			} else {
+				return {ctor: '_Tuple2', _0: _p58, _1: indegrees$};
+			}
+		});
+	var decrementIndegrees = F3(
+		function (source, nextLevel, indegrees) {
+			return A3(
+				_elm_community$intdict$IntDict$foldl,
+				decrementAndNoteSources,
+				{ctor: '_Tuple2', _0: nextLevel, _1: indegrees},
+				source.outgoing);
+		});
+	var go = F4(
+		function (currentLevel, nextLevel, indegrees, graph) {
+			var _p59 = {ctor: '_Tuple2', _0: currentLevel, _1: nextLevel};
+			if (_p59._0.ctor === '[]') {
+				if (_p59._1.ctor === '[]') {
+					return _elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$core$Native_List.fromArray(
+							[])
+						]);
+				} else {
+					return A2(
+						_elm_lang$core$List_ops['::'],
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						A4(
+							go,
+							nextLevel,
+							_elm_lang$core$Native_List.fromArray(
+								[]),
+							indegrees,
+							graph));
+				}
+			} else {
+				var _p63 = _p59._0._0;
+				var _p60 = A3(decrementIndegrees, _p63, nextLevel, indegrees);
+				var nextLevel$ = _p60._0;
+				var indegrees$ = _p60._1;
+				var _p61 = A4(
+					go,
+					_p59._0._1,
+					nextLevel$,
+					indegrees$,
+					A2(_elm_community$graph$Graph$remove, _p63.node.id, graph));
+				if (_p61.ctor === '[]') {
+					return _elm_lang$core$Native_Utils.crashCase(
+						'Graph',
+						{
+							start: {line: 1134, column: 13},
+							end: {line: 1138, column: 44}
+						},
+						_p61)('Graph.heightLevels: Reached a branch which is impossible by invariants. Please file a bug report!');
+				} else {
+					return A2(
+						_elm_lang$core$List_ops['::'],
+						A2(_elm_lang$core$List_ops['::'], _p63, _p61._0),
+						_p61._1);
+				}
+			}
+		});
+	var countIndegrees = A2(
+		_elm_community$graph$Graph$fold,
+		function (ctx) {
+			return A2(
+				_elm_community$intdict$IntDict$insert,
+				ctx.node.id,
+				_elm_community$intdict$IntDict$size(ctx.incoming));
+		},
+		_elm_community$intdict$IntDict$empty);
+	var sources = A3(
+		_elm_community$graph$Graph$fold,
+		F2(
+			function (ctx, acc) {
+				return _elm_community$intdict$IntDict$isEmpty(ctx.incoming) ? A2(_elm_lang$core$List_ops['::'], ctx, acc) : acc;
+			}),
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		graph);
+	return A4(
+		go,
+		sources,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		countIndegrees(graph),
+		graph);
+};
+var _elm_community$graph$Graph$nodeById = function (nodeId) {
+	return A2(
+		_evancz$focus$Focus$create,
+		_elm_community$graph$Graph$get(nodeId),
+		_elm_community$graph$Graph$update(nodeId));
+};
+var _elm_community$graph$Graph$anyNode = function () {
+	var getMinId = function (_p64) {
+		return A2(
+			_elm_lang$core$Maybe$map,
+			_elm_lang$core$Basics$fst,
+			_elm_community$intdict$IntDict$findMin(
+				A2(_evancz$focus$Focus$get, _elm_community$graph$Graph$graphRep, _p64)));
+	};
+	var get = function (graph) {
+		return A2(
+			_elm_lang$core$Maybe$andThen,
+			getMinId(graph),
+			function (id) {
+				return A2(
+					_evancz$focus$Focus$get,
+					_elm_community$graph$Graph$nodeById(id),
+					graph);
+			});
+	};
+	var update = F2(
+		function (upd, graph) {
+			var nodeId = A2(
+				_elm_lang$core$Maybe$withDefault,
+				0,
+				getMinId(graph));
+			return A3(
+				_evancz$focus$Focus$update,
+				_elm_community$graph$Graph$nodeById(nodeId),
+				upd,
+				graph);
+		});
+	return A2(_evancz$focus$Focus$create, get, update);
+}();
+
+var _concourse$atc$Grid$nodes = function (grid) {
+	var _p0 = grid;
+	switch (_p0.ctor) {
+		case 'End':
+			return _elm_lang$core$Set$empty;
+		case 'Parallel':
+			return A3(
+				_elm_lang$core$List$foldl,
+				F2(
+					function (g, s) {
+						return A2(
+							_elm_lang$core$Set$union,
+							s,
+							_concourse$atc$Grid$nodes(g));
+					}),
+				_elm_lang$core$Set$empty,
+				_p0._0);
+		case 'Serial':
+			return A2(
+				_elm_lang$core$Set$union,
+				_concourse$atc$Grid$nodes(_p0._0),
+				_concourse$atc$Grid$nodes(_p0._1));
+		default:
+			return _elm_lang$core$Set$singleton(_p0._0.node.id);
+	}
+};
+var _concourse$atc$Grid$terminals = function (grid) {
+	var _p1 = grid;
+	switch (_p1.ctor) {
+		case 'End':
+			return _elm_lang$core$Set$empty;
+		case 'Parallel':
+			var _p3 = _p1._0;
+			return A2(
+				_elm_lang$core$List$any,
+				function (_p2) {
+					return _elm_lang$core$Set$isEmpty(
+						_concourse$atc$Grid$terminals(_p2));
+				},
+				_p3) ? _elm_lang$core$Set$empty : A3(
+				_elm_lang$core$List$foldl,
+				F2(
+					function (g, s) {
+						return A2(
+							_elm_lang$core$Set$union,
+							s,
+							_concourse$atc$Grid$terminals(g));
+					}),
+				_elm_lang$core$Set$empty,
+				_p3);
+		case 'Serial':
+			var _p4 = _p1._1;
+			var bNodes = _concourse$atc$Grid$nodes(_p4);
+			var bTerms = _concourse$atc$Grid$terminals(_p4);
+			var aTerms = _concourse$atc$Grid$terminals(_p1._0);
+			var joined = A2(_elm_lang$core$Set$union, aTerms, bTerms);
+			return A2(_elm_lang$core$Set$diff, joined, bNodes);
+		default:
+			return _elm_lang$core$Set$fromList(
+				_elm_community$intdict$IntDict$keys(_p1._0.outgoing));
+	}
+};
+var _concourse$atc$Grid$comesDirectlyFrom = F2(
+	function (up, grid) {
+		comesDirectlyFrom:
+		while (true) {
+			var _p5 = grid;
+			switch (_p5.ctor) {
+				case 'End':
+					return false;
+				case 'Parallel':
+					return A2(
+						_elm_lang$core$List$any,
+						_concourse$atc$Grid$comesDirectlyFrom(up),
+						_p5._0);
+				case 'Serial':
+					var _v3 = up,
+						_v4 = _p5._0;
+					up = _v3;
+					grid = _v4;
+					continue comesDirectlyFrom;
+				default:
+					return A2(
+						_elm_lang$core$Set$member,
+						_p5._0.node.id,
+						_concourse$atc$Grid$terminals(up));
+			}
+		}
+	});
+var _concourse$atc$Grid$leadsTo = F2(
+	function (nc, grid) {
+		var _p6 = grid;
+		switch (_p6.ctor) {
+			case 'End':
+				return false;
+			case 'Parallel':
+				return A2(
+					_elm_lang$core$List$any,
+					_concourse$atc$Grid$leadsTo(nc),
+					_p6._0);
+			case 'Serial':
+				return A2(_concourse$atc$Grid$leadsTo, nc, _p6._0) || A2(_concourse$atc$Grid$leadsTo, nc, _p6._1);
+			default:
+				return A2(_elm_community$intdict$IntDict$member, nc.node.id, _p6._0.outgoing);
+		}
+	});
+var _concourse$atc$Grid$height = F2(
+	function (nh, grid) {
+		var _p7 = grid;
+		switch (_p7.ctor) {
+			case 'End':
+				return 0;
+			case 'Serial':
+				return A2(
+					_elm_lang$core$Basics$max,
+					A2(_concourse$atc$Grid$height, nh, _p7._0),
+					A2(_concourse$atc$Grid$height, nh, _p7._1));
+			case 'Parallel':
+				return _elm_lang$core$List$sum(
+					A2(
+						_elm_lang$core$List$map,
+						_concourse$atc$Grid$height(nh),
+						_p7._0));
+			default:
+				return nh(_p7._0);
+		}
+	});
+var _concourse$atc$Grid$width = function (grid) {
+	var _p8 = grid;
+	switch (_p8.ctor) {
+		case 'End':
+			return 0;
+		case 'Serial':
+			return _concourse$atc$Grid$width(_p8._0) + _concourse$atc$Grid$width(_p8._1);
+		case 'Parallel':
+			return A2(
+				_elm_lang$core$Maybe$withDefault,
+				0,
+				_elm_lang$core$List$maximum(
+					A2(_elm_lang$core$List$map, _concourse$atc$Grid$width, _p8._0)));
+		default:
+			return 1;
+	}
+};
+var _concourse$atc$Grid$showMatrix = function (m) {
+	var showCell = function (c) {
+		var _p9 = c;
+		switch (_p9.ctor) {
+			case 'MatrixSpacer':
+				return '  ';
+			case 'MatrixFilled':
+				return '--';
+			default:
+				var _p10 = _p9._0;
+				return (_elm_lang$core$Native_Utils.cmp(_p10.node.id, 10) < 0) ? A2(
+					_elm_lang$core$Basics_ops['++'],
+					' ',
+					_elm_lang$core$Basics$toString(_p10.node.id)) : _elm_lang$core$Basics$toString(_p10.node.id);
+		}
+	};
+	return A2(
+		_elm_lang$core$String$join,
+		'\n',
+		A2(
+			_elm_lang$core$List$map,
+			function (r) {
+				return A2(
+					_elm_lang$core$String$join,
+					'|',
+					A2(_elm_lang$core$List$map, showCell, r));
+			},
+			_chendrix$elm_matrix$Matrix$toList(m)));
+};
+var _concourse$atc$Grid$End = {ctor: 'End'};
+var _concourse$atc$Grid$Parallel = function (a) {
+	return {ctor: 'Parallel', _0: a};
+};
+var _concourse$atc$Grid$addToStart = F2(
+	function (a, b) {
+		var _p11 = b;
+		switch (_p11.ctor) {
+			case 'End':
+				return a;
+			case 'Parallel':
+				var _p13 = _p11._0;
+				var _p12 = a;
+				if (_p12.ctor === 'Parallel') {
+					return _concourse$atc$Grid$Parallel(
+						A2(_elm_lang$core$Basics_ops['++'], _p13, _p12._0));
+				} else {
+					return _concourse$atc$Grid$Parallel(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							_p13,
+							_elm_lang$core$Native_List.fromArray(
+								[a])));
+				}
+			default:
+				var _p14 = a;
+				if (_p14.ctor === 'Parallel') {
+					return _concourse$atc$Grid$Parallel(
+						A2(_elm_lang$core$List_ops['::'], b, _p14._0));
+				} else {
+					return _concourse$atc$Grid$Parallel(
+						_elm_lang$core$Native_List.fromArray(
+							[b, a]));
+				}
+		}
+	});
+var _concourse$atc$Grid$extractExclusiveUpstreams = F2(
+	function (target, grid) {
+		var _p15 = grid;
+		switch (_p15.ctor) {
+			case 'End':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Maybe$Just(grid),
+					_1: _elm_lang$core$Native_List.fromArray(
+						[])
+				};
+			case 'Parallel':
+				var recurse = A2(
+					_elm_lang$core$List$map,
+					_concourse$atc$Grid$extractExclusiveUpstreams(target),
+					_p15._0);
+				var remainders = A2(_elm_lang$core$List$map, _elm_lang$core$Basics$fst, recurse);
+				var exclusives = A2(_elm_lang$core$List$concatMap, _elm_lang$core$Basics$snd, recurse);
+				return A2(
+					_elm_lang$core$List$all,
+					F2(
+						function (x, y) {
+							return _elm_lang$core$Native_Utils.eq(x, y);
+						})(_elm_lang$core$Maybe$Nothing),
+					remainders) ? {ctor: '_Tuple2', _0: _elm_lang$core$Maybe$Nothing, _1: exclusives} : {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Maybe$Just(
+						_concourse$atc$Grid$Parallel(
+							A2(_elm_lang$core$List$filterMap, _elm_lang$core$Basics$identity, remainders))),
+					_1: exclusives
+				};
+			case 'Serial':
+				var terms = _concourse$atc$Grid$terminals(grid);
+				return (_elm_lang$core$Native_Utils.eq(
+					_elm_lang$core$Set$size(terms),
+					1) && A2(_elm_lang$core$Set$member, target.node.id, terms)) ? {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Maybe$Nothing,
+					_1: _elm_lang$core$Native_List.fromArray(
+						[grid])
+				} : {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Maybe$Just(grid),
+					_1: _elm_lang$core$Native_List.fromArray(
+						[])
+				};
+			default:
+				var _p16 = _p15._0;
+				return (_elm_lang$core$Native_Utils.eq(
+					_elm_community$intdict$IntDict$size(_p16.outgoing),
+					1) && A2(_elm_community$intdict$IntDict$member, target.node.id, _p16.outgoing)) ? {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Maybe$Nothing,
+					_1: _elm_lang$core$Native_List.fromArray(
+						[grid])
+				} : {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Maybe$Just(grid),
+					_1: _elm_lang$core$Native_List.fromArray(
+						[])
+				};
+		}
+	});
+var _concourse$atc$Grid$Serial = F2(
+	function (a, b) {
+		return {ctor: 'Serial', _0: a, _1: b};
+	});
+var _concourse$atc$Grid$addBeforeDownstream = F2(
+	function (up, grid) {
+		var _p17 = grid;
+		switch (_p17.ctor) {
+			case 'End':
+				return _concourse$atc$Grid$End;
+			case 'Parallel':
+				return A2(_concourse$atc$Grid$comesDirectlyFrom, up, grid) ? _elm_lang$core$Native_Utils.crash(
+					'Grid',
+					{
+						start: {line: 208, column: 9},
+						end: {line: 208, column: 20}
+					})('too late to add in front of Parallel') : _concourse$atc$Grid$Parallel(
+					A2(
+						_elm_lang$core$List$map,
+						_concourse$atc$Grid$addBeforeDownstream(up),
+						_p17._0));
+			case 'Serial':
+				var _p19 = _p17._1;
+				var _p18 = _p17._0;
+				return A2(_concourse$atc$Grid$comesDirectlyFrom, up, _p18) ? _elm_lang$core$Native_Utils.crash(
+					'Grid',
+					{
+						start: {line: 214, column: 9},
+						end: {line: 214, column: 20}
+					})('too late to add in front of Serial') : (A2(_concourse$atc$Grid$comesDirectlyFrom, up, _p19) ? A2(
+					_concourse$atc$Grid$Serial,
+					A2(_concourse$atc$Grid$addToStart, up, _p18),
+					_p19) : A2(
+					_concourse$atc$Grid$Serial,
+					_p18,
+					A2(_concourse$atc$Grid$addBeforeDownstream, up, _p19)));
+			default:
+				return A2(_concourse$atc$Grid$comesDirectlyFrom, up, grid) ? _elm_lang$core$Native_Utils.crash(
+					'Grid',
+					{
+						start: {line: 222, column: 9},
+						end: {line: 222, column: 20}
+					})('too late to add in front of Cell') : grid;
+		}
+	});
+var _concourse$atc$Grid$checkAndAddBeforeDownstream = F2(
+	function (up, grid) {
+		var after = A2(_concourse$atc$Grid$addBeforeDownstream, up, grid);
+		return _elm_lang$core$Native_Utils.eq(after, grid) ? _elm_lang$core$Native_Utils.crash(
+			'Grid',
+			{
+				start: {line: 196, column: 7},
+				end: {line: 196, column: 18}
+			})(
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'failed to add: ',
+				_elm_lang$core$Basics$toString(up))) : after;
+	});
+var _concourse$atc$Grid$Cell = function (a) {
+	return {ctor: 'Cell', _0: a};
+};
+var _concourse$atc$Grid$addAfterMixedUpstreamsAndReinsertExclusiveOnes = F2(
+	function (nc, dependent) {
+		var _p20 = A2(
+			_concourse$atc$Grid$extractExclusiveUpstreams,
+			nc,
+			_concourse$atc$Grid$Parallel(dependent));
+		var remainder = _p20._0;
+		var exclusives = _p20._1;
+		var _p21 = {ctor: '_Tuple2', _0: remainder, _1: exclusives};
+		if (_p21._0.ctor === 'Nothing') {
+			if (_p21._1.ctor === '[]') {
+				return _elm_lang$core$Native_Utils.crashCase(
+					'Grid',
+					{
+						start: {line: 173, column: 5},
+						end: {line: 187, column: 21}
+					},
+					_p21)('impossible');
+			} else {
+				return A2(
+					_concourse$atc$Grid$Serial,
+					_concourse$atc$Grid$Parallel(exclusives),
+					_concourse$atc$Grid$Cell(nc));
+			}
+		} else {
+			if (_p21._1.ctor === '[]') {
+				return A2(
+					_concourse$atc$Grid$Serial,
+					_concourse$atc$Grid$Parallel(dependent),
+					_concourse$atc$Grid$Cell(nc));
+			} else {
+				return A3(
+					_elm_lang$core$List$foldr,
+					_concourse$atc$Grid$checkAndAddBeforeDownstream,
+					A2(_concourse$atc$Grid$addAfterUpstreams, nc, _p21._0._0),
+					exclusives);
+			}
+		}
+	});
+var _concourse$atc$Grid$addAfterUpstreams = F2(
+	function (nc, grid) {
+		var _p23 = grid;
+		switch (_p23.ctor) {
+			case 'End':
+				return _concourse$atc$Grid$End;
+			case 'Parallel':
+				var _p24 = A2(
+					_elm_lang$core$List$partition,
+					_concourse$atc$Grid$leadsTo(nc),
+					_p23._0);
+				var dependent = _p24._0;
+				var rest = _p24._1;
+				var _p25 = dependent;
+				if (_p25.ctor === '[]') {
+					return grid;
+				} else {
+					if (_p25._1.ctor === '[]') {
+						return _concourse$atc$Grid$Parallel(
+							A2(
+								_elm_lang$core$List_ops['::'],
+								A2(_concourse$atc$Grid$addAfterUpstreams, nc, _p25._0),
+								rest));
+					} else {
+						return A2(
+							_concourse$atc$Grid$addToStart,
+							_concourse$atc$Grid$Parallel(rest),
+							A2(_concourse$atc$Grid$addAfterMixedUpstreamsAndReinsertExclusiveOnes, nc, dependent));
+					}
+				}
+			case 'Serial':
+				var _p27 = _p23._1;
+				var _p26 = _p23._0;
+				return A2(_concourse$atc$Grid$leadsTo, nc, _p26) ? A2(
+					_concourse$atc$Grid$Serial,
+					_p26,
+					A2(
+						_concourse$atc$Grid$addToStart,
+						_concourse$atc$Grid$Cell(nc),
+						_p27)) : A2(
+					_concourse$atc$Grid$Serial,
+					_p26,
+					A2(_concourse$atc$Grid$addAfterUpstreams, nc, _p27));
+			default:
+				return A2(_elm_community$intdict$IntDict$member, nc.node.id, _p23._0.outgoing) ? A2(
+					_concourse$atc$Grid$Serial,
+					grid,
+					_concourse$atc$Grid$Cell(nc)) : grid;
+		}
+	});
+var _concourse$atc$Grid$insert = F2(
+	function (nc, grid) {
+		var _p28 = _elm_community$intdict$IntDict$size(nc.incoming);
+		if (_p28 === 0) {
+			return A2(
+				_concourse$atc$Grid$addToStart,
+				_concourse$atc$Grid$Cell(nc),
+				grid);
+		} else {
+			return A2(_concourse$atc$Grid$addAfterUpstreams, nc, grid);
+		}
+	});
+var _concourse$atc$Grid$fromGraph = function (graph) {
+	return A3(
+		_elm_lang$core$List$foldl,
+		_concourse$atc$Grid$insert,
+		_concourse$atc$Grid$End,
+		_elm_lang$core$List$concat(
+			_elm_community$graph$Graph$heightLevels(graph)));
+};
+var _concourse$atc$Grid$MatrixFilled = {ctor: 'MatrixFilled'};
+var _concourse$atc$Grid$clearHeight = F4(
+	function (row, col, height, matrix) {
+		clearHeight:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.eq(height, 0)) {
+				return matrix;
+			} else {
+				var _v18 = row,
+					_v19 = col,
+					_v20 = height - 1,
+					_v21 = A3(
+					_chendrix$elm_matrix$Matrix$set,
+					{ctor: '_Tuple2', _0: row + height, _1: col},
+					_concourse$atc$Grid$MatrixFilled,
+					matrix);
+				row = _v18;
+				col = _v19;
+				height = _v20;
+				matrix = _v21;
+				continue clearHeight;
+			}
+		}
+	});
+var _concourse$atc$Grid$MatrixSpacer = {ctor: 'MatrixSpacer'};
+var _concourse$atc$Grid$MatrixNode = function (a) {
+	return {ctor: 'MatrixNode', _0: a};
+};
+var _concourse$atc$Grid$toMatrix$ = F5(
+	function (nh, row, col, matrix, grid) {
+		toMatrix$:
+		while (true) {
+			var _p29 = grid;
+			switch (_p29.ctor) {
+				case 'End':
+					return matrix;
+				case 'Serial':
+					var _p30 = _p29._0;
+					var _v23 = nh,
+						_v24 = row,
+						_v25 = col + _concourse$atc$Grid$width(_p30),
+						_v26 = A5(_concourse$atc$Grid$toMatrix$, nh, row, col, matrix, _p30),
+						_v27 = _p29._1;
+					nh = _v23;
+					row = _v24;
+					col = _v25;
+					matrix = _v26;
+					grid = _v27;
+					continue toMatrix$;
+				case 'Parallel':
+					return _elm_lang$core$Basics$fst(
+						A3(
+							_elm_lang$core$List$foldl,
+							F2(
+								function (g, _p31) {
+									var _p32 = _p31;
+									var _p33 = _p32._1;
+									return {
+										ctor: '_Tuple2',
+										_0: A5(_concourse$atc$Grid$toMatrix$, nh, _p33, col, _p32._0, g),
+										_1: _p33 + A2(_concourse$atc$Grid$height, nh, g)
+									};
+								}),
+							{ctor: '_Tuple2', _0: matrix, _1: row},
+							_p29._0));
+				default:
+					var _p34 = _p29._0;
+					return A3(
+						_chendrix$elm_matrix$Matrix$set,
+						{ctor: '_Tuple2', _0: row, _1: col},
+						_concourse$atc$Grid$MatrixNode(_p34),
+						A4(
+							_concourse$atc$Grid$clearHeight,
+							row,
+							col,
+							nh(_p34) - 1,
+							matrix));
+			}
+		}
+	});
+var _concourse$atc$Grid$toMatrix = F2(
+	function (nh, grid) {
+		return A5(
+			_concourse$atc$Grid$toMatrix$,
+			nh,
+			0,
+			0,
+			A3(
+				_chendrix$elm_matrix$Matrix$matrix,
+				A2(_concourse$atc$Grid$height, nh, grid),
+				_concourse$atc$Grid$width(grid),
+				_elm_lang$core$Basics$always(_concourse$atc$Grid$MatrixSpacer)),
+			grid);
+	});
+
 var _concourse$atc$Job$paginationParam = function (page) {
 	var _p0 = page.direction;
 	if (_p0.ctor === 'Since') {
@@ -16915,11 +20191,761 @@ var _concourse$atc$JobPage$main = {
 		})
 };
 
+var _elm_lang$animation_frame$Native_AnimationFrame = function()
+{
+
+var hasStartTime =
+	window.performance &&
+	window.performance.timing &&
+	window.performance.timing.navigationStart;
+
+var navStart = hasStartTime
+	? window.performance.timing.navigationStart
+	: Date.now();
+
+var rAF = _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+{
+	var id = requestAnimationFrame(function(time) {
+		var timeNow = time
+			? (time > navStart ? time : time + navStart)
+			: Date.now();
+
+		callback(_elm_lang$core$Native_Scheduler.succeed(timeNow));
+	});
+
+	return function() {
+		cancelAnimationFrame(id);
+	};
+});
+
+return {
+	rAF: rAF
+};
+
+}();
+
+var _elm_lang$animation_frame$AnimationFrame$rAF = _elm_lang$animation_frame$Native_AnimationFrame.rAF;
+var _elm_lang$animation_frame$AnimationFrame$subscription = _elm_lang$core$Native_Platform.leaf('AnimationFrame');
+var _elm_lang$animation_frame$AnimationFrame$State = F3(
+	function (a, b, c) {
+		return {subs: a, request: b, oldTime: c};
+	});
+var _elm_lang$animation_frame$AnimationFrame$init = _elm_lang$core$Task$succeed(
+	A3(
+		_elm_lang$animation_frame$AnimationFrame$State,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Maybe$Nothing,
+		0));
+var _elm_lang$animation_frame$AnimationFrame$onEffects = F3(
+	function (router, subs, _p0) {
+		var _p1 = _p0;
+		var _p5 = _p1.request;
+		var _p4 = _p1.oldTime;
+		var _p2 = {ctor: '_Tuple2', _0: _p5, _1: subs};
+		if (_p2._0.ctor === 'Nothing') {
+			if (_p2._1.ctor === '[]') {
+				return _elm_lang$core$Task$succeed(
+					A3(
+						_elm_lang$animation_frame$AnimationFrame$State,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Maybe$Nothing,
+						_p4));
+			} else {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					_elm_lang$core$Process$spawn(
+						A2(
+							_elm_lang$core$Task$andThen,
+							_elm_lang$animation_frame$AnimationFrame$rAF,
+							_elm_lang$core$Platform$sendToSelf(router))),
+					function (pid) {
+						return A2(
+							_elm_lang$core$Task$andThen,
+							_elm_lang$core$Time$now,
+							function (time) {
+								return _elm_lang$core$Task$succeed(
+									A3(
+										_elm_lang$animation_frame$AnimationFrame$State,
+										subs,
+										_elm_lang$core$Maybe$Just(pid),
+										time));
+							});
+					});
+			}
+		} else {
+			if (_p2._1.ctor === '[]') {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					_elm_lang$core$Process$kill(_p2._0._0),
+					function (_p3) {
+						return _elm_lang$core$Task$succeed(
+							A3(
+								_elm_lang$animation_frame$AnimationFrame$State,
+								_elm_lang$core$Native_List.fromArray(
+									[]),
+								_elm_lang$core$Maybe$Nothing,
+								_p4));
+					});
+			} else {
+				return _elm_lang$core$Task$succeed(
+					A3(_elm_lang$animation_frame$AnimationFrame$State, subs, _p5, _p4));
+			}
+		}
+	});
+var _elm_lang$animation_frame$AnimationFrame$onSelfMsg = F3(
+	function (router, newTime, _p6) {
+		var _p7 = _p6;
+		var _p10 = _p7.subs;
+		var diff = newTime - _p7.oldTime;
+		var send = function (sub) {
+			var _p8 = sub;
+			if (_p8.ctor === 'Time') {
+				return A2(
+					_elm_lang$core$Platform$sendToApp,
+					router,
+					_p8._0(newTime));
+			} else {
+				return A2(
+					_elm_lang$core$Platform$sendToApp,
+					router,
+					_p8._0(diff));
+			}
+		};
+		return A2(
+			_elm_lang$core$Task$andThen,
+			_elm_lang$core$Process$spawn(
+				A2(
+					_elm_lang$core$Task$andThen,
+					_elm_lang$animation_frame$AnimationFrame$rAF,
+					_elm_lang$core$Platform$sendToSelf(router))),
+			function (pid) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					_elm_lang$core$Task$sequence(
+						A2(_elm_lang$core$List$map, send, _p10)),
+					function (_p9) {
+						return _elm_lang$core$Task$succeed(
+							A3(
+								_elm_lang$animation_frame$AnimationFrame$State,
+								_p10,
+								_elm_lang$core$Maybe$Just(pid),
+								newTime));
+					});
+			});
+	});
+var _elm_lang$animation_frame$AnimationFrame$Diff = function (a) {
+	return {ctor: 'Diff', _0: a};
+};
+var _elm_lang$animation_frame$AnimationFrame$diffs = function (tagger) {
+	return _elm_lang$animation_frame$AnimationFrame$subscription(
+		_elm_lang$animation_frame$AnimationFrame$Diff(tagger));
+};
+var _elm_lang$animation_frame$AnimationFrame$Time = function (a) {
+	return {ctor: 'Time', _0: a};
+};
+var _elm_lang$animation_frame$AnimationFrame$times = function (tagger) {
+	return _elm_lang$animation_frame$AnimationFrame$subscription(
+		_elm_lang$animation_frame$AnimationFrame$Time(tagger));
+};
+var _elm_lang$animation_frame$AnimationFrame$subMap = F2(
+	function (func, sub) {
+		var _p11 = sub;
+		if (_p11.ctor === 'Time') {
+			return _elm_lang$animation_frame$AnimationFrame$Time(
+				function (_p12) {
+					return func(
+						_p11._0(_p12));
+				});
+		} else {
+			return _elm_lang$animation_frame$AnimationFrame$Diff(
+				function (_p13) {
+					return func(
+						_p11._0(_p13));
+				});
+		}
+	});
+_elm_lang$core$Native_Platform.effectManagers['AnimationFrame'] = {pkg: 'elm-lang/animation-frame', init: _elm_lang$animation_frame$AnimationFrame$init, onEffects: _elm_lang$animation_frame$AnimationFrame$onEffects, onSelfMsg: _elm_lang$animation_frame$AnimationFrame$onSelfMsg, tag: 'sub', subMap: _elm_lang$animation_frame$AnimationFrame$subMap};
+
+var _concourse$atc$Pipeline$outputNodes = F2(
+	function (job, _p0) {
+		var _p1 = _p0;
+		return _elm_lang$core$Native_List.fromArray(
+			[]);
+	});
+var _concourse$atc$Pipeline$viewOutputNode = function (resourceName) {
+	return A2(
+		_elm_lang$html$Html$a,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$href('#')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(resourceName)
+			]));
+};
+var _concourse$atc$Pipeline$viewConstrainedInputNode = function (resourceName) {
+	return A2(
+		_elm_lang$html$Html$a,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$href('#')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(resourceName)
+			]));
+};
+var _concourse$atc$Pipeline$viewInputNode = function (resourceName) {
+	return A2(
+		_elm_lang$html$Html$a,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$href('#')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(resourceName)
+			]));
+};
+var _concourse$atc$Pipeline$jobResources = function (_p2) {
+	var _p3 = _p2;
+	return _elm_lang$core$Set$size(
+		_elm_lang$core$Set$fromList(
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(
+					_elm_lang$core$List$map,
+					function (_) {
+						return _.resource;
+					},
+					_p3.inputs),
+				A2(
+					_elm_lang$core$List$map,
+					function (_) {
+						return _.resource;
+					},
+					_p3.outputs))));
+};
+var _concourse$atc$Pipeline$viewJobNode = function (job) {
+	var linkAttrs = function () {
+		var _p4 = {ctor: '_Tuple2', _0: job.finishedBuild, _1: job.nextBuild};
+		if (_p4._0.ctor === 'Just') {
+			if (_p4._1.ctor === 'Just') {
+				return _elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							_concourse$atc$Concourse_BuildStatus$show(_p4._0._0.status),
+							' started')),
+						_elm_lang$html$Html_Attributes$href(_p4._1._0.url)
+					]);
+			} else {
+				var _p5 = _p4._0._0;
+				return _elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class(
+						_concourse$atc$Concourse_BuildStatus$show(_p5.status)),
+						_elm_lang$html$Html_Attributes$href(_p5.url)
+					]);
+			}
+		} else {
+			if (_p4._1.ctor === 'Just') {
+				return _elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('no-builds started'),
+						_elm_lang$html$Html_Attributes$href(_p4._1._0.url)
+					]);
+			} else {
+				return _elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('no-builds'),
+						_elm_lang$html$Html_Attributes$href(job.url)
+					]);
+			}
+		}
+	}();
+	return A2(
+		_elm_lang$html$Html$a,
+		linkAttrs,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(job.name)
+			]));
+};
+var _concourse$atc$Pipeline$viewNode = function (_p6) {
+	var _p7 = _p6;
+	var idAttr = _elm_lang$html$Html_Attributes$id(
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'node-',
+			_elm_lang$core$Basics$toString(_p7.id)));
+	var _p8 = _p7.label;
+	switch (_p8.ctor) {
+		case 'JobNode':
+			return A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('node job'),
+						idAttr
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_concourse$atc$Pipeline$viewJobNode(_p8._0)
+					]));
+		case 'InputNode':
+			return A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('node input'),
+						idAttr
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_concourse$atc$Pipeline$viewInputNode(_p8._0.resourceName)
+					]));
+		case 'ConstrainedInputNode':
+			return A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('node input constrained'),
+						idAttr
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_concourse$atc$Pipeline$viewConstrainedInputNode(_p8._0.resourceName)
+					]));
+		default:
+			return A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('node output'),
+						idAttr
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_concourse$atc$Pipeline$viewOutputNode(_p8._0.resourceName)
+					]));
+	}
+};
+var _concourse$atc$Pipeline$viewGrid = function (grid) {
+	var _p9 = grid;
+	switch (_p9.ctor) {
+		case 'Cell':
+			return _concourse$atc$Pipeline$viewNode(_p9._0.node);
+		case 'Serial':
+			return A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('serial-grid')
+					]),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_concourse$atc$Pipeline$viewSerial(_p9._0),
+					_concourse$atc$Pipeline$viewSerial(_p9._1)));
+		case 'Parallel':
+			return A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('parallel-grid')
+					]),
+				A2(_elm_lang$core$List$map, _concourse$atc$Pipeline$viewGrid, _p9._0));
+		default:
+			return _elm_lang$html$Html$text('');
+	}
+};
+var _concourse$atc$Pipeline$viewSerial = function (grid) {
+	var _p10 = grid;
+	if (_p10.ctor === 'Serial') {
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			_concourse$atc$Pipeline$viewSerial(_p10._0),
+			_concourse$atc$Pipeline$viewSerial(_p10._1));
+	} else {
+		return _elm_lang$core$Native_List.fromArray(
+			[
+				_concourse$atc$Pipeline$viewGrid(grid)
+			]);
+	}
+};
+var _concourse$atc$Pipeline$nodeHeight = function (_p11) {
+	var _p12 = _p11;
+	var _p13 = _p12.label;
+	if (_p13.ctor === 'JobNode') {
+		return A2(
+			_elm_lang$core$Basics$max,
+			1,
+			_concourse$atc$Pipeline$jobResources(_p13._0));
+	} else {
+		return 1;
+	}
+};
+var _concourse$atc$Pipeline$viewMatrixCell = function (mnode) {
+	var _p14 = mnode;
+	switch (_p14.ctor) {
+		case 'MatrixSpacer':
+			return A2(
+				_elm_lang$html$Html$td,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('spacer')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[]));
+		case 'MatrixNode':
+			var _p15 = _p14._0.node;
+			return A2(
+				_elm_lang$html$Html$td,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$rowspan(
+						_concourse$atc$Pipeline$nodeHeight(_p15))
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_concourse$atc$Pipeline$viewNode(_p15)
+					]));
+		default:
+			return _elm_lang$html$Html$text('');
+	}
+};
+var _concourse$atc$Pipeline$viewRow = function (row) {
+	return A2(
+		_elm_lang$html$Html$tr,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		A2(_elm_lang$core$List$map, _concourse$atc$Pipeline$viewMatrixCell, row));
+};
+var _concourse$atc$Pipeline$view = function (model) {
+	var _p16 = model.error;
+	if (_p16.ctor === 'Just') {
+		return _elm_lang$html$Html$text(
+			A2(_elm_lang$core$Basics_ops['++'], 'error: ', _p16._0));
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html_Attributes$class('pipeline-grid')
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_concourse$atc$Pipeline$viewGrid(
+					_concourse$atc$Grid$fromGraph(model.graph))
+				]));
+	}
+};
+var _concourse$atc$Pipeline$Model = F6(
+	function (a, b, c, d, e, f) {
+		return {fit: a, pipelineLocator: b, groups: c, jobs: d, graph: e, error: f};
+	});
+var _concourse$atc$Pipeline$Flags = F3(
+	function (a, b, c) {
+		return {teamName: a, pipelineName: b, groups: c};
+	});
+var _concourse$atc$Pipeline$ConstrainedInputNode = function (a) {
+	return {ctor: 'ConstrainedInputNode', _0: a};
+};
+var _concourse$atc$Pipeline$constrainedInputNode = F4(
+	function (jobs, resourceName, dependentJob, upstreamJobName) {
+		return _concourse$atc$Pipeline$ConstrainedInputNode(
+			{
+				resourceName: resourceName,
+				dependentJob: dependentJob,
+				upstreamJob: A2(_elm_lang$core$Dict$get, upstreamJobName, jobs)
+			});
+	});
+var _concourse$atc$Pipeline$OutputNode = function (a) {
+	return {ctor: 'OutputNode', _0: a};
+};
+var _concourse$atc$Pipeline$InputNode = function (a) {
+	return {ctor: 'InputNode', _0: a};
+};
+var _concourse$atc$Pipeline$inputNodes = F3(
+	function (jobs, job, _p17) {
+		var _p18 = _p17;
+		var _p20 = _p18.resource;
+		var _p19 = _p18.passed;
+		return _elm_lang$core$List$isEmpty(_p19) ? _elm_lang$core$Native_List.fromArray(
+			[
+				_concourse$atc$Pipeline$InputNode(
+				{resourceName: _p20, dependentJob: job})
+			]) : A2(
+			_elm_lang$core$List$map,
+			A3(_concourse$atc$Pipeline$constrainedInputNode, jobs, _p20, job),
+			_p19);
+	});
+var _concourse$atc$Pipeline$jobResourceNodes = F2(
+	function (jobs, job) {
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			A2(
+				_elm_lang$core$List$concatMap,
+				A2(_concourse$atc$Pipeline$inputNodes, jobs, job),
+				job.inputs),
+			A2(
+				_elm_lang$core$List$concatMap,
+				_concourse$atc$Pipeline$outputNodes(job),
+				job.outputs));
+	});
+var _concourse$atc$Pipeline$JobNode = function (a) {
+	return {ctor: 'JobNode', _0: a};
+};
+var _concourse$atc$Pipeline$jobId = F2(
+	function (nodes, job) {
+		var _p22 = A2(
+			_elm_lang$core$List$filter,
+			function (_p21) {
+				return A2(
+					F2(
+						function (x, y) {
+							return _elm_lang$core$Native_Utils.eq(x, y);
+						}),
+					_concourse$atc$Pipeline$JobNode(job),
+					function (_) {
+						return _.label;
+					}(_p21));
+			},
+			nodes);
+		if (_p22.ctor === '::') {
+			return _p22._0.id;
+		} else {
+			return _elm_lang$core$Native_Utils.crashCase(
+				'Pipeline',
+				{
+					start: {line: 323, column: 3},
+					end: {line: 328, column: 52}
+				},
+				_p22)('impossible: job index not found');
+		}
+	});
+var _concourse$atc$Pipeline$nodeEdges = F2(
+	function (allNodes, _p24) {
+		var _p25 = _p24;
+		var _p28 = _p25.id;
+		var _p26 = _p25.label;
+		switch (_p26.ctor) {
+			case 'JobNode':
+				return _elm_lang$core$Native_List.fromArray(
+					[]);
+			case 'InputNode':
+				return _elm_lang$core$Native_List.fromArray(
+					[
+						A3(
+						_elm_community$graph$Graph$Edge,
+						_p28,
+						A2(_concourse$atc$Pipeline$jobId, allNodes, _p26._0.dependentJob),
+						{ctor: '_Tuple0'})
+					]);
+			case 'ConstrainedInputNode':
+				return A2(
+					_elm_lang$core$List_ops['::'],
+					A3(
+						_elm_community$graph$Graph$Edge,
+						_p28,
+						A2(_concourse$atc$Pipeline$jobId, allNodes, _p26._0.dependentJob),
+						{ctor: '_Tuple0'}),
+					function () {
+						var _p27 = _p26._0.upstreamJob;
+						if (_p27.ctor === 'Just') {
+							return _elm_lang$core$Native_List.fromArray(
+								[
+									A3(
+									_elm_community$graph$Graph$Edge,
+									A2(_concourse$atc$Pipeline$jobId, allNodes, _p27._0),
+									_p28,
+									{ctor: '_Tuple0'})
+								]);
+						} else {
+							return _elm_lang$core$Native_List.fromArray(
+								[]);
+						}
+					}());
+			default:
+				return _elm_lang$core$Native_List.fromArray(
+					[
+						A3(
+						_elm_community$graph$Graph$Edge,
+						A2(_concourse$atc$Pipeline$jobId, allNodes, _p26._0.upstreamJob),
+						_p28,
+						{ctor: '_Tuple0'})
+					]);
+		}
+	});
+var _concourse$atc$Pipeline$initGraph = function (jobs) {
+	var jobsByName = A3(
+		_elm_lang$core$List$foldl,
+		F2(
+			function (job, dict) {
+				return A3(_elm_lang$core$Dict$insert, job.name, job, dict);
+			}),
+		_elm_lang$core$Dict$empty,
+		jobs);
+	var resourceNodes = A2(
+		_elm_lang$core$List$concatMap,
+		_concourse$atc$Pipeline$jobResourceNodes(jobsByName),
+		jobs);
+	var jobNodes = A2(_elm_lang$core$List$map, _concourse$atc$Pipeline$JobNode, jobs);
+	var graphNodes = A2(
+		_elm_lang$core$List$indexedMap,
+		_elm_community$graph$Graph$Node,
+		_elm_lang$core$List$concat(
+			_elm_lang$core$Native_List.fromArray(
+				[jobNodes, resourceNodes])));
+	return A2(
+		_elm_community$graph$Graph$fromNodesAndEdges,
+		graphNodes,
+		A2(
+			_elm_lang$core$List$concatMap,
+			_concourse$atc$Pipeline$nodeEdges(graphNodes),
+			graphNodes));
+};
+var _concourse$atc$Pipeline$update = F2(
+	function (msg, model) {
+		var _p29 = msg;
+		switch (_p29.ctor) {
+			case 'Noop':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'JobsFetched':
+				if (_p29._0.ctor === 'Ok') {
+					var _p31 = _p29._0._0;
+					var filtered = _elm_lang$core$Set$isEmpty(model.groups) ? _p31 : A2(
+						_elm_lang$core$List$filter,
+						function (_p30) {
+							return A2(
+								_elm_lang$core$List$any,
+								A2(_elm_lang$core$Basics$flip, _elm_lang$core$Set$member, model.groups),
+								function (_) {
+									return _.groups;
+								}(_p30));
+						},
+						_p31);
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								jobs: filtered,
+								graph: _concourse$atc$Pipeline$initGraph(filtered)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								error: _elm_lang$core$Maybe$Just(
+									_elm_lang$core$Basics$toString(_p29._0._0))
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+			default:
+				var _p32 = model.fit;
+				if (_p32.ctor === 'Just') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{fit: _elm_lang$core$Maybe$Nothing}),
+						_1: _p32._0(
+							{ctor: '_Tuple0'})
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+		}
+	});
+var _concourse$atc$Pipeline$Frame = {ctor: 'Frame'};
+var _concourse$atc$Pipeline$subscriptions = function (model) {
+	return (_elm_lang$core$List$isEmpty(model.jobs) || _elm_lang$core$Native_Utils.eq(model.fit, _elm_lang$core$Maybe$Nothing)) ? _elm_lang$core$Platform_Sub$none : _elm_lang$animation_frame$AnimationFrame$times(
+		_elm_lang$core$Basics$always(_concourse$atc$Pipeline$Frame));
+};
+var _concourse$atc$Pipeline$JobsFetched = function (a) {
+	return {ctor: 'JobsFetched', _0: a};
+};
+var _concourse$atc$Pipeline$fetchJobs = function (locator) {
+	return A2(
+		_elm_lang$core$Platform_Cmd$map,
+		_concourse$atc$Pipeline$JobsFetched,
+		A3(
+			_elm_lang$core$Task$perform,
+			_elm_lang$core$Result$Err,
+			_elm_lang$core$Result$Ok,
+			_concourse$atc$Concourse_Job$fetchJobs(locator)));
+};
+var _concourse$atc$Pipeline$init = F2(
+	function (fit, flags) {
+		var model = {
+			fit: _elm_lang$core$Maybe$Just(fit),
+			pipelineLocator: {teamName: flags.teamName, pipelineName: flags.pipelineName},
+			groups: _elm_lang$core$Set$fromList(flags.groups),
+			jobs: _elm_lang$core$Native_List.fromArray(
+				[]),
+			graph: _elm_community$graph$Graph$empty,
+			error: _elm_lang$core$Maybe$Nothing
+		};
+		return {
+			ctor: '_Tuple2',
+			_0: model,
+			_1: _concourse$atc$Pipeline$fetchJobs(model.pipelineLocator)
+		};
+	});
+var _concourse$atc$Pipeline$Noop = {ctor: 'Noop'};
+
+var _concourse$atc$PipelinePage$fit = _elm_lang$core$Native_Platform.outgoingPort(
+	'fit',
+	function (v) {
+		return null;
+	});
+var _concourse$atc$PipelinePage$main = {
+	main: _elm_lang$html$Html_App$programWithFlags(
+		{
+			init: _concourse$atc$Pipeline$init(_concourse$atc$PipelinePage$fit),
+			update: _concourse$atc$Pipeline$update,
+			view: _concourse$atc$Pipeline$view,
+			subscriptions: _concourse$atc$Pipeline$subscriptions
+		}),
+	flags: A2(
+		_elm_lang$core$Json_Decode$andThen,
+		A2(
+			_elm_lang$core$Json_Decode_ops[':='],
+			'groups',
+			_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string)),
+		function (groups) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				A2(_elm_lang$core$Json_Decode_ops[':='], 'pipelineName', _elm_lang$core$Json_Decode$string),
+				function (pipelineName) {
+					return A2(
+						_elm_lang$core$Json_Decode$andThen,
+						A2(_elm_lang$core$Json_Decode_ops[':='], 'teamName', _elm_lang$core$Json_Decode$string),
+						function (teamName) {
+							return _elm_lang$core$Json_Decode$succeed(
+								{groups: groups, pipelineName: pipelineName, teamName: teamName});
+						});
+				});
+		})
+};
+
 var Elm = {};
 Elm['BuildPage'] = Elm['BuildPage'] || {};
 _elm_lang$core$Native_Platform.addPublicModule(Elm['BuildPage'], 'BuildPage', typeof _concourse$atc$BuildPage$main === 'undefined' ? null : _concourse$atc$BuildPage$main);
 Elm['JobPage'] = Elm['JobPage'] || {};
 _elm_lang$core$Native_Platform.addPublicModule(Elm['JobPage'], 'JobPage', typeof _concourse$atc$JobPage$main === 'undefined' ? null : _concourse$atc$JobPage$main);
+Elm['PipelinePage'] = Elm['PipelinePage'] || {};
+_elm_lang$core$Native_Platform.addPublicModule(Elm['PipelinePage'], 'PipelinePage', typeof _concourse$atc$PipelinePage$main === 'undefined' ? null : _concourse$atc$PipelinePage$main);
 
 if (typeof define === "function" && define['amd'])
 {
