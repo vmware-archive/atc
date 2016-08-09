@@ -20292,41 +20292,6 @@ var _concourse$atc$JobPage$main = {
 		})
 };
 
-var _concourse$atc$Login$viewOAuthButton = function (method) {
-	var _p0 = method;
-	if (_p0.ctor === 'BasicMethod') {
-		return _elm_lang$core$Maybe$Nothing;
-	} else {
-		var _p1 = _p0._0;
-		return _elm_lang$core$Maybe$Just(
-			A2(
-				_elm_lang$html$Html$a,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$href(_p1.authURL)
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html$text(
-						A2(_elm_lang$core$Basics_ops['++'], 'login with ', _p1.displayName))
-					])));
-	}
-};
-var _concourse$atc$Login$viewOAuthButtons = function (methods) {
-	var _p2 = A2(_elm_lang$core$List$filterMap, _concourse$atc$Login$viewOAuthButton, methods);
-	if (_p2.ctor === '[]') {
-		return _elm_lang$core$Maybe$Nothing;
-	} else {
-		return _elm_lang$core$Maybe$Just(
-			A2(
-				_elm_lang$html$Html$div,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('centered-contents padded-top')
-					]),
-				_p2));
-	}
-};
 var _concourse$atc$Login$viewBasicAuthForm = function (methods) {
 	return A2(_elm_lang$core$List$member, _concourse$atc$Concourse_AuthMethod$BasicMethod, methods) ? _elm_lang$core$Maybe$Just(
 		A2(
@@ -20485,19 +20450,19 @@ var _concourse$atc$Login$filterTeams = F2(
 			_concourse$atc$Login$teamNameContains(
 				_elm_lang$core$String$toLower(teamFilter)),
 			teams);
-		var _p3 = A2(
+		var _p0 = A2(
 			_elm_lang$core$List$partition,
 			_concourse$atc$Login$teamNameStartsWith(
 				_elm_lang$core$String$toLower(teamFilter)),
 			filteredList);
-		var startingTeams = _p3._0;
-		var notStartingTeams = _p3._1;
-		var _p4 = A2(
+		var startingTeams = _p0._0;
+		var notStartingTeams = _p0._1;
+		var _p1 = A2(
 			_elm_lang$core$List$partition,
 			_concourse$atc$Login$teamNameStartsWithSensitive(teamFilter),
 			startingTeams);
-		var caseSensitive = _p4._0;
-		var notCaseSensitive = _p4._1;
+		var caseSensitive = _p1._0;
+		var notCaseSensitive = _p1._1;
 		return A2(
 			_elm_lang$core$Basics_ops['++'],
 			caseSensitive,
@@ -20535,19 +20500,61 @@ var _concourse$atc$Login$viewLoading = A2(
 				[])),
 			_elm_lang$html$Html$text('Loading...')
 		]));
+var _concourse$atc$Login$urlEncodedIndexPage = '%2F';
 var _concourse$atc$Login$routeWithRedirect = F2(
 	function (redirect, route) {
 		return A2(
 			_elm_lang$core$Basics_ops['++'],
 			route,
 			function () {
-				var _p5 = redirect;
-				if (_p5 === '') {
-					return '';
+				var _p2 = redirect;
+				if (_p2 === '') {
+					return A2(_elm_lang$core$Basics_ops['++'], '?redirect=', _concourse$atc$Login$urlEncodedIndexPage);
 				} else {
 					return A2(_elm_lang$core$Basics_ops['++'], '?redirect=', redirect);
 				}
 			}());
+	});
+var _concourse$atc$Login$viewOAuthButton = F2(
+	function (redirect, method) {
+		var _p3 = method;
+		if (_p3.ctor === 'BasicMethod') {
+			return _elm_lang$core$Maybe$Nothing;
+		} else {
+			var _p4 = _p3._0;
+			return _elm_lang$core$Maybe$Just(
+				A2(
+					_elm_lang$html$Html$a,
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html_Attributes$href(
+							A2(_concourse$atc$Login$routeWithRedirect, redirect, _p4.authURL))
+						]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html$text(
+							A2(_elm_lang$core$Basics_ops['++'], 'login with ', _p4.displayName))
+						])));
+		}
+	});
+var _concourse$atc$Login$viewOAuthButtons = F2(
+	function (redirect, methods) {
+		var _p5 = A2(
+			_elm_lang$core$List$filterMap,
+			_concourse$atc$Login$viewOAuthButton(redirect),
+			methods);
+		if (_p5.ctor === '[]') {
+			return _elm_lang$core$Maybe$Nothing;
+		} else {
+			return _elm_lang$core$Maybe$Just(
+				A2(
+					_elm_lang$html$Html$div,
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html_Attributes$class('centered-contents padded-top')
+						]),
+					_p5));
+		}
 	});
 var _concourse$atc$Login$teamSelectionRoute = function (redirect) {
 	return A2(_concourse$atc$Login$routeWithRedirect, redirect, '/login');
@@ -20773,7 +20780,7 @@ var _concourse$atc$Login$viewLogin = function (model) {
 							var _p15 = {
 								ctor: '_Tuple2',
 								_0: _concourse$atc$Login$viewBasicAuthForm(_p16),
-								_1: _concourse$atc$Login$viewOAuthButtons(_p16)
+								_1: A2(_concourse$atc$Login$viewOAuthButtons, model.redirect, _p16)
 							};
 							if (_p15._0.ctor === 'Just') {
 								if (_p15._1.ctor === 'Just') {
