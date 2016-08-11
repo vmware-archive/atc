@@ -108,6 +108,8 @@ type ATCCommand struct {
 		APIURL        string           `long:"api-url"       description:"Override default API endpoint URL for Github Enterprise."`
 	} `group:"GitHub Authentication" namespace:"github-auth"`
 
+	GenericOAuth GenericOAuth `group:"Generic OAuth Authentication" namespace:"oauth"`
+
 	UAAAuth UAAAuth `group:"UAA Authentication" namespace:"uaa-auth"`
 
 	Metrics struct {
@@ -121,6 +123,22 @@ type ATCCommand struct {
 		RiemannHost string `long:"riemann-host"                description:"Riemann server address to emit metrics to."`
 		RiemannPort uint16 `long:"riemann-port" default:"5555" description:"Port of the Riemann server to emit metrics to."`
 	} `group:"Metrics & Diagnostics"`
+}
+
+type GenericOAuth struct {
+	AuthURL      string `long:"auth-url"      description:"OAuth provider authorize endpoint."`
+	TokenURL     string `long:"token-url"     description:"OAuth provider token endpoint."`
+	ClientID     string `long:"client-id"     description:"Application client ID for enabling OAuth."`
+	ClientSecret string `long:"client-secret" description:"Application client secret for enabling OAuth."`
+	DisplayName  string `long:"display-name"  description:"Name for this auth method on the web UI."`
+}
+
+func (auth *GenericOAuth) IsConfigured() bool {
+	return auth.AuthURL != "" ||
+		auth.TokenURL != "" ||
+		auth.ClientID != "" ||
+		auth.ClientSecret != "" ||
+		auth.DisplayName != ""
 }
 
 type UAAAuth struct {
@@ -446,7 +464,7 @@ func (cmd *ATCCommand) oauthBaseURL() string {
 }
 
 func (cmd *ATCCommand) authConfigured() bool {
-	return cmd.basicAuthConfigured() || cmd.gitHubAuthConfigured() || cmd.UAAAuth.IsConfigured()
+	return cmd.basicAuthConfigured() || cmd.gitHubAuthConfigured() || cmd.UAAAuth.IsConfigured() || cmd.GenericOAuth.IsConfigured()
 }
 
 func (cmd *ATCCommand) basicAuthConfigured() bool {
@@ -481,6 +499,27 @@ func (cmd *ATCCommand) validate() error {
 			errs = multierror.Append(
 				errs,
 				errors.New("must specify --github-auth-client-id and --github-auth-client-secret to use GitHub OAuth"),
+			)
+		}
+	}
+
+	if cmd.GenericOAuth.IsConfigured() {
+		if cmd.GenericOAuth.ClientID == "" || cmd.GenericOAuth.ClientSecret == "" {
+			errs = multierror.Append(
+				errs,
+				errors.New("must specify --oauth-client-id and --oauth-client-secret"),
+			)
+		}
+		if cmd.GenericOAuth.AuthURL == "" || cmd.GenericOAuth.TokenURL == "" {
+			errs = multierror.Append(
+				errs,
+				errors.New("must specify --oauth-auth-url and --oauth-token-url"),
+			)
+		}
+		if cmd.GenericOAuth.DisplayName == "" {
+			errs = multierror.Append(
+				errs,
+				errors.New("must specify --oauth-display-name"),
 			)
 		}
 	}
@@ -715,6 +754,22 @@ func (cmd *ATCCommand) configureOAuthProviders(logger lager.Logger, teamDBFactor
 	}
 
 	_, err = teamDB.UpdateUAAAuth(uaaAuth)
+	if err != nil {
+		return err
+	}
+
+	var genericOAuth *db.GenericOAuth
+	if cmd.GenericOAuth.IsConfigured() {
+		genericOAuth = &db.GenericOAuth{
+			AuthURL:      cmd.GenericOAuth.AuthURL,
+			TokenURL:     cmd.GenericOAuth.TokenURL,
+			ClientID:     cmd.GenericOAuth.ClientID,
+			ClientSecret: cmd.GenericOAuth.ClientSecret,
+			DisplayName:  cmd.GenericOAuth.DisplayName,
+		}
+	}
+
+	_, err = teamDB.UpdateGenericOAuth(genericOAuth)
 	if err != nil {
 		return err
 	}
