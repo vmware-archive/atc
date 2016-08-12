@@ -6,6 +6,7 @@ import (
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc/auth/verifier"
 	"github.com/concourse/atc/db"
+	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
 
@@ -29,29 +30,56 @@ func NewProvider(
 
 	return Provider{
 		Verifier: NoopVerifier{},
-		Config: &oauth2.Config{
-			ClientID:     genericOAuth.ClientID,
-			ClientSecret: genericOAuth.ClientSecret,
-			Endpoint:     endpoint,
-			RedirectURL:  redirectURL,
+		Config: ConfigOverride{
+			Config: oauth2.Config{
+				ClientID:     genericOAuth.ClientID,
+				ClientSecret: genericOAuth.ClientSecret,
+				Endpoint:     endpoint,
+				RedirectURL:  redirectURL,
+			},
+			DisplayName:   genericOAuth.DisplayName,
+			AuthURLParams: genericOAuth.AuthURLParams,
 		},
-		ConfiguredDisplayName: genericOAuth.DisplayName,
 	}
 }
 
 type Provider struct {
-	*oauth2.Config
-	// oauth2.Config implements the required Provider methods:
-	// AuthCodeURL(string, ...oauth2.AuthCodeOption) string
-	// Exchange(context.Context, string) (*oauth2.Token, error)
-	// Client(context.Context, *oauth2.Token) *http.Client
-
 	verifier.Verifier
-	ConfiguredDisplayName string
+	Config ConfigOverride
+}
+
+type ConfigOverride struct {
+	oauth2.Config
+	DisplayName   string
+	AuthURLParams map[string]string
+}
+
+// oauth2.Config implements the required Provider methods:
+// AuthCodeURL(string, ...oauth2.AuthCodeOption) string
+// Exchange(context.Context, string) (*oauth2.Token, error)
+// Client(context.Context, *oauth2.Token) *http.Client
+
+// override the default Provider method implementation from
+// oauth2.Config in order to pass the extra configured Auth
+// URL parameters
+
+func (provider Provider) AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string {
+	for key, value := range provider.Config.AuthURLParams {
+		opts = append(opts, oauth2.SetAuthURLParam(key, value))
+	}
+	return provider.Config.AuthCodeURL(state, opts...)
+}
+
+func (provider Provider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) {
+	return provider.Config.Exchange(ctx, code)
+}
+
+func (provider Provider) Client(ctx context.Context, t *oauth2.Token) *http.Client {
+	return provider.Config.Client(ctx, t)
 }
 
 func (provider Provider) DisplayName() string {
-	return provider.ConfiguredDisplayName
+	return provider.Config.DisplayName
 }
 
 func (Provider) PreTokenClient() *http.Client {

@@ -46,9 +46,10 @@ type UAAAuth struct {
 }
 
 type GenericOAuth struct {
-	AuthURL      string `json:"auth_url"`
-	TokenURL     string `json:"token_url"`
-	ClientID     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-	DisplayName  string `json:"display_name"`
+	AuthURL       string            `json:"auth_url,omitempty"`
+	AuthURLParams map[string]string `json:"auth_url_params,omitempty"`
+	TokenURL      string            `json:"token_url,omitempty"`
+	ClientID      string            `json:"client_id,omitempty"`
+	ClientSecret  string            `json:"client_secret,omitempty"`
+	DisplayName   string            `json:"display_name,omitempty"`
 }

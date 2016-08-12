@@ -108,9 +108,9 @@ type ATCCommand struct {
 		APIURL        string           `long:"api-url"       description:"Override default API endpoint URL for Github Enterprise."`
 	} `group:"GitHub Authentication" namespace:"github-auth"`
 
-	GenericOAuth GenericOAuth `group:"Generic OAuth Authentication" namespace:"oauth"`
-
 	UAAAuth UAAAuth `group:"UAA Authentication" namespace:"uaa-auth"`
+
+	GenericOAuth GenericOAuth `group:"Generic OAuth Authentication (Allows access to ALL authenticated users)" namespace:"generic-oauth"`
 
 	Metrics struct {
 		HostName   string            `long:"metrics-host-name"   description:"Host string to attach to emitted metrics."`
@@ -126,11 +126,12 @@ type ATCCommand struct {
 }
 
 type GenericOAuth struct {
-	AuthURL      string `long:"auth-url"      description:"OAuth provider authorize endpoint."`
-	TokenURL     string `long:"token-url"     description:"OAuth provider token endpoint."`
-	ClientID     string `long:"client-id"     description:"Application client ID for enabling OAuth."`
-	ClientSecret string `long:"client-secret" description:"Application client secret for enabling OAuth."`
-	DisplayName  string `long:"display-name"  description:"Name for this auth method on the web UI."`
+	DisplayName   string            `long:"display-name"   description:"Name for this auth method on the web UI."`
+	ClientID      string            `long:"client-id"      description:"Application client ID for enabling generic OAuth."`
+	ClientSecret  string            `long:"client-secret"  description:"Application client secret for enabling generic OAuth."`
+	AuthURL       string            `long:"auth-url"       description:"Generic OAuth provider AuthURL endpoint. "`
+	AuthURLParams map[string]string `long:"auth-url-param" description:"Parameter to pass to the authentication server AuthURL. Can be specified multiple times."`
+	TokenURL      string            `long:"token-url"      description:"Generic OAuth provider TokenURL endpoint."`
 }
 
 func (auth *GenericOAuth) IsConfigured() bool {
@@ -761,11 +762,12 @@ func (cmd *ATCCommand) configureOAuthProviders(logger lager.Logger, teamDBFactor
 	var genericOAuth *db.GenericOAuth
 	if cmd.GenericOAuth.IsConfigured() {
 		genericOAuth = &db.GenericOAuth{
-			AuthURL:      cmd.GenericOAuth.AuthURL,
-			TokenURL:     cmd.GenericOAuth.TokenURL,
-			ClientID:     cmd.GenericOAuth.ClientID,
-			ClientSecret: cmd.GenericOAuth.ClientSecret,
-			DisplayName:  cmd.GenericOAuth.DisplayName,
+			AuthURL:       cmd.GenericOAuth.AuthURL,
+			AuthURLParams: cmd.GenericOAuth.AuthURLParams,
+			TokenURL:      cmd.GenericOAuth.TokenURL,
+			ClientID:      cmd.GenericOAuth.ClientID,
+			ClientSecret:  cmd.GenericOAuth.ClientSecret,
+			DisplayName:   cmd.GenericOAuth.DisplayName,
 		}
 	}
 
