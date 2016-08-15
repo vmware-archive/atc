@@ -3,6 +3,7 @@ package provider
 import (
 	"code.cloudfoundry.org/gunk/urljoiner"
 	"code.cloudfoundry.org/lager"
+	"github.com/concourse/atc/auth/genericoauth"
 	"github.com/concourse/atc/auth/github"
 	"github.com/concourse/atc/auth/uaa"
 	"github.com/concourse/atc/db"
@@ -55,6 +56,18 @@ func (of OAuthFactory) GetProviders(team db.SavedTeam) (Providers, error) {
 		} else {
 			providers[uaa.ProviderName] = uaaAuthProvider
 		}
+	}
+
+	if team.GenericOAuth != nil {
+		redirectURL, err := of.routes.CreatePathForRoute(of.callback, rata.Params{
+			"provider": genericoauth.ProviderName,
+		})
+		if err != nil {
+			return Providers{}, err
+		}
+		genericOAuthProvider := genericoauth.NewProvider(team.GenericOAuth, urljoiner.Join(of.atcExternalURL, redirectURL))
+
+		providers[genericoauth.ProviderName] = genericOAuthProvider
 	}
 
 	return providers, nil

@@ -24,6 +24,7 @@ type TeamDB interface {
 	UpdateBasicAuth(basicAuth *BasicAuth) (SavedTeam, error)
 	UpdateGitHubAuth(gitHubAuth *GitHubAuth) (SavedTeam, error)
 	UpdateUAAAuth(uaaAuth *UAAAuth) (SavedTeam, error)
+	UpdateGenericOAuth(genericOAuth *GenericOAuth) (SavedTeam, error)
 
 	GetConfig(pipelineName string) (atc.Config, atc.RawConfig, ConfigVersion, error)
 	SaveConfig(string, atc.Config, ConfigVersion, PipelinePausedState) (SavedPipeline, bool, error)
@@ -473,7 +474,7 @@ func (db *teamDB) registerResourceType(tx Tx, resourceType atc.ResourceType, pip
 
 func (db *teamDB) GetTeam() (SavedTeam, bool, error) {
 	query := `
-		SELECT id, name, admin, basic_auth, github_auth, uaa_auth
+		SELECT id, name, admin, basic_auth, github_auth, uaa_auth, genericoauth_auth
 		FROM teams
 		WHERE LOWER(name) = LOWER($1)
 	`
@@ -491,7 +492,7 @@ func (db *teamDB) GetTeam() (SavedTeam, bool, error) {
 }
 
 func (db *teamDB) queryTeam(query string, params []interface{}) (SavedTeam, error) {
-	var basicAuth, gitHubAuth, uaaAuth sql.NullString
+	var basicAuth, gitHubAuth, uaaAuth, genericOAuth sql.NullString
 	var savedTeam SavedTeam
 
 	tx, err := db.conn.Begin()
@@ -507,6 +508,7 @@ func (db *teamDB) queryTeam(query string, params []interface{}) (SavedTeam, erro
 		&basicAuth,
 		&gitHubAuth,
 		&uaaAuth,
+		&genericOAuth,
 	)
 	if err != nil {
 		return savedTeam, err
@@ -537,6 +539,13 @@ func (db *teamDB) queryTeam(query string, params []interface{}) (SavedTeam, erro
 		}
 	}
 
+	if genericOAuth.Valid {
+		err = json.Unmarshal([]byte(genericOAuth.String), &savedTeam.GenericOAuth)
+		if err != nil {
+			return savedTeam, err
+		}
+	}
+
 	return savedTeam, nil
 }
 
@@ -550,7 +559,7 @@ func (db *teamDB) UpdateBasicAuth(basicAuth *BasicAuth) (SavedTeam, error) {
 		UPDATE teams
 		SET basic_auth = $1
 		WHERE LOWER(name) = LOWER($2)
-		RETURNING id, name, admin, basic_auth, github_auth, uaa_auth
+		RETURNING id, name, admin, basic_auth, github_auth, uaa_auth, genericoauth_auth
 	`
 
 	params := []interface{}{encryptedBasicAuth, db.teamName}
@@ -572,7 +581,7 @@ func (db *teamDB) UpdateGitHubAuth(gitHubAuth *GitHubAuth) (SavedTeam, error) {
 		UPDATE teams
 		SET github_auth = $1
 		WHERE LOWER(name) = LOWER($2)
-		RETURNING id, name, admin, basic_auth, github_auth, uaa_auth
+		RETURNING id, name, admin, basic_auth, github_auth, uaa_auth, genericoauth_auth
 	`
 	params := []interface{}{string(jsonEncodedGitHubAuth), db.teamName}
 	return db.queryTeam(query, params)
@@ -588,9 +597,25 @@ func (db *teamDB) UpdateUAAAuth(uaaAuth *UAAAuth) (SavedTeam, error) {
 		UPDATE teams
 		SET uaa_auth = $1
 		WHERE LOWER(name) = LOWER($2)
-		RETURNING id, name, admin, basic_auth, github_auth, uaa_auth
+		RETURNING id, name, admin, basic_auth, github_auth, uaa_auth, genericoauth_auth
 	`
 	params := []interface{}{string(jsonEncodedUAAAuth), db.teamName}
+	return db.queryTeam(query, params)
+}
+
+func (db *teamDB) UpdateGenericOAuth(genericOAuth *GenericOAuth) (SavedTeam, error) {
+	jsonEncodedGenericOAuth, err := json.Marshal(genericOAuth)
+	if err != nil {
+		return SavedTeam{}, err
+	}
+
+	query := `
+		UPDATE teams
+		SET genericoauth_auth = $1
+		WHERE LOWER(name) = LOWER($2)
+		RETURNING id, name, admin, basic_auth, github_auth, uaa_auth, genericoauth_auth
+	`
+	params := []interface{}{string(jsonEncodedGenericOAuth), db.teamName}
 	return db.queryTeam(query, params)
 }
 
