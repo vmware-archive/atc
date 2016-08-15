@@ -9,7 +9,7 @@ import (
 
 func (db *SQLDB) GetTeams() ([]SavedTeam, error) {
 	rows, err := db.conn.Query(`
-		SELECT id, name, admin, basic_auth, github_auth, uaa_auth FROM teams
+		SELECT id, name, admin, basic_auth, github_auth, uaa_auth, genericoauth_auth FROM teams
 	`)
 	if err != nil {
 		return nil, err
