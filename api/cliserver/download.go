@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"code.cloudfoundry.org/lager"
 )
 
 func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +45,8 @@ func (s *Server) Download(w http.ResponseWriter, r *http.Request) {
 	_, err := os.Stat(downloadFullPath)
 	if err == nil {
 		w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+	} else {
+		s.logger.Error("failed-to-stat-file", err, lager.Data{"filepath": downloadFullPath})
 	}
 
 	http.ServeFile(w, r, downloadFullPath)
