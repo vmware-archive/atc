@@ -27,6 +27,8 @@ var _ = Describe("LogOutHandler", func() {
 			response            *http.Response
 			err                 error
 			expire              time.Duration
+			httpOnly            bool
+			secure              bool
 		)
 
 		BeforeEach(func() {
@@ -35,6 +37,8 @@ var _ = Describe("LogOutHandler", func() {
 			signingKey, err = rsa.GenerateKey(rand.Reader, 1024)
 			Expect(err).ToNot(HaveOccurred())
 			expire = 24 * time.Hour
+			httpOnly = true
+			secure = false
 
 			handler, err := auth.NewOAuthHandler(
 				lagertest.NewTestLogger("test"),
@@ -42,6 +46,8 @@ var _ = Describe("LogOutHandler", func() {
 				fakeTeamDBFactory,
 				signingKey,
 				expire,
+				httpOnly,
+				secure,
 			)
 			Expect(err).ToNot(HaveOccurred())
 

@@ -26,6 +26,8 @@ type OAuthBeginHandler struct {
 	privateKey      *rsa.PrivateKey
 	teamDBFactory   db.TeamDBFactory
 	expire          time.Duration
+	httpOnly        bool
+	secure          bool
 }
 
 func NewOAuthBeginHandler(
@@ -34,6 +36,8 @@ func NewOAuthBeginHandler(
 	privateKey *rsa.PrivateKey,
 	teamDBFactory db.TeamDBFactory,
 	expire time.Duration,
+	httpOnly bool,
+	secure bool,
 ) http.Handler {
 	return &OAuthBeginHandler{
 		logger:          logger,
@@ -41,6 +45,8 @@ func NewOAuthBeginHandler(
 		privateKey:      privateKey,
 		teamDBFactory:   teamDBFactory,
 		expire:          expire,
+		httpOnly:        httpOnly,
+		secure:          secure,
 	}
 }
 
@@ -102,10 +108,12 @@ func (handler *OAuthBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	authCodeURL := provider.AuthCodeURL(encodedState)
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    OAuthStateCookie,
-		Value:   encodedState,
-		Path:    "/",
-		Expires: time.Now().Add(handler.expire),
+		Name:     OAuthStateCookie,
+		Value:    encodedState,
+		Path:     "/",
+		Expires:  time.Now().Add(handler.expire),
+		HttpOnly: handler.httpOnly,
+		Secure:   handler.secure,
 	})
 
 	http.Redirect(w, r, authCodeURL, http.StatusTemporaryRedirect)

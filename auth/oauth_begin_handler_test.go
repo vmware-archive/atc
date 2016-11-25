@@ -36,7 +36,9 @@ var _ = Describe("OAuthBeginHandler", func() {
 
 		signingKey *rsa.PrivateKey
 
-		expire time.Duration
+		expire   time.Duration
+		httpOnly bool
+		secure   bool
 
 		cookieJar *cookiejar.Jar
 
@@ -55,6 +57,8 @@ var _ = Describe("OAuthBeginHandler", func() {
 		signingKey, err = rsa.GenerateKey(rand.Reader, 1024)
 		Expect(err).ToNot(HaveOccurred())
 		expire = 24 * time.Hour
+		httpOnly = true
+		secure = false
 
 		fakeTeamDBFactory = new(dbfakes.FakeTeamDBFactory)
 		fakeTeamDBFactory.GetTeamDBReturns(fakeTeamDB)
@@ -64,6 +68,8 @@ var _ = Describe("OAuthBeginHandler", func() {
 			fakeTeamDBFactory,
 			signingKey,
 			expire,
+			httpOnly,
+			secure,
 		)
 		Expect(err).ToNot(HaveOccurred())
 
