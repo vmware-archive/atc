@@ -20,7 +20,7 @@ func AddUniqueConstraintToResources(tx migration.LimitedTx) error {
 
 	_, err = tx.Exec(`
 		CREATE UNIQUE INDEX versioned_resources_resource_id_type_version
-		ON versioned_resources (resource_id, type, version)
+		ON versioned_resources (resource_id, type, md5(version))
 	`)
 	if err != nil {
 		return err
