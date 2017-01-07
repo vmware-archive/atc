@@ -50,6 +50,57 @@ var _ = Describe("ExecEngine", func() {
 		)
 	})
 
+	Describe("CreateBuild", func() {
+		var (
+			dbBuild *dbfakes.FakeBuild
+			plan    atc.Plan
+			err     error
+		)
+
+		BeforeEach(func() {
+			dbBuild = new(dbfakes.FakeBuild)
+			dbBuild.IDReturns(42)
+			dbBuild.NameReturns("21")
+			dbBuild.JobNameReturns("some-job")
+			dbBuild.PipelineNameReturns("some-pipeline")
+			dbBuild.TeamNameReturns("some-team")
+			dbBuild.TeamIDReturns(teamID)
+		})
+
+		It("succeeds when task is not privileged", func() {
+			plan = atc.Plan{
+				Task: &atc.TaskPlan{
+					Privileged: false,
+				},
+			}
+			fakeTeamDB.GetTeamReturns(db.SavedTeam{}, true, nil)
+			_, err = execEngine.CreateBuild(logger, dbBuild, plan)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("succeeds when task and team are privileged", func() {
+			plan = atc.Plan{
+				Task: &atc.TaskPlan{
+					Privileged: true,
+				},
+			}
+			fakeTeamDB.GetTeamReturns(db.SavedTeam{Team: db.Team{AllowPrivileged: true}}, true, nil)
+			_, err = execEngine.CreateBuild(logger, dbBuild, plan)
+
+		})
+
+		It("fails when task is privileged and team is not", func() {
+			plan = atc.Plan{
+				Task: &atc.TaskPlan{
+					Privileged: true,
+				},
+			}
+			fakeTeamDB.GetTeamReturns(db.SavedTeam{Team: db.Team{AllowPrivileged: false}}, true, nil)
+			_, err = execEngine.CreateBuild(logger, dbBuild, plan)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
 	Describe("Resume", func() {
 		var (
 			fakeDelegate          *enginefakes.FakeBuildDelegate

@@ -50,6 +50,9 @@ func (engine *execEngine) Name() string {
 }
 
 func (engine *execEngine) CreateBuild(logger lager.Logger, build db.Build, plan atc.Plan) (Build, error) {
+	if err := engine.checkPrivileged(plan, build.TeamName()); err != nil {
+		return &execBuild{}, err
+	}
 	return &execBuild{
 		buildID:      build.ID(),
 		teamName:     build.TeamName(),
@@ -97,6 +100,22 @@ func (engine *execEngine) LookupBuild(logger lager.Logger, build db.Build) (Buil
 		containerSuccessTTL: successTTL,
 		containerFailureTTL: failureTTL,
 	}, nil
+}
+
+func (engine *execEngine) checkPrivileged(plan atc.Plan, teamName string) error {
+	if plan.Task == nil || !plan.Task.Privileged {
+		return nil
+	}
+
+	teamDB := engine.teamDBFactory.GetTeamDB(teamName)
+	team, _, err := teamDB.GetTeam()
+	if err != nil {
+		return err
+	}
+	if !team.Team.AllowPrivileged {
+		return errors.New("cannot run privileged task as unprivileged team")
+	}
+	return nil
 }
 
 func (engine *execEngine) convertPipelineNameToID(teamName string) func(plan *atc.Plan) error {
