@@ -7,8 +7,9 @@ import (
 )
 
 type Team struct {
-	Name  string
-	Admin bool
+	Name            string
+	Admin           bool
+	AllowPrivileged bool
 
 	BasicAuth    *BasicAuth    `json:"basic_auth"`
 	GitHubAuth   *GitHubAuth   `json:"github_auth"`
