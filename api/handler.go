@@ -70,6 +70,8 @@ func NewHandler(
 	sink *lager.ReconfigurableSink,
 
 	expire time.Duration,
+	httpOnly bool,
+	secure bool,
 
 	cliDownloadsDir string,
 	version string,
@@ -91,6 +93,8 @@ func NewHandler(
 		providerFactory,
 		teamDBFactory,
 		expire,
+		httpOnly,
+		secure,
 	)
 
 	buildServer := buildserver.NewServer(

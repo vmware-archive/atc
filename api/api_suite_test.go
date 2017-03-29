@@ -65,6 +65,8 @@ var (
 	peerAddr                      string
 	drain                         chan struct{}
 	expire                        time.Duration
+	httpOnly                      bool
+	secure                        bool
 	cliDownloadsDir               string
 	logger                        *lagertest.TestLogger
 
@@ -148,6 +150,8 @@ var _ = BeforeEach(func() {
 	logger.RegisterSink(sink)
 
 	expire = 24 * time.Hour
+	httpOnly = true
+	secure = false
 
 	build = new(dbfakes.FakeBuild)
 
@@ -204,6 +208,8 @@ var _ = BeforeEach(func() {
 		sink,
 
 		expire,
+		httpOnly,
+		secure,
 
 		cliDownloadsDir,
 		"1.2.3",

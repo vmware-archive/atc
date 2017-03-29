@@ -64,7 +64,9 @@ var _ = Describe("OAuthCallbackHandler", func() {
 
 		signingKey *rsa.PrivateKey
 
-		expire time.Duration
+		expire   time.Duration
+		httpOnly bool
+		secure   bool
 
 		server *httptest.Server
 		client *http.Client
@@ -81,6 +83,8 @@ var _ = Describe("OAuthCallbackHandler", func() {
 		signingKey, err = rsa.GenerateKey(rand.Reader, 1024)
 		Expect(err).ToNot(HaveOccurred())
 		expire = 24 * time.Hour
+		httpOnly = true
+		secure = false
 
 		fakeProviderFactory.GetProviderStub = func(team db.SavedTeam, providerName string) (provider.Provider, bool, error) {
 			if providerName == "some-provider" {
@@ -109,6 +113,8 @@ var _ = Describe("OAuthCallbackHandler", func() {
 			fakeTeamDBFactory,
 			signingKey,
 			expire,
+			httpOnly,
+			secure,
 		)
 		Expect(err).ToNot(HaveOccurred())
 
@@ -260,6 +266,8 @@ var _ = Describe("OAuthCallbackHandler", func() {
 							It("set to a signed token that expires in 1 day", func() {
 								Expect(cookie.Name).To(Equal(auth.CookieName))
 								Expect(cookie.Expires).To(BeTemporally("~", time.Now().Add(24*time.Hour), 5*time.Second))
+								Expect(cookie.HttpOnly).To(BeTrue())
+								Expect(cookie.Secure).To(BeFalse())
 
 								Expect(cookie.Value).To(MatchRegexp(`^Bearer .*`))
 

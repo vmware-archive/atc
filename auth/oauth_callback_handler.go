@@ -25,6 +25,8 @@ type OAuthCallbackHandler struct {
 	tokenGenerator  TokenGenerator
 	teamDBFactory   db.TeamDBFactory
 	expire          time.Duration
+	httpOnly        bool
+	secure          bool
 }
 
 func NewOAuthCallbackHandler(
@@ -33,6 +35,8 @@ func NewOAuthCallbackHandler(
 	privateKey *rsa.PrivateKey,
 	teamDBFactory db.TeamDBFactory,
 	expire time.Duration,
+	httpOnly bool,
+	secure bool,
 ) http.Handler {
 	return &OAuthCallbackHandler{
 		logger:          logger,
@@ -41,6 +45,8 @@ func NewOAuthCallbackHandler(
 		tokenGenerator:  NewTokenGenerator(privateKey),
 		teamDBFactory:   teamDBFactory,
 		expire:          expire,
+		httpOnly:        httpOnly,
+		secure:          secure,
 	}
 }
 
@@ -172,10 +178,12 @@ func (handler *OAuthCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	tokenStr := string(tokenType) + " " + string(signedToken)
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    CookieName,
-		Value:   tokenStr,
-		Path:    "/",
-		Expires: exp,
+		Name:     CookieName,
+		Value:    tokenStr,
+		Path:     "/",
+		Expires:  exp,
+		HttpOnly: handler.httpOnly,
+		Secure:   handler.secure,
 	})
 
 	// Deletes the oauth state cookie to avoid CSRF attacks

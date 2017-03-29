@@ -26,6 +26,8 @@ func NewOAuthHandler(
 	teamDBFactory db.TeamDBFactory,
 	signingKey *rsa.PrivateKey,
 	expire time.Duration,
+	httpOnly bool,
+	secure bool,
 ) (http.Handler, error) {
 	return rata.NewRouter(
 		OAuthRoutes,
@@ -36,6 +38,8 @@ func NewOAuthHandler(
 				signingKey,
 				teamDBFactory,
 				expire,
+				httpOnly,
+				secure,
 			),
 			OAuthCallback: NewOAuthCallbackHandler(
 				logger.Session("oauth-callback"),
@@ -43,6 +47,8 @@ func NewOAuthHandler(
 				signingKey,
 				teamDBFactory,
 				expire,
+				httpOnly,
+				secure,
 			),
 			LogOut: NewLogOutHandler(
 				logger.Session("logout"),

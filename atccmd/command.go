@@ -75,6 +75,8 @@ type ATCCommand struct {
 	OAuthBaseURL URLFlag `long:"oauth-base-url" description:"URL used as the base of OAuth redirect URIs. If not specified, the external URL is used."`
 
 	AuthDuration time.Duration `long:"auth-duration" default:"24h" description:"Length of time for which tokens are valid. Afterwards, users will have to log back in."`
+	HttpOnly     bool          `default:"true" description:"Set HttpOnly flag on cookies"`
+	Secure       bool          `default:"false" description:"Set Secure flag on cookies"`
 
 	PostgresDataSource string `long:"postgres-data-source" default:"postgres://127.0.0.1:5432/atc?sslmode=disable" description:"PostgreSQL connection string."`
 
@@ -266,6 +268,8 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 		teamDBFactory,
 		signingKey,
 		cmd.AuthDuration,
+		cmd.HttpOnly,
+		cmd.Secure,
 	)
 	if err != nil {
 		return nil, err
@@ -955,6 +959,8 @@ func (cmd *ATCCommand) constructAPIHandler(
 		reconfigurableSink,
 
 		cmd.AuthDuration,
+		cmd.HttpOnly,
+		cmd.Secure,
 
 		cmd.CLIArtifactsDir.Path(),
 		Version,
