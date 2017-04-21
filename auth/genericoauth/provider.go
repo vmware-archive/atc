@@ -45,6 +45,7 @@ type GenericOAuthConfig struct {
 	AuthURL       string            `json:"auth_url,omitempty"          long:"auth-url"        description:"Generic OAuth provider AuthURL endpoint."`
 	AuthURLParams map[string]string `json:"auth_url_params,omitempty"   long:"auth-url-param"  description:"Parameter to pass to the authentication server AuthURL. Can be specified multiple times."`
 	Scope         string            `json:"scope,omitempty"             long:"scope"           description:"Optional scope required to authorize user"`
+	Authority     string            `json:"authorities,omitempty"       long:"authorities"     description:"Optional authority required to authorize user"`
 	TokenURL      string            `json:"token_url,omitempty"         long:"token-url"       description:"Generic OAuth provider TokenURL endpoint."`
 }
 
@@ -141,9 +142,12 @@ func (GenericTeamProvider) ProviderConstructor(
 	}
 
 	var oauthVerifier verifier.Verifier
-	if genericOAuth.Scope != "" {
+	if genericOAuth.Scope != "" && genericOAuth.Authority = "" {
 		oauthVerifier = NewScopeVerifier(genericOAuth.Scope)
-	} else {
+	} else if genericOAuth.Scope = "" && genericOAuth.Authority != "" {
+		oauthVerifier = NewAuthorityVerifier(genericOAuth.Authority)
+	}
+	else {
 		oauthVerifier = NoopVerifier{}
 	}
 
