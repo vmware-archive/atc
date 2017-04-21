@@ -59,8 +59,8 @@ func (verifier AuthorityVerifier) Verify(logger lager.Logger, httpClient *http.C
 		return false, errors.New("user has no assigned authorities in access token")
 	}
 
-	for _, userScope := range oauthToken. {
-		if userScope == verifier.authority {
+	for _, userAuthority := range oauthToken.Authorities {
+		if userAuthority == verifier.authority {
 			return true, nil
 		}
 	}
