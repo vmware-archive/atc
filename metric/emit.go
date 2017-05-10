@@ -1,52 +1,90 @@
 package metric
 
 import (
+	"fmt"
 	"time"
 
+	flags "github.com/jessevdk/go-flags"
+
 	"code.cloudfoundry.org/lager"
-	"github.com/The-Cloud-Source/goryman"
 )
 
+type Event struct {
+	Name       string
+	Value      interface{}
+	State      EventState
+	Attributes map[string]string
+	Host       string
+	Time       time.Time
+}
+
+type EventState string
+
+const EventStateOK EventState = "ok"
+const EventStateWarning EventState = "warning"
+const EventStateCritical EventState = "critical"
+
+type Emitter interface {
+	Emit(lager.Logger, Event)
+}
+
+type EmitterFactory interface {
+	Description() string
+	IsConfigured() bool
+	NewEmitter() Emitter
+}
+
+var emitterFactories []EmitterFactory
+
+func RegisterEmitter(factory EmitterFactory) {
+	emitterFactories = append(emitterFactories, factory)
+}
+
+func WireEmitters(group *flags.Group) {
+	for _, factory := range emitterFactories {
+		_, err := group.AddGroup(fmt.Sprintf("Metric Emitter (%s)", factory.Description()), "", factory)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+var emitter Emitter
+var eventHost string
+var eventAttributes map[string]string
+
 type eventEmission struct {
-	event  goryman.Event
+	event  Event
 	logger lager.Logger
 }
 
-var riemannClient *goryman.GorymanClient
-var eventHost string
-var eventTags []string
-var eventAttributes map[string]string
-var eventPrefix string
-
-var clientConnected bool
 var emissions = make(chan eventEmission, 1000)
 
-func Initialize(logger lager.Logger, riemannAddr string, host string, tags []string, attributes map[string]string, prefix string) {
-	client := goryman.NewGorymanClient(riemannAddr)
+func Initialize(logger lager.Logger, host string, attributes map[string]string) {
+	for _, factory := range emitterFactories {
+		if factory.IsConfigured() {
+			emitter = factory.NewEmitter()
+		}
+	}
 
-	riemannClient = client
+	if emitter == nil {
+		return
+	}
+
+	emitter = emitter
 	eventHost = host
-	eventTags = tags
 	eventAttributes = attributes
-	eventPrefix = prefix
 
 	go emitLoop()
 }
 
-func emit(logger lager.Logger, event goryman.Event) {
-	logger.Debug("emit")
-
-	if riemannClient == nil {
+func emit(logger lager.Logger, event Event) {
+	if emitter == nil {
 		return
 	}
 
-	if eventPrefix != "" {
-		event.Service = eventPrefix + event.Service
-	}
-
 	event.Host = eventHost
-	event.Time = time.Now().Unix()
-	event.Tags = append(event.Tags, eventTags...)
+	event.Time = time.Now()
 
 	mergedAttributes := map[string]string{}
 	for k, v := range eventAttributes {
@@ -70,25 +108,6 @@ func emit(logger lager.Logger, event goryman.Event) {
 
 func emitLoop() {
 	for emission := range emissions {
-		if !clientConnected {
-			err := riemannClient.Connect()
-			if err != nil {
-				emission.logger.Error("connection-failed", err)
-				continue
-			}
-
-			clientConnected = true
-		}
-
-		err := riemannClient.SendEvent(&emission.event)
-		if err != nil {
-			emission.logger.Error("failed-to-emit", err)
-
-			if err := riemannClient.Close(); err != nil {
-				emission.logger.Error("failed-to-close", err)
-			}
-
-			clientConnected = false
-		}
+		emitter.Emit(emission.logger.Session("emit"), emission.event)
 	}
 }

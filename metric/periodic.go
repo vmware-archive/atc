@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/lager"
-	"github.com/The-Cloud-Source/goryman"
 )
 
 func PeriodicallyEmit(logger lager.Logger, interval time.Duration) {
@@ -21,46 +20,38 @@ func PeriodicallyEmit(logger lager.Logger, interval time.Duration) {
 		databaseConnections := DatabaseConnections.Max()
 
 		emit(
-			tLog.Session("tracked-containers", lager.Data{
-				"count": trackedContainers,
-			}),
-			goryman.Event{
-				Service: "tracked containers",
-				Metric:  trackedContainers,
-				State:   "ok",
+			tLog.Session("tracked-containers"),
+			Event{
+				Name:  "tracked containers",
+				Value: trackedContainers,
+				State: EventStateOK,
 			},
 		)
 
 		emit(
-			tLog.Session("tracked-volumes", lager.Data{
-				"count": trackedVolumes,
-			}),
-			goryman.Event{
-				Service: "tracked volumes",
-				Metric:  trackedVolumes,
-				State:   "ok",
+			tLog.Session("tracked-volumes"),
+			Event{
+				Name:  "tracked volumes",
+				Value: trackedVolumes,
+				State: EventStateOK,
 			},
 		)
 
 		emit(
-			tLog.Session("database-queries", lager.Data{
-				"count": databaseQueries,
-			}),
-			goryman.Event{
-				Service: "database queries",
-				Metric:  databaseQueries,
-				State:   "ok",
+			tLog.Session("database-queries"),
+			Event{
+				Name:  "database queries",
+				Value: databaseQueries,
+				State: EventStateOK,
 			},
 		)
 
 		emit(
-			tLog.Session("database-connections", lager.Data{
-				"count": databaseConnections,
-			}),
-			goryman.Event{
-				Service: "database connections",
-				Metric:  databaseConnections,
-				State:   "ok",
+			tLog.Session("database-connections"),
+			Event{
+				Name:  "database connections",
+				Value: databaseConnections,
+				State: EventStateOK,
 			},
 		)
 
@@ -68,46 +59,38 @@ func PeriodicallyEmit(logger lager.Logger, interval time.Duration) {
 		runtime.ReadMemStats(&memStats)
 
 		emit(
-			tLog.Session("gc-pause-total-duration", lager.Data{
-				"ns": memStats.PauseTotalNs,
-			}),
-			goryman.Event{
-				Service: "gc pause total duration",
-				Metric:  int(memStats.PauseTotalNs),
-				State:   "ok",
+			tLog.Session("gc-pause-total-duration"),
+			Event{
+				Name:  "gc pause total duration",
+				Value: int(memStats.PauseTotalNs),
+				State: EventStateOK,
 			},
 		)
 
 		emit(
-			tLog.Session("mallocs", lager.Data{
-				"count": memStats.Mallocs,
-			}),
-			goryman.Event{
-				Service: "mallocs",
-				Metric:  int(memStats.Mallocs),
-				State:   "ok",
+			tLog.Session("mallocs"),
+			Event{
+				Name:  "mallocs",
+				Value: int(memStats.Mallocs),
+				State: EventStateOK,
 			},
 		)
 
 		emit(
-			tLog.Session("frees", lager.Data{
-				"count": memStats.Frees,
-			}),
-			goryman.Event{
-				Service: "frees",
-				Metric:  int(memStats.Frees),
-				State:   "ok",
+			tLog.Session("frees"),
+			Event{
+				Name:  "frees",
+				Value: int(memStats.Frees),
+				State: EventStateOK,
 			},
 		)
 
 		emit(
-			tLog.Session("goroutines", lager.Data{
-				"count": runtime.NumGoroutine(),
-			}),
-			goryman.Event{
-				Service: "goroutines",
-				Metric:  int(runtime.NumGoroutine()),
-				State:   "ok",
+			tLog.Session("goroutines"),
+			Event{
+				Name:  "goroutines",
+				Value: int(runtime.NumGoroutine()),
+				State: EventStateOK,
 			},
 		)
 	}

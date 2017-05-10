@@ -47,6 +47,7 @@ import (
 	"github.com/concourse/retryhttp"
 	jwt "github.com/dgrijalva/jwt-go"
 	multierror "github.com/hashicorp/go-multierror"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/lib/pq"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/grouper"
@@ -54,9 +55,13 @@ import (
 	"github.com/tedsuo/ifrit/sigmon"
 	"github.com/xoebus/zest"
 
+	// dynamically registered auth providers
 	_ "github.com/concourse/atc/auth/genericoauth"
 	_ "github.com/concourse/atc/auth/github"
 	_ "github.com/concourse/atc/auth/uaa"
+
+	// dynamically registered metric emitters
+	_ "github.com/concourse/atc/metric/emitter"
 )
 
 type ATCCommand struct {
@@ -105,15 +110,10 @@ type ATCCommand struct {
 
 	Metrics struct {
 		HostName   string            `long:"metrics-host-name"   description:"Host string to attach to emitted metrics."`
-		Tags       []string          `long:"metrics-tag"         description:"Tag to attach to emitted metrics. Can be specified multiple times." value-name:"TAG"`
 		Attributes map[string]string `long:"metrics-attribute"   description:"A key-value attribute to attach to emitted metrics. Can be specified multiple times." value-name:"NAME:VALUE"`
 
 		YellerAPIKey      string `long:"yeller-api-key"     description:"Yeller API key. If specified, all errors logged will be emitted."`
 		YellerEnvironment string `long:"yeller-environment" description:"Environment to tag on all Yeller events emitted."`
-
-		RiemannHost          string `long:"riemann-host"                description:"Riemann server address to emit metrics to."`
-		RiemannPort          uint16 `long:"riemann-port" default:"5555" description:"Port of the Riemann server to emit metrics to."`
-		RiemannServicePrefix string `long:"riemann-service-prefix" default:"" description:"An optional prefix for emitted Riemann services"`
 	} `group:"Metrics & Diagnostics"`
 
 	Server struct {
@@ -121,6 +121,31 @@ type ATCCommand struct {
 	} `group:"Web Server"`
 
 	LogDBQueries bool `long:"log-db-queries" description:"Log database queries."`
+}
+
+func (cmd *ATCCommand) WireDynamicFlags(commandFlags *flags.Command) {
+	var metricsGroup *flags.Group
+
+	groups := commandFlags.Groups()
+	for i := 0; i < len(groups); i++ {
+		group := groups[i]
+
+		if metricsGroup == nil && group.ShortDescription == "Metrics & Diagnostics" {
+			metricsGroup = group
+		}
+
+		if metricsGroup != nil {
+			break
+		}
+
+		groups = append(groups, group.Groups()...)
+	}
+
+	if metricsGroup == nil {
+		panic("could not find Metrics & Diagnostics group for registering providers")
+	}
+
+	metric.WireEmitters(metricsGroup)
 }
 
 func (cmd *ATCCommand) Execute(args []string) error {
@@ -142,9 +167,7 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 
 	go metric.PeriodicallyEmit(logger.Session("periodic-metrics"), 10*time.Second)
 
-	if cmd.Metrics.RiemannHost != "" {
-		cmd.configureMetrics(logger)
-	}
+	cmd.configureMetrics(logger)
 
 	connectionCountingDriverName := "connection-counting"
 	metric.SetupConnectionCountingDriver("postgres", cmd.Postgres.ConnectionString(), connectionCountingDriverName)
@@ -599,14 +622,7 @@ func (cmd *ATCCommand) configureMetrics(logger lager.Logger) {
 		host, _ = os.Hostname()
 	}
 
-	metric.Initialize(
-		logger.Session("metrics"),
-		fmt.Sprintf("%s:%d", cmd.Metrics.RiemannHost, cmd.Metrics.RiemannPort),
-		host,
-		cmd.Metrics.Tags,
-		cmd.Metrics.Attributes,
-		cmd.Metrics.RiemannServicePrefix,
-	)
+	metric.Initialize(logger.Session("metrics"), host, cmd.Metrics.Attributes)
 }
 
 func (cmd *ATCCommand) constructDBConn(driverName string, logger lager.Logger) (db.Conn, dbng.Conn, error) {

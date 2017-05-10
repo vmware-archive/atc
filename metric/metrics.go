@@ -4,10 +4,9 @@ import (
 	"strconv"
 	"time"
 
-	"code.cloudfoundry.org/lager"
-	"github.com/The-Cloud-Source/goryman"
-
 	"github.com/concourse/atc/db"
+
+	"code.cloudfoundry.org/lager"
 )
 
 var TrackedContainers = &Gauge{}
@@ -21,26 +20,22 @@ type SchedulingFullDuration struct {
 }
 
 func (event SchedulingFullDuration) Emit(logger lager.Logger) {
-	state := "ok"
+	state := EventStateOK
 
 	if event.Duration > time.Second {
-		state = "warning"
+		state = EventStateWarning
 	}
 
 	if event.Duration > 5*time.Second {
-		state = "critical"
+		state = EventStateCritical
 	}
 
 	emit(
-		logger.Session("full-scheduling-duration", lager.Data{
-			"pipeline": event.PipelineName,
-			"duration": event.Duration.String(),
-		}),
-
-		goryman.Event{
-			Service: "scheduling: full duration (ms)",
-			Metric:  ms(event.Duration),
-			State:   state,
+		logger.Session("full-scheduling-duration"),
+		Event{
+			Name:  "scheduling: full duration (ms)",
+			Value: ms(event.Duration),
+			State: state,
 			Attributes: map[string]string{
 				"pipeline": event.PipelineName,
 			},
@@ -54,25 +49,22 @@ type SchedulingLoadVersionsDuration struct {
 }
 
 func (event SchedulingLoadVersionsDuration) Emit(logger lager.Logger) {
-	state := "ok"
+	state := EventStateOK
 
 	if event.Duration > time.Second {
-		state = "warning"
+		state = EventStateWarning
 	}
 
 	if event.Duration > 5*time.Second {
-		state = "critical"
+		state = EventStateCritical
 	}
 
 	emit(
-		logger.Session("loading-versions-duration", lager.Data{
-			"pipeline": event.PipelineName,
-			"duration": event.Duration.String(),
-		}),
-		goryman.Event{
-			Service: "scheduling: loading versions duration (ms)",
-			Metric:  ms(event.Duration),
-			State:   state,
+		logger.Session("loading-versions-duration"),
+		Event{
+			Name:  "scheduling: loading versions duration (ms)",
+			Value: ms(event.Duration),
+			State: state,
 			Attributes: map[string]string{
 				"pipeline": event.PipelineName,
 			},
@@ -87,26 +79,22 @@ type SchedulingJobDuration struct {
 }
 
 func (event SchedulingJobDuration) Emit(logger lager.Logger) {
-	state := "ok"
+	state := EventStateOK
 
 	if event.Duration > time.Second {
-		state = "warning"
+		state = EventStateWarning
 	}
 
 	if event.Duration > 5*time.Second {
-		state = "critical"
+		state = EventStateCritical
 	}
 
 	emit(
-		logger.Session("job-scheduling-duration", lager.Data{
-			"pipeline": event.PipelineName,
-			"job":      event.JobName,
-			"duration": event.Duration.String(),
-		}),
-		goryman.Event{
-			Service: "scheduling: job duration (ms)",
-			Metric:  ms(event.Duration),
-			State:   state,
+		logger.Session("job-scheduling-duration"),
+		Event{
+			Name:  "scheduling: job duration (ms)",
+			Value: ms(event.Duration),
+			State: state,
 			Attributes: map[string]string{
 				"pipeline": event.PipelineName,
 				"job":      event.JobName,
@@ -122,14 +110,11 @@ type WorkerContainers struct {
 
 func (event WorkerContainers) Emit(logger lager.Logger) {
 	emit(
-		logger.Session("worker-containers", lager.Data{
-			"worker":     event.WorkerName,
-			"containers": event.Containers,
-		}),
-		goryman.Event{
-			Service: "worker containers",
-			Metric:  event.Containers,
-			State:   "ok",
+		logger.Session("worker-containers"),
+		Event{
+			Name:  "worker containers",
+			Value: event.Containers,
+			State: EventStateOK,
 			Attributes: map[string]string{
 				"worker": event.WorkerName,
 			},
@@ -146,16 +131,11 @@ type BuildStarted struct {
 
 func (event BuildStarted) Emit(logger lager.Logger) {
 	emit(
-		logger.Session("build-started", lager.Data{
-			"pipeline":   event.PipelineName,
-			"job":        event.JobName,
-			"build-name": event.BuildName,
-			"build-id":   event.BuildID,
-		}),
-		goryman.Event{
-			Service: "build started",
-			Metric:  event.BuildID,
-			State:   "ok",
+		logger.Session("build-started"),
+		Event{
+			Name:  "build started",
+			Value: event.BuildID,
+			State: EventStateOK,
 			Attributes: map[string]string{
 				"pipeline":   event.PipelineName,
 				"job":        event.JobName,
@@ -177,17 +157,11 @@ type BuildFinished struct {
 
 func (event BuildFinished) Emit(logger lager.Logger) {
 	emit(
-		logger.Session("build-finished", lager.Data{
-			"pipeline":     event.PipelineName,
-			"job":          event.JobName,
-			"build-name":   event.BuildName,
-			"build-id":     event.BuildID,
-			"build-status": event.BuildStatus,
-		}),
-		goryman.Event{
-			Service: "build finished",
-			Metric:  ms(event.BuildDuration),
-			State:   "ok",
+		logger.Session("build-finished"),
+		Event{
+			Name:  "build finished",
+			Value: ms(event.BuildDuration),
+			State: EventStateOK,
 			Attributes: map[string]string{
 				"pipeline":     event.PipelineName,
 				"job":          event.JobName,
@@ -210,26 +184,22 @@ type HTTPResponseTime struct {
 }
 
 func (event HTTPResponseTime) Emit(logger lager.Logger) {
-	state := "ok"
+	state := EventStateOK
 
 	if event.Duration > 100*time.Millisecond {
-		state = "warning"
+		state = EventStateWarning
 	}
 
 	if event.Duration > 1*time.Second {
-		state = "critical"
+		state = EventStateCritical
 	}
 
 	emit(
-		logger.Session("http-response-time", lager.Data{
-			"route":    event.Route,
-			"path":     event.Path,
-			"duration": event.Duration.String(),
-		}),
-		goryman.Event{
-			Service: "http response time",
-			Metric:  ms(event.Duration),
-			State:   state,
+		logger.Session("http-response-time"),
+		Event{
+			Name:  "http response time",
+			Value: ms(event.Duration),
+			State: state,
 			Attributes: map[string]string{
 				"route": event.Route,
 				"path":  event.Path,
