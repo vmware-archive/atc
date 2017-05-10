@@ -1,0 +1,25 @@
+{
+	"ImportPath": "github.com/concourse/atc/metric/emitter",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Packages": [
+		"github.com/influxdata/influxdb/client/v2"
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/influxdata/influxdb/client/v2",
+			"Comment": "v1.2.2-492-g38735b24f",
+			"Rev": "38735b24f67ed462a310d490cf23c1b3953e53e8"
+		},
+		{
+			"ImportPath": "github.com/influxdata/influxdb/models",
+			"Comment": "v1.2.2-492-g38735b24f",
+			"Rev": "38735b24f67ed462a310d490cf23c1b3953e53e8"
+		},
+		{
+			"ImportPath": "github.com/influxdata/influxdb/pkg/escape",
+			"Comment": "v1.2.2-492-g38735b24f",
+			"Rev": "38735b24f67ed462a310d490cf23c1b3953e53e8"
+		}
+	]
+}
