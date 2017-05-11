@@ -146,15 +146,22 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 		cmd.configureMetrics(logger)
 	}
 
-	dbConn, dbngConn, err := cmd.constructDBConn(logger)
+	connectionCountingDriverName := "connection-counting"
+	metric.SetupConnectionCountingDriver("postgres", cmd.Postgres.ConnectionString(), connectionCountingDriverName)
+
+	retryingDriverName := "too-many-connections-retrying"
+	dbng.SetupConnectionRetryingDriver(connectionCountingDriverName, cmd.Postgres.ConnectionString(), retryingDriverName)
+
+	dbConn, dbngConn, err := cmd.constructDBConn(retryingDriverName, logger)
 	if err != nil {
 		return nil, err
 	}
+
 	if cmd.LogDBQueries {
 		dbConn = db.Log(logger.Session("log-conn"), dbConn)
 	}
 
-	lockConn, err := cmd.constructLockConn()
+	lockConn, err := cmd.constructLockConn(retryingDriverName)
 	if err != nil {
 		return nil, err
 	}
@@ -602,19 +609,13 @@ func (cmd *ATCCommand) configureMetrics(logger lager.Logger) {
 	)
 }
 
-func (cmd *ATCCommand) constructDBConn(logger lager.Logger) (db.Conn, dbng.Conn, error) {
-	connectionCountingDriverName := "connection-counting"
-	metric.SetupConnectionCountingDriver("postgres", cmd.Postgres.ConnectionString(), connectionCountingDriverName)
-
-	retryingDriverName := "too-many-connections-retrying"
-	dbng.SetupConnectionRetryingDriver(connectionCountingDriverName, cmd.Postgres.ConnectionString(), retryingDriverName)
-
-	dbConn, err := migrations.LockDBAndMigrate(logger.Session("db.migrations"), retryingDriverName, cmd.Postgres.ConnectionString())
+func (cmd *ATCCommand) constructDBConn(driverName string, logger lager.Logger) (db.Conn, dbng.Conn, error) {
+	dbConn, err := migrations.LockDBAndMigrate(logger.Session("db.migrations"), driverName, cmd.Postgres.ConnectionString())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to migrate database: %s", err)
 	}
 
-	dbngConn, err := migrations.DBNGConn(logger.Session("db.migrations"), retryingDriverName, cmd.Postgres.ConnectionString())
+	dbngConn, err := migrations.DBNGConn(logger.Session("db.migrations"), driverName, cmd.Postgres.ConnectionString())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to migrate database: %s", err)
 	}
@@ -625,8 +626,8 @@ func (cmd *ATCCommand) constructDBConn(logger lager.Logger) (db.Conn, dbng.Conn,
 	return metric.CountQueries(dbConn), dbngConn, nil
 }
 
-func (cmd *ATCCommand) constructLockConn() (*sql.DB, error) {
-	dbConn, err := sql.Open("postgres", cmd.Postgres.ConnectionString())
+func (cmd *ATCCommand) constructLockConn(driverName string) (*sql.DB, error) {
+	dbConn, err := sql.Open(driverName, cmd.Postgres.ConnectionString())
 	if err != nil {
 		return nil, err
 	}
