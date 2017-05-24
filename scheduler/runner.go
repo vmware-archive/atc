@@ -7,7 +7,6 @@ import (
 
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc"
-	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/dbng"
 	"github.com/concourse/atc/metric"
@@ -38,8 +37,6 @@ var errPipelineRemoved = errors.New("pipeline removed")
 
 type Runner struct {
 	Logger lager.Logger
-
-	DB db.PipelineDB
 
 	Pipeline dbng.Pipeline
 
@@ -85,7 +82,7 @@ func (runner *Runner) tick(logger lager.Logger) error {
 		return nil
 	}
 
-	schedulingLock, acquired, err := runner.DB.AcquireSchedulingLock(logger, runner.Interval)
+	schedulingLock, acquired, err := runner.Pipeline.AcquireSchedulingLock(logger, runner.Interval)
 	if err != nil {
 		logger.Error("failed-to-acquire-scheduling-lock", err)
 		return nil
@@ -101,7 +98,7 @@ func (runner *Runner) tick(logger lager.Logger) error {
 
 	defer func() {
 		metric.SchedulingFullDuration{
-			PipelineName: runner.DB.GetPipelineName(),
+			PipelineName: runner.Pipeline.Name(),
 			Duration:     time.Since(start),
 		}.Emit(logger)
 	}()
@@ -113,11 +110,11 @@ func (runner *Runner) tick(logger lager.Logger) error {
 	}
 
 	metric.SchedulingLoadVersionsDuration{
-		PipelineName: runner.DB.GetPipelineName(),
+		PipelineName: runner.Pipeline.Name(),
 		Duration:     time.Since(start),
 	}.Emit(logger)
 
-	found, err := runner.DB.Reload()
+	found, err := runner.Pipeline.Reload()
 	if err != nil {
 		logger.Error("failed-to-update-pipeline-config", err)
 		return nil
@@ -127,7 +124,11 @@ func (runner *Runner) tick(logger lager.Logger) error {
 		return errPipelineRemoved
 	}
 
-	config := runner.DB.Config()
+	config, _, _, err := runner.Pipeline.Config()
+	if err != nil {
+		logger.Error("failed-to-get-config", err)
+		return err
+	}
 
 	sLog := logger.Session("scheduling")
 
@@ -147,7 +148,7 @@ func (runner *Runner) tick(logger lager.Logger) error {
 
 	for jobName, duration := range schedulingTimes {
 		metric.SchedulingJobDuration{
-			PipelineName: runner.DB.GetPipelineName(),
+			PipelineName: runner.Pipeline.Name(),
 			JobName:      jobName,
 			Duration:     duration,
 		}.Emit(sLog)

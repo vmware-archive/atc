@@ -12,8 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/concourse/atc"
-	"github.com/concourse/atc/db"
-	"github.com/concourse/atc/db/dbfakes"
 	"github.com/concourse/atc/dbng"
 	"github.com/concourse/atc/dbng/dbngfakes"
 	"github.com/concourse/atc/radar/radarfakes"
@@ -30,13 +28,6 @@ var _ = Describe("Resources API", func() {
 		fakePipeline = new(dbngfakes.FakePipeline)
 		dbTeamFactory.FindTeamReturns(dbTeam, true, nil)
 		dbTeam.PipelineReturns(fakePipeline, true, nil)
-
-		// XXX Can remove when db Pipeline is ripped out of pipeline scoped handler
-		var expectedSavedPipeline db.SavedPipeline
-		var pipelineDB *dbfakes.FakePipelineDB
-		pipelineDBFactory.BuildReturns(pipelineDB)
-		expectedSavedPipeline = db.SavedPipeline{}
-		teamDB.GetPipelineByNameReturns(expectedSavedPipeline, true, nil)
 	})
 
 	Describe("GET /api/v1/teams/:team_name/pipelines/:pipeline_name/resources", func() {
@@ -91,7 +82,7 @@ var _ = Describe("Resources API", func() {
 							Resources: []string{"resource-1", "resource-2"},
 						},
 					},
-				})
+				}, "", 0, nil)
 
 			})
 
@@ -210,6 +201,16 @@ var _ = Describe("Resources API", func() {
 						It("returns 500", func() {
 							Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
 						})
+					})
+				})
+
+				Context("when getting the pipeline config fails", func() {
+					BeforeEach(func() {
+						fakePipeline.ConfigReturns(atc.Config{}, "", 0, errors.New("fail"))
+					})
+
+					It("returns 500", func() {
+						Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
 					})
 				})
 			})
@@ -337,7 +338,7 @@ var _ = Describe("Resources API", func() {
 								Resources: []string{"resource-1", "resource-2"},
 							},
 						},
-					})
+					}, "", 0, nil)
 				})
 
 				It("returns 200 ok", func() {
@@ -358,6 +359,15 @@ var _ = Describe("Resources API", func() {
 								"failing_to_check": true,
 								"check_error": "sup"
 							}`))
+				})
+				Context("when getting the pipeline config fails", func() {
+					BeforeEach(func() {
+						fakePipeline.ConfigReturns(atc.Config{}, "", 0, errors.New("fail"))
+					})
+
+					It("returns 500", func() {
+						Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
+					})
 				})
 			})
 		})

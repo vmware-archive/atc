@@ -10,20 +10,17 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/concourse/atc/db"
-	"github.com/concourse/atc/db/dbfakes"
 	"github.com/concourse/atc/dbng"
+	"github.com/concourse/atc/dbng/dbngfakes"
 )
 
 var _ = Describe("Versions API", func() {
-	var pipelineDB *dbfakes.FakePipelineDB
-	var expectedSavedPipeline db.SavedPipeline
+	var fakePipeline *dbngfakes.FakePipeline
 
 	BeforeEach(func() {
-		pipelineDB = new(dbfakes.FakePipelineDB)
-		pipelineDBFactory.BuildReturns(pipelineDB)
-		expectedSavedPipeline = db.SavedPipeline{}
-		teamDB.GetPipelineByNameReturns(expectedSavedPipeline, true, nil)
+		fakePipeline = new(dbngfakes.FakePipeline)
+		dbTeamFactory.FindTeamReturns(dbTeam, true, nil)
+		dbTeam.PipelineReturns(fakePipeline, true, nil)
 	})
 
 	Describe("GET /api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/versions", func() {
@@ -52,7 +49,7 @@ var _ = Describe("Versions API", func() {
 
 			Context("and the pipeline is private", func() {
 				BeforeEach(func() {
-					pipelineDB.IsPublicReturns(false)
+					fakePipeline.PublicReturns(false)
 				})
 
 				It("returns 401", func() {
@@ -203,7 +200,7 @@ var _ = Describe("Versions API", func() {
 
 				Context("when next/previous pages are available", func() {
 					BeforeEach(func() {
-						pipelineDB.GetPipelineNameReturns("some-pipeline")
+						fakePipeline.NameReturns("some-pipeline")
 						fakePipeline.GetResourceVersionsReturns(returnedVersions, dbng.Pagination{
 							Previous: &dbng.Page{Until: 4, Limit: 2},
 							Next:     &dbng.Page{Since: 2, Limit: 2},
@@ -261,20 +258,13 @@ var _ = Describe("Versions API", func() {
 				userContextReader.GetTeamReturns("a-team", true, true)
 			})
 
-			It("injects the proper pipelineDB", func() {
-				Expect(teamDB.GetPipelineByNameArgsForCall(0)).To(Equal("a-pipeline"))
-				Expect(pipelineDBFactory.BuildCallCount()).To(Equal(1))
-				actualSavedPipeline := pipelineDBFactory.BuildArgsForCall(0)
-				Expect(actualSavedPipeline).To(Equal(expectedSavedPipeline))
-			})
-
 			Context("when enabling the resource succeeds", func() {
 				BeforeEach(func() {
-					pipelineDB.EnableVersionedResourceReturns(nil)
+					fakePipeline.EnableVersionedResourceReturns(nil)
 				})
 
 				It("enabled the right versioned resource", func() {
-					Expect(pipelineDB.EnableVersionedResourceArgsForCall(0)).To(Equal(42))
+					Expect(fakePipeline.EnableVersionedResourceArgsForCall(0)).To(Equal(42))
 				})
 
 				It("returns 200", func() {
@@ -284,7 +274,7 @@ var _ = Describe("Versions API", func() {
 
 			Context("when enabling the resource fails", func() {
 				BeforeEach(func() {
-					pipelineDB.EnableVersionedResourceReturns(errors.New("welp"))
+					fakePipeline.EnableVersionedResourceReturns(errors.New("welp"))
 				})
 
 				It("returns 500", func() {
@@ -323,21 +313,13 @@ var _ = Describe("Versions API", func() {
 				userContextReader.GetTeamReturns("a-team", true, true)
 			})
 
-			It("injects the proper pipelineDB", func() {
-				Expect(teamDB.GetPipelineByNameCallCount()).To(Equal(1))
-				Expect(teamDB.GetPipelineByNameArgsForCall(0)).To(Equal("a-pipeline"))
-				Expect(pipelineDBFactory.BuildCallCount()).To(Equal(1))
-				actualSavedPipeline := pipelineDBFactory.BuildArgsForCall(0)
-				Expect(actualSavedPipeline).To(Equal(expectedSavedPipeline))
-			})
-
 			Context("when enabling the resource succeeds", func() {
 				BeforeEach(func() {
-					pipelineDB.DisableVersionedResourceReturns(nil)
+					fakePipeline.DisableVersionedResourceReturns(nil)
 				})
 
 				It("disabled the right versioned resource", func() {
-					Expect(pipelineDB.DisableVersionedResourceArgsForCall(0)).To(Equal(42))
+					Expect(fakePipeline.DisableVersionedResourceArgsForCall(0)).To(Equal(42))
 				})
 
 				It("returns 200", func() {
@@ -347,7 +329,7 @@ var _ = Describe("Versions API", func() {
 
 			Context("when enabling the resource fails", func() {
 				BeforeEach(func() {
-					pipelineDB.DisableVersionedResourceReturns(errors.New("welp"))
+					fakePipeline.DisableVersionedResourceReturns(errors.New("welp"))
 				})
 
 				It("returns 500", func() {
@@ -419,33 +401,33 @@ var _ = Describe("Versions API", func() {
 			})
 
 			It("looks up the given version ID", func() {
-				Expect(pipelineDB.GetBuildsWithVersionAsInputCallCount()).To(Equal(1))
-				Expect(pipelineDB.GetBuildsWithVersionAsInputArgsForCall(0)).To(Equal(123))
+				Expect(fakePipeline.GetBuildsWithVersionAsInputCallCount()).To(Equal(1))
+				Expect(fakePipeline.GetBuildsWithVersionAsInputArgsForCall(0)).To(Equal(123))
 			})
 
 			Context("when getting the builds succeeds", func() {
 				BeforeEach(func() {
-					build1 := new(dbfakes.FakeBuild)
+					build1 := new(dbngfakes.FakeBuild)
 					build1.IDReturns(1024)
 					build1.NameReturns("5")
 					build1.JobNameReturns("some-job")
 					build1.PipelineNameReturns("a-pipeline")
 					build1.TeamNameReturns("a-team")
-					build1.StatusReturns(db.StatusSucceeded)
+					build1.StatusReturns(dbng.BuildStatusSucceeded)
 					build1.StartTimeReturns(time.Unix(1, 0))
 					build1.EndTimeReturns(time.Unix(100, 0))
 
-					build2 := new(dbfakes.FakeBuild)
+					build2 := new(dbngfakes.FakeBuild)
 					build2.IDReturns(1025)
 					build2.NameReturns("6")
 					build2.JobNameReturns("some-job")
 					build2.PipelineNameReturns("a-pipeline")
 					build2.TeamNameReturns("a-team")
-					build2.StatusReturns(db.StatusSucceeded)
+					build2.StatusReturns(dbng.BuildStatusSucceeded)
 					build2.StartTimeReturns(time.Unix(200, 0))
 					build2.EndTimeReturns(time.Unix(300, 0))
 
-					pipelineDB.GetBuildsWithVersionAsInputReturns([]db.Build{build1, build2}, nil)
+					fakePipeline.GetBuildsWithVersionAsInputReturns([]dbng.Build{build1, build2}, nil)
 				})
 
 				It("returns 200 OK", func() {
@@ -504,7 +486,7 @@ var _ = Describe("Versions API", func() {
 
 			Context("when the call to get builds returns an error", func() {
 				BeforeEach(func() {
-					pipelineDB.GetBuildsWithVersionAsInputReturns(nil, errors.New("NOPE"))
+					fakePipeline.GetBuildsWithVersionAsInputReturns(nil, errors.New("NOPE"))
 				})
 
 				It("returns a 500 internal server error", func() {
@@ -566,33 +548,33 @@ var _ = Describe("Versions API", func() {
 			})
 
 			It("looks up the given version ID", func() {
-				Expect(pipelineDB.GetBuildsWithVersionAsOutputCallCount()).To(Equal(1))
-				Expect(pipelineDB.GetBuildsWithVersionAsOutputArgsForCall(0)).To(Equal(123))
+				Expect(fakePipeline.GetBuildsWithVersionAsOutputCallCount()).To(Equal(1))
+				Expect(fakePipeline.GetBuildsWithVersionAsOutputArgsForCall(0)).To(Equal(123))
 			})
 
 			Context("when getting the builds succeeds", func() {
 				BeforeEach(func() {
-					build1 := new(dbfakes.FakeBuild)
+					build1 := new(dbngfakes.FakeBuild)
 					build1.IDReturns(1024)
 					build1.NameReturns("5")
 					build1.JobNameReturns("some-job")
 					build1.PipelineNameReturns("a-pipeline")
 					build1.TeamNameReturns("a-team")
-					build1.StatusReturns(db.StatusSucceeded)
+					build1.StatusReturns(dbng.BuildStatusSucceeded)
 					build1.StartTimeReturns(time.Unix(1, 0))
 					build1.EndTimeReturns(time.Unix(100, 0))
 
-					build2 := new(dbfakes.FakeBuild)
+					build2 := new(dbngfakes.FakeBuild)
 					build2.IDReturns(1025)
 					build2.NameReturns("6")
 					build2.JobNameReturns("some-job")
 					build2.PipelineNameReturns("a-pipeline")
 					build2.TeamNameReturns("a-team")
-					build2.StatusReturns(db.StatusSucceeded)
+					build2.StatusReturns(dbng.BuildStatusSucceeded)
 					build2.StartTimeReturns(time.Unix(200, 0))
 					build2.EndTimeReturns(time.Unix(300, 0))
 
-					pipelineDB.GetBuildsWithVersionAsOutputReturns([]db.Build{build1, build2}, nil)
+					fakePipeline.GetBuildsWithVersionAsOutputReturns([]dbng.Build{build1, build2}, nil)
 				})
 
 				It("returns 200 OK", func() {
@@ -651,7 +633,7 @@ var _ = Describe("Versions API", func() {
 
 			Context("when the call to get builds returns an error", func() {
 				BeforeEach(func() {
-					pipelineDB.GetBuildsWithVersionAsOutputReturns(nil, errors.New("NOPE"))
+					fakePipeline.GetBuildsWithVersionAsOutputReturns(nil, errors.New("NOPE"))
 				})
 
 				It("returns a 500 internal server error", func() {

@@ -163,4 +163,5 @@ var Migrations = []migration.Migrator{
 	AddMetadataToResourceCache,
 	AddNonceToJobs,
 	UseMd5ForVersions,
+	AddNonceToPipelines,
 }

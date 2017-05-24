@@ -253,7 +253,6 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 	dbTeamFactory := dbng.NewTeamFactory(dbngConn, lockFactory, strategy)
 	sqlDB := db.NewSQL(dbConn, bus, lockFactory)
 	resourceFactoryFactory := resource.NewResourceFactoryFactory()
-	pipelineDBFactory := db.NewPipelineDBFactory(dbConn, bus, lockFactory)
 	dbBuildFactory := dbng.NewBuildFactory(dbngConn, lockFactory, strategy)
 	dbVolumeFactory := dbng.NewVolumeFactory(dbngConn)
 	dbContainerFactory := dbng.NewContainerFactory(dbngConn)
@@ -335,7 +334,6 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 		dbBuildFactory,
 		providerFactory,
 		signingKey,
-		pipelineDBFactory,
 		engine,
 		workerClient,
 		drain,
@@ -435,8 +433,6 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 		{"pipelines", pipelines.SyncRunner{
 			Syncer: cmd.constructPipelineSyncer(
 				logger.Session("syncer"),
-				sqlDB,
-				pipelineDBFactory,
 				dbPipelineFactory,
 				radarSchedulerFactory,
 			),
@@ -889,7 +885,6 @@ func (cmd *ATCCommand) constructAPIHandler(
 	dbBuildFactory dbng.BuildFactory,
 	providerFactory auth.OAuthFactory,
 	signingKey *rsa.PrivateKey,
-	pipelineDBFactory db.PipelineDBFactory,
 	engine engine.Engine,
 	workerClient worker.Client,
 	drain <-chan struct{},
@@ -936,7 +931,6 @@ func (cmd *ATCCommand) constructAPIHandler(
 		providerFactory,
 		cmd.oauthBaseURL(),
 
-		pipelineDBFactory,
 		teamDBFactory,
 		dbTeamFactory,
 		dbPipelineFactory,
@@ -990,37 +984,32 @@ func (h tlsRedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (cmd *ATCCommand) constructPipelineSyncer(
 	logger lager.Logger,
-	sqlDB *db.SQLDB,
-	pipelineDBFactory db.PipelineDBFactory,
-	dbPipelineFactory dbng.PipelineFactory,
+	pipelineFactory dbng.PipelineFactory,
 	radarSchedulerFactory pipelines.RadarSchedulerFactory,
 ) *pipelines.Syncer {
 	return pipelines.NewSyncer(
 		logger,
-		sqlDB,
-		pipelineDBFactory,
-		dbPipelineFactory,
-		func(pipelineDB db.PipelineDB, dbPipeline dbng.Pipeline) ifrit.Runner {
+		pipelineFactory,
+		func(pipeline dbng.Pipeline) ifrit.Runner {
 			return grouper.NewParallel(os.Interrupt, grouper.Members{
 				{
-					pipelineDB.ScopedName("radar"),
+					pipeline.ScopedName("radar"),
 					radar.NewRunner(
-						logger.Session(pipelineDB.ScopedName("radar")),
+						logger.Session(pipeline.ScopedName("radar")),
 						cmd.Developer.Noop,
-						radarSchedulerFactory.BuildScanRunnerFactory(dbPipeline, cmd.ExternalURL.String()),
-						dbPipeline,
+						radarSchedulerFactory.BuildScanRunnerFactory(pipeline, cmd.ExternalURL.String()),
+						pipeline,
 						1*time.Minute,
 					),
 				},
 				{
-					pipelineDB.ScopedName("scheduler"),
+					pipeline.ScopedName("scheduler"),
 					&scheduler.Runner{
-						Logger: logger.Session(pipelineDB.ScopedName("scheduler")),
+						Logger: logger.Session(pipeline.ScopedName("scheduler")),
 
-						DB:       pipelineDB,
-						Pipeline: dbPipeline,
+						Pipeline: pipeline,
 
-						Scheduler: radarSchedulerFactory.BuildScheduler(pipelineDB, dbPipeline, cmd.ExternalURL.String()),
+						Scheduler: radarSchedulerFactory.BuildScheduler(pipeline, cmd.ExternalURL.String()),
 
 						Noop: cmd.Developer.Noop,
 

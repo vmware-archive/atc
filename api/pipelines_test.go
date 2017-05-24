@@ -11,33 +11,24 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/concourse/atc"
-	"github.com/concourse/atc/db/dbfakes"
 	"github.com/concourse/atc/dbng"
 	"github.com/concourse/atc/dbng/dbngfakes"
 
-	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/algorithm"
 )
 
 var _ = Describe("Pipelines API", func() {
 	var (
-		pipelineDB            *dbfakes.FakePipelineDB
-		dbPipeline            *dbngfakes.FakePipeline
-		expectedSavedPipeline db.SavedPipeline
-		fakeTeam              *dbngfakes.FakeTeam
+		dbPipeline *dbngfakes.FakePipeline
+		fakeTeam   *dbngfakes.FakeTeam
 
 		publicPipeline        *dbngfakes.FakePipeline
 		anotherPublicPipeline *dbngfakes.FakePipeline
 		privatePipeline       *dbngfakes.FakePipeline
 	)
 	BeforeEach(func() {
-		pipelineDB = new(dbfakes.FakePipelineDB)
 		dbPipeline = new(dbngfakes.FakePipeline)
 		fakeTeam = new(dbngfakes.FakeTeam)
-
-		pipelineDBFactory.BuildReturns(pipelineDB)
-		expectedSavedPipeline = db.SavedPipeline{}
-		teamDB.GetPipelineByNameReturns(expectedSavedPipeline, true, nil)
 
 		publicPipeline = new(dbngfakes.FakePipeline)
 		publicPipeline.IDReturns(1)
@@ -53,7 +44,7 @@ var _ = Describe("Pipelines API", func() {
 					Resources: []string{"resource3", "resource4"},
 				},
 			},
-		})
+		}, "", 0, nil)
 
 		anotherPublicPipeline = new(dbngfakes.FakePipeline)
 		anotherPublicPipeline.IDReturns(2)
@@ -76,7 +67,7 @@ var _ = Describe("Pipelines API", func() {
 					Resources: []string{"resource1", "resource2"},
 				},
 			},
-		})
+		}, "", 0, nil)
 
 		fakeTeam.PipelinesReturns([]dbng.Pipeline{
 			privatePipeline,
@@ -392,7 +383,7 @@ var _ = Describe("Pipelines API", func() {
 						Resources: []string{"resource3", "resource4"},
 					},
 				},
-			})
+			}, "", 0, nil)
 		})
 
 		JustBeforeEach(func() {
@@ -539,6 +530,7 @@ var _ = Describe("Pipelines API", func() {
 					authValidator.IsAuthenticatedReturns(true)
 					userContextReader.GetTeamReturns("a-team", true, true)
 					dbTeamFactory.FindTeamReturns(fakeTeam, true, nil)
+					dbPipeline.NameReturns("a-pipeline-name")
 					fakeTeam.PipelineReturns(dbPipeline, true, nil)
 				})
 

@@ -32,10 +32,11 @@ type Pipeline interface {
 	TeamID() int
 	TeamName() string
 	ConfigVersion() ConfigVersion
-	Config() atc.Config
 	Public() bool
 	Paused() bool
 	ScopedName(string) string
+
+	Config() (atc.Config, atc.RawConfig, ConfigVersion, error)
 
 	CheckPaused() (bool, error)
 	Reload() (bool, error)
@@ -51,8 +52,11 @@ type Pipeline interface {
 	GetResourceVersions(resourceName string, page Page) ([]SavedVersionedResource, Pagination, bool, error)
 	GetLatestVersionedResource(resourceName string) (SavedVersionedResource, bool, error)
 	GetVersionedResourceByVersion(atcVersion atc.Version, resourceName string) (SavedVersionedResource, bool, error)
+
 	DisableVersionedResource(versionedResourceID int) error
 	EnableVersionedResource(versionedResourceID int) error
+	GetBuildsWithVersionAsInput(versionedResourceID int) ([]Build, error)
+	GetBuildsWithVersionAsOutput(versionedResourceID int) ([]Build, error)
 
 	SaveIndependentInputMapping(inputMapping algorithm.InputMapping, jobName string) error
 	SaveNextInputMapping(inputMapping algorithm.InputMapping, jobName string) error
@@ -66,6 +70,9 @@ type Pipeline interface {
 	CreateJobBuild(jobName string) (Build, error)
 	NextBuildInputs(jobName string) ([]BuildInput, bool, error)
 	DeleteBuildEventsByBuildIDs(buildIDs []int) error
+
+	// Needs test (from db/lock_test.go)
+	AcquireSchedulingLock(lager.Logger, time.Duration) (lock.Lock, bool, error)
 
 	AcquireResourceCheckingLockWithIntervalCheck(
 		logger lager.Logger,
@@ -109,7 +116,6 @@ type pipeline struct {
 	teamID        int
 	teamName      string
 	configVersion ConfigVersion
-	config        atc.Config
 	paused        bool
 	public        bool
 
@@ -132,7 +138,6 @@ var pipelinesQuery = psql.Select(`
 		p.version,
 		p.team_id,
 		t.name,
-		p.config,
 		p.paused,
 		p.public
 	`).
@@ -174,12 +179,46 @@ func (p *pipeline) Name() string                 { return p.name }
 func (p *pipeline) TeamID() int                  { return p.teamID }
 func (p *pipeline) TeamName() string             { return p.teamName }
 func (p *pipeline) ConfigVersion() ConfigVersion { return p.configVersion }
-func (p *pipeline) Config() atc.Config           { return p.config }
 func (p *pipeline) Public() bool                 { return p.public }
 func (p *pipeline) Paused() bool                 { return p.paused }
 
 func (p *pipeline) ScopedName(n string) string {
 	return p.name + ":" + n
+}
+
+func (p *pipeline) Config() (atc.Config, atc.RawConfig, ConfigVersion, error) {
+	var configBlob []byte
+	var version int
+	var nonce sql.NullString
+
+	err := p.conn.QueryRow(`
+		SELECT config, version, nonce
+		FROM pipelines
+		WHERE name = $1 AND team_id = (
+			SELECT id
+			FROM teams
+			WHERE LOWER(name) = LOWER($2)
+		)
+	`, p.name, p.teamName).Scan(&configBlob, &version, &nonce)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return atc.Config{}, atc.RawConfig(""), 0, nil
+		}
+		return atc.Config{}, atc.RawConfig(""), 0, err
+	}
+
+	decryptedConfig, err := p.encryption.Decrypt(string(configBlob), nonce.String)
+	if err != nil {
+		return atc.Config{}, atc.RawConfig(""), 0, err
+	}
+
+	var config atc.Config
+	err = json.Unmarshal(decryptedConfig, &config)
+	if err != nil {
+		return atc.Config{}, atc.RawConfig(string(decryptedConfig)), ConfigVersion(version), atc.MalformedConfigError{err}
+	}
+
+	return config, atc.RawConfig(string(decryptedConfig)), ConfigVersion(version), nil
 }
 
 // Write test
@@ -731,6 +770,59 @@ func (p *pipeline) EnableVersionedResource(versionedResourceID int) error {
 	return p.toggleVersionedResource(versionedResourceID, true)
 }
 
+func (p *pipeline) GetBuildsWithVersionAsInput(versionedResourceID int) ([]Build, error) {
+	rows, err := buildsQuery.
+		JoinClause("LEFT OUTER JOIN build_inputs bi ON bi.build_id = b.id").
+		Where(sq.Eq{
+			"bi.versioned_resource_id": versionedResourceID,
+		}).
+		RunWith(p.conn).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	builds := []Build{}
+	for rows.Next() {
+		build := &build{conn: p.conn, lockFactory: p.lockFactory, encryption: p.encryption}
+		err = scanBuild(build, rows)
+		if err != nil {
+			return nil, err
+		}
+		builds = append(builds, build)
+	}
+
+	return builds, err
+}
+
+func (p *pipeline) GetBuildsWithVersionAsOutput(versionedResourceID int) ([]Build, error) {
+	rows, err := buildsQuery.
+		JoinClause("LEFT OUTER JOIN build_outputs bo ON bo.build_id = b.id").
+		Where(sq.Eq{
+			"bo.versioned_resource_id": versionedResourceID,
+		}).
+		RunWith(p.conn).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	builds := []Build{}
+	for rows.Next() {
+		build := &build{conn: p.conn, lockFactory: p.lockFactory, encryption: p.encryption}
+		err = scanBuild(build, rows)
+		if err != nil {
+			return nil, err
+		}
+
+		builds = append(builds, build)
+	}
+
+	return builds, err
+}
+
 func (p *pipeline) SaveIndependentInputMapping(inputMapping algorithm.InputMapping, jobName string) error {
 	return p.saveJobInputMapping("independent_build_inputs", inputMapping, jobName)
 }
@@ -1034,7 +1126,12 @@ func (p *pipeline) Dashboard() (Dashboard, atc.GroupConfigs, error) {
 		dashboard = append(dashboard, dashboardJob)
 	}
 
-	return dashboard, p.config.Groups, nil
+	config, _, _, err := p.Config()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return dashboard, config.Groups, nil
 }
 
 func (p *pipeline) Pause() error {
@@ -1317,6 +1414,53 @@ func (p *pipeline) DeleteBuildEventsByBuildIDs(buildIDs []int) error {
 
 	err = tx.Commit()
 	return err
+}
+
+func (p *pipeline) AcquireSchedulingLock(logger lager.Logger, interval time.Duration) (lock.Lock, bool, error) {
+	tx, err := p.conn.Begin()
+	if err != nil {
+		return nil, false, err
+	}
+
+	defer tx.Rollback()
+
+	updated, err := checkIfRowsUpdated(tx, `
+		UPDATE pipelines
+		SET last_scheduled = now()
+		WHERE id = $1
+			AND now() - last_scheduled > ($2 || ' SECONDS')::INTERVAL
+	`, p.id, interval.Seconds())
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !updated {
+		return nil, false, nil
+	}
+
+	lock := p.lockFactory.NewLock(
+		logger.Session("lock", lager.Data{
+			"pipeline": p.name,
+		}),
+		lock.NewPipelineSchedulingLockLockID(p.id),
+	)
+
+	acquired, err := lock.Acquire()
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !acquired {
+		return nil, false, nil
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		lock.Release()
+		return nil, false, err
+	}
+
+	return lock, true, nil
 }
 
 func (p *pipeline) saveOutput(buildID int, vr VersionedResource, explicit bool) error {

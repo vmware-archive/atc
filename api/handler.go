@@ -45,7 +45,6 @@ func NewHandler(
 	providerFactory auth.ProviderFactory,
 	oAuthBaseURL string,
 
-	pipelineDBFactory db.PipelineDBFactory,
 	teamDBFactory db.TeamDBFactory,
 	dbTeamFactory dbng.TeamFactory,
 	dbPipelineFactory dbng.PipelineFactory,
@@ -81,7 +80,7 @@ func NewHandler(
 		return nil, err
 	}
 
-	pipelineHandlerFactory := pipelineserver.NewScopedHandlerFactory(pipelineDBFactory, teamDBFactory, dbTeamFactory)
+	pipelineHandlerFactory := pipelineserver.NewScopedHandlerFactory(dbTeamFactory)
 	buildHandlerFactory := buildserver.NewScopedHandlerFactory(logger)
 	teamHandlerFactory := NewTeamScopedHandlerFactory(logger, teamDBFactory, dbTeamFactory)
 
@@ -115,7 +114,7 @@ func NewHandler(
 
 	pipelineServer := pipelineserver.NewServer(logger, dbTeamFactory, teamDBFactory, dbPipelineFactory)
 
-	configServer := configserver.NewServer(logger, teamDBFactory, dbTeamFactory)
+	configServer := configserver.NewServer(logger, dbTeamFactory)
 
 	workerServer := workerserver.NewServer(logger, teamDBFactory, dbTeamFactory, dbWorkerFactory)
 
