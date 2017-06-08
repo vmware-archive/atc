@@ -12,8 +12,14 @@ const (
 	ListBuilds          = "ListBuilds"
 	BuildEvents         = "BuildEvents"
 	BuildResources      = "BuildResources"
+	BuildRebuilds       = "BuildRebuilds"
 	AbortBuild          = "AbortBuild"
 	GetBuildPreparation = "GetBuildPreparation"
+
+	GetRebuild    = "GetRebuild"
+	CreateRebuild = "CreateRebuild"
+	ListRebuilds  = "ListRebuilds"
+	RebuildBuild  = "RebuildBuild"
 
 	GetJob         = "GetJob"
 	CreateJobBuild = "CreateJobBuild"
