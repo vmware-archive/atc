@@ -300,7 +300,7 @@ var _ = Describe("Pipeline", func() {
 					versions = append(versions, version)
 					expectedVersions = append(expectedVersions,
 						db.SavedVersionedResource{
-							ID:      i + 1,
+							ID:      i + 2,
 							Enabled: true,
 							VersionedResource: db.VersionedResource{
 								Resource: resource.Name,
@@ -312,7 +312,19 @@ var _ = Describe("Pipeline", func() {
 						})
 				}
 
-				err := pipeline.SaveResourceVersions(resource, versions)
+				err := pipeline.SaveResourceVersions(
+					atc.ResourceConfig{
+						Name:   "some-resource",
+						Type:   "another-type",
+						Source: atc.Source{"some": "source"},
+					},
+					[]atc.Version{
+						{"version": "0"},
+					},
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = pipeline.SaveResourceVersions(resource, versions)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -404,7 +416,7 @@ var _ = Describe("Pipeline", func() {
 
 			Context("when a version is disabled", func() {
 				BeforeEach(func() {
-					pipeline.DisableVersionedResource(10)
+					pipeline.DisableVersionedResource(11)
 
 					expectedVersions[9].Enabled = false
 				})

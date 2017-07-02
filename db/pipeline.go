@@ -383,27 +383,22 @@ func (p *pipeline) SaveResourceVersions(config atc.ResourceConfig, versions []at
 }
 
 func (p *pipeline) GetResourceVersions(resourceName string, page Page) ([]SavedVersionedResource, Pagination, bool, error) {
-	var resourceID int
-	err := psql.Select("id").
-		From("resources").
-		Where(sq.Eq{
-			"name":        resourceName,
-			"pipeline_id": p.id,
-			"active":      true,
-		}).RunWith(p.conn).QueryRow().Scan(&resourceID)
+	resource, found, err := p.Resource(resourceName)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return []SavedVersionedResource{}, Pagination{}, false, nil
-		}
-
 		return []SavedVersionedResource{}, Pagination{}, false, err
+	} else if !found {
+		return []SavedVersionedResource{}, Pagination{}, false, nil
 	}
+
+	resourceID := resource.ID()
+	resourceType := resource.Type()
 
 	query := `
 		SELECT v.id, v.enabled, v.type, v.version, v.metadata, r.name, v.check_order
 		FROM versioned_resources v
 		INNER JOIN resources r ON v.resource_id = r.id
 		WHERE v.resource_id = $1
+		AND v.type = $2
 	`
 
 	var rows *sql.Rows
@@ -412,22 +407,22 @@ func (p *pipeline) GetResourceVersions(resourceName string, page Page) ([]SavedV
 			SELECT sub.*
 				FROM (
 						%s
-					AND v.check_order > (SELECT check_order FROM versioned_resources WHERE id = $2)
+					AND v.check_order > (SELECT check_order FROM versioned_resources WHERE id = $3)
 				ORDER BY v.check_order ASC
-				LIMIT $3
+				LIMIT $4
 			) sub
 			ORDER BY sub.check_order DESC
-		`, query), resourceID, page.Until, page.Limit)
+		`, query), resourceID, resourceType, page.Until, page.Limit)
 		if err != nil {
 			return nil, Pagination{}, false, err
 		}
 	} else if page.Since != 0 {
 		rows, err = p.conn.Query(fmt.Sprintf(`
 			%s
-				AND v.check_order < (SELECT check_order FROM versioned_resources WHERE id = $2)
+				AND v.check_order < (SELECT check_order FROM versioned_resources WHERE id = $3)
 			ORDER BY v.check_order DESC
-			LIMIT $3
-		`, query), resourceID, page.Since, page.Limit)
+			LIMIT $4
+		`, query), resourceID, resourceType, page.Since, page.Limit)
 		if err != nil {
 			return nil, Pagination{}, false, err
 		}
@@ -436,22 +431,22 @@ func (p *pipeline) GetResourceVersions(resourceName string, page Page) ([]SavedV
 			SELECT sub.*
 				FROM (
 						%s
-					AND v.check_order >= (SELECT check_order FROM versioned_resources WHERE id = $2)
+					AND v.check_order >= (SELECT check_order FROM versioned_resources WHERE id = $3)
 				ORDER BY v.check_order ASC
-				LIMIT $3
+				LIMIT $4
 			) sub
 			ORDER BY sub.check_order DESC
-		`, query), resourceID, page.To, page.Limit)
+		`, query), resourceID, resourceType, page.To, page.Limit)
 		if err != nil {
 			return nil, Pagination{}, false, err
 		}
 	} else if page.From != 0 {
 		rows, err = p.conn.Query(fmt.Sprintf(`
 			%s
-				AND v.check_order <= (SELECT check_order FROM versioned_resources WHERE id = $2)
+				AND v.check_order <= (SELECT check_order FROM versioned_resources WHERE id = $3)
 			ORDER BY v.check_order DESC
-			LIMIT $3
-		`, query), resourceID, page.From, page.Limit)
+			LIMIT $4
+		`, query), resourceID, resourceType, page.From, page.Limit)
 		if err != nil {
 			return nil, Pagination{}, false, err
 		}
@@ -459,8 +454,8 @@ func (p *pipeline) GetResourceVersions(resourceName string, page Page) ([]SavedV
 		rows, err = p.conn.Query(fmt.Sprintf(`
 			%s
 			ORDER BY v.check_order DESC
-			LIMIT $2
-		`, query), resourceID, page.Limit)
+			LIMIT $3
+		`, query), resourceID, resourceType, page.Limit)
 		if err != nil {
 			return nil, Pagination{}, false, err
 		}
@@ -706,7 +701,6 @@ func (p *pipeline) Resource(name string) (Resource, bool, error) {
 	}
 
 	return resource, true, nil
-
 }
 
 func (p *pipeline) Resources() (Resources, error) {
