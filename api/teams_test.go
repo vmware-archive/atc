@@ -113,6 +113,65 @@ var _ = Describe("Teams API", func() {
 					}
 				]`))
 			})
+			Context("when authenticated as non-admin team", func() {
+				BeforeEach(func() {
+					jwtValidator.IsAuthenticatedReturns(true)
+					userContextReader.GetTeamReturns("fake-team", false, true)
+				})
+				It("returns the teams with auth configuration", func() {
+					body, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(body).To(MatchJSON(`[
+						{
+							"id": 5,
+							"name": "avengers"
+						},
+						{
+							"id": 9,
+							"name": "aliens"
+						},
+						{
+							"id": 22,
+							"name": "predators"
+						}
+					]`))
+				})
+			})
+			Context("when authenticated as admin team", func() {
+				BeforeEach(func() {
+					jwtValidator.IsAuthenticatedReturns(true)
+					userContextReader.GetTeamReturns(atc.DefaultTeamName, true, true)
+				})
+				It("returns the teams with auth configuration", func() {
+					body, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(body).To(MatchJSON(`[
+						{
+							"id": 5,
+							"name": "avengers"
+						},
+						{
+							"id": 9,
+							"name": "aliens",
+							"basic_auth": {
+								"basic_auth_username": "fake user",
+								"basic_auth_password": "no, bad"
+							}
+						},
+						{
+							"id": 22,
+							"name": "predators",
+							"auth": {
+								"fake-provider": {
+									"hello": "world"
+								}
+							}
+						}
+					]`))
+				})
+			})
 		})
 	})
 
