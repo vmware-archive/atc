@@ -25,8 +25,8 @@ type CredhubManager struct {
 }
 
 type AuthConfig struct {
-	ClientName   string `long:"client-name" description:"Client name for UAA client grant"`
-	ClientSecret string `long:"client-secret" description:"Client secret for UAA client grant"`
+	ClientName   string `long:"client-name" description:"Client name for UAA client grant."`
+	ClientSecret string `long:"client-secret" description:"Client secret for UAA client grant."`
 }
 
 func (manager CredhubManager) IsConfigured() bool {
