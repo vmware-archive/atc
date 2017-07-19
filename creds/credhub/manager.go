@@ -7,11 +7,8 @@ import (
 
 	"code.cloudfoundry.org/lager"
 
-	"github.com/concourse/atc/creds"
 	"github.com/cloudfoundry-incubator/credhub-cli/config"
-	"github.com/cloudfoundry-incubator/credhub-cli/commands"
-	"github.com/cloudfoundry-incubator/credhub-cli/actions"
-	"github.com/cloudfoundry-incubator/credhub-cli/client"
+	"github.com/concourse/atc/creds"
 )
 
 type CredhubManager struct {
@@ -20,15 +17,15 @@ type CredhubManager struct {
 	PathPrefix string `long:"path-prefix" default:"/concourse" description:"Path under which to namespace credential lookup."`
 
 	TLS struct {
-		CACert     string `long:"ca-cert"              description:"Path to a PEM-encoded CA cert file to use to verify the credhub / UAA server SSL certs."`
-		Insecure   bool   `long:"insecure-skip-verify" description:"Enable insecure SSL verification."`
+		CACert   string `long:"ca-cert"              description:"Path to a PEM-encoded CA cert file to use to verify the credhub / UAA server SSL certs."`
+		Insecure bool   `long:"insecure-skip-verify" description:"Enable insecure SSL verification."`
 	}
 
 	Auth AuthConfig
 }
 
 type AuthConfig struct {
-	ClientName string   `long:"client-name" description:"Client name for UAA client grant"`
+	ClientName   string `long:"client-name" description:"Client name for UAA client grant"`
 	ClientSecret string `long:"client-secret" description:"Client secret for UAA client grant"`
 }
 
@@ -55,27 +52,10 @@ func (manager CredhubManager) Validate() error {
 
 func (manager CredhubManager) NewVariablesFactory(logger lager.Logger) (creds.VariablesFactory, error) {
 	cfg := config.Config{
-		ApiURL: manager.URL,
+		ApiURL:             manager.URL,
 		InsecureSkipVerify: manager.TLS.Insecure,
-		CaCert: []string{manager.TLS.CACert},
+		CaCert:             []string{manager.TLS.CACert},
 	}
 
-	err := commands.GetApiInfo(&cfg, cfg.ApiURL, cfg.InsecureSkipVerify)
-	if err != nil {
-		return nil, err
-	}
-
-	httpClient := client.NewHttpClient(cfg)
-	token, err := actions.NewAuthToken(httpClient, cfg).GetAuthTokenByClientCredential(
-		manager.Auth.ClientName,
-		manager.Auth.ClientSecret,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.AccessToken = token.AccessToken
-	cfg.RefreshToken = token.RefreshToken
-
-	return NewCredhubFactory(logger, cfg, manager.PathPrefix), nil
+	return NewCredhubFactory(logger, cfg, manager.Auth, manager.PathPrefix), nil
 }

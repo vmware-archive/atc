@@ -59,7 +59,7 @@ func (factory *vaultFactory) currentToken() string {
 func (factory *vaultFactory) authLoop(logger lager.Logger, config AuthConfig) {
 	for {
 		currentToken := factory.currentToken()
-
+		n
 		var token string
 		var delay time.Duration
 		if currentToken == "" {
