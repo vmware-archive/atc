@@ -5,17 +5,17 @@ import (
 	flags "github.com/jessevdk/go-flags"
 )
 
-type CredhubManagerFactory struct{}
+type credhubManagerFactory struct{}
 
 func init() {
 	creds.Register("credhub", NewCredhubManagerFactory())
 }
 
 func NewCredhubManagerFactory() creds.ManagerFactory {
-	return &CredhubManagerFactory{}
+	return &credhubManagerFactory{}
 }
 
-func (factory *CredhubManagerFactory) AddConfig(group *flags.Group) creds.Manager {
+func (factory *credhubManagerFactory) AddConfig(group *flags.Group) creds.Manager {
 	manager := &CredhubManager{}
 
 	subGroup, err := group.AddGroup("Credhub Credential Management", "", manager)
