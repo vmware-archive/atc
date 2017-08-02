@@ -312,7 +312,7 @@ func (worker *gardenWorker) Uptime() time.Duration {
 
 func (worker *gardenWorker) tagsMatch(tags []string) bool {
 	if len(worker.tags) > 0 && len(tags) == 0 {
-		return false
+		tags = []string{"default"}
 	}
 
 insert_coin:

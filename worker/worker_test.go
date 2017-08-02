@@ -282,11 +282,26 @@ var _ = Describe("Worker", func() {
 					spec.Tags = nil
 				})
 
-				It("returns ErrIncompatiblePlatform", func() {
-					Expect(satisfyingErr).To(Equal(ErrMismatchedTags))
+				Context("when the worker does not have the \"default\" tag", func() {
+					It("returns ErrIncompatiblePlatform", func() {
+						Expect(satisfyingErr).To(Equal(ErrMismatchedTags))
+					})
+				})
+
+				Context("when the worker has the \"default\" tag", func() {
+					BeforeEach(func() {
+						tags = []string{"some", "tags", "default"}
+					})
+
+					It("returns the worker", func() {
+						Expect(satisfyingWorker).To(Equal(gardenWorker))
+					})
+
+					It("returns no error", func() {
+						Expect(satisfyingErr).NotTo(HaveOccurred())
+					})
 				})
 			})
-
 			Context("when the worker has no tags", func() {
 				BeforeEach(func() {
 					tags = []string{}
