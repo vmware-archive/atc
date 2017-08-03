@@ -7,6 +7,7 @@ import (
 
 	"github.com/concourse/atc/api/present"
 	"github.com/concourse/atc/db"
+	"github.com/google/jsonapi"
 )
 
 func (s *Server) CreateJobBuild(pipeline db.Pipeline) http.Handler {
@@ -22,8 +23,13 @@ func (s *Server) CreateJobBuild(pipeline db.Pipeline) http.Handler {
 			return
 		}
 
-		if !found {
+			if !found {
 			w.WriteHeader(http.StatusNotFound)
+			jsonapi.MarshalErrors(w, []*jsonapi.ErrorObject{{
+				Title:  "Job Not Found Error",
+				Detail: fmt.Sprintf("Job with name '%s' not found.", jobName),
+				Status: "404",
+			}})
 			return
 		}
 

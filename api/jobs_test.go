@@ -1303,6 +1303,13 @@ var _ = Describe("Jobs API", func() {
 				It("returns a 404", func() {
 					Expect(response.StatusCode).To(Equal(http.StatusNotFound))
 				})
+
+				It("returns a JSONAPI error for the job not being found", func() {
+					body, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(body).To(MatchJSON(`{"errors": [{"title": "Job Not Found Error", "detail": "Job with name 'some-job' not found.", "status": "404"}]}`))
+				})
 			})
 		})
 	})
@@ -1582,6 +1589,13 @@ var _ = Describe("Jobs API", func() {
 					It("returns Not Found", func() {
 						Expect(response.StatusCode).To(Equal(http.StatusNotFound))
 					})
+
+					It("returns a JSONAPI error for the build not being found", func() {
+						body, err := ioutil.ReadAll(response.Body)
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(body).To(MatchJSON(`{"errors": [{"title": "Build Not Found Error", "detail": "Build with name 'some-build' not found.", "status": "404"}]}`))
+					})
 				})
 
 				Context("when getting the build fails", func() {
@@ -1602,6 +1616,13 @@ var _ = Describe("Jobs API", func() {
 
 				It("returns Not Found", func() {
 					Expect(response.StatusCode).To(Equal(http.StatusNotFound))
+				})
+
+				It("returns a JSONAPI error for the job not being found", func() {
+					body, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(body).To(MatchJSON(`{"errors": [{"title": "Job Not Found Error", "detail": "Job with name 'some-job' not found.", "status": "404"}]}`))
 				})
 			})
 

@@ -1,11 +1,13 @@
 package jobserver
 
 import (
+	"fmt"
 	"encoding/json"
 	"net/http"
 
 	"github.com/concourse/atc/api/present"
 	"github.com/concourse/atc/db"
+	"github.com/google/jsonapi"
 )
 
 func (s *Server) GetJobBuild(pipeline db.Pipeline) http.Handler {
@@ -23,6 +25,11 @@ func (s *Server) GetJobBuild(pipeline db.Pipeline) http.Handler {
 
 		if !found {
 			w.WriteHeader(http.StatusNotFound)
+			jsonapi.MarshalErrors(w, []*jsonapi.ErrorObject{{
+				Title:  "Job Not Found Error",
+				Detail: fmt.Sprintf("Job with name '%s' not found.", jobName),
+				Status: "404",
+			}})
 			return
 		}
 
@@ -35,6 +42,11 @@ func (s *Server) GetJobBuild(pipeline db.Pipeline) http.Handler {
 
 		if !found {
 			w.WriteHeader(http.StatusNotFound)
+			jsonapi.MarshalErrors(w, []*jsonapi.ErrorObject{{
+				Title:  "Build Not Found Error",
+				Detail: fmt.Sprintf("Build with name '%s' not found.", buildName),
+				Status: "404",
+			}})
 			return
 		}
 
