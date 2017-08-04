@@ -7,6 +7,8 @@ import (
 
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/api/present"
+	"github.com/concourse/atc/auth"
+	"github.com/concourse/atc/db"
 )
 
 func (s *Server) ListTeams(w http.ResponseWriter, r *http.Request) {
@@ -18,9 +20,17 @@ func (s *Server) ListTeams(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
+	var presenter func(db.Team) atc.Team
+	authTeam, authTeamFound := auth.GetTeam(r)
+	if authTeamFound && authTeam.IsAdmin() {
+		presenter = present.TeamWithAdmin
+	} else {
+		presenter = present.Team
+	}
+
 	presentedTeams := make([]atc.Team, len(teams))
 	for i, team := range teams {
-		presentedTeams[i] = present.Team(team)
+		presentedTeams[i] = presenter(team)
 	}
 
 	json.NewEncoder(w).Encode(presentedTeams)
