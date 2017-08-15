@@ -361,11 +361,19 @@ func (c *volumeClient) findOrCreateVolume(
 	} else {
 		logger.Debug("creating-real-volume")
 
-		bcVolume, err = c.baggageclaimClient.CreateVolume(
+		bcVolumeFuture, err := c.baggageclaimClient.CreateVolumeAsync(
 			logger.Session("create-volume"),
 			creatingVolume.Handle(),
 			volumeSpec.baggageclaimVolumeSpec(),
 		)
+		if err != nil {
+			logger.Error("failed-to-create-volume-in-baggageclaim", err)
+			return nil, err
+		}
+
+		defer bcVolumeFuture.Destroy()
+
+		bcVolume, err = bcVolumeFuture.Wait()
 		if err != nil {
 			logger.Error("failed-to-create-volume-in-baggageclaim", err)
 			return nil, err

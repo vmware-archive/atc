@@ -5,6 +5,8 @@ set -e -u -x
 export GOPATH=$PWD/gopath
 export PATH=$PWD/gopath/bin:$PATH
 
+git clone git://github.com/SHyx0rmZ/baggageclaim -b async-volume-creation $GOPATH/src/github.com/concourse/baggageclaim
+
 cd gopath/src/github.com/concourse/atc
 
 go get -t -d ./...
