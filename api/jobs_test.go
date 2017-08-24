@@ -356,6 +356,11 @@ var _ = Describe("Jobs API", func() {
 				Expect(response.StatusCode).To(Equal(http.StatusOK))
 			})
 
+			It("returns Content-Type as image/svg+xml and disables caching", func() {
+				Expect(response.Header.Get("Content-Type")).To(Equal("image/svg+xml"))
+				Expect(response.Header.Get("Cache-Control")).To(Equal("no-cache, no-store, must-revalidate"))
+			})
+
 			Context("when the finished build is successful", func() {
 				BeforeEach(func() {
 					build1 := new(dbfakes.FakeBuild)

@@ -122,6 +122,7 @@ func (s *Server) JobBadge(pipeline db.Pipeline) http.Handler {
 		}
 
 		w.Header().Set("Content-type", "image/svg+xml")
+		w.Header().Add("Cache-Control", "no-cache, no-store, must-revalidate")
 
 		w.WriteHeader(http.StatusOK)
 
