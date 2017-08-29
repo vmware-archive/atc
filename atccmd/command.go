@@ -66,6 +66,7 @@ import (
 
 	// dynamically registered credential managers
 	_ "github.com/concourse/atc/creds/vault"
+	_ "github.com/concourse/atc/creds/credhub"
 )
 
 type ATCCommand struct {
