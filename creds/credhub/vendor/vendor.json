@@ -1,0 +1,169 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "wx1JjRwZBt55u5W6F2y4zGJ8ePU=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "ILdkqZdP4+yN3BLk2v357YjtDFo=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/actions",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "i5DFQf30f4rzolw7gloZ5EgLO4Q=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/client",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "WP/njv5OXUAnzhWiiUKRZU3uHOY=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/commands",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "metgodY5Hi2Tgt7RnUmJ6MyEZwE=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/config",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "L+E2q7iAkPjcr0lBCrQh5Hc+LdA=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/credhub",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "WPesDQTJkqKI+Dji7VIRgSrq4dc=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/credhub/auth",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "3A2oILppJzYGEN4S1LAHBsZSw/s=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/credhub/auth/uaa",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "y7Nsmmo+9pjb9TTyw8lY/1X2ekE=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "WDotTqWoUsW/H2CHHffboJawlVA=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials/generate",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "P7zvy3RvitKsvgfJJyE4YqmNX4o=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials/values",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "rfsiMpyZG8G8zSFuHSQKM25n49c=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/credhub/permissions",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "sIoahZ3Na4UmNRDoAZbSPrmXlmA=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/credhub/server",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "YINVeDb+jT7mfSR0jKlOc6NWbWo=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/errors",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "1yQHitsNjkKunkmkb54bs4An9Jk=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/models",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "DldS9bS1MPVz82fD8KPksjlpxtc=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/repositories",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "emXIjLnUEUFHvGExa211rGbijCQ=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/util",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "a140xFSb/+XHJNOTZDlvDEcs4gc=",
+			"path": "github.com/cloudfoundry-incubator/credhub-cli/version",
+			"revision": "dde9e4f8e5314953dff631a9e521791ef12ee864",
+			"revisionTime": "2017-08-29T17:43:34Z"
+		},
+		{
+			"checksumSHA1": "aEU9IPbfuS1PWY2T26gn41y+feA=",
+			"path": "github.com/fatih/color",
+			"revision": "67c513e5729f918f5e69786686770c27141a4490",
+			"revisionTime": "2017-08-04T15:04:06Z"
+		},
+		{
+			"checksumSHA1": "K6exl2ouL7d8cR2i378EzZOdRVI=",
+			"path": "github.com/howeyc/gopass",
+			"revision": "bf9dde6d0d2c004a008c27aaee91170c786f6db8",
+			"revisionTime": "2017-01-09T16:22:49Z"
+		},
+		{
+			"checksumSHA1": "SQiqMYFp63MKuzJZpce0Lp5Sc/c=",
+			"path": "github.com/jessevdk/go-flags",
+			"revision": "6cf8f02b4ae8ba723ddc64dcfd403e530c06d927",
+			"revisionTime": "2017-07-22T07:29:52Z"
+		},
+		{
+			"checksumSHA1": "cTDA66oZUy18cIzJsU1diKq+9CE=",
+			"path": "github.com/mattn/go-colorable",
+			"revision": "ad5389df28cdac544c99bd7b9161a0b5b6ca9d1b",
+			"revisionTime": "2017-08-16T03:18:13Z"
+		},
+		{
+			"checksumSHA1": "U6lX43KDDlNOn+Z0Yyww+ZzHfFo=",
+			"path": "github.com/mattn/go-isatty",
+			"revision": "fc9e8d8ef48496124e79ae0df75490096eccf6fe",
+			"revisionTime": "2017-03-22T23:44:13Z"
+		},
+		{
+			"checksumSHA1": "nqWNlnMmVpt628zzvyo6Yv2CX5Q=",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "81e90905daefcd6fd217b62423c0908922eadb30",
+			"revisionTime": "2017-08-25T20:24:07Z"
+		},
+		{
+			"checksumSHA1": "93IzjQY+0dhZtOKGZbdyS50tsKw=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "ab9e364efd8b52800ff7ee48a9ffba4e0ed78dfb",
+			"revisionTime": "2017-08-29T14:47:16Z"
+		},
+		{
+			"checksumSHA1": "gVfCD++7aVcdKF2spv6XkEM/wYw=",
+			"path": "golang.org/x/sys/windows",
+			"revision": "ab9e364efd8b52800ff7ee48a9ffba4e0ed78dfb",
+			"revisionTime": "2017-08-29T14:47:16Z"
+		},
+		{
+			"checksumSHA1": "RDJpJQwkF012L6m/2BJizyOksNw=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "eb3733d160e74a9c7e442f435eb3bea458e1d19f",
+			"revisionTime": "2017-08-12T16:00:11Z"
+		}
+	],
+	"rootPath": "github.com/concourse/atc/creds/credhub"
+}
