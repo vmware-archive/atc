@@ -22,7 +22,7 @@ var _ = Describe("ValidateConfig", func() {
 			Groups: GroupConfigs{
 				{
 					Name:      "some-group",
-					Jobs:      []string{"some-job"},
+					Jobs:      []string{"some-job", "some-empty-job"},
 					Resources: []string{"some-resource"},
 				},
 				{
@@ -436,6 +436,17 @@ var _ = Describe("ValidateConfig", func() {
 			})
 		})
 
+		Context("when a job is not in a group when groups are defined", func() {
+			BeforeEach(func() {
+				config.Jobs = append(config.Jobs, job)
+			})
+			It("returns an error", func() {
+				Expect(errorMessages).To(HaveLen(1))
+				Expect(errorMessages[0]).To(ContainSubstring("invalid jobs:"))
+				Expect(errorMessages[0]).To(ContainSubstring("jobs[2] is not in any group and will be invisible"))
+			})
+		})
+
 		Context("when a job has a negative build_logs_to_retain", func() {
 			BeforeEach(func() {
 				job.BuildLogsToRetain = -1
@@ -500,6 +511,7 @@ var _ = Describe("ValidateConfig", func() {
 					Resource: "some-resource",
 				})
 
+				config.Groups[0].Jobs = append(config.Groups[0].Jobs, job.Name)
 				config.Jobs = append(config.Jobs, job)
 			})
 
@@ -690,6 +702,7 @@ var _ = Describe("ValidateConfig", func() {
 						Put: "some-resource",
 					})
 
+					config.Groups[0].Jobs = append(config.Groups[0].Jobs, job.Name)
 					config.Jobs = append(config.Jobs, job)
 				})
 
@@ -737,6 +750,7 @@ var _ = Describe("ValidateConfig", func() {
 						Resource: "some-resource",
 					})
 
+					config.Groups[0].Jobs = append(config.Groups[0].Jobs, job.Name)
 					config.Jobs = append(config.Jobs, job)
 				})
 
@@ -769,6 +783,7 @@ var _ = Describe("ValidateConfig", func() {
 						Resource: "some-resource",
 					})
 
+					config.Groups[0].Jobs = append(config.Groups[0].Jobs, job.Name)
 					config.Jobs = append(config.Jobs, job)
 				})
 
@@ -802,6 +817,8 @@ var _ = Describe("ValidateConfig", func() {
 						Get:    "some-resource",
 						Passed: []string{"job-one"},
 					})
+
+					config.Groups[0].Jobs = append(config.Groups[0].Jobs, job1.Name, job2.Name)
 					config.Jobs = append(config.Jobs, job1, job2)
 				})
 
@@ -835,6 +852,8 @@ var _ = Describe("ValidateConfig", func() {
 						Get:    "some-resource",
 						Passed: []string{"job-one"},
 					})
+
+					config.Groups[0].Jobs = append(config.Groups[0].Jobs, job1.Name, job2.Name)
 					config.Jobs = append(config.Jobs, job1, job2)
 				})
 
@@ -867,6 +886,8 @@ var _ = Describe("ValidateConfig", func() {
 						Get:    "some-resource",
 						Passed: []string{"job-one"},
 					})
+
+					config.Groups[0].Jobs = append(config.Groups[0].Jobs, job1.Name, job2.Name)
 					config.Jobs = append(config.Jobs, job1, job2)
 
 				})
@@ -900,6 +921,7 @@ var _ = Describe("ValidateConfig", func() {
 						Get:    "some-resource",
 						Passed: []string{"job-one"},
 					})
+					config.Groups[0].Jobs = append(config.Groups[0].Jobs, job1.Name, job2.Name)
 					config.Jobs = append(config.Jobs, job1, job2)
 
 				})
@@ -1060,6 +1082,7 @@ var _ = Describe("ValidateConfig", func() {
 						Passed: []string{"some-job"},
 					})
 
+					config.Groups[0].Jobs = append(config.Groups[0].Jobs, job.Name)
 					config.Jobs = append(config.Jobs, job)
 				})
 
@@ -1075,6 +1098,7 @@ var _ = Describe("ValidateConfig", func() {
 						Passed: []string{"some-job"},
 					})
 
+					config.Groups[0].Jobs = append(config.Groups[0].Jobs, job.Name)
 					config.Jobs = append(config.Jobs, job)
 				})
 
@@ -1091,6 +1115,7 @@ var _ = Describe("ValidateConfig", func() {
 						Passed:   []string{"some-job"},
 					})
 
+					config.Groups[0].Jobs = append(config.Groups[0].Jobs, job.Name)
 					config.Jobs = append(config.Jobs, job)
 				})
 

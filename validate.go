@@ -204,6 +204,24 @@ func validateJobs(c Config) ([]Warning, error) {
 	names := map[string]int{}
 
 	for i, job := range c.Jobs {
+		jobIsInvisible := true
+		for _, group := range c.Groups {
+			for _, jobInGroup := range group.Jobs {
+				if job.Name == jobInGroup {
+					jobIsInvisible = false
+				}
+			}
+		}
+
+		if len(c.Groups) == 0 {
+			jobIsInvisible = false
+		}
+
+		if jobIsInvisible {
+			errorMessages = append(errorMessages,
+				fmt.Sprintf(
+					"jobs[%d] is not in any group and will be invisible", i))
+		}
 		var identifier string
 		if job.Name == "" {
 			identifier = fmt.Sprintf("jobs[%d]", i)
