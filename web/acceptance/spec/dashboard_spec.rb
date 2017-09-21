@@ -195,6 +195,65 @@ describe 'dashboard', type: :feature do
     end
   end
 
+  context 'when a pipeline has mutiple jobs that never failed' do
+    let(:current_time) { DateTime.parse('2017-07-05 05:05:05 EDT') }
+    before do
+      fly('trigger-job -w -j some-pipeline/passing')
+      fly('trigger-job -w -j some-pipeline/passing')
+      fly('trigger-job -w -j some-pipeline/passing')
+
+      fly('set-pipeline -n -p some-pipeline -c fixtures/states-pipeline.yml -v path="true"')
+      fly('trigger-job -w -j some-pipeline/passing_or_failing')
+      fly('set-pipeline -n -p some-pipeline -c fixtures/states-pipeline.yml -v path="true"')
+      fly('trigger-job -w -j some-pipeline/passing_or_failing')
+      fly('set-pipeline -n -p some-pipeline -c fixtures/states-pipeline.yml -v path="true"')
+      fly('trigger-job -w -j some-pipeline/passing_or_failing')
+      sleep 60
+
+      fly('trigger-job -w -j some-pipeline/passing')
+      fly('trigger-job -w -j some-pipeline/passing')
+      fly('trigger-job -w -j some-pipeline/passing')
+    end
+
+    it 'displays the time since the earliest build' do
+      visit_dashboard
+      within '.dashboard-pipeline', text: 'some-pipeline' do
+        expect(page.text).to match(/[\d]{1,2}M [\d]{1,2}S some-pipeline/)
+      end
+    end
+  end
+
+  context 'when a pipeline has a failed and recovered job, and a job that never failed' do
+    let(:current_time) { DateTime.parse('2017-07-01 00:00:00 EDT') }
+    before do
+      fly('trigger-job -w -j some-pipeline/passing')
+      fly('trigger-job -w -j some-pipeline/passing')
+      fly('trigger-job -w -j some-pipeline/passing')
+
+      fly('set-pipeline -n -p some-pipeline -c fixtures/states-pipeline.yml -v path="true"')
+      fly('trigger-job -w -j some-pipeline/passing_or_failing')
+
+      fly('set-pipeline -n -p some-pipeline -c fixtures/states-pipeline.yml -v path="false"')
+      fly_fail('trigger-job -w -j some-pipeline/passing_or_failing')
+      sleep 60
+
+      fly('set-pipeline -n -p some-pipeline -c fixtures/states-pipeline.yml -v path="true"')
+      fly('trigger-job -w -j some-pipeline/passing_or_failing')
+
+      fly('trigger-job -w -j some-pipeline/passing')
+      fly('trigger-job -w -j some-pipeline/passing')
+      fly('trigger-job -w -j some-pipeline/passing')
+    end
+
+     it 'displays the time since the last succeeded recovered build' do
+      visit_dashboard
+      save_and_open_screenshot
+      within '.dashboard-pipeline', text: 'some-pipeline' do
+        expect(page.text).to match(/[\d]{1,2}M [\d]{1,2}S some-pipeline/)
+      end
+    end
+  end
+
   it 'anchors URL links on team groups' do
     login
     visit dash_route('/dashboard')

@@ -5,7 +5,8 @@
 
   .pipeline-grid {
     float: none;
-    height: (200px * @scale);
+    // min-height: (200px * @scale);
+    // height: 100%;
     display: flex;
     flex-direction: row;
     padding: 0 (50px * @scale) (30px * @scale);
@@ -17,7 +18,7 @@
 
   .node {
     flex-grow: 1;
-    margin: (4px * @scale);
+    margin: 2.4px;
     font-size: 0;
   }
 
@@ -57,13 +58,20 @@
 }
 
 @keyframes pipeline-running {
-  0% { background-position-x: -23px;    }
-  100%   { background-position-x: 0px; }
+  0% { background-position: 0 0; }
+  100% { background-position: -28px 0; }
+}
+
+.dashboard-team-pipelines {
+  // column-width: 240px;
+  // column-gap: 30px;
+  // break-inside: avoid;
 }
 
 .dashboard-pipeline {
-  float: left;
-  width: (400px * @scale);
+  // float: left;
+  display: inline-block;
+  // width: (400px * @scale);
   margin-bottom: (50px * @scale);
   margin-right: (50px * @scale);
 
@@ -82,7 +90,7 @@
   .dashboard-pipeline-content {
     display: flex;
     flex-direction: column;
-    height: (360px * @scale);
+    // height: (360px * @scale);
     background: #1F2E3C;
     position: relative;
 
@@ -108,7 +116,7 @@
 
     .dashboard-pipeline-icon {
       background-image: url('images/ic_pause_blue.svg');
-      background-size: (20px * @scale) (20px * @scale);
+      background-size: 15px 15px;
     }
 
     .build-duration {
@@ -119,7 +127,7 @@
   &.dashboard-status-pending {
     .dashboard-pipeline-icon {
       background-image: url('images/ic_pause_grey.svg');
-      background-size: (20px * @scale) (20px * @scale);
+      background-size: 15px 15px;
     }
 
     &.dashboard-running {
@@ -141,7 +149,7 @@
 
     .dashboard-pipeline-icon {
       background-image: url('images/ic_failing_red.svg');
-      background-size: (20px * @scale) (20px * @scale);
+      background-size: 15px 15px;
     }
 
     &.dashboard-running {
@@ -161,7 +169,7 @@
 
     .dashboard-pipeline-icon {
       background-image: url('images/ic_aborted_brown.svg');
-      background-size: (20px * @scale) (20px * @scale);
+      background-size: 15px 15px;
     }
 
     &.dashboard-running {
@@ -181,7 +189,7 @@
 
     .dashboard-pipeline-icon {
       background-image: url('images/ic_running_green.svg');
-      background-size: (20px * @scale) (20px * @scale);
+      background-size: 15px 15px;
     }
 
     &.dashboard-running {
@@ -201,7 +209,7 @@
 
     .dashboard-pipeline-icon {
       background-image: url('images/ic_error_orange.svg');
-      background-size: (20px * @scale) (20px * @scale);
+      background-size: 15px 15px;
     }
 
     &.dashboard-running {
@@ -216,12 +224,12 @@
 }
 
 .dashboard-pipeline-icon {
-  min-width: (20px * @scale);
-  height: (20px * @scale);
+  min-width: 15px;
+  height: 15px;
   background-repeat: no-repeat;
   position: absolute;
-  top: 14px;
-  left: 10px;
+  top: 13px;
+  left: 8px;
 }
 
 .dashboard-pipeline-name {
@@ -229,6 +237,79 @@
   margin: 0 0 (20px * @scale) 30px;
 }
 
-.dashboard-pipeline-double {
-  width: (850px * @scale);
+.pipeline-grid {
+  width: 180px;
+  height: 120px;
 }
+
+.pipeline-grid-tall {
+  height: 364px;
+ .dashboard-pipeline & {
+    float: left;
+  }
+}
+
+.pipeline-grid-wide {
+  width: 450px;
+ .dashboard-pipeline & {
+    float: left;
+  }
+}
+
+.pipeline-grid-super-tall {
+  height: 608px;
+ .dashboard-pipeline & {
+    float: left;
+  }
+}
+
+.pipeline-grid-super-wide {
+  width: 720px;
+ .dashboard-pipeline & {
+    float: left;
+  }
+}
+
+// @status:
+//   'pending' @base04 'pause_grey',
+//   'started' @base0A '',
+//   'succeeded' @base0B 'running_green',
+//   'failed' @base08 'failing_red',
+//   'errored' @base09 'error_orange',
+//   'aborted' @base0F 'aborted_brown',
+//   'paused' @base0D 'pause_blue',
+//   'no-builds' @base03 '',
+// ;
+
+// .each-build-step(@array, @i: 1) when (@i <= length(@array) - 2) {
+//   @item: extract(@array, @i);
+//   @state: extract(@item, 1);
+//   @color: extract(@item, 2);
+
+//   .build-step .header i.@{state} {
+//     color: @color;
+//     background: transparent;
+//   }
+//   .each-build-step(@array, @i + 1);
+// }
+// .each-build-step(@status);
+
+
+// .each-dashboard-status(@array, @i: 1) when (@i <= length(@array)) {
+//   @item: extract(@array, @i);
+//   @state: extract(@item, 1);
+//   @color: extract(@item, 2);
+//   @image: extract(@item, 3);
+
+//   .dashboard-pipeline {
+//     &.dashboard-status-@{state} {
+//       .dashboard-pipeline-icon {
+//         background-image: url('images/ic_@{image}.svg');
+//         background-size: 15px 15px;
+//       }
+//     }
+//   }
+//   .each-dashboard-status(@array, @i + 1);
+// }
+// .each-dashboard-status(@status);
+
