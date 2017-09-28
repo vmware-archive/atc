@@ -52,6 +52,8 @@ import (
 	"github.com/tedsuo/ifrit/http_server"
 	"github.com/tedsuo/ifrit/sigmon"
 	"github.com/xoebus/zest"
+	"golang.org/x/crypto/acme"
+	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/concourse/atc/auth/provider"
 	"github.com/concourse/atc/auth/routes"
@@ -76,9 +78,11 @@ type ATCCommand struct {
 	BindIP   IPFlag `long:"bind-ip"   default:"0.0.0.0" description:"IP address on which to listen for web traffic."`
 	BindPort uint16 `long:"bind-port" default:"8080"    description:"Port on which to listen for HTTP traffic."`
 
-	TLSBindPort uint16   `long:"tls-bind-port" description:"Port on which to listen for HTTPS traffic."`
-	TLSCert     FileFlag `long:"tls-cert"      description:"File containing an SSL certificate."`
-	TLSKey      FileFlag `long:"tls-key"       description:"File containing an RSA private key, used to encrypt HTTPS traffic."`
+	TLSBindPort uint16   `long:"tls-bind-port"                                                     description:"Port on which to listen for HTTPS traffic."`
+	TLSCert     FileFlag `long:"tls-cert"                                                          description:"File containing an SSL certificate."`
+	TLSKey      FileFlag `long:"tls-key"                                                           description:"File containing an RSA private key, used to encrypt HTTPS traffic."`
+	Autocert    bool     `long:"autocert"                                                          description:"Use ACME to obtain an SSL certificate."`
+	ACMEURL     URLFlag  `long:"acme-url" default:"https://acme-v01.api.letsencrypt.org/directory" description:"URL of the ACME CA directory endpoint."`
 
 	ExternalURL URLFlag `long:"external-url" default:"http://127.0.0.1:8080" description:"URL used to reach any ATC from the outside world."`
 	PeerURL     URLFlag `long:"peer-url"     default:"http://127.0.0.1:8080" description:"URL used to reach this ATC from other ATCs in the cluster."`
@@ -587,14 +591,32 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 	}
 
 	if httpsHandler != nil {
-		cert, err := tls.LoadX509KeyPair(string(cmd.TLSCert), string(cmd.TLSKey))
-		if err != nil {
-			return nil, err
-		}
+		var tlsConfig *tls.Config
+		if cmd.Autocert {
+			cache, err := newDbCache(dbConn)
+			if err != nil {
+				return nil, err
+			}
+			m := autocert.Manager{
+				Prompt:     autocert.AcceptTOS,
+				Cache:      cache,
+				HostPolicy: autocert.HostWhitelist(cmd.ExternalURL.URL().Hostname()),
+				Client:     &acme.Client{DirectoryURL: cmd.ACMEURL.URL().String()},
+			}
+			tlsConfig = &tls.Config{
+				GetCertificate: m.GetCertificate,
+				NextProtos:     []string{"h2"},
+			}
+		} else {
+			cert, err := tls.LoadX509KeyPair(string(cmd.TLSCert), string(cmd.TLSKey))
+			if err != nil {
+				return nil, err
+			}
 
-		tlsConfig := &tls.Config{
-			Certificates: []tls.Certificate{cert},
-			NextProtos:   []string{"h2"},
+			tlsConfig = &tls.Config{
+				Certificates: []tls.Certificate{cert},
+				NextProtos:   []string{"h2"},
+			}
 		}
 
 		members = append(members, grouper.Member{"web-tls", http_server.NewTLSServer(
@@ -683,28 +705,39 @@ func (cmd *ATCCommand) validate() error {
 		)
 	}
 
-	tlsFlagCount := 0
-	if cmd.TLSBindPort != 0 {
-		tlsFlagCount++
-	}
-	if cmd.TLSCert != "" {
-		tlsFlagCount++
-	}
-	if cmd.TLSKey != "" {
-		tlsFlagCount++
-	}
-
-	if tlsFlagCount == 3 {
+	switch {
+	case cmd.TLSBindPort == 0:
+		if cmd.TLSCert != "" || cmd.TLSKey != "" || cmd.Autocert {
+			errs = multierror.Append(
+				errs,
+				errors.New("must specify --tls-bind-port to use TLS"),
+			)
+		}
+	case cmd.Autocert:
+		if cmd.TLSCert != "" || cmd.TLSKey != "" {
+			errs = multierror.Append(
+				errs,
+				errors.New("cannot enable autocert if --tls-cert or --tls-key are set"),
+			)
+		}
+		if p := cmd.ExternalURL.URL().Port(); !(p == "" || p == "443") {
+			errs = multierror.Append(
+				errs,
+				errors.New("cannot enable autocert if external port is not 443"),
+			)
+		}
+		fallthrough
+	case cmd.TLSCert != "" && cmd.TLSKey != "":
 		if cmd.ExternalURL.URL().Scheme != "https" {
 			errs = multierror.Append(
 				errs,
 				errors.New("must specify HTTPS external-url to use TLS"),
 			)
 		}
-	} else if tlsFlagCount != 0 {
+	default:
 		errs = multierror.Append(
 			errs,
-			errors.New("must specify --tls-bind-port, --tls-cert, --tls-key to use TLS"),
+			errors.New("must specify --tls-cert and --tls-key, or --autocert to use TLS"),
 		)
 	}
 
