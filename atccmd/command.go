@@ -593,8 +593,13 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 	if httpsHandler != nil {
 		var tlsConfig *tls.Config
 		if cmd.Autocert {
+			cache, err := newDbCache(dbConn)
+			if err != nil {
+				return nil, err
+			}
 			m := autocert.Manager{
 				Prompt:     autocert.AcceptTOS,
+				Cache:      cache,
 				HostPolicy: autocert.HostWhitelist(cmd.ExternalURL.URL().Hostname()),
 				Client:     &acme.Client{DirectoryURL: cmd.ACMEURL.URL().String()},
 			}
