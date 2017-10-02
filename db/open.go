@@ -103,6 +103,7 @@ var encryptedColumns = map[string]string{
 	"jobs":           "config",
 	"resource_types": "config",
 	"builds":         "engine_metadata",
+	"cert_cache":     "data",
 }
 
 func encryptPlaintext(logger lager.Logger, sqlDB *sql.DB, key *EncryptionKey) error {
