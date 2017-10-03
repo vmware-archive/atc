@@ -41,6 +41,7 @@ func (s *Server) ListBuilds(w http.ResponseWriter, r *http.Request) {
 	var pagination db.Pagination
 
 	authTeam, authTeamFound := auth.GetTeam(r)
+	w.Header().Set("Content-Type", "application/json")
 	if authTeamFound {
 		var team db.Team
 		var found bool
