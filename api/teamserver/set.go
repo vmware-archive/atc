@@ -122,5 +122,10 @@ func (s *Server) updateCredentials(atcTeam atc.Team, team db.Team) error {
 		return err
 	}
 
+	err = team.UpdateLdapBasicAuth(atcTeam.LdapBasicAuth)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

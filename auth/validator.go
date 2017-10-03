@@ -1,8 +1,12 @@
 package auth
 
-import "net/http"
+import (
+	"net/http"
+
+	"code.cloudfoundry.org/lager"
+)
 
 //go:generate counterfeiter . Validator
 type Validator interface {
-	IsAuthenticated(*http.Request) bool
+	IsAuthenticated(lager.Logger, *http.Request) bool
 }

@@ -73,10 +73,20 @@ func (factory *teamFactory) createTeam(t atc.Team, admin bool) (Team, error) {
 		return nil, err
 	}
 
+	ldapAuth, err := json.Marshal(t.LdapBasicAuth)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedLdapAuth, ldapNonce, err := es.Encrypt(ldapAuth)
+	if err != nil {
+		return nil, err
+	}
+
 	row := psql.Insert("teams").
-		Columns("name, basic_auth, auth, nonce, admin").
-		Values(t.Name, encryptedBasicAuthJSON, encryptedAuth, nonce, admin).
-		Suffix("RETURNING id, name, admin, basic_auth, auth, nonce").
+		Columns("name, basic_auth, ldap_basic_auth, auth, nonce, ldap_nonce, admin").
+		Values(t.Name, encryptedBasicAuthJSON, encryptedLdapAuth, encryptedAuth, nonce, ldapNonce, admin).
+		Suffix("RETURNING id, name, admin, basic_auth, ldap_basic_auth, auth, nonce, ldap_nonce").
 		RunWith(tx).
 		QueryRow()
 
@@ -120,7 +130,7 @@ func (factory *teamFactory) FindTeam(teamName string) (Team, bool, error) {
 		lockFactory: factory.lockFactory,
 	}
 
-	row := psql.Select("id, name, admin, basic_auth, auth, nonce").
+	row := psql.Select("id, name, admin, basic_auth, ldap_basic_auth, auth, nonce, ldap_nonce").
 		From("teams").
 		Where(sq.Eq{"LOWER(name)": strings.ToLower(teamName)}).
 		RunWith(factory.conn).
@@ -139,7 +149,7 @@ func (factory *teamFactory) FindTeam(teamName string) (Team, bool, error) {
 }
 
 func (factory *teamFactory) GetTeams() ([]Team, error) {
-	rows, err := psql.Select("id, name, admin, basic_auth, auth, nonce").
+	rows, err := psql.Select("id, name, admin, basic_auth, ldap_basic_auth, auth, nonce, ldap_nonce").
 		From("teams").
 		RunWith(factory.conn).
 		Query()
@@ -196,15 +206,17 @@ func (factory *teamFactory) CreateDefaultTeamIfNotExists() (Team, error) {
 }
 
 func (factory *teamFactory) scanTeam(t *team, rows scannable) error {
-	var basicAuth, providerAuth, nonce sql.NullString
+	var basicAuth, ldapBasicAuth, providerAuth, nonce, ldapNonce sql.NullString
 
 	err := rows.Scan(
 		&t.id,
 		&t.name,
 		&t.admin,
 		&basicAuth,
+		&ldapBasicAuth,
 		&providerAuth,
 		&nonce,
+		&ldapNonce,
 	)
 
 	if basicAuth.Valid {
@@ -228,6 +240,25 @@ func (factory *teamFactory) scanTeam(t *team, rows scannable) error {
 		}
 
 		err = json.Unmarshal(pAuth, &t.auth)
+		if err != nil {
+			return err
+		}
+	}
+
+	if ldapBasicAuth.Valid {
+		es := factory.conn.EncryptionStrategy()
+
+		var noncense *string
+		if ldapNonce.Valid {
+			noncense = &ldapNonce.String
+		}
+
+		lAuth, err := es.Decrypt(ldapBasicAuth.String, noncense)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(lAuth, &t.ldapBasicAuth)
 		if err != nil {
 			return err
 		}

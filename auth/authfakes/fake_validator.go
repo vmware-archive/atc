@@ -5,14 +5,16 @@ import (
 	"net/http"
 	"sync"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc/auth"
 )
 
 type FakeValidator struct {
-	IsAuthenticatedStub        func(*http.Request) bool
+	IsAuthenticatedStub        func(lager.Logger, *http.Request) bool
 	isAuthenticatedMutex       sync.RWMutex
 	isAuthenticatedArgsForCall []struct {
-		arg1 *http.Request
+		arg1 lager.Logger
+		arg2 *http.Request
 	}
 	isAuthenticatedReturns struct {
 		result1 bool
@@ -24,16 +26,17 @@ type FakeValidator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeValidator) IsAuthenticated(arg1 *http.Request) bool {
+func (fake *FakeValidator) IsAuthenticated(arg1 lager.Logger, arg2 *http.Request) bool {
 	fake.isAuthenticatedMutex.Lock()
 	ret, specificReturn := fake.isAuthenticatedReturnsOnCall[len(fake.isAuthenticatedArgsForCall)]
 	fake.isAuthenticatedArgsForCall = append(fake.isAuthenticatedArgsForCall, struct {
-		arg1 *http.Request
-	}{arg1})
-	fake.recordInvocation("IsAuthenticated", []interface{}{arg1})
+		arg1 lager.Logger
+		arg2 *http.Request
+	}{arg1, arg2})
+	fake.recordInvocation("IsAuthenticated", []interface{}{arg1, arg2})
 	fake.isAuthenticatedMutex.Unlock()
 	if fake.IsAuthenticatedStub != nil {
-		return fake.IsAuthenticatedStub(arg1)
+		return fake.IsAuthenticatedStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -47,10 +50,10 @@ func (fake *FakeValidator) IsAuthenticatedCallCount() int {
 	return len(fake.isAuthenticatedArgsForCall)
 }
 
-func (fake *FakeValidator) IsAuthenticatedArgsForCall(i int) *http.Request {
+func (fake *FakeValidator) IsAuthenticatedArgsForCall(i int) (lager.Logger, *http.Request) {
 	fake.isAuthenticatedMutex.RLock()
 	defer fake.isAuthenticatedMutex.RUnlock()
-	return fake.isAuthenticatedArgsForCall[i].arg1
+	return fake.isAuthenticatedArgsForCall[i].arg1, fake.isAuthenticatedArgsForCall[i].arg2
 }
 
 func (fake *FakeValidator) IsAuthenticatedReturns(result1 bool) {
