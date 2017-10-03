@@ -107,6 +107,10 @@ var _ = Describe("Jobs API", func() {
 				It("returns 200 OK", func() {
 					Expect(response.StatusCode).To(Equal(http.StatusOK))
 				})
+
+				It("returns application/json", func() {
+					Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
+				})
 			})
 		})
 
@@ -769,6 +773,10 @@ var _ = Describe("Jobs API", func() {
 
 					It("returns 200 OK", func() {
 						Expect(response.StatusCode).To(Equal(http.StatusOK))
+					})
+
+					It("returns application/json", func() {
+						Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
 					})
 				})
 			})
