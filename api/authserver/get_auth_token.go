@@ -1,6 +1,7 @@
 package authserver
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -63,10 +64,11 @@ func (s *Server) generateToken(logger lager.Logger, w http.ResponseWriter, r *ht
 	token.Value = string(tokenValue)
 
 	expiry := time.Now().Add(s.expire)
-
+	// base 64 encode the cookie value to avoid any problems with special characters
+	cookieValue := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s %s", token.Type, token.Value)))
 	authCookie := &http.Cookie{
 		Name:     auth.AuthCookieName,
-		Value:    fmt.Sprintf("%s %s", token.Type, token.Value),
+		Value:    cookieValue,
 		Path:     "/",
 		Expires:  expiry,
 		HttpOnly: true,
