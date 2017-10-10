@@ -52,10 +52,10 @@ var _ = Describe("Resource Check", func() {
 				return nil, runCheckError
 			}
 
-			_, err := io.Stdout.Write([]byte(checkScriptStdout))
+			_, err := io.WriteString(io.Stdout, checkScriptStdout)
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = io.Stderr.Write([]byte(checkScriptStderr))
+			_, err = io.WriteString(io.Stderr, checkScriptStderr)
 			Expect(err).NotTo(HaveOccurred())
 
 			return checkScriptProcess, nil

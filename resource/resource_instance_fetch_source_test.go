@@ -52,7 +52,7 @@ var _ = Describe("ResourceInstanceFetchSource", func() {
 		}
 
 		fakeContainer.RunStub = func(spec garden.ProcessSpec, io garden.ProcessIO) (garden.Process, error) {
-			_, err := io.Stdout.Write([]byte("{}"))
+			_, err := io.WriteString(io.Stdout, "{}")
 			Expect(err).NotTo(HaveOccurred())
 
 			return inProcess, nil

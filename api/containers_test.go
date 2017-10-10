@@ -512,7 +512,7 @@ var _ = Describe("Containers API", func() {
 				writer, err := conn.NextWriter(websocket.TextMessage)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = writer.Write([]byte(requestPayload))
+				_, err = io.WriteString(writer, requestPayload)
 				Expect(err).NotTo(HaveOccurred())
 
 				err = writer.Close()
