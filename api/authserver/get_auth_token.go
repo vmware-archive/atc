@@ -65,7 +65,7 @@ func (s *Server) generateToken(logger lager.Logger, w http.ResponseWriter, r *ht
 
 	expiry := time.Now().Add(s.expire)
 	// base 64 encode the cookie value to avoid any problems with special characters
-	cookieValue = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s %s", token.Type, token.Value)))
+	cookieValue := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s %s", token.Type, token.Value)))
 	authCookie := &http.Cookie{
 		Name:     auth.AuthCookieName,
 		Value:    cookieValue,
