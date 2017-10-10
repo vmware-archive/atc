@@ -165,7 +165,7 @@ var _ = Describe("OAuthCallbackHandler", func() {
 
 					flyTarget := ghttp.NewServer()
 					headers := map[string][]string{
-						"Location": []string{fmt.Sprintf("%s://%s/public/fly_success", request.URL.Scheme, request.URL.Host)},
+						"Location": {fmt.Sprintf("%s://%s/public/fly_success", request.URL.Scheme, request.URL.Host)},
 					}
 
 					flyTarget.AppendHandlers(ghttp.RespondWith(http.StatusTemporaryRedirect, "", headers))

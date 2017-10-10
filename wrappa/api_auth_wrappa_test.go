@@ -308,7 +308,7 @@ var _ = Describe("APIAuthWrappa", func() {
 		})
 
 		It("validates sensitive routes, and noop validates public routes", func() {
-			for name, _ := range inputHandlers {
+			for name := range inputHandlers {
 				Expect(wrappedHandlers[name]).To(BeIdenticalTo(expectedHandlers[name]))
 			}
 		})

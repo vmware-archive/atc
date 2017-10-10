@@ -86,9 +86,9 @@ var _ = Describe("Resource Check", func() {
 			Expect(checkErr).NotTo(HaveOccurred())
 
 			Expect(checkResult).To(Equal([]atc.Version{
-				atc.Version{"ver": "abc"},
-				atc.Version{"ver": "def"},
-				atc.Version{"ver": "ghi"},
+				{"ver": "abc"},
+				{"ver": "def"},
+				{"ver": "ghi"},
 			}))
 
 		})

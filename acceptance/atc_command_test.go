@@ -361,7 +361,7 @@ func (a *ATCCommand) createCert() error {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 		IPAddresses: []net.IP{
-			net.IP{127, 0, 0, 1},
+			{127, 0, 0, 1},
 		},
 	}
 

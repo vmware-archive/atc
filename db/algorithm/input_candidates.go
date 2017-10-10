@@ -123,7 +123,7 @@ func (candidates InputCandidates) pruneToCommonBuilds(jobs JobSet) InputCandidat
 	newCandidates := make(InputCandidates, len(candidates))
 	copy(newCandidates, candidates)
 
-	for jobID, _ := range jobs {
+	for jobID := range jobs {
 		commonBuildIDs := newCandidates.commonBuildIDs(jobID)
 
 		for i, versionCandidates := range newCandidates {

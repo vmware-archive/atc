@@ -66,7 +66,7 @@ var _ = Describe("hijackStreamer", func() {
 		handler = "Ping"
 		params = map[string]string{"param1": "value1"}
 		contentType = "application/json"
-		query = map[string][]string{"key": []string{"some", "values"}}
+		query = map[string][]string{"key": {"some", "values"}}
 
 		request, err := http.NewRequest("POST", "http://example.url", strings.NewReader("some-request-body"))
 		Expect(err).NotTo(HaveOccurred())
