@@ -265,7 +265,7 @@ var _ = Describe("GetAction", func() {
 							})
 							Expect(err).NotTo(HaveOccurred())
 
-							_, err = tarWriter.Write([]byte(fileContent))
+							_, err = io.WriteString(tarWriter, fileContent)
 							Expect(err).NotTo(HaveOccurred())
 						})
 

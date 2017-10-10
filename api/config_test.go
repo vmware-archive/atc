@@ -873,7 +873,7 @@ jobs:
 									)
 									Expect(err).NotTo(HaveOccurred())
 
-									_, err = yamlWriter.Write([]byte("{"))
+									_, err = io.WriteString(yamlWriter, "{")
 
 									Expect(err).NotTo(HaveOccurred())
 
@@ -913,7 +913,7 @@ jobs:
 									)
 									Expect(err).NotTo(HaveOccurred())
 
-									_, err = yamlWriter.Write([]byte("{"))
+									_, err = io.WriteString(yamlWriter, "{")
 									Expect(err).NotTo(HaveOccurred())
 
 									writer.Close()

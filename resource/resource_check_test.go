@@ -52,10 +52,10 @@ var _ = Describe("Resource Check", func() {
 				return nil, runCheckError
 			}
 
-			_, err := io.Stdout.Write([]byte(checkScriptStdout))
+			_, err := io.WriteString(io.Stdout, checkScriptStdout)
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = io.Stderr.Write([]byte(checkScriptStderr))
+			_, err = io.WriteString(io.Stderr, checkScriptStderr)
 			Expect(err).NotTo(HaveOccurred())
 
 			return checkScriptProcess, nil
@@ -86,9 +86,9 @@ var _ = Describe("Resource Check", func() {
 			Expect(checkErr).NotTo(HaveOccurred())
 
 			Expect(checkResult).To(Equal([]atc.Version{
-				atc.Version{"ver": "abc"},
-				atc.Version{"ver": "def"},
-				atc.Version{"ver": "ghi"},
+				{"ver": "abc"},
+				{"ver": "def"},
+				{"ver": "ghi"},
 			}))
 
 		})

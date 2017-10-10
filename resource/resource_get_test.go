@@ -122,10 +122,10 @@ var _ = Describe("Resource Get", func() {
 					return nil, runInError
 				}
 
-				_, err := io.Stdout.Write([]byte(inScriptStdout))
+				_, err := io.WriteString(io.Stdout, inScriptStdout)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = io.Stderr.Write([]byte(inScriptStderr))
+				_, err = io.WriteString(io.Stderr, inScriptStderr)
 				Expect(err).NotTo(HaveOccurred())
 
 				return inScriptProcess, nil
@@ -136,10 +136,10 @@ var _ = Describe("Resource Get", func() {
 					return nil, runInError
 				}
 
-				_, err := io.Stdout.Write([]byte(inScriptStdout))
+				_, err := io.WriteString(io.Stdout, inScriptStdout)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = io.Stderr.Write([]byte(inScriptStderr))
+				_, err = io.WriteString(io.Stderr, inScriptStderr)
 				Expect(err).NotTo(HaveOccurred())
 
 				return inScriptProcess, nil

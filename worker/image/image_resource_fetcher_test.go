@@ -582,7 +582,7 @@ func tarStreamWith(metadata string) io.ReadCloser {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	_, err = tarWriter.Write([]byte(metadata))
+	_, err = io.WriteString(tarWriter, metadata)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = tarWriter.Close()

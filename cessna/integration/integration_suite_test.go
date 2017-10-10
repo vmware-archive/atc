@@ -184,7 +184,7 @@ func (r ResourceContainer) RootFSify() (io.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = t.Write([]byte(r.Check))
+	_, err = io.WriteString(t, r.Check)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func (r ResourceContainer) RootFSify() (io.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = t.Write([]byte(r.In))
+	_, err = io.WriteString(t, r.In)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func (r ResourceContainer) RootFSify() (io.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = t.Write([]byte(r.Out))
+	_, err = io.WriteString(t, r.Out)
 	if err != nil {
 		return nil, err
 	}

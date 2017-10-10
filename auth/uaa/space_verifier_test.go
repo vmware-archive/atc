@@ -122,7 +122,7 @@ var _ = Describe("SpaceVerifier", func() {
 						ghttp.VerifyRequest("GET", "/next-url"),
 						func(w http.ResponseWriter, req *http.Request) {
 							nextPageCalled = true
-							w.Write([]byte(spaceDevelopersResponse))
+							io.WriteString(w, spaceDevelopersResponse)
 						},
 					),
 				)
@@ -158,7 +158,7 @@ var _ = Describe("SpaceVerifier", func() {
 						ghttp.VerifyRequest("GET", "/v2/spaces/myspace-guid-2/developers", "results-per-page=100"),
 						func(w http.ResponseWriter, req *http.Request) {
 							nextPageCalled = true
-							w.Write([]byte(spaceDevelopersResponse))
+							io.WriteString(w, spaceDevelopersResponse)
 						},
 					),
 				)

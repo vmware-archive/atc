@@ -23,8 +23,8 @@ func (r *Row) tagsHash() uint64 {
 	h := NewInlineFNV64a()
 	keys := r.tagsKeys()
 	for _, k := range keys {
-		h.Write([]byte(k))
-		h.Write([]byte(r.Tags[k]))
+		io.WriteString(h, k)
+		io.WriteString(h, r.Tags[k])
 	}
 	return h.Sum64()
 }

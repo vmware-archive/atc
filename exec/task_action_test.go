@@ -346,15 +346,15 @@ var _ = Describe("TaskAction", func() {
 						fakeVolume3.HandleReturns("some-handle-3")
 
 						fakeContainer.VolumeMountsReturns([]worker.VolumeMount{
-							worker.VolumeMount{
+							{
 								Volume:    fakeVolume1,
 								MountPath: fakeMountPath1,
 							},
-							worker.VolumeMount{
+							{
 								Volume:    fakeVolume2,
 								MountPath: fakeMountPath2,
 							},
-							worker.VolumeMount{
+							{
 								Volume:    fakeVolume3,
 								MountPath: fakeMountPath3,
 							},
@@ -635,11 +635,11 @@ var _ = Describe("TaskAction", func() {
 						fakeVolume1 = new(workerfakes.FakeVolume)
 						fakeVolume2 = new(workerfakes.FakeVolume)
 						fakeContainer.VolumeMountsReturns([]worker.VolumeMount{
-							worker.VolumeMount{
+							{
 								Volume:    fakeVolume1,
 								MountPath: "some-artifact-root/some-path-1",
 							},
-							worker.VolumeMount{
+							{
 								Volume:    fakeVolume2,
 								MountPath: "some-artifact-root/some-path-2",
 							},
@@ -756,15 +756,15 @@ var _ = Describe("TaskAction", func() {
 								fakeVolume3.HandleReturns("some-handle-3")
 
 								fakeContainer.VolumeMountsReturns([]worker.VolumeMount{
-									worker.VolumeMount{
+									{
 										Volume:    fakeVolume1,
 										MountPath: fakeMountPath1,
 									},
-									worker.VolumeMount{
+									{
 										Volume:    fakeVolume2,
 										MountPath: fakeMountPath2,
 									},
-									worker.VolumeMount{
+									{
 										Volume:    fakeVolume3,
 										MountPath: fakeMountPath3,
 									},
@@ -849,7 +849,7 @@ var _ = Describe("TaskAction", func() {
 											})
 											Expect(err).NotTo(HaveOccurred())
 
-											_, err = tarWriter.Write([]byte(fileContent))
+											_, err = io.WriteString(tarWriter, fileContent)
 											Expect(err).NotTo(HaveOccurred())
 										})
 
@@ -1006,15 +1006,15 @@ var _ = Describe("TaskAction", func() {
 								fakeVolume3.HandleReturns("some-handle-3")
 
 								fakeContainer.VolumeMountsReturns([]worker.VolumeMount{
-									worker.VolumeMount{
+									{
 										Volume:    fakeVolume1,
 										MountPath: fakeMountPath1,
 									},
-									worker.VolumeMount{
+									{
 										Volume:    fakeVolume2,
 										MountPath: fakeMountPath2,
 									},
-									worker.VolumeMount{
+									{
 										Volume:    fakeVolume3,
 										MountPath: fakeMountPath3,
 									},
@@ -1063,7 +1063,7 @@ var _ = Describe("TaskAction", func() {
 						fakeVolume.HandleReturns("some-handle")
 
 						fakeContainer.VolumeMountsReturns([]worker.VolumeMount{
-							worker.VolumeMount{
+							{
 								Volume:    fakeVolume,
 								MountPath: fakeMountPath,
 							},

@@ -16,11 +16,11 @@ func (set JobSet) Contains(jobID int) bool {
 func (set JobSet) Union(otherSet JobSet) JobSet {
 	newSet := JobSet{}
 
-	for jobID, _ := range set {
+	for jobID := range set {
 		newSet[jobID] = struct{}{}
 	}
 
-	for jobID, _ := range otherSet {
+	for jobID := range otherSet {
 		newSet[jobID] = struct{}{}
 	}
 
@@ -45,7 +45,7 @@ func (set JobSet) Equal(otherSet JobSet) bool {
 		return false
 	}
 
-	for x, _ := range set {
+	for x := range set {
 		if !otherSet.Contains(x) {
 			return false
 		}
@@ -56,7 +56,7 @@ func (set JobSet) Equal(otherSet JobSet) bool {
 
 func (set JobSet) String() string {
 	xs := []string{}
-	for x, _ := range set {
+	for x := range set {
 		xs = append(xs, fmt.Sprintf("%v", x))
 	}
 
