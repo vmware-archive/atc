@@ -12,9 +12,11 @@ import (
 //go:generate counterfeiter . BuildStarter
 
 type BuildStarter interface {
-	TryStartPendingBuildsForJob(
+	TryStartPendingBuildsForJobPermutation(
 		logger lager.Logger,
 		job db.Job,
+		allJobPermutations map[db.Job][]db.JobPermutation,
+		jobPermutation db.JobPermutation,
 		resources db.Resources,
 		resourceTypes atc.VersionedResourceTypes,
 		nextPendingBuilds []db.Build,
@@ -54,15 +56,17 @@ type buildStarter struct {
 	inputMapper        inputmapper.InputMapper
 }
 
-func (s *buildStarter) TryStartPendingBuildsForJob(
+func (s *buildStarter) TryStartPendingBuildsForJobPermutation(
 	logger lager.Logger,
 	job db.Job,
+	allJobPermutations map[db.Job][]db.JobPermutation,
+	jobPermutation db.JobPermutation,
 	resources db.Resources,
 	resourceTypes atc.VersionedResourceTypes,
 	nextPendingBuildsForJob []db.Build,
 ) error {
 	for _, nextPendingBuild := range nextPendingBuildsForJob {
-		started, err := s.tryStartNextPendingBuild(logger, nextPendingBuild, job, resources, resourceTypes)
+		started, err := s.tryStartNextPendingBuild(logger, nextPendingBuild, job, allJobPermutations, jobPermutation, resources, resourceTypes)
 		if err != nil {
 			return err
 		}
@@ -79,6 +83,8 @@ func (s *buildStarter) tryStartNextPendingBuild(
 	logger lager.Logger,
 	nextPendingBuild db.Build,
 	job db.Job,
+	allJobPermutations map[db.Job][]db.JobPermutation,
+	jobPermutation db.JobPermutation,
 	resources db.Resources,
 	resourceTypes atc.VersionedResourceTypes,
 ) (bool, error) {
@@ -115,13 +121,13 @@ func (s *buildStarter) tryStartNextPendingBuild(
 			return false, err
 		}
 
-		_, err = s.inputMapper.SaveNextInputMapping(logger, versions, job)
+		_, err = s.inputMapper.SaveNextInputMapping(logger, versions, allJobPermutations, jobPermutation, jobBuildInputs)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	buildInputs, found, err := job.GetNextBuildInputs()
+	inputMapping, found, err := jobPermutation.GetNextBuildInputs()
 	if err != nil {
 		logger.Error("failed-to-get-next-build-inputs", err)
 		return false, err
@@ -154,7 +160,7 @@ func (s *buildStarter) tryStartNextPendingBuild(
 		return false, nil
 	}
 
-	err = nextPendingBuild.UseInputs(buildInputs)
+	buildInputs, err := nextPendingBuild.UseInputs(inputMapping)
 	if err != nil {
 		return false, err
 	}

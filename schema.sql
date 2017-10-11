@@ -208,7 +208,7 @@ CREATE TABLE builds (
     engine character varying(16),
     engine_metadata text,
     completed boolean DEFAULT false NOT NULL,
-    job_id integer,
+    job_permutation_id integer,
     reap_time timestamp with time zone,
     team_id integer NOT NULL,
     manually_triggered boolean DEFAULT false,
@@ -245,6 +245,44 @@ ALTER SEQUENCE builds_id_seq OWNED BY builds.id;
 CREATE TABLE cache_invalidator (
     last_invalidated timestamp without time zone DEFAULT '1970-01-01 00:00:00'::timestamp without time zone NOT NULL
 );
+
+
+--
+-- Name: jobs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE jobs (
+    id integer NOT NULL,
+    name text NOT NULL,
+    pipeline_id integer,
+    max_in_flight_reached boolean DEFAULT false NOT NULL,
+    interruptible boolean DEFAULT false NOT NULL,
+    first_logged_build_id integer DEFAULT 0 NOT NULL,
+    config text NOT NULL,
+    nonce text,
+    active boolean DEFAULT false NOT NULL,
+    paused boolean DEFAULT false NOT NULL,
+    build_number_seq integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: career_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE career_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: career_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE career_id_seq OWNED BY jobs.id;
 
 
 --
@@ -318,7 +356,7 @@ ALTER SEQUENCE containers_id_seq OWNED BY containers.id;
 
 CREATE TABLE independent_build_inputs (
     id integer NOT NULL,
-    job_id integer NOT NULL,
+    job_permutation_id integer NOT NULL,
     input_name text NOT NULL,
     version_id integer NOT NULL,
     first_occurrence boolean NOT NULL
@@ -345,22 +383,15 @@ ALTER SEQUENCE independent_build_inputs_id_seq OWNED BY independent_build_inputs
 
 
 --
--- Name: jobs; Type: TABLE; Schema: public; Owner: -
+-- Name: job_permutations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE jobs (
-    name text NOT NULL,
-    build_number_seq integer DEFAULT 0 NOT NULL,
-    paused boolean DEFAULT false,
+CREATE TABLE job_permutations (
     id integer NOT NULL,
-    pipeline_id integer NOT NULL,
-    first_logged_build_id integer DEFAULT 0 NOT NULL,
     inputs_determined boolean DEFAULT false NOT NULL,
-    max_in_flight_reached boolean DEFAULT false NOT NULL,
-    config text NOT NULL,
-    active boolean DEFAULT false NOT NULL,
-    interruptible boolean DEFAULT false NOT NULL,
-    nonce text
+    job_id integer,
+    active boolean DEFAULT true NOT NULL,
+    resource_spaces jsonb NOT NULL
 );
 
 
@@ -380,7 +411,7 @@ CREATE SEQUENCE jobs_id_seq
 -- Name: jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE jobs_id_seq OWNED BY jobs.id;
+ALTER SEQUENCE jobs_id_seq OWNED BY job_permutations.id;
 
 
 --
@@ -421,9 +452,9 @@ CREATE MATERIALIZED VIEW latest_completed_builds_per_job AS
  WITH latest_build_ids_per_job AS (
          SELECT max(b_1.id) AS build_id
            FROM (builds b_1
-             JOIN jobs j ON ((j.id = b_1.job_id)))
+             JOIN job_permutations j ON ((j.id = b_1.job_permutation_id)))
           WHERE (b_1.status <> ALL (ARRAY['pending'::build_status, 'started'::build_status]))
-          GROUP BY b_1.job_id
+          GROUP BY b_1.job_permutation_id
         )
  SELECT b.id,
     b.name,
@@ -434,7 +465,41 @@ CREATE MATERIALIZED VIEW latest_completed_builds_per_job AS
     b.engine,
     b.engine_metadata,
     b.completed,
-    b.job_id,
+    b.job_permutation_id AS job_id,
+    b.reap_time,
+    b.team_id,
+    b.manually_triggered,
+    b.interceptible,
+    b.nonce,
+    b.public_plan,
+    b.pipeline_id
+   FROM (builds b
+     JOIN latest_build_ids_per_job l ON ((l.build_id = b.id)))
+  WITH NO DATA;
+
+
+--
+-- Name: latest_completed_builds_per_job_permutation; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+--
+
+CREATE MATERIALIZED VIEW latest_completed_builds_per_job_permutation AS
+ WITH latest_build_ids_per_job AS (
+         SELECT max(b_1.id) AS build_id
+           FROM (builds b_1
+             JOIN job_permutations j ON ((j.id = b_1.job_permutation_id)))
+          WHERE (b_1.status <> ALL (ARRAY['pending'::build_status, 'started'::build_status]))
+          GROUP BY b_1.job_permutation_id
+        )
+ SELECT b.id,
+    b.name,
+    b.status,
+    b.scheduled,
+    b.start_time,
+    b.end_time,
+    b.engine,
+    b.engine_metadata,
+    b.completed,
+    b.job_permutation_id,
     b.reap_time,
     b.team_id,
     b.manually_triggered,
@@ -462,7 +527,7 @@ CREATE TABLE migration_version (
 
 CREATE TABLE next_build_inputs (
     id integer NOT NULL,
-    job_id integer NOT NULL,
+    job_permutation_id integer NOT NULL,
     input_name text NOT NULL,
     version_id integer NOT NULL,
     first_occurrence boolean NOT NULL
@@ -496,9 +561,9 @@ CREATE MATERIALIZED VIEW next_builds_per_job AS
  WITH latest_build_ids_per_job AS (
          SELECT min(b_1.id) AS build_id
            FROM (builds b_1
-             JOIN jobs j ON ((j.id = b_1.job_id)))
+             JOIN job_permutations j ON ((j.id = b_1.job_permutation_id)))
           WHERE (b_1.status = ANY (ARRAY['pending'::build_status, 'started'::build_status]))
-          GROUP BY b_1.job_id
+          GROUP BY b_1.job_permutation_id
         )
  SELECT b.id,
     b.name,
@@ -509,7 +574,41 @@ CREATE MATERIALIZED VIEW next_builds_per_job AS
     b.engine,
     b.engine_metadata,
     b.completed,
-    b.job_id,
+    b.job_permutation_id AS job_id,
+    b.reap_time,
+    b.team_id,
+    b.manually_triggered,
+    b.interceptible,
+    b.nonce,
+    b.public_plan,
+    b.pipeline_id
+   FROM (builds b
+     JOIN latest_build_ids_per_job l ON ((l.build_id = b.id)))
+  WITH NO DATA;
+
+
+--
+-- Name: next_builds_per_job_permutation; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+--
+
+CREATE MATERIALIZED VIEW next_builds_per_job_permutation AS
+ WITH latest_build_ids_per_job AS (
+         SELECT min(b_1.id) AS build_id
+           FROM (builds b_1
+             JOIN job_permutations j ON ((j.id = b_1.job_permutation_id)))
+          WHERE (b_1.status = ANY (ARRAY['pending'::build_status, 'started'::build_status]))
+          GROUP BY b_1.job_permutation_id
+        )
+ SELECT b.id,
+    b.name,
+    b.status,
+    b.scheduled,
+    b.start_time,
+    b.end_time,
+    b.engine,
+    b.engine_metadata,
+    b.completed,
+    b.job_permutation_id,
     b.reap_time,
     b.team_id,
     b.manually_triggered,
@@ -532,6 +631,15 @@ CREATE SEQUENCE one_off_name
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
+
+
+--
+-- Name: pipeline_build_events_4; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE pipeline_build_events_4 (
+)
+INHERITS (build_events);
 
 
 --
@@ -686,6 +794,36 @@ ALTER SEQUENCE resource_configs_id_seq OWNED BY resource_configs.id;
 
 
 --
+-- Name: resource_spaces; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE resource_spaces (
+    id integer NOT NULL,
+    resource_id integer NOT NULL,
+    name text
+);
+
+
+--
+-- Name: resource_spaces_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE resource_spaces_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: resource_spaces_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE resource_spaces_id_seq OWNED BY resource_spaces.id;
+
+
+--
 -- Name: resource_types; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -808,15 +946,15 @@ ALTER SEQUENCE teams_id_seq OWNED BY teams.id;
 
 CREATE MATERIALIZED VIEW transition_builds_per_job AS
  WITH builds_before_transition AS (
-         SELECT b_1.job_id,
+         SELECT b_1.job_permutation_id AS job_id,
             max(b_1.id) AS max
            FROM ((builds b_1
-             LEFT JOIN jobs j ON ((b_1.job_id = j.id)))
-             LEFT JOIN latest_completed_builds_per_job s ON ((b_1.job_id = s.job_id)))
+             LEFT JOIN job_permutations j ON ((b_1.job_permutation_id = j.id)))
+             LEFT JOIN latest_completed_builds_per_job s ON ((b_1.job_permutation_id = s.job_id)))
           WHERE ((b_1.status <> s.status) AND (b_1.status <> ALL (ARRAY['pending'::build_status, 'started'::build_status])))
-          GROUP BY b_1.job_id
+          GROUP BY b_1.job_permutation_id
         )
- SELECT DISTINCT ON (b.job_id) b.id,
+ SELECT DISTINCT ON (b.job_permutation_id) b.id,
     b.name,
     b.status,
     b.scheduled,
@@ -825,7 +963,7 @@ CREATE MATERIALIZED VIEW transition_builds_per_job AS
     b.engine,
     b.engine_metadata,
     b.completed,
-    b.job_id,
+    b.job_permutation_id AS job_id,
     b.reap_time,
     b.team_id,
     b.manually_triggered,
@@ -834,9 +972,47 @@ CREATE MATERIALIZED VIEW transition_builds_per_job AS
     b.public_plan,
     b.pipeline_id
    FROM (builds b
-     LEFT JOIN builds_before_transition ON ((b.job_id = builds_before_transition.job_id)))
+     LEFT JOIN builds_before_transition ON ((b.job_permutation_id = builds_before_transition.job_id)))
   WHERE (((builds_before_transition.max IS NULL) AND (b.status <> ALL (ARRAY['pending'::build_status, 'started'::build_status]))) OR (b.id > builds_before_transition.max))
-  ORDER BY b.job_id, b.id
+  ORDER BY b.job_permutation_id, b.id
+  WITH NO DATA;
+
+
+--
+-- Name: transition_builds_per_job_permutation; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+--
+
+CREATE MATERIALIZED VIEW transition_builds_per_job_permutation AS
+ WITH builds_before_transition AS (
+         SELECT b_1.job_permutation_id AS job_id,
+            max(b_1.id) AS max
+           FROM ((builds b_1
+             LEFT JOIN job_permutations j ON ((b_1.job_permutation_id = j.id)))
+             LEFT JOIN latest_completed_builds_per_job s ON ((b_1.job_permutation_id = s.job_id)))
+          WHERE ((b_1.status <> s.status) AND (b_1.status <> ALL (ARRAY['pending'::build_status, 'started'::build_status])))
+          GROUP BY b_1.job_permutation_id
+        )
+ SELECT DISTINCT ON (b.job_permutation_id) b.id,
+    b.name,
+    b.status,
+    b.scheduled,
+    b.start_time,
+    b.end_time,
+    b.engine,
+    b.engine_metadata,
+    b.completed,
+    b.job_permutation_id,
+    b.reap_time,
+    b.team_id,
+    b.manually_triggered,
+    b.interceptible,
+    b.nonce,
+    b.public_plan,
+    b.pipeline_id
+   FROM (builds b
+     LEFT JOIN builds_before_transition ON ((b.job_permutation_id = builds_before_transition.job_id)))
+  WHERE (((builds_before_transition.max IS NULL) AND (b.status <> ALL (ARRAY['pending'::build_status, 'started'::build_status]))) OR (b.id > builds_before_transition.max))
+  ORDER BY b.job_permutation_id, b.id
   WITH NO DATA;
 
 
@@ -850,7 +1026,7 @@ CREATE TABLE versioned_resources (
     metadata text NOT NULL,
     type text NOT NULL,
     enabled boolean DEFAULT true NOT NULL,
-    resource_id integer,
+    resource_space_id integer,
     modified_time timestamp without time zone DEFAULT now() NOT NULL,
     check_order integer DEFAULT 0 NOT NULL
 );
@@ -1021,7 +1197,7 @@ ALTER SEQUENCE worker_resource_config_check_sessions_id_seq OWNED BY worker_reso
 CREATE TABLE worker_task_caches (
     id integer NOT NULL,
     worker_name text,
-    job_id integer,
+    job_permutation_id integer,
     step_name text NOT NULL,
     path text NOT NULL
 );
@@ -1099,10 +1275,17 @@ ALTER TABLE ONLY independent_build_inputs ALTER COLUMN id SET DEFAULT nextval('i
 
 
 --
+-- Name: job_permutations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY job_permutations ALTER COLUMN id SET DEFAULT nextval('jobs_id_seq'::regclass);
+
+
+--
 -- Name: jobs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY jobs ALTER COLUMN id SET DEFAULT nextval('jobs_id_seq'::regclass);
+ALTER TABLE ONLY jobs ALTER COLUMN id SET DEFAULT nextval('career_id_seq'::regclass);
 
 
 --
@@ -1145,6 +1328,13 @@ ALTER TABLE ONLY resource_config_check_sessions ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY resource_configs ALTER COLUMN id SET DEFAULT nextval('resource_configs_id_seq'::regclass);
+
+
+--
+-- Name: resource_spaces id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY resource_spaces ALTER COLUMN id SET DEFAULT nextval('resource_spaces_id_seq'::regclass);
 
 
 --
@@ -1235,6 +1425,22 @@ ALTER TABLE ONLY builds
 
 
 --
+-- Name: jobs career_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY jobs
+    ADD CONSTRAINT career_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: jobs_serial_groups careers_serial_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY jobs_serial_groups
+    ADD CONSTRAINT careers_serial_groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: workers constraint_workers_name_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1271,31 +1477,15 @@ ALTER TABLE ONLY independent_build_inputs
 --
 
 ALTER TABLE ONLY independent_build_inputs
-    ADD CONSTRAINT independent_build_inputs_unique_job_id_input_name UNIQUE (job_id, input_name);
+    ADD CONSTRAINT independent_build_inputs_unique_job_id_input_name UNIQUE (job_permutation_id, input_name);
 
 
 --
--- Name: jobs jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: job_permutations jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY jobs
+ALTER TABLE ONLY job_permutations
     ADD CONSTRAINT jobs_pkey PRIMARY KEY (id);
-
-
---
--- Name: jobs_serial_groups jobs_serial_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY jobs_serial_groups
-    ADD CONSTRAINT jobs_serial_groups_pkey PRIMARY KEY (id);
-
-
---
--- Name: jobs jobs_unique_pipeline_id_name; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY jobs
-    ADD CONSTRAINT jobs_unique_pipeline_id_name UNIQUE (pipeline_id, name);
 
 
 --
@@ -1311,7 +1501,7 @@ ALTER TABLE ONLY next_build_inputs
 --
 
 ALTER TABLE ONLY next_build_inputs
-    ADD CONSTRAINT next_build_inputs_unique_job_id_input_name UNIQUE (job_id, input_name);
+    ADD CONSTRAINT next_build_inputs_unique_job_id_input_name UNIQUE (job_permutation_id, input_name);
 
 
 --
@@ -1376,6 +1566,14 @@ ALTER TABLE ONLY resource_configs
 
 ALTER TABLE ONLY resource_configs
     ADD CONSTRAINT resource_configs_resource_cache_id_base_resource_type_id_so_key UNIQUE (resource_cache_id, base_resource_type_id, source_hash);
+
+
+--
+-- Name: resource_spaces resource_spaces_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY resource_spaces
+    ADD CONSTRAINT resource_spaces_pkey PRIMARY KEY (id);
 
 
 --
@@ -1542,6 +1740,13 @@ CREATE INDEX build_inputs_build_id_idx ON build_inputs USING btree (build_id);
 
 
 --
+-- Name: build_inputs_build_id_name_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX build_inputs_build_id_name_idx ON build_inputs USING btree (build_id, name);
+
+
+--
 -- Name: build_inputs_build_id_versioned_resource_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1587,7 +1792,7 @@ CREATE INDEX builds_interceptible_completed ON builds USING btree (interceptible
 -- Name: builds_job_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX builds_job_id ON builds USING btree (job_id);
+CREATE INDEX builds_job_id ON builds USING btree (job_permutation_id);
 
 
 --
@@ -1609,6 +1814,27 @@ CREATE INDEX builds_status ON builds USING btree (status);
 --
 
 CREATE INDEX builds_team_id ON builds USING btree (team_id);
+
+
+--
+-- Name: career_name_pipeline_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX career_name_pipeline_id_idx ON jobs USING btree (name, pipeline_id);
+
+
+--
+-- Name: career_pipeline_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX career_pipeline_id_idx ON jobs USING btree (pipeline_id);
+
+
+--
+-- Name: careers_serial_groups_job_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX careers_serial_groups_job_id_idx ON jobs_serial_groups USING btree (job_id);
 
 
 --
@@ -1664,7 +1890,7 @@ CREATE INDEX containers_worker_resource_config_check_session_id ON containers US
 -- Name: independent_build_inputs_job_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX independent_build_inputs_job_id ON independent_build_inputs USING btree (job_id);
+CREATE INDEX independent_build_inputs_job_id ON independent_build_inputs USING btree (job_permutation_id);
 
 
 --
@@ -1682,17 +1908,17 @@ CREATE UNIQUE INDEX index_teams_name_unique_case_insensitive ON teams USING btre
 
 
 --
--- Name: jobs_pipeline_id; Type: INDEX; Schema: public; Owner: -
+-- Name: job_permutations_resource_spaces_job_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX jobs_pipeline_id ON jobs USING btree (pipeline_id);
+CREATE UNIQUE INDEX job_permutations_resource_spaces_job_id_idx ON job_permutations USING btree (resource_spaces, job_id);
 
 
 --
--- Name: jobs_serial_groups_job_id_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: jobs_career_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX jobs_serial_groups_job_id_idx ON jobs_serial_groups USING btree (job_id);
+CREATE INDEX jobs_career_id_idx ON job_permutations USING btree (job_id);
 
 
 --
@@ -1706,7 +1932,7 @@ CREATE UNIQUE INDEX latest_completed_builds_per_job_id ON latest_completed_build
 -- Name: next_build_inputs_job_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX next_build_inputs_job_id ON next_build_inputs USING btree (job_id);
+CREATE INDEX next_build_inputs_job_id ON next_build_inputs USING btree (job_permutation_id);
 
 
 --
@@ -1721,6 +1947,20 @@ CREATE INDEX next_build_inputs_version_id ON next_build_inputs USING btree (vers
 --
 
 CREATE UNIQUE INDEX next_builds_per_job_id ON next_builds_per_job USING btree (id);
+
+
+--
+-- Name: pipeline_build_events_4_build_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX pipeline_build_events_4_build_id ON pipeline_build_events_4 USING btree (build_id);
+
+
+--
+-- Name: pipeline_build_events_4_build_id_event_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX pipeline_build_events_4_build_id_event_id ON pipeline_build_events_4 USING btree (build_id, event_id);
 
 
 --
@@ -1839,14 +2079,14 @@ CREATE UNIQUE INDEX transition_builds_per_job_id ON transition_builds_per_job US
 -- Name: versioned_resources_resource_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX versioned_resources_resource_id_idx ON versioned_resources USING btree (resource_id);
+CREATE INDEX versioned_resources_resource_id_idx ON versioned_resources USING btree (resource_space_id);
 
 
 --
 -- Name: versioned_resources_resource_id_type_version; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX versioned_resources_resource_id_type_version ON versioned_resources USING btree (resource_id, type, md5(version));
+CREATE UNIQUE INDEX versioned_resources_resource_id_type_version ON versioned_resources USING btree (resource_space_id, type, md5(version));
 
 
 --
@@ -1958,7 +2198,7 @@ CREATE INDEX worker_resource_config_check_sessions_worker_base_resource_type ON 
 -- Name: worker_task_caches_job_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX worker_task_caches_job_id ON worker_task_caches USING btree (job_id);
+CREATE INDEX worker_task_caches_job_id ON worker_task_caches USING btree (job_permutation_id);
 
 
 --
@@ -2040,6 +2280,22 @@ ALTER TABLE ONLY builds
 
 
 --
+-- Name: jobs career_pipeline_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY jobs
+    ADD CONSTRAINT career_pipeline_id_fkey FOREIGN KEY (pipeline_id) REFERENCES pipelines(id);
+
+
+--
+-- Name: jobs_serial_groups career_serial_groups_career_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY jobs_serial_groups
+    ADD CONSTRAINT career_serial_groups_career_id_fkey FOREIGN KEY (job_id) REFERENCES jobs(id);
+
+
+--
 -- Name: containers containers_build_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2096,27 +2352,11 @@ ALTER TABLE ONLY volumes
 
 
 --
--- Name: jobs_serial_groups fkey_job_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY jobs_serial_groups
-    ADD CONSTRAINT fkey_job_id FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE;
-
-
---
 -- Name: builds fkey_job_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY builds
-    ADD CONSTRAINT fkey_job_id FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE;
-
-
---
--- Name: versioned_resources fkey_resource_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY versioned_resources
-    ADD CONSTRAINT fkey_resource_id FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fkey_job_id FOREIGN KEY (job_permutation_id) REFERENCES job_permutations(id) ON DELETE CASCADE;
 
 
 --
@@ -2124,7 +2364,7 @@ ALTER TABLE ONLY versioned_resources
 --
 
 ALTER TABLE ONLY independent_build_inputs
-    ADD CONSTRAINT independent_build_inputs_job_id_fkey FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE;
+    ADD CONSTRAINT independent_build_inputs_job_id_fkey FOREIGN KEY (job_permutation_id) REFERENCES job_permutations(id) ON DELETE CASCADE;
 
 
 --
@@ -2136,11 +2376,11 @@ ALTER TABLE ONLY independent_build_inputs
 
 
 --
--- Name: jobs jobs_pipeline_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: job_permutations jobs_career_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY jobs
-    ADD CONSTRAINT jobs_pipeline_id_fkey FOREIGN KEY (pipeline_id) REFERENCES pipelines(id) ON DELETE CASCADE;
+ALTER TABLE ONLY job_permutations
+    ADD CONSTRAINT jobs_career_id_fkey FOREIGN KEY (job_id) REFERENCES jobs(id);
 
 
 --
@@ -2148,7 +2388,7 @@ ALTER TABLE ONLY jobs
 --
 
 ALTER TABLE ONLY next_build_inputs
-    ADD CONSTRAINT next_build_inputs_job_id_fkey FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE;
+    ADD CONSTRAINT next_build_inputs_job_id_fkey FOREIGN KEY (job_permutation_id) REFERENCES job_permutations(id) ON DELETE CASCADE;
 
 
 --
@@ -2232,6 +2472,14 @@ ALTER TABLE ONLY resource_configs
 
 
 --
+-- Name: resource_spaces resource_spaces_resource_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY resource_spaces
+    ADD CONSTRAINT resource_spaces_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES resources(id);
+
+
+--
 -- Name: resource_types resource_types_pipeline_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2261,6 +2509,14 @@ ALTER TABLE ONLY resources
 
 ALTER TABLE ONLY resources
     ADD CONSTRAINT resources_resource_config_id_fkey FOREIGN KEY (resource_config_id) REFERENCES resource_configs(id) ON DELETE SET NULL;
+
+
+--
+-- Name: versioned_resources versioned_resources_resource_space_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY versioned_resources
+    ADD CONSTRAINT versioned_resources_resource_space_id_fkey FOREIGN KEY (resource_space_id) REFERENCES resource_spaces(id) ON DELETE CASCADE;
 
 
 --
@@ -2372,7 +2628,7 @@ ALTER TABLE ONLY worker_resource_config_check_sessions
 --
 
 ALTER TABLE ONLY worker_task_caches
-    ADD CONSTRAINT worker_task_caches_job_id_fkey FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE;
+    ADD CONSTRAINT worker_task_caches_job_id_fkey FOREIGN KEY (job_permutation_id) REFERENCES job_permutations(id) ON DELETE CASCADE;
 
 
 --

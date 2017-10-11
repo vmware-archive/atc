@@ -44,7 +44,7 @@ type Pipeline interface {
 	SaveResourceVersions(atc.ResourceConfig, []atc.Version) error
 	GetResourceVersions(resourceName string, page Page) ([]SavedVersionedResource, Pagination, bool, error)
 
-	GetAllPendingBuilds() (map[string][]Build, error)
+	GetAllPendingBuilds() ([]Build, error)
 
 	GetLatestVersionedResource(resourceName string) (SavedVersionedResource, bool, error)
 	GetVersionedResourceByVersion(atcVersion atc.Version, resourceName string) (SavedVersionedResource, bool, error)
@@ -56,7 +56,6 @@ type Pipeline interface {
 
 	DeleteBuildEventsByBuildIDs(buildIDs []int) error
 
-	// Needs test (from db/lock_test.go)
 	AcquireSchedulingLock(lager.Logger, time.Duration) (lock.Lock, bool, error)
 
 	AcquireResourceCheckingLockWithIntervalCheck(
@@ -176,7 +175,6 @@ func (p *pipeline) ScopedName(n string) string {
 	return p.name + ":" + n
 }
 
-// Write test
 func (p *pipeline) CheckPaused() (bool, error) {
 	var paused bool
 
@@ -209,55 +207,6 @@ func (p *pipeline) Reload() (bool, error) {
 	return true, nil
 }
 
-func (p *pipeline) CreateJobBuild(jobName string) (Build, error) {
-	tx, err := p.conn.Begin()
-	if err != nil {
-		return nil, err
-	}
-
-	defer tx.Rollback()
-
-	buildName, jobID, err := getNewBuildNameForJob(tx, jobName, p.id)
-	if err != nil {
-		return nil, err
-	}
-
-	var buildID int
-	err = psql.Insert("builds").
-		Columns("name", "job_id", "team_id", "status", "manually_triggered").
-		Values(buildName, jobID, p.teamID, "pending", true).
-		Suffix("RETURNING id").
-		RunWith(tx).
-		QueryRow().
-		Scan(&buildID)
-	if err != nil {
-		return nil, err
-	}
-
-	build := &build{conn: p.conn, lockFactory: p.lockFactory}
-	err = scanBuild(build, buildsQuery.
-		Where(sq.Eq{"b.id": buildID}).
-		RunWith(tx).
-		QueryRow(),
-		p.conn.EncryptionStrategy(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	err = createBuildEventSeq(tx, buildID)
-	if err != nil {
-		return nil, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	return build, nil
-}
-
 func (p *pipeline) SetResourceCheckError(resource Resource, cause error) error {
 	var err error
 
@@ -278,12 +227,11 @@ func (p *pipeline) SetResourceCheckError(resource Resource, cause error) error {
 	return err
 }
 
-func (p *pipeline) GetAllPendingBuilds() (map[string][]Build, error) {
-	builds := map[string][]Build{}
-
+func (p *pipeline) GetAllPendingBuilds() ([]Build, error) {
 	rows, err := buildsQuery.
 		Where(sq.Eq{
 			"b.status":      BuildStatusPending,
+			"jp.active":     true,
 			"j.active":      true,
 			"b.pipeline_id": p.id,
 		}).
@@ -296,6 +244,7 @@ func (p *pipeline) GetAllPendingBuilds() (map[string][]Build, error) {
 
 	defer rows.Close()
 
+	var builds []Build
 	for rows.Next() {
 		build := &build{conn: p.conn, lockFactory: p.lockFactory}
 		err = scanBuild(build, rows, p.conn.EncryptionStrategy())
@@ -303,7 +252,7 @@ func (p *pipeline) GetAllPendingBuilds() (map[string][]Build, error) {
 			return nil, err
 		}
 
-		builds[build.JobName()] = append(builds[build.JobName()], build)
+		builds = append(builds, build)
 	}
 
 	return builds, nil
@@ -792,8 +741,8 @@ func (p *pipeline) Dashboard(include string) (Dashboard, atc.GroupConfigs, error
 
 	rows, err := jobsQuery.
 		Where(sq.Eq{
-			"pipeline_id": p.id,
-			"active":      true,
+			"j.pipeline_id": p.id,
+			"j.active":      true,
 		}).
 		OrderBy("j.id ASC").
 		RunWith(p.conn).
@@ -807,12 +756,12 @@ func (p *pipeline) Dashboard(include string) (Dashboard, atc.GroupConfigs, error
 		return nil, nil, err
 	}
 
-	nextBuilds, err := p.getBuildsFrom("next_builds_per_job")
+	nextBuilds, err := p.getBuildsFrom("next_builds_per_job_permutation")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	finishedBuilds, err := p.getBuildsFrom("latest_completed_builds_per_job")
+	finishedBuilds, err := p.getBuildsFrom("latest_completed_builds_per_job_permutation")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -820,7 +769,7 @@ func (p *pipeline) Dashboard(include string) (Dashboard, atc.GroupConfigs, error
 	var transitionBuilds map[string]Build
 
 	if include == "transitionBuilds" {
-		transitionBuilds, err = p.getBuildsFrom("transition_builds_per_job")
+		transitionBuilds, err = p.getBuildsFrom("transition_builds_per_job_permutation")
 		if err != nil {
 			return nil, nil, err
 		}
@@ -945,18 +894,19 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 	}
 
 	db := &algorithm.VersionsDB{
-		BuildOutputs:     []algorithm.BuildOutput{},
-		BuildInputs:      []algorithm.BuildInput{},
-		ResourceVersions: []algorithm.ResourceVersion{},
-		JobIDs:           map[string]int{},
-		ResourceIDs:      map[string]int{},
+		BuildOutputs:      []algorithm.BuildOutput{},
+		BuildInputs:       []algorithm.BuildInput{},
+		ResourceVersions:  []algorithm.ResourceVersion{},
+		JobPermutationIDs: map[string]int{},
+		ResourceSpaceIDs:  map[string]int{},
 	}
 
-	rows, err := psql.Select("v.id, v.check_order, r.id, o.build_id, b.job_id").
-		From("build_outputs o, builds b, versioned_resources v, resources r").
+	rows, err := psql.Select("v.id, v.check_order, rs.id, o.build_id, b.job_permutation_id").
+		From("build_outputs o, builds b, versioned_resources v, resource_spaces rs, resources r").
 		Where(sq.Expr("v.id = o.versioned_resource_id")).
 		Where(sq.Expr("b.id = o.build_id")).
-		Where(sq.Expr("r.id = v.resource_id")).
+		Where(sq.Expr("rs.id = v.resource_space_id")).
+		Where(sq.Expr("r.id = rs.resource_id")).
 		Where(sq.Eq{
 			"v.enabled":     true,
 			"b.status":      BuildStatusSucceeded,
@@ -972,7 +922,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 
 	for rows.Next() {
 		var output algorithm.BuildOutput
-		err := rows.Scan(&output.VersionID, &output.CheckOrder, &output.ResourceID, &output.BuildID, &output.JobID)
+		err := rows.Scan(&output.VersionID, &output.CheckOrder, &output.ResourceSpaceID, &output.BuildID, &output.JobPermutationID)
 		if err != nil {
 			return nil, err
 		}
@@ -982,11 +932,12 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 		db.BuildOutputs = append(db.BuildOutputs, output)
 	}
 
-	rows, err = psql.Select("v.id, v.check_order, r.id, i.build_id, i.name, b.job_id").
-		From("build_inputs i, builds b, versioned_resources v, resources r").
+	rows, err = psql.Select("v.id, v.check_order, r.id, i.build_id, i.name, b.job_permutation_id").
+		From("build_inputs i, builds b, versioned_resources v, resource_spaces rs, resources r").
 		Where(sq.Expr("v.id = i.versioned_resource_id")).
 		Where(sq.Expr("b.id = i.build_id")).
-		Where(sq.Expr("r.id = v.resource_id")).
+		Where(sq.Expr("rs.id = v.resource_space_id")).
+		Where(sq.Expr("r.id = rs.resource_id")).
 		Where(sq.Eq{
 			"v.enabled":     true,
 			"r.pipeline_id": p.id,
@@ -1001,7 +952,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 
 	for rows.Next() {
 		var input algorithm.BuildInput
-		err := rows.Scan(&input.VersionID, &input.CheckOrder, &input.ResourceID, &input.BuildID, &input.InputName, &input.JobID)
+		err := rows.Scan(&input.VersionID, &input.CheckOrder, &input.ResourceSpaceID, &input.BuildID, &input.InputName, &input.JobPermutationID)
 		if err != nil {
 			return nil, err
 		}
@@ -1011,9 +962,10 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 		db.BuildInputs = append(db.BuildInputs, input)
 	}
 
-	rows, err = psql.Select("v.id, v.check_order, r.id").
-		From("versioned_resources v, resources r").
-		Where(sq.Expr("r.id = v.resource_id")).
+	rows, err = psql.Select("v.id, v.check_order, rs.id").
+		From("versioned_resources v, resource_spaces rs, resources r").
+		Where(sq.Expr("rs.id = v.resource_space_id")).
+		Where(sq.Expr("r.id = rs.resource_id")).
 		Where(sq.Eq{
 			"v.enabled":     true,
 			"r.pipeline_id": p.id,
@@ -1028,7 +980,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 
 	for rows.Next() {
 		var output algorithm.ResourceVersion
-		err := rows.Scan(&output.VersionID, &output.CheckOrder, &output.ResourceID)
+		err := rows.Scan(&output.VersionID, &output.CheckOrder, &output.ResourceSpaceID)
 		if err != nil {
 			return nil, err
 		}
@@ -1036,8 +988,9 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 		db.ResourceVersions = append(db.ResourceVersions, output)
 	}
 
-	rows, err = psql.Select("j.name, j.id").
-		From("jobs j").
+	rows, err = psql.Select("jp.id, j.name || jp.resource_spaces::text AS name").
+		From("job_permutations jp").
+		Join("jobs j ON j.id = jp.job_id").
 		Where(sq.Eq{"j.pipeline_id": p.id}).
 		RunWith(p.conn).
 		Query()
@@ -1048,18 +1001,19 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var name string
 		var id int
-		err := rows.Scan(&name, &id)
+		var name string
+		err := rows.Scan(&id, &name)
 		if err != nil {
 			return nil, err
 		}
 
-		db.JobIDs[name] = id
+		db.JobPermutationIDs[name] = id
 	}
 
-	rows, err = psql.Select("r.name, r.id").
-		From("resources r").
+	rows, err = psql.Select("rs.id, r.name || '{' || rs.name || '}' AS name").
+		From("resource_spaces rs").
+		Join("resources r ON r.id = rs.resource_id").
 		Where(sq.Eq{"r.pipeline_id": p.id}).
 		RunWith(p.conn).
 		Query()
@@ -1070,14 +1024,14 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var name string
 		var id int
-		err := rows.Scan(&name, &id)
+		var name string
+		err := rows.Scan(&id, &name)
 		if err != nil {
 			return nil, err
 		}
 
-		db.ResourceIDs[name] = id
+		db.ResourceSpaceIDs[name] = id
 	}
 
 	p.versionsDB = db
@@ -1407,160 +1361,6 @@ func (p *pipeline) incrementCheckOrderWhenNewerVersion(tx Tx, resourceID int, re
 	return nil
 }
 
-func (p *pipeline) getJobBuildInputs(table string, jobName string) ([]BuildInput, error) {
-	rows, err := psql.Select("i.input_name, i.first_occurrence, r.name, v.type, v.version, v.metadata").
-		From(table + " i").
-		Join("jobs j ON i.job_id = j.id").
-		Join("versioned_resources v ON v.id = i.version_id").
-		Join("resources r ON r.id = v.resource_id").
-		Where(sq.Eq{
-			"j.name":        jobName,
-			"j.pipeline_id": p.id,
-		}).
-		RunWith(p.conn).
-		Query()
-	if err != nil {
-		return nil, err
-	}
-
-	buildInputs := []BuildInput{}
-	for rows.Next() {
-		var (
-			inputName       string
-			firstOccurrence bool
-			resourceName    string
-			resourceType    string
-			versionBlob     string
-			metadataBlob    string
-			version         ResourceVersion
-			metadata        []ResourceMetadataField
-		)
-
-		err := rows.Scan(&inputName, &firstOccurrence, &resourceName, &resourceType, &versionBlob, &metadataBlob)
-		if err != nil {
-			return nil, err
-		}
-
-		err = json.Unmarshal([]byte(versionBlob), &version)
-		if err != nil {
-			return nil, err
-		}
-
-		err = json.Unmarshal([]byte(metadataBlob), &metadata)
-		if err != nil {
-			return nil, err
-		}
-
-		buildInputs = append(buildInputs, BuildInput{
-			Name: inputName,
-			VersionedResource: VersionedResource{
-				Resource: resourceName,
-				Type:     resourceType,
-				Version:  version,
-				Metadata: metadata,
-			},
-			FirstOccurrence: firstOccurrence,
-		})
-	}
-	return buildInputs, nil
-}
-
-func (p *pipeline) saveJobInputMapping(table string, inputMapping algorithm.InputMapping, jobName string) error {
-	tx, err := p.conn.Begin()
-	if err != nil {
-		return err
-	}
-
-	defer tx.Rollback()
-
-	var jobID int
-	switch table {
-	case "independent_build_inputs":
-		err = psql.Select("id").
-			From("jobs").
-			Where(sq.Eq{
-				"name":        jobName,
-				"pipeline_id": p.id,
-			}).
-			RunWith(tx).
-			QueryRow().
-			Scan(&jobID)
-	case "next_build_inputs":
-		err = psql.Update("jobs").
-			Set("inputs_determined", true).
-			Where(sq.Eq{
-				"name":        jobName,
-				"pipeline_id": p.id,
-			}).
-			Suffix("RETURNING id").
-			RunWith(tx).
-			QueryRow().
-			Scan(&jobID)
-	default:
-		panic("unknown table " + table)
-	}
-	if err != nil {
-		return err
-	}
-
-	rows, err := psql.Select("input_name, version_id, first_occurrence").
-		From(table).
-		Where(sq.Eq{"job_id": jobID}).
-		RunWith(tx).
-		Query()
-	if err != nil {
-		return err
-	}
-
-	oldInputMapping := algorithm.InputMapping{}
-	for rows.Next() {
-		var inputName string
-		var inputVersion algorithm.InputVersion
-		err := rows.Scan(&inputName, &inputVersion.VersionID, &inputVersion.FirstOccurrence)
-		if err != nil {
-			return err
-		}
-
-		oldInputMapping[inputName] = inputVersion
-	}
-
-	for inputName, oldInputVersion := range oldInputMapping {
-		inputVersion, found := inputMapping[inputName]
-		if !found || inputVersion != oldInputVersion {
-			_, err = psql.Delete(table).
-				Where(sq.Eq{
-					"job_id":     jobID,
-					"input_name": inputName,
-				}).
-				RunWith(tx).
-				Exec()
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	for inputName, inputVersion := range inputMapping {
-		oldInputVersion, found := oldInputMapping[inputName]
-		if !found || inputVersion != oldInputVersion {
-			_, err := psql.Insert(table).
-				SetMap(map[string]interface{}{
-					"job_id":           jobID,
-					"input_name":       inputName,
-					"version_id":       inputVersion.VersionID,
-					"first_occurrence": inputVersion.FirstOccurrence,
-				}).
-				RunWith(tx).
-				Exec()
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return tx.Commit()
-}
-
 func (p *pipeline) toggleVersionedResource(versionedResourceID int, enable bool) error {
 	rows, err := psql.Update("versioned_resources").
 		Set("enabled", enable).
@@ -1599,20 +1399,23 @@ func (p *pipeline) getLatestModifiedTime() (time.Time, error) {
 			SELECT COALESCE(MAX(bo.modified_time), 'epoch') as bo_max
 			FROM build_outputs bo
 			LEFT OUTER JOIN versioned_resources v ON v.id = bo.versioned_resource_id
-			LEFT OUTER JOIN resources r ON r.id = v.resource_id
+			LEFT OUTER JOIN resource_spaces rs ON rs.id = v.resource_space_id
+			LEFT OUTER JOIN resources r ON r.id = rs.resource_id
 			WHERE r.pipeline_id = $1
 		) bo,
 		(
 			SELECT COALESCE(MAX(bi.modified_time), 'epoch') as bi_max
 			FROM build_inputs bi
 			LEFT OUTER JOIN versioned_resources v ON v.id = bi.versioned_resource_id
-			LEFT OUTER JOIN resources r ON r.id = v.resource_id
+			LEFT OUTER JOIN resource_spaces rs ON rs.id = v.resource_space_id
+			LEFT OUTER JOIN resources r ON r.id = rs.resource_id
 			WHERE r.pipeline_id = $1
 		) bi,
 		(
 			SELECT COALESCE(MAX(vr.modified_time), 'epoch') as vr_max
 			FROM versioned_resources vr
-			LEFT OUTER JOIN resources r ON r.id = vr.resource_id
+			LEFT OUTER JOIN resource_spaces rs ON rs.id = vr.resource_space_id
+			LEFT OUTER JOIN resources r ON r.id = rs.resource_id
 			WHERE r.pipeline_id = $1
 		) vr
 	`, p.id).Scan(&max_modified_time)

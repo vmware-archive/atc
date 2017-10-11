@@ -11,6 +11,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/db/lock"
 	"github.com/concourse/atc/event"
 	"github.com/lib/pq"
@@ -27,11 +28,12 @@ const (
 	BuildStatusErrored   BuildStatus = "errored"
 )
 
-var buildsQuery = psql.Select("b.id, b.name, b.job_id, b.team_id, b.status, b.manually_triggered, b.scheduled, b.engine, b.engine_metadata, b.public_plan, b.start_time, b.end_time, b.reap_time, j.name, b.pipeline_id, p.name, t.name, b.nonce").
+var buildsQuery = psql.Select("b.id, b.name, j.id, t.id, b.status, b.manually_triggered, b.scheduled, b.engine, b.engine_metadata, b.public_plan, b.start_time, b.end_time, b.reap_time, j.name, b.pipeline_id, p.name, t.name, b.nonce, jp.id").
 	From("builds b").
-	JoinClause("LEFT OUTER JOIN jobs j ON b.job_id = j.id").
-	JoinClause("LEFT OUTER JOIN pipelines p ON b.pipeline_id = p.id").
-	JoinClause("LEFT OUTER JOIN teams t ON b.team_id = t.id")
+	JoinClause("LEFT OUTER JOIN job_permutations jp ON jp.id = b.job_permutation_id").
+	JoinClause("LEFT OUTER JOIN jobs j ON j.id = jp.job_id").
+	JoinClause("LEFT OUTER JOIN pipelines p ON p.id = b.pipeline_id").
+	Join("teams t ON b.team_id = t.id")
 
 //go:generate counterfeiter . Build
 
@@ -40,6 +42,7 @@ type Build interface {
 	Name() string
 	JobID() int
 	JobName() string
+	JobPermutationID() int
 	PipelineID() int
 	PipelineName() string
 	TeamID() int
@@ -73,7 +76,8 @@ type Build interface {
 
 	SaveInput(input BuildInput) error
 	SaveOutput(vr VersionedResource, explicit bool) error
-	UseInputs(inputs []BuildInput) error
+
+	UseInputs(algorithm.InputMapping) ([]BuildInput, error)
 
 	Resources() ([]BuildInput, []BuildOutput, error)
 	GetVersionedResources() (SavedVersionedResources, error)
@@ -96,10 +100,11 @@ type build struct {
 	teamID   int
 	teamName string
 
-	pipelineID   int
-	pipelineName string
-	jobID        int
-	jobName      string
+	pipelineID       int
+	pipelineName     string
+	jobID            int
+	jobName          string
+	jobPermutationID int
 
 	isManuallyTriggered bool
 
@@ -121,6 +126,7 @@ func (b *build) ID() int                      { return b.id }
 func (b *build) Name() string                 { return b.name }
 func (b *build) JobID() int                   { return b.jobID }
 func (b *build) JobName() string              { return b.jobName }
+func (b *build) JobPermutationID() int        { return b.jobPermutationID }
 func (b *build) PipelineID() int              { return b.pipelineID }
 func (b *build) PipelineName() string         { return b.pipelineName }
 func (b *build) TeamID() int                  { return b.teamID }
@@ -321,7 +327,7 @@ func (b *build) Finish(status BuildStatus) error {
 		_, err = psql.Delete("build_image_resource_caches birc USING builds b").
 			Where(sq.Expr("birc.build_id = b.id")).
 			Where(sq.Lt{"build_id": b.id}).
-			Where(sq.Eq{"b.job_id": b.jobID}).
+			Where(sq.Eq{"b.job_permutation_id": b.jobID}).
 			RunWith(tx).
 			Exec()
 		if err != nil {
@@ -518,7 +524,8 @@ func (b *build) Preparation() (BuildPreparation, bool, error) {
 	)
 	err := psql.Select("p.paused, j.paused, j.max_in_flight_reached, j.pipeline_id, j.name").
 		From("builds b").
-		Join("jobs j ON b.job_id = j.id").
+		Join("job_permutations jp ON jp.id = b.job_permutation_id").
+		Join("jobs j ON j.id = jp.job_id").
 		Join("pipelines p ON j.pipeline_id = p.id").
 		Where(sq.Eq{"b.id": b.id}).
 		RunWith(b.conn).
@@ -576,10 +583,11 @@ func (b *build) Preparation() (BuildPreparation, bool, error) {
 
 	configInputs := job.Config().Inputs()
 
-	nextBuildInputs, found, err := job.GetNextBuildInputs()
-	if err != nil {
-		return BuildPreparation{}, false, err
-	}
+	// XXX
+	// nextBuildInputs, found, err := job.GetNextBuildInputs()
+	// if err != nil {
+	// 	return BuildPreparation{}, false, err
+	// }
 
 	inputsSatisfiedStatus := BuildPreparationStatusBlocking
 	inputs := map[string]BuildPreparationStatus{}
@@ -587,23 +595,23 @@ func (b *build) Preparation() (BuildPreparation, bool, error) {
 
 	if found {
 		inputsSatisfiedStatus = BuildPreparationStatusNotBlocking
-		for _, buildInput := range nextBuildInputs {
-			inputs[buildInput.Name] = BuildPreparationStatusNotBlocking
-		}
+		// for _, buildInput := range nextBuildInputs {
+		// 	inputs[buildInput.Name] = BuildPreparationStatusNotBlocking
+		// }
 	} else {
-		buildInputs, err := job.GetIndependentBuildInputs()
-		if err != nil {
-			return BuildPreparation{}, false, err
-		}
+		// buildInputs, err := job.GetIndependentBuildInputs()
+		// if err != nil {
+		// 	return BuildPreparation{}, false, err
+		// }
 
 		for _, configInput := range configInputs {
 			found := false
-			for _, buildInput := range buildInputs {
-				if buildInput.Name == configInput.Name {
-					found = true
-					break
-				}
-			}
+			// for _, buildInput := range buildInputs {
+			// 	if buildInput.Name == configInput.Name {
+			// 		found = true
+			// 		break
+			// 	}
+			// }
 			if found {
 				inputs[configInput.Name] = BuildPreparationStatusNotBlocking
 			} else {
@@ -759,10 +767,10 @@ func (b *build) SaveOutput(vr VersionedResource, explicit bool) error {
 	return pipeline.saveOutput(b.id, vr, explicit)
 }
 
-func (b *build) UseInputs(inputs []BuildInput) error {
+func (b *build) UseInputs(mapping algorithm.InputMapping) ([]BuildInput, error) {
 	tx, err := b.conn.Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer tx.Rollback()
@@ -772,7 +780,7 @@ func (b *build) UseInputs(inputs []BuildInput) error {
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	row := pipelinesQuery.
@@ -783,17 +791,86 @@ func (b *build) UseInputs(inputs []BuildInput) error {
 	pipeline := &pipeline{conn: b.conn, lockFactory: b.lockFactory}
 	err = scanPipeline(pipeline, row)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	for _, input := range inputs {
-		err = pipeline.saveInputTx(tx, b.id, input)
+	for name, input := range mapping {
+		_, err := psql.Insert("build_inputs").
+			Columns("build_id", "name", "versioned_resource_id").
+			Values(b.id, name, input.VersionID).
+			Suffix("ON CONFLICT (build_id, name) DO NOTHING").
+			RunWith(tx).
+			Exec()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return tx.Commit()
+	inputs := []BuildInput{}
+	rows, err := tx.Query(`
+		SELECT i.name, r.name, v.type, v.version, v.metadata,
+		NOT EXISTS (
+			SELECT 1
+			FROM build_inputs ci, builds cb
+			WHERE versioned_resource_id = v.id
+			AND cb.job_permutation_id = b.job_permutation_id
+			AND ci.build_id = cb.id
+			AND ci.build_id < b.id
+		)
+		FROM versioned_resources v, build_inputs i, builds b, resources r, resource_spaces rs
+		WHERE b.id = $1
+		AND i.build_id = b.id
+		AND i.versioned_resource_id = v.id
+		AND rs.id = v.resource_space_id
+    AND r.id = rs.resource_id
+		AND NOT EXISTS (
+			SELECT 1
+			FROM build_outputs o
+			WHERE o.versioned_resource_id = v.id
+			AND o.build_id = i.build_id
+			AND o.explicit
+		)
+	`, b.id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var inputName string
+		var vr VersionedResource
+		var firstOccurrence bool
+
+		var version, metadata string
+		err := rows.Scan(&inputName, &vr.Resource, &vr.Type, &version, &metadata, &firstOccurrence)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(version), &vr.Version)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(metadata), &vr.Metadata)
+		if err != nil {
+			return nil, err
+		}
+
+		inputs = append(inputs, BuildInput{
+			Name:              inputName,
+			VersionedResource: vr,
+			FirstOccurrence:   firstOccurrence,
+		})
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return inputs, nil
 }
 
 func (b *build) Resources() ([]BuildInput, []BuildOutput, error) {
@@ -806,7 +883,7 @@ func (b *build) Resources() ([]BuildInput, []BuildOutput, error) {
 			SELECT 1
 			FROM build_inputs ci, builds cb
 			WHERE versioned_resource_id = v.id
-			AND cb.job_id = b.job_id
+			AND cb.job_permutation_id = b.job_permutation_id
 			AND ci.build_id = cb.id
 			AND ci.build_id < b.id
 		)
@@ -909,10 +986,10 @@ func (b *build) GetVersionedResources() (SavedVersionedResources, error) {
 			r.name,
 			vr.modified_time
 		FROM builds b
-		INNER JOIN jobs j ON b.job_id = j.id
 		INNER JOIN build_inputs bi ON bi.build_id = b.id
 		INNER JOIN versioned_resources vr ON bi.versioned_resource_id = vr.id
-		INNER JOIN resources r ON vr.resource_id = r.id
+		INNER JOIN resource_spaces rs ON rs.id = vr.resource_space_id
+		INNER JOIN resources r ON r.id = rs.resource_id
 		WHERE b.id = $1
 
 		UNION ALL
@@ -925,10 +1002,10 @@ func (b *build) GetVersionedResources() (SavedVersionedResources, error) {
 			r.name,
 			vr.modified_time
 		FROM builds b
-		INNER JOIN jobs j ON b.job_id = j.id
 		INNER JOIN build_outputs bo ON bo.build_id = b.id
 		INNER JOIN versioned_resources vr ON bo.versioned_resource_id = vr.id
-		INNER JOIN resources r ON vr.resource_id = r.id
+		INNER JOIN resource_spaces rs ON rs.id = vr.resource_space_id
+		INNER JOIN resources r ON r.id = rs.resource_id
 		WHERE b.id = $1 AND bo.explicit`)
 }
 
@@ -980,7 +1057,7 @@ func buildEventSeq(buildid int) string {
 
 func scanBuild(b *build, row scannable, encryptionStrategy EncryptionStrategy) error {
 	var (
-		jobID, pipelineID                                         sql.NullInt64
+		jobID, pipelineID, jobPermutationID                       sql.NullInt64
 		engine, engineMetadata, jobName, pipelineName, publicPlan sql.NullString
 		startTime, endTime, reapTime                              pq.NullTime
 		nonce                                                     sql.NullString
@@ -988,7 +1065,7 @@ func scanBuild(b *build, row scannable, encryptionStrategy EncryptionStrategy) e
 		status string
 	)
 
-	err := row.Scan(&b.id, &b.name, &jobID, &b.teamID, &status, &b.isManuallyTriggered, &b.scheduled, &engine, &engineMetadata, &publicPlan, &startTime, &endTime, &reapTime, &jobName, &pipelineID, &pipelineName, &b.teamName, &nonce)
+	err := row.Scan(&b.id, &b.name, &jobID, &b.teamID, &status, &b.isManuallyTriggered, &b.scheduled, &engine, &engineMetadata, &publicPlan, &startTime, &endTime, &reapTime, &jobName, &pipelineID, &pipelineName, &b.teamName, &nonce, &jobPermutationID)
 	if err != nil {
 		return err
 	}
@@ -998,6 +1075,7 @@ func scanBuild(b *build, row scannable, encryptionStrategy EncryptionStrategy) e
 	b.jobID = int(jobID.Int64)
 	b.pipelineName = pipelineName.String
 	b.pipelineID = int(pipelineID.Int64)
+	b.jobPermutationID = int(jobPermutationID.Int64)
 	b.engine = engine.String
 	b.startTime = startTime.Time
 	b.endTime = endTime.Time

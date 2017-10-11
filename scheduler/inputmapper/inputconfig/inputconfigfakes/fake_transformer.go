@@ -5,17 +5,19 @@ import (
 	"sync"
 
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/scheduler/inputmapper/inputconfig"
 )
 
 type FakeTransformer struct {
-	TransformInputConfigsStub        func(db *algorithm.VersionsDB, jobName string, inputs []atc.JobInput) (algorithm.InputConfigs, error)
+	TransformInputConfigsStub        func(db *algorithm.VersionsDB, allJobPermutations map[db.Job][]db.JobPermutation, jobPermutation db.JobPermutation, inputs []atc.JobInput) (algorithm.InputConfigs, error)
 	transformInputConfigsMutex       sync.RWMutex
 	transformInputConfigsArgsForCall []struct {
-		db      *algorithm.VersionsDB
-		jobName string
-		inputs  []atc.JobInput
+		db                 *algorithm.VersionsDB
+		allJobPermutations map[db.Job][]db.JobPermutation
+		jobPermutation     db.JobPermutation
+		inputs             []atc.JobInput
 	}
 	transformInputConfigsReturns struct {
 		result1 algorithm.InputConfigs
@@ -29,7 +31,7 @@ type FakeTransformer struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeTransformer) TransformInputConfigs(db *algorithm.VersionsDB, jobName string, inputs []atc.JobInput) (algorithm.InputConfigs, error) {
+func (fake *FakeTransformer) TransformInputConfigs(db *algorithm.VersionsDB, allJobPermutations map[db.Job][]db.JobPermutation, jobPermutation db.JobPermutation, inputs []atc.JobInput) (algorithm.InputConfigs, error) {
 	var inputsCopy []atc.JobInput
 	if inputs != nil {
 		inputsCopy = make([]atc.JobInput, len(inputs))
@@ -38,14 +40,15 @@ func (fake *FakeTransformer) TransformInputConfigs(db *algorithm.VersionsDB, job
 	fake.transformInputConfigsMutex.Lock()
 	ret, specificReturn := fake.transformInputConfigsReturnsOnCall[len(fake.transformInputConfigsArgsForCall)]
 	fake.transformInputConfigsArgsForCall = append(fake.transformInputConfigsArgsForCall, struct {
-		db      *algorithm.VersionsDB
-		jobName string
-		inputs  []atc.JobInput
-	}{db, jobName, inputsCopy})
-	fake.recordInvocation("TransformInputConfigs", []interface{}{db, jobName, inputsCopy})
+		db                 *algorithm.VersionsDB
+		allJobPermutations map[db.Job][]db.JobPermutation
+		jobPermutation     db.JobPermutation
+		inputs             []atc.JobInput
+	}{db, allJobPermutations, jobPermutation, inputsCopy})
+	fake.recordInvocation("TransformInputConfigs", []interface{}{db, allJobPermutations, jobPermutation, inputsCopy})
 	fake.transformInputConfigsMutex.Unlock()
 	if fake.TransformInputConfigsStub != nil {
-		return fake.TransformInputConfigsStub(db, jobName, inputs)
+		return fake.TransformInputConfigsStub(db, allJobPermutations, jobPermutation, inputs)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -59,10 +62,10 @@ func (fake *FakeTransformer) TransformInputConfigsCallCount() int {
 	return len(fake.transformInputConfigsArgsForCall)
 }
 
-func (fake *FakeTransformer) TransformInputConfigsArgsForCall(i int) (*algorithm.VersionsDB, string, []atc.JobInput) {
+func (fake *FakeTransformer) TransformInputConfigsArgsForCall(i int) (*algorithm.VersionsDB, map[db.Job][]db.JobPermutation, db.JobPermutation, []atc.JobInput) {
 	fake.transformInputConfigsMutex.RLock()
 	defer fake.transformInputConfigsMutex.RUnlock()
-	return fake.transformInputConfigsArgsForCall[i].db, fake.transformInputConfigsArgsForCall[i].jobName, fake.transformInputConfigsArgsForCall[i].inputs
+	return fake.transformInputConfigsArgsForCall[i].db, fake.transformInputConfigsArgsForCall[i].allJobPermutations, fake.transformInputConfigsArgsForCall[i].jobPermutation, fake.transformInputConfigsArgsForCall[i].inputs
 }
 
 func (fake *FakeTransformer) TransformInputConfigsReturns(result1 algorithm.InputConfigs, result2 error) {

@@ -163,15 +163,17 @@ func removeUnusedWorkerTaskCaches(tx Tx, pipelineID int, jobConfigs []atc.JobCon
 		query = append(query, sq.And{sq.Eq{"j.name": jobName}, sq.NotEq{"wtc.step_name": stepNames}})
 	}
 
-	_, err := psql.Delete("worker_task_caches wtc USING jobs j").
+	_, err := psql.Delete("worker_task_caches wtc USING job_permutations p, jobs j").
 		Where(sq.Or{
 			query,
+			// XXX: when permutation is inactive too?
 			sq.Eq{
 				"j.pipeline_id": pipelineID,
 				"j.active":      false,
 			},
 		}).
-		Where(sq.Expr("j.id = wtc.job_id")).
+		Where(sq.Expr("p.id = wtc.job_permutation_id")).
+		Where(sq.Expr("j.id = p.job_id")).
 		RunWith(tx).
 		Exec()
 

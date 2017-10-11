@@ -11,12 +11,16 @@ type JobConfig struct {
 	RawMaxInFlight       int      `yaml:"max_in_flight,omitempty" json:"max_in_flight,omitempty" mapstructure:"max_in_flight"`
 	BuildLogsToRetain    int      `yaml:"build_logs_to_retain,omitempty" json:"build_logs_to_retain,omitempty" mapstructure:"build_logs_to_retain"`
 
+	Spaces SpaceConfig `yaml:"spaces,omitempty" json:"spaces,omitempty" mapstructure:"spaces"`
+
 	Plan PlanSequence `yaml:"plan,omitempty" json:"plan,omitempty" mapstructure:"plan"`
 
 	Failure *PlanConfig `yaml:"on_failure,omitempty" json:"on_failure,omitempty" mapstructure:"on_failure"`
 	Ensure  *PlanConfig `yaml:"ensure,omitempty" json:"ensure,omitempty" mapstructure:"ensure"`
 	Success *PlanConfig `yaml:"on_success,omitempty" json:"on_success,omitempty" mapstructure:"on_success"`
 }
+
+type SpaceConfig map[string][]string
 
 func (config JobConfig) Hooks() Hooks {
 	return Hooks{config.Failure, config.Ensure, config.Success}

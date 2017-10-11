@@ -898,13 +898,12 @@ func (t *team) saveJob(tx Tx, job atc.JobConfig, pipelineID int) error {
 func (t *team) registerSerialGroup(tx Tx, jobName, serialGroup string, pipelineID int) error {
 	_, err := tx.Exec(`
     INSERT INTO jobs_serial_groups (serial_group, job_id) VALUES
-    ($1, (SELECT j.id
-                  FROM jobs j
-                       JOIN pipelines p
-                         ON j.pipeline_id = p.id
-                  WHERE j.name = $2
-                    AND j.pipeline_id = $3
-                 LIMIT  1));`,
+    ($1, (SELECT c.id
+								FROM jobs c
+								JOIN pipelines p ON c.pipeline_id = p.id
+								WHERE c.name = $2
+									AND c.pipeline_id = $3
+							 LIMIT  1));`,
 		serialGroup, jobName, pipelineID,
 	)
 

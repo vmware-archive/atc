@@ -26,6 +26,7 @@ type JobInput struct {
 	Version  *VersionConfig `json:"version,omitempty"`
 	Params   Params         `json:"params,omitempty"`
 	Tags     Tags           `json:"tags,omitempty"`
+	Spaces   []string       `json:"spaces,omitempty"`
 }
 
 type JobOutput struct {

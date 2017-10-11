@@ -3,17 +3,22 @@ package algorithm
 type InputConfigs []InputConfig
 
 type InputConfig struct {
-	Name            string
-	JobName         string
-	Passed          JobSet
-	UseEveryVersion bool
-	PinnedVersionID int
-	ResourceID      int
-	JobID           int
+	Name    string
+	JobName string
+
+	// XXX: this is *job permutation*, not *job*, since there's a subset of the
+	// permutations that is implied by not mentioning other resources and their
+	// spaces (the fan-in)
+	Passed JobPermutationSet
+
+	UseEveryVersion  bool
+	PinnedVersionID  int
+	ResourceSpaceID  int
+	JobPermutationID int
 }
 
 func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
-	jobs := JobSet{}
+	jobs := JobPermutationSet{}
 	inputCandidates := InputCandidates{}
 
 	for _, inputConfig := range configs {
@@ -21,15 +26,15 @@ func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
 
 		if len(inputConfig.Passed) == 0 {
 			if inputConfig.UseEveryVersion {
-				versionCandidates = db.AllVersionsOfResource(inputConfig.ResourceID)
+				versionCandidates = db.AllVersionsOfResource(inputConfig.ResourceSpaceID)
 			} else {
 				var versionCandidate VersionCandidate
 				var found bool
 
 				if inputConfig.PinnedVersionID != 0 {
-					versionCandidate, found = db.FindVersionOfResource(inputConfig.ResourceID, inputConfig.PinnedVersionID)
+					versionCandidate, found = db.FindVersionOfResource(inputConfig.ResourceSpaceID, inputConfig.PinnedVersionID)
 				} else {
-					versionCandidate, found = db.LatestVersionOfResource(inputConfig.ResourceID)
+					versionCandidate, found = db.LatestVersionOfResource(inputConfig.ResourceSpaceID)
 				}
 
 				if found {
@@ -44,7 +49,7 @@ func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
 			jobs = jobs.Union(inputConfig.Passed)
 
 			versionCandidates = db.VersionsOfResourcePassedJobs(
-				inputConfig.ResourceID,
+				inputConfig.ResourceSpaceID,
 				inputConfig.Passed,
 			)
 
@@ -54,9 +59,9 @@ func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
 		}
 
 		existingBuildResolver := &ExistingBuildResolver{
-			BuildInputs: db.BuildInputs,
-			JobID:       inputConfig.JobID,
-			ResourceID:  inputConfig.ResourceID,
+			BuildInputs:      db.BuildInputs,
+			JobPermutationID: inputConfig.JobPermutationID,
+			ResourceSpaceID:  inputConfig.ResourceSpaceID,
 		}
 
 		inputCandidates = append(inputCandidates, InputVersionCandidates{
@@ -78,7 +83,7 @@ func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
 	for _, inputConfig := range configs {
 		inputName := inputConfig.Name
 		inputVersionID := basicMapping[inputName]
-		firstOccurrence := db.IsVersionFirstOccurrence(inputVersionID, inputConfig.JobID, inputName)
+		firstOccurrence := db.IsVersionFirstOccurrence(inputVersionID, inputConfig.JobPermutationID, inputName)
 		mapping[inputName] = InputVersion{
 			VersionID:       inputVersionID,
 			FirstOccurrence: firstOccurrence,

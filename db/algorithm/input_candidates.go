@@ -11,7 +11,7 @@ type ResolvedInputs map[string]int
 
 type InputVersionCandidates struct {
 	Input                 string
-	Passed                JobSet
+	Passed                JobPermutationSet
 	UseEveryVersion       bool
 	PinnedVersionID       int
 	ExistingBuildResolver *ExistingBuildResolver
@@ -53,7 +53,7 @@ func (candidates InputCandidates) String() string {
 	return fmt.Sprintf("[%s]", strings.Join(lens, "; "))
 }
 
-func (candidates InputCandidates) Reduce(depth int, jobs JobSet) (ResolvedInputs, bool) {
+func (candidates InputCandidates) Reduce(depth int, jobs JobPermutationSet) (ResolvedInputs, bool) {
 	newInputCandidates := candidates.pruneToCommonBuilds(jobs)
 
 	for i, inputVersionCandidates := range newInputCandidates {
@@ -119,7 +119,7 @@ func (candidates InputCandidates) Unpin(input int, inputCandidates InputVersionC
 	candidates[input] = inputCandidates
 }
 
-func (candidates InputCandidates) pruneToCommonBuilds(jobs JobSet) InputCandidates {
+func (candidates InputCandidates) pruneToCommonBuilds(jobs JobPermutationSet) InputCandidates {
 	newCandidates := make(InputCandidates, len(candidates))
 	copy(newCandidates, candidates)
 

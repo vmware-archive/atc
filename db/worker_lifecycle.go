@@ -60,7 +60,8 @@ func (lifecycle *workerLifecycle) DeleteFinishedRetiringWorkers() ([]string, err
 		From("builds b").
 		Join("containers c ON b.id = c.build_id").
 		Join("workers w ON w.name = c.worker_name").
-		LeftJoin("jobs j ON j.id = b.job_id").
+		LeftJoin("job_permutations p ON p.id = b.job_permutation_id").
+		LeftJoin("jobs j ON j.id = p.job_id").
 		Where(sq.Or{
 			sq.Eq{
 				"b.status": string(BuildStatusStarted),
@@ -74,7 +75,7 @@ func (lifecycle *workerLifecycle) DeleteFinishedRetiringWorkers() ([]string, err
 				"j.interruptible": false,
 			},
 			sq.Eq{
-				"b.job_id": nil,
+				"b.job_permutation_id": nil,
 			},
 		}).ToSql()
 
@@ -116,7 +117,8 @@ func (lifecycle *workerLifecycle) LandFinishedLandingWorkers() ([]string, error)
 		From("builds b").
 		Join("containers c ON b.id = c.build_id").
 		Join("workers w ON w.name = c.worker_name").
-		LeftJoin("jobs j ON j.id = b.job_id").
+		LeftJoin("job_permutations p ON p.id = b.job_permutation_id").
+		LeftJoin("jobs j ON j.id = p.job_id").
 		Where(sq.Or{
 			sq.Eq{
 				"b.status": string(BuildStatusStarted),
@@ -130,7 +132,7 @@ func (lifecycle *workerLifecycle) LandFinishedLandingWorkers() ([]string, error)
 				"j.interruptible": false,
 			},
 			sq.Eq{
-				"b.job_id": nil,
+				"b.job_permutation_id": nil,
 			},
 		}).ToSql()
 

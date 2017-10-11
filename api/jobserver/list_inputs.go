@@ -14,7 +14,7 @@ func (s *Server) ListJobInputs(pipeline db.Pipeline) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jobName := r.FormValue(":job_name")
 
-		variables := s.variablesFactory.NewVariables(pipeline.TeamName(), pipeline.Name())
+		// variables := s.variablesFactory.NewVariables(pipeline.TeamName(), pipeline.Name())
 
 		job, found, err := pipeline.Job(jobName)
 		if err != nil {
@@ -28,20 +28,22 @@ func (s *Server) ListJobInputs(pipeline db.Pipeline) http.Handler {
 			return
 		}
 
-		scheduler := s.schedulerFactory.BuildScheduler(pipeline, s.externalURL, variables)
+		// scheduler := s.schedulerFactory.BuildScheduler(pipeline, s.externalURL, variables)
 
-		err = scheduler.SaveNextInputMapping(logger, job)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		// err = scheduler.SaveNextInputMapping(logger, job)
+		// if err != nil {
+		// 	w.WriteHeader(http.StatusInternalServerError)
+		// 	return
+		// }
 
-		buildInputs, found, err := job.GetNextBuildInputs()
-		if err != nil {
-			logger.Error("failed-to-get-next-build-inputs", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		var buildInputs []db.BuildInput
+		found = false
+		// buildInputs, found, err := job.GetNextBuildInputs()
+		// if err != nil {
+		// 	logger.Error("failed-to-get-next-build-inputs", err)
+		// 	w.WriteHeader(http.StatusInternalServerError)
+		// 	return
+		// }
 
 		if !found {
 			w.WriteHeader(http.StatusNotFound)

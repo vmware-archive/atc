@@ -209,9 +209,10 @@ func (volume *createdVolume) TaskIdentifier() (string, string, string, error) {
 	var jobName string
 	var stepName string
 
-	err := psql.Select("p.name, j.name, wtc.step_name").
+	err := psql.Select("p.name, c.name, wtc.step_name").
 		From("worker_task_caches wtc").
-		LeftJoin("jobs j ON j.id = wtc.job_id").
+		LeftJoin("job_permutations p ON p.id = wtc.job_permutation_id").
+		LeftJoin("jobs j ON j.id = p.job_id").
 		LeftJoin("pipelines p ON p.id = j.pipeline_id").
 		Where(sq.Eq{
 			"wtc.id": volume.workerTaskCacheID,

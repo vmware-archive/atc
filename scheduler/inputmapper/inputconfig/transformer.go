@@ -9,7 +9,7 @@ import (
 //go:generate counterfeiter . Transformer
 
 type Transformer interface {
-	TransformInputConfigs(db *algorithm.VersionsDB, jobName string, inputs []atc.JobInput) (algorithm.InputConfigs, error)
+	TransformInputConfigs(db *algorithm.VersionsDB, allJobPermutations map[db.Job][]db.JobPermutation, jobPermutation db.JobPermutation, inputs []atc.JobInput) (algorithm.InputConfigs, error)
 }
 
 func NewTransformer(pipeline db.Pipeline) Transformer {
@@ -20,7 +20,7 @@ type transformer struct {
 	pipeline db.Pipeline
 }
 
-func (i *transformer) TransformInputConfigs(db *algorithm.VersionsDB, jobName string, inputs []atc.JobInput) (algorithm.InputConfigs, error) {
+func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, allJobPermutations map[db.Job][]db.JobPermutation, jobPermutation db.JobPermutation, inputs []atc.JobInput) (algorithm.InputConfigs, error) {
 	inputConfigs := algorithm.InputConfigs{}
 
 	for _, input := range inputs {
@@ -42,18 +42,47 @@ func (i *transformer) TransformInputConfigs(db *algorithm.VersionsDB, jobName st
 			pinnedVersionID = savedVersion.ID
 		}
 
-		jobs := algorithm.JobSet{}
+		ourSpaces := jobPermutation.ResourceSpaces()
+
+		jobs := algorithm.JobPermutationSet{}
 		for _, passedJobName := range input.Passed {
-			jobs[db.JobIDs[passedJobName]] = struct{}{}
+			var passedJob db.Job
+			for job, _ := range allJobPermutations {
+				if job.Name() == passedJobName {
+					passedJob = job
+					break
+				}
+			}
+
+			if passedJob == nil {
+				panic("ruh roh")
+			}
+
+			for _, permutation := range allJobPermutations[passedJob] {
+				otherSpaces := permutation.ResourceSpaces()
+
+				var mismatch bool
+				for resource, space := range ourSpaces {
+					otherSpace, found := otherSpaces[resource]
+					if found && otherSpace != space {
+						mismatch = true
+						break
+					}
+				}
+
+				if !mismatch {
+					jobs.Add(permutation.ID())
+				}
+			}
 		}
 
 		inputConfigs = append(inputConfigs, algorithm.InputConfig{
-			Name:            input.Name,
-			UseEveryVersion: input.Version.Every,
-			PinnedVersionID: pinnedVersionID,
-			ResourceID:      db.ResourceIDs[input.Resource],
-			Passed:          jobs,
-			JobID:           db.JobIDs[jobName],
+			Name:             input.Name,
+			UseEveryVersion:  input.Version.Every,
+			PinnedVersionID:  pinnedVersionID,
+			ResourceSpaceID:  versionsDB.ResourceSpaceIDs[input.Resource+"{"+ourSpaces[input.Resource]+"}"], // XXX: please no
+			Passed:           jobs,
+			JobPermutationID: jobPermutation.ID(),
 		})
 	}
 

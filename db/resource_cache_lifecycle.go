@@ -30,7 +30,7 @@ func (f *resourceCacheLifecycle) CleanBuildImageResourceCaches(logger lager.Logg
 	_, err := sq.Delete("build_image_resource_caches birc USING builds b").
 		Where("birc.build_id = b.id").
 		Where(sq.Expr("((now() - b.end_time) > '24 HOURS'::INTERVAL)")).
-		Where(sq.Eq{"job_id": nil}).
+		Where(sq.Eq{"b.job_permutation_id": nil}).
 		RunWith(f.conn).
 		Exec()
 	if err != nil {
@@ -85,10 +85,12 @@ func (f *resourceCacheLifecycle) CleanUpInvalidCaches(logger lager.Logger) error
 		Select("r_cache.id").
 		From("next_build_inputs nbi").
 		Join("versioned_resources vr ON vr.id = nbi.version_id").
-		Join("resources r ON r.id = vr.resource_id").
+		Join("resource_spaces rs ON rs.id = vr.resource_space_id").
+		Join("resources r ON r.id = rs.resource_id").
 		Join("resource_caches r_cache ON r_cache.version = vr.version").
 		Join("resource_configs r_config ON r_cache.resource_config_id = r_config.id").
-		Join("jobs j ON nbi.job_id = j.id").
+		Join("job_permutations jp ON nbi.job_permutation_id = jp.id").
+		Join("jobs j ON j.id = jp.job_id").
 		Join("pipelines p ON j.pipeline_id = p.id").
 		Where(sq.Expr("r.resource_config_id = r_config.id")).
 		Where(sq.Expr("p.paused = false")).

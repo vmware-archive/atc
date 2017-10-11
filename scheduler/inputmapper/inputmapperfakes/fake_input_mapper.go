@@ -5,18 +5,21 @@ import (
 	"sync"
 
 	"code.cloudfoundry.org/lager"
+	"github.com/concourse/atc"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/scheduler/inputmapper"
 )
 
 type FakeInputMapper struct {
-	SaveNextInputMappingStub        func(logger lager.Logger, versions *algorithm.VersionsDB, job db.Job) (algorithm.InputMapping, error)
+	SaveNextInputMappingStub        func(logger lager.Logger, versions *algorithm.VersionsDB, allJobPermutations map[db.Job][]db.JobPermutation, jobPermutation db.JobPermutation, inputConfigs []atc.JobInput) (algorithm.InputMapping, error)
 	saveNextInputMappingMutex       sync.RWMutex
 	saveNextInputMappingArgsForCall []struct {
-		logger   lager.Logger
-		versions *algorithm.VersionsDB
-		job      db.Job
+		logger             lager.Logger
+		versions           *algorithm.VersionsDB
+		allJobPermutations map[db.Job][]db.JobPermutation
+		jobPermutation     db.JobPermutation
+		inputConfigs       []atc.JobInput
 	}
 	saveNextInputMappingReturns struct {
 		result1 algorithm.InputMapping
@@ -30,18 +33,25 @@ type FakeInputMapper struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeInputMapper) SaveNextInputMapping(logger lager.Logger, versions *algorithm.VersionsDB, job db.Job) (algorithm.InputMapping, error) {
+func (fake *FakeInputMapper) SaveNextInputMapping(logger lager.Logger, versions *algorithm.VersionsDB, allJobPermutations map[db.Job][]db.JobPermutation, jobPermutation db.JobPermutation, inputConfigs []atc.JobInput) (algorithm.InputMapping, error) {
+	var inputConfigsCopy []atc.JobInput
+	if inputConfigs != nil {
+		inputConfigsCopy = make([]atc.JobInput, len(inputConfigs))
+		copy(inputConfigsCopy, inputConfigs)
+	}
 	fake.saveNextInputMappingMutex.Lock()
 	ret, specificReturn := fake.saveNextInputMappingReturnsOnCall[len(fake.saveNextInputMappingArgsForCall)]
 	fake.saveNextInputMappingArgsForCall = append(fake.saveNextInputMappingArgsForCall, struct {
-		logger   lager.Logger
-		versions *algorithm.VersionsDB
-		job      db.Job
-	}{logger, versions, job})
-	fake.recordInvocation("SaveNextInputMapping", []interface{}{logger, versions, job})
+		logger             lager.Logger
+		versions           *algorithm.VersionsDB
+		allJobPermutations map[db.Job][]db.JobPermutation
+		jobPermutation     db.JobPermutation
+		inputConfigs       []atc.JobInput
+	}{logger, versions, allJobPermutations, jobPermutation, inputConfigsCopy})
+	fake.recordInvocation("SaveNextInputMapping", []interface{}{logger, versions, allJobPermutations, jobPermutation, inputConfigsCopy})
 	fake.saveNextInputMappingMutex.Unlock()
 	if fake.SaveNextInputMappingStub != nil {
-		return fake.SaveNextInputMappingStub(logger, versions, job)
+		return fake.SaveNextInputMappingStub(logger, versions, allJobPermutations, jobPermutation, inputConfigs)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -55,10 +65,10 @@ func (fake *FakeInputMapper) SaveNextInputMappingCallCount() int {
 	return len(fake.saveNextInputMappingArgsForCall)
 }
 
-func (fake *FakeInputMapper) SaveNextInputMappingArgsForCall(i int) (lager.Logger, *algorithm.VersionsDB, db.Job) {
+func (fake *FakeInputMapper) SaveNextInputMappingArgsForCall(i int) (lager.Logger, *algorithm.VersionsDB, map[db.Job][]db.JobPermutation, db.JobPermutation, []atc.JobInput) {
 	fake.saveNextInputMappingMutex.RLock()
 	defer fake.saveNextInputMappingMutex.RUnlock()
-	return fake.saveNextInputMappingArgsForCall[i].logger, fake.saveNextInputMappingArgsForCall[i].versions, fake.saveNextInputMappingArgsForCall[i].job
+	return fake.saveNextInputMappingArgsForCall[i].logger, fake.saveNextInputMappingArgsForCall[i].versions, fake.saveNextInputMappingArgsForCall[i].allJobPermutations, fake.saveNextInputMappingArgsForCall[i].jobPermutation, fake.saveNextInputMappingArgsForCall[i].inputConfigs
 }
 
 func (fake *FakeInputMapper) SaveNextInputMappingReturns(result1 algorithm.InputMapping, result2 error) {

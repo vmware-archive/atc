@@ -7,8 +7,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/atc"
-	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/db/lock"
+	"github.com/concourse/atc/space"
 )
 
 //go:generate counterfeiter . Job
@@ -29,29 +29,25 @@ type Job interface {
 	Pause() error
 	Unpause() error
 
-	CreateBuild() (Build, error)
 	Builds(page Page) ([]Build, Pagination, error)
 	Build(name string) (Build, bool, error)
 	FinishedAndNextBuild() (Build, Build, error)
 	UpdateFirstLoggedBuildID(newFirstLoggedBuildID int) error
-	EnsurePendingBuildExists() error
+
+	SyncPermutations([]space.Permutation) ([]JobPermutation, error)
+
+	// XXX: move to permutation
 	GetPendingBuilds() ([]Build, error)
-
-	GetIndependentBuildInputs() ([]BuildInput, error)
-	GetNextBuildInputs() ([]BuildInput, bool, error)
-	SaveNextInputMapping(inputMapping algorithm.InputMapping) error
-	SaveIndependentInputMapping(inputMapping algorithm.InputMapping) error
-	DeleteNextInputMapping() error
-
-	SetMaxInFlightReached(bool) error
 	GetRunningBuildsBySerialGroup(serialGroups []string) ([]Build, error)
 	GetNextPendingBuildBySerialGroup(serialGroups []string) (Build, bool, error)
+
+	SetMaxInFlightReached(bool) error
 }
 
-var jobsQuery = psql.Select("j.id", "j.name", "j.config", "j.paused", "j.first_logged_build_id", "j.pipeline_id", "p.name", "p.team_id", "t.name", "j.nonce").
-	From("jobs j, pipelines p").
-	LeftJoin("teams t ON p.team_id = t.id").
-	Where(sq.Expr("j.pipeline_id = p.id"))
+var jobsQuery = psql.Select("j.id", "j.name", "j.config", "j.paused", "j.first_logged_build_id", "p.id", "p.name", "p.team_id", "t.name", "j.nonce").
+	From("jobs j").
+	Join("pipelines p ON p.id = j.pipeline_id").
+	Join("teams t ON p.team_id = t.id")
 
 type FirstLoggedBuildIDDecreasedError struct {
 	Job   string
@@ -126,10 +122,7 @@ func (j *job) Unpause() error {
 
 func (j *job) FinishedAndNextBuild() (Build, Build, error) {
 	row := buildsQuery.
-		Where(sq.Eq{
-			"j.name":        j.name,
-			"j.pipeline_id": j.pipelineID,
-		}).
+		Where(sq.Eq{"j.id": j.id}).
 		Where(sq.Expr("b.status NOT IN ('pending', 'started')")).
 		OrderBy("b.id DESC").
 		Limit(1).
@@ -148,9 +141,8 @@ func (j *job) FinishedAndNextBuild() (Build, Build, error) {
 
 	row = buildsQuery.
 		Where(sq.Eq{
-			"j.name":        j.name,
-			"j.pipeline_id": j.pipelineID,
-			"b.status":      []BuildStatus{BuildStatusPending, BuildStatusStarted},
+			"j.id":     j.id,
+			"b.status": []BuildStatus{BuildStatusPending, BuildStatusStarted},
 		}).
 		OrderBy("b.id ASC").
 		Limit(1).
@@ -243,11 +235,9 @@ func (j *job) Builds(page Page) ([]Build, Pagination, error) {
 	var maxID, minID int
 	err = psql.Select("COALESCE(MAX(b.id), 0) as maxID", "COALESCE(MIN(b.id), 0) as minID").
 		From("builds b").
-		Join("jobs j ON b.job_id = j.id").
-		Where(sq.Eq{
-			"j.name":        j.name,
-			"j.pipeline_id": j.pipelineID,
-		}).
+		Join("job_permutations jp ON jp.id = b.job_permutation_id").
+		Join("jobs j ON j.id = jp.job_id").
+		Where(sq.Eq{"j.id": j.id}).
 		RunWith(j.conn).
 		QueryRow().
 		Scan(&maxID, &minID)
@@ -279,8 +269,8 @@ func (j *job) Builds(page Page) ([]Build, Pagination, error) {
 
 func (j *job) Build(name string) (Build, bool, error) {
 	row := buildsQuery.Where(sq.Eq{
-		"b.job_id": j.id,
-		"b.name":   name,
+		"j.id":   j.id,
+		"b.name": name,
 	}).
 		RunWith(j.conn).
 		QueryRow()
@@ -298,6 +288,7 @@ func (j *job) Build(name string) (Build, bool, error) {
 	return build, true, nil
 }
 
+// XXX: move to permutation
 func (j *job) GetNextPendingBuildBySerialGroup(serialGroups []string) (Build, bool, error) {
 	err := j.updateSerialGroups(serialGroups)
 	if err != nil {
@@ -392,131 +383,12 @@ func (j *job) SetMaxInFlightReached(reached bool) error {
 	return nil
 }
 
-func (j *job) SaveIndependentInputMapping(inputMapping algorithm.InputMapping) error {
-	return j.saveJobInputMapping("independent_build_inputs", inputMapping)
-}
-
-func (j *job) SaveNextInputMapping(inputMapping algorithm.InputMapping) error {
-	return j.saveJobInputMapping("next_build_inputs", inputMapping)
-}
-
-func (j *job) GetIndependentBuildInputs() ([]BuildInput, error) {
-	return j.getBuildInputs("independent_build_inputs")
-}
-
-func (j *job) GetNextBuildInputs() ([]BuildInput, bool, error) {
-	var found bool
-	err := psql.Select("inputs_determined").
-		From("jobs").
-		Where(sq.Eq{
-			"name":        j.name,
-			"pipeline_id": j.pipelineID,
-		}).
-		RunWith(j.conn).
-		QueryRow().
-		Scan(&found)
-	if err != nil {
-		return nil, false, err
-	}
-
-	if !found {
-		return nil, false, nil
-	}
-
-	// there is a possible race condition where found is true at first but the
-	// inputs are deleted by the time we get here
-	buildInputs, err := j.getBuildInputs("next_build_inputs")
-	return buildInputs, true, err
-}
-
-func (j *job) DeleteNextInputMapping() error {
-	tx, err := j.conn.Begin()
-	if err != nil {
-		return err
-	}
-
-	defer tx.Rollback()
-
-	_, err = psql.Update("jobs").
-		Set("inputs_determined", false).
-		Where(sq.Eq{
-			"name":        j.name,
-			"pipeline_id": j.pipelineID,
-		}).
-		RunWith(tx).
-		Exec()
-	if err != nil {
-		return err
-	}
-
-	_, err = psql.Delete("next_build_inputs").
-		Where(sq.Eq{"job_id": j.id}).
-		RunWith(tx).Exec()
-	if err != nil {
-		return err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (j *job) EnsurePendingBuildExists() error {
-	tx, err := j.conn.Begin()
-	if err != nil {
-		return err
-	}
-
-	defer tx.Rollback()
-
-	buildName, err := j.getNewBuildName(tx)
-	if err != nil {
-		return err
-	}
-
-	rows, err := tx.Query(`
-		INSERT INTO builds (name, job_id, pipeline_id, team_id, status)
-		SELECT $1, $2, $3, $4, 'pending'
-		WHERE NOT EXISTS
-			(SELECT id FROM builds WHERE job_id = $2 AND status = 'pending')
-		RETURNING id
-	`, buildName, j.id, j.pipelineID, j.teamID)
-	if err != nil {
-		return err
-	}
-
-	defer rows.Close()
-
-	if rows.Next() {
-		var buildID int
-		err := rows.Scan(&buildID)
-		if err != nil {
-			return err
-		}
-
-		rows.Close()
-
-		err = createBuildEventSeq(tx, buildID)
-		if err != nil {
-			return err
-		}
-
-		return tx.Commit()
-	}
-
-	return nil
-}
-
 func (j *job) GetPendingBuilds() ([]Build, error) {
 	builds := []Build{}
 
 	row := jobsQuery.Where(sq.Eq{
-		"j.name":        j.name,
-		"j.active":      true,
-		"j.pipeline_id": j.pipelineID,
+		"j.id":     j.id,
+		"j.active": true,
 	}).RunWith(j.conn).QueryRow()
 
 	job := &job{conn: j.conn, lockFactory: j.lockFactory}
@@ -527,7 +399,7 @@ func (j *job) GetPendingBuilds() ([]Build, error) {
 
 	rows, err := buildsQuery.
 		Where(sq.Eq{
-			"b.job_id": j.id,
+			"j.id":     j.id,
 			"b.status": BuildStatusPending,
 		}).
 		OrderBy("b.id ASC").
@@ -552,7 +424,7 @@ func (j *job) GetPendingBuilds() ([]Build, error) {
 	return builds, nil
 }
 
-func (j *job) CreateBuild() (Build, error) {
+func (j *job) SyncPermutations(permutations []space.Permutation) ([]JobPermutation, error) {
 	tx, err := j.conn.Begin()
 	if err != nil {
 		return nil, err
@@ -560,20 +432,47 @@ func (j *job) CreateBuild() (Build, error) {
 
 	defer tx.Rollback()
 
-	buildName, err := j.getNewBuildName(tx)
+	var keepIDs []int
+	for _, p := range permutations {
+		marshaled, err := json.Marshal(p)
+		if err != nil {
+			return nil, err
+		}
+
+		var id int
+		err = psql.Insert("job_permutations").
+			Columns("job_id", "resource_spaces", "active").
+			Values(j.id, marshaled, true).
+			Suffix(`
+				ON CONFLICT (job_id, resource_spaces) DO UPDATE SET active = true
+				RETURNING id
+			`).
+			RunWith(tx).
+			QueryRow().
+			Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+
+		keepIDs = append(keepIDs, id)
+	}
+
+	_, err = psql.Update("job_permutations").
+		Set("active", false).
+		Where(sq.Eq{"job_id": j.id}).
+		Where(sq.NotEq{"id": keepIDs}).
+		RunWith(tx).
+		Exec()
 	if err != nil {
 		return nil, err
 	}
 
-	build := &build{conn: j.conn, lockFactory: j.lockFactory}
-	err = createBuild(tx, build, map[string]interface{}{
-		"name":               buildName,
-		"job_id":             j.id,
-		"pipeline_id":        j.pipelineID,
-		"team_id":            j.teamID,
-		"status":             BuildStatusPending,
-		"manually_triggered": true,
-	})
+	rows, err := jobPermutationsQuery.Where(sq.Eq{"jp.job_id": j.id, "jp.active": true}).RunWith(tx).Query()
+	if err != nil {
+		return nil, err
+	}
+
+	jobPermutations, err := scanJobPermutations(j.conn, j.lockFactory, rows)
 	if err != nil {
 		return nil, err
 	}
@@ -583,12 +482,7 @@ func (j *job) CreateBuild() (Build, error) {
 		return nil, err
 	}
 
-	_, err = j.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job`)
-	if err != nil {
-		return nil, err
-	}
-
-	return build, nil
+	return jobPermutations, nil
 }
 
 func (j *job) updateSerialGroups(serialGroups []string) error {
@@ -647,158 +541,6 @@ func (j *job) updatePausedJob(pause bool) error {
 	}
 
 	return nil
-}
-
-func (j *job) getBuildInputs(table string) ([]BuildInput, error) {
-	rows, err := psql.Select("i.input_name, i.first_occurrence, r.name, v.type, v.version, v.metadata").
-		From(table + " i").
-		Join("jobs j ON i.job_id = j.id").
-		Join("versioned_resources v ON v.id = i.version_id").
-		Join("resources r ON r.id = v.resource_id").
-		Where(sq.Eq{
-			"j.name":        j.name,
-			"j.pipeline_id": j.pipelineID,
-		}).
-		RunWith(j.conn).
-		Query()
-	if err != nil {
-		return nil, err
-	}
-
-	buildInputs := []BuildInput{}
-	for rows.Next() {
-		var (
-			inputName       string
-			firstOccurrence bool
-			resourceName    string
-			resourceType    string
-			versionBlob     string
-			metadataBlob    string
-			version         ResourceVersion
-			metadata        []ResourceMetadataField
-		)
-
-		err := rows.Scan(&inputName, &firstOccurrence, &resourceName, &resourceType, &versionBlob, &metadataBlob)
-		if err != nil {
-			return nil, err
-		}
-
-		err = json.Unmarshal([]byte(versionBlob), &version)
-		if err != nil {
-			return nil, err
-		}
-
-		err = json.Unmarshal([]byte(metadataBlob), &metadata)
-		if err != nil {
-			return nil, err
-		}
-
-		buildInputs = append(buildInputs, BuildInput{
-			Name: inputName,
-			VersionedResource: VersionedResource{
-				Resource: resourceName,
-				Type:     resourceType,
-				Version:  version,
-				Metadata: metadata,
-			},
-			FirstOccurrence: firstOccurrence,
-		})
-	}
-	return buildInputs, nil
-}
-
-func (j *job) getNewBuildName(tx Tx) (string, error) {
-	var buildName string
-	err := psql.Update("jobs").
-		Set("build_number_seq", sq.Expr("build_number_seq + 1")).
-		Where(sq.Eq{
-			"name":        j.name,
-			"pipeline_id": j.pipelineID,
-		}).
-		Suffix("RETURNING build_number_seq").
-		RunWith(tx).
-		QueryRow().
-		Scan(&buildName)
-
-	return buildName, err
-}
-
-func (j *job) saveJobInputMapping(table string, inputMapping algorithm.InputMapping) error {
-	tx, err := j.conn.Begin()
-	if err != nil {
-		return err
-	}
-
-	defer tx.Rollback()
-
-	if table == "next_build_inputs" {
-		_, err = psql.Update("jobs").
-			Set("inputs_determined", true).
-			Where(sq.Eq{"id": j.id}).
-			Where(sq.Expr("NOT inputs_determined")).
-			RunWith(tx).
-			Exec()
-	}
-	if err != nil {
-		return err
-	}
-
-	rows, err := psql.Select("input_name, version_id, first_occurrence").
-		From(table).
-		Where(sq.Eq{"job_id": j.id}).
-		RunWith(tx).
-		Query()
-	if err != nil {
-		return err
-	}
-
-	oldInputMapping := algorithm.InputMapping{}
-	for rows.Next() {
-		var inputName string
-		var inputVersion algorithm.InputVersion
-		err := rows.Scan(&inputName, &inputVersion.VersionID, &inputVersion.FirstOccurrence)
-		if err != nil {
-			return err
-		}
-
-		oldInputMapping[inputName] = inputVersion
-	}
-
-	for inputName, oldInputVersion := range oldInputMapping {
-		inputVersion, found := inputMapping[inputName]
-		if !found || inputVersion != oldInputVersion {
-			_, err = psql.Delete(table).
-				Where(sq.Eq{
-					"job_id":     j.id,
-					"input_name": inputName,
-				}).
-				RunWith(tx).
-				Exec()
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	for inputName, inputVersion := range inputMapping {
-		oldInputVersion, found := oldInputMapping[inputName]
-		if !found || inputVersion != oldInputVersion {
-			_, err := psql.Insert(table).
-				SetMap(map[string]interface{}{
-					"job_id":           j.id,
-					"input_name":       inputName,
-					"version_id":       inputVersion.VersionID,
-					"first_occurrence": inputVersion.FirstOccurrence,
-				}).
-				RunWith(tx).
-				Exec()
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return tx.Commit()
 }
 
 func scanJob(j *job, row scannable) error {

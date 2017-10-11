@@ -7,10 +7,11 @@ import (
 )
 
 type VersionedResource struct {
-	Resource string
-	Type     string
-	Version  ResourceVersion
-	Metadata ResourceMetadataFields
+	Resource      string
+	ResourceSpace string
+	Type          string
+	Version       ResourceVersion
+	Metadata      ResourceMetadataFields
 }
 
 type SavedVersionedResource struct {

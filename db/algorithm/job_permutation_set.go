@@ -6,15 +6,19 @@ import (
 	"strings"
 )
 
-type JobSet map[int]struct{}
+type JobPermutationSet map[int]struct{}
 
-func (set JobSet) Contains(jobID int) bool {
+func (set JobPermutationSet) Add(id int) {
+	set[id] = struct{}{}
+}
+
+func (set JobPermutationSet) Contains(jobID int) bool {
 	_, found := set[jobID]
 	return found
 }
 
-func (set JobSet) Union(otherSet JobSet) JobSet {
-	newSet := JobSet{}
+func (set JobPermutationSet) Union(otherSet JobPermutationSet) JobPermutationSet {
+	newSet := JobPermutationSet{}
 
 	for jobID, _ := range set {
 		newSet[jobID] = struct{}{}
@@ -27,8 +31,8 @@ func (set JobSet) Union(otherSet JobSet) JobSet {
 	return newSet
 }
 
-func (set JobSet) Intersect(otherSet JobSet) JobSet {
-	result := JobSet{}
+func (set JobPermutationSet) Intersect(otherSet JobPermutationSet) JobPermutationSet {
+	result := JobPermutationSet{}
 
 	for key, val := range set {
 		_, found := otherSet[key]
@@ -40,7 +44,7 @@ func (set JobSet) Intersect(otherSet JobSet) JobSet {
 	return result
 }
 
-func (set JobSet) Equal(otherSet JobSet) bool {
+func (set JobPermutationSet) Equal(otherSet JobPermutationSet) bool {
 	if len(set) != len(otherSet) {
 		return false
 	}
@@ -54,7 +58,7 @@ func (set JobSet) Equal(otherSet JobSet) bool {
 	return true
 }
 
-func (set JobSet) String() string {
+func (set JobPermutationSet) String() string {
 	xs := []string{}
 	for x, _ := range set {
 		xs = append(xs, fmt.Sprintf("%v", x))
