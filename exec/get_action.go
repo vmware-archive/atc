@@ -81,6 +81,18 @@ func (action *GetAction) Run(
 		return err
 	}
 
+	v, err := action.VersionSource.GetVersion()
+
+	source["branch"] = "bar"
+
+	if v["ref"] == "c64fdd373023ff905b6ca02e6a46ddfa70fc5837" {
+		source["branch"] = "foo"
+	}
+
+	if v["ref"] == "092dbc7b001c47d9aac8c59f9cadd04dcba7e963" {
+		source["branch"] = "master"
+	}
+
 	params, err := action.Params.Evaluate()
 	if err != nil {
 		return err

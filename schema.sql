@@ -634,10 +634,10 @@ CREATE SEQUENCE one_off_name
 
 
 --
--- Name: pipeline_build_events_4; Type: TABLE; Schema: public; Owner: -
+-- Name: pipeline_build_events_5; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE pipeline_build_events_4 (
+CREATE TABLE pipeline_build_events_5 (
 )
 INHERITS (build_events);
 
@@ -1950,17 +1950,17 @@ CREATE UNIQUE INDEX next_builds_per_job_id ON next_builds_per_job USING btree (i
 
 
 --
--- Name: pipeline_build_events_4_build_id; Type: INDEX; Schema: public; Owner: -
+-- Name: pipeline_build_events_5_build_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX pipeline_build_events_4_build_id ON pipeline_build_events_4 USING btree (build_id);
+CREATE INDEX pipeline_build_events_5_build_id ON pipeline_build_events_5 USING btree (build_id);
 
 
 --
--- Name: pipeline_build_events_4_build_id_event_id; Type: INDEX; Schema: public; Owner: -
+-- Name: pipeline_build_events_5_build_id_event_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX pipeline_build_events_4_build_id_event_id ON pipeline_build_events_4 USING btree (build_id, event_id);
+CREATE UNIQUE INDEX pipeline_build_events_5_build_id_event_id ON pipeline_build_events_5 USING btree (build_id, event_id);
 
 
 --
@@ -2280,14 +2280,6 @@ ALTER TABLE ONLY builds
 
 
 --
--- Name: jobs career_pipeline_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY jobs
-    ADD CONSTRAINT career_pipeline_id_fkey FOREIGN KEY (pipeline_id) REFERENCES pipelines(id);
-
-
---
 -- Name: jobs_serial_groups career_serial_groups_career_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2376,11 +2368,19 @@ ALTER TABLE ONLY independent_build_inputs
 
 
 --
--- Name: job_permutations jobs_career_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: job_permutations job_permutations_job_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY job_permutations
-    ADD CONSTRAINT jobs_career_id_fkey FOREIGN KEY (job_id) REFERENCES jobs(id);
+    ADD CONSTRAINT job_permutations_job_id_fkey FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE;
+
+
+--
+-- Name: jobs jobs_pipeline_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY jobs
+    ADD CONSTRAINT jobs_pipeline_id_fkey FOREIGN KEY (pipeline_id) REFERENCES pipelines(id) ON DELETE CASCADE;
 
 
 --
@@ -2476,7 +2476,7 @@ ALTER TABLE ONLY resource_configs
 --
 
 ALTER TABLE ONLY resource_spaces
-    ADD CONSTRAINT resource_spaces_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES resources(id);
+    ADD CONSTRAINT resource_spaces_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE;
 
 
 --

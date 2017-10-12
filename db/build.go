@@ -124,7 +124,7 @@ var ErrBuildDisappeared = errors.New("build-disappeared-from-db")
 
 func (b *build) ID() int                      { return b.id }
 func (b *build) Name() string                 { return b.name }
-func (b *build) JobID() int                   { return b.jobID }
+func (b *build) JobID() int                   { return b.jobPermutationID }
 func (b *build) JobName() string              { return b.jobName }
 func (b *build) JobPermutationID() int        { return b.jobPermutationID }
 func (b *build) PipelineID() int              { return b.pipelineID }
@@ -714,37 +714,37 @@ func (b *build) SaveEvent(event atc.Event) error {
 }
 
 func (b *build) SaveInput(input BuildInput) error {
-	if b.pipelineID == 0 {
-		return nil
-	}
+	// if b.pipelineID == 0 {
+	// 	return nil
+	// }
 
-	tx, err := b.conn.Begin()
-	if err != nil {
-		return err
-	}
+	// tx, err := b.conn.Begin()
+	// if err != nil {
+	// 	return err
+	// }
 
-	defer tx.Rollback()
+	// defer tx.Rollback()
 
-	row := pipelinesQuery.
-		Where(sq.Eq{"p.id": b.pipelineID}).
-		RunWith(tx).
-		QueryRow()
+	// row := pipelinesQuery.
+	// 	Where(sq.Eq{"p.id": b.pipelineID}).
+	// 	RunWith(tx).
+	// 	QueryRow()
 
-	pipeline := &pipeline{conn: b.conn, lockFactory: b.lockFactory}
-	err = scanPipeline(pipeline, row)
-	if err != nil {
-		return err
-	}
+	// pipeline := &pipeline{conn: b.conn, lockFactory: b.lockFactory}
+	// err = scanPipeline(pipeline, row)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = pipeline.saveInputTx(tx, b.id, input)
-	if err != nil {
-		return err
-	}
+	// err = pipeline.saveInputTx(tx, b.id, input)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
+	// err = tx.Commit()
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -887,11 +887,12 @@ func (b *build) Resources() ([]BuildInput, []BuildOutput, error) {
 			AND ci.build_id = cb.id
 			AND ci.build_id < b.id
 		)
-		FROM versioned_resources v, build_inputs i, builds b, resources r
+		FROM versioned_resources v, build_inputs i, builds b, resources r, resource_spaces rs
 		WHERE b.id = $1
 		AND i.build_id = b.id
 		AND i.versioned_resource_id = v.id
-    AND r.id = v.resource_id
+    AND r.id = rs.resource_id
+		AND rs.id = v.resource_space_id
 		AND NOT EXISTS (
 			SELECT 1
 			FROM build_outputs o
@@ -936,11 +937,12 @@ func (b *build) Resources() ([]BuildInput, []BuildOutput, error) {
 
 	rows, err = b.conn.Query(`
 		SELECT r.name, v.type, v.version, v.metadata
-		FROM versioned_resources v, build_outputs o, builds b, resources r
+		FROM versioned_resources v, build_outputs o, builds b, resources r, resource_spaces rs
 		WHERE b.id = $1
 		AND o.build_id = b.id
 		AND o.versioned_resource_id = v.id
-    AND r.id = v.resource_id
+    AND r.id = rs.resource_id
+		AND rs.id = v.resource_space_id
 		AND o.explicit
 	`, b.id)
 	if err != nil {

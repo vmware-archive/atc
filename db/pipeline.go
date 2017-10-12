@@ -328,8 +328,9 @@ func (p *pipeline) GetResourceVersions(resourceName string, page Page) ([]SavedV
 	query := `
 		SELECT v.id, v.enabled, v.type, v.version, v.metadata, r.name, v.check_order
 		FROM versioned_resources v
-		INNER JOIN resources r ON v.resource_id = r.id
-		WHERE v.resource_id = $1
+		INNER JOIN resource_spaces rs ON rs.id = v.resource_space_id
+		INNER JOIN resources r ON r.id = rs.resource_id
+		WHERE rs.resource_id = $1
 	`
 
 	var rows *sql.Rows
@@ -436,8 +437,9 @@ func (p *pipeline) GetResourceVersions(resourceName string, page Page) ([]SavedV
 	err = p.conn.QueryRow(`
 		SELECT COALESCE(MAX(v.check_order), 0) as maxCheckOrder,
 			COALESCE(MIN(v.check_order), 0) as minCheckOrder
-		FROM versioned_resources v
-		WHERE v.resource_id = $1
+		FROM versioned_resources v, resource_spaces rs
+		WHERE rs.id = v.resource_version_id
+		AND rs.resource_id = $1
 	`, resourceID).Scan(&maxCheckOrder, &minCheckOrder)
 	if err != nil {
 		return nil, Pagination{}, false, err
@@ -475,12 +477,12 @@ func (p *pipeline) GetLatestVersionedResource(resourceName string) (SavedVersion
 	}
 
 	err := psql.Select("v.id, v.enabled, v.type, v.version, v.metadata, v.modified_time, v.check_order").
-		From("versioned_resources v, resources r").
+		From("versioned_resources v, resources r, resource_spaces rs").
 		Where(sq.Eq{
 			"r.name":        resourceName,
 			"r.pipeline_id": p.id,
 		}).
-		Where(sq.Expr("v.resource_id = r.id")).
+		Where(sq.Expr("rs.resource_id = r.id AND v.resource_space_id = rs.id")).
 		OrderBy("check_order DESC").
 		Limit(1).
 		RunWith(p.conn).
@@ -523,7 +525,8 @@ func (p *pipeline) GetVersionedResourceByVersion(atcVersion atc.Version, resourc
 
 	err = psql.Select("v.id", "v.enabled", "v.type", "v.version", "v.metadata", "v.check_order").
 		From("versioned_resources v").
-		Join("resources r ON r.id = v.resource_id").
+		Join("resource_spaces rs ON rs.id = v.resource_space_id").
+		Join("resources r ON r.id = rs.resource_id").
 		Where(sq.Eq{
 			"v.version":     string(versionJSON),
 			"r.name":        resourceName,
@@ -1137,11 +1140,13 @@ func (p *pipeline) saveOutput(buildID int, vr VersionedResource, explicit bool) 
 	defer tx.Rollback()
 
 	var resourceID int
-	err = psql.Select("id").
-		From("resources").
+	err = psql.Select("rs.id").
+		From("resource_spaces rs").
+		Join("resources r ON r.id = rs.resource_id").
 		Where(sq.Eq{
-			"name":        vr.Resource,
-			"pipeline_id": p.id,
+			"rs.name":       vr.ResourceSpace,
+			"r.name":        vr.Resource,
+			"r.pipeline_id": p.id,
 		}).RunWith(tx).QueryRow().Scan(&resourceID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -1266,12 +1271,12 @@ func (p *pipeline) saveVersionedResource(tx Tx, resourceID int, vr VersionedReso
 	var check_order int
 
 	result, err := tx.Exec(`
-		INSERT INTO versioned_resources (resource_id, type, version, metadata, modified_time)
+		INSERT INTO versioned_resources (resource_space_id, type, version, metadata, modified_time)
 		SELECT $1, $2, $3, $4, now()
 		WHERE NOT EXISTS (
 			SELECT 1
 			FROM versioned_resources
-			WHERE resource_id = $1
+			WHERE resource_space_id = $1
 			AND type = $2
 			AND version = $3
 		)

@@ -35,10 +35,10 @@ func (f *workerTaskCacheFactory) Find(jobID int, stepName string, path string, w
 	err := psql.Select("id").
 		From("worker_task_caches").
 		Where(sq.Eq{
-			"job_id":      jobID,
-			"step_name":   stepName,
-			"worker_name": workerName,
-			"path":        path,
+			"job_permutation_id": jobID,
+			"step_name":          stepName,
+			"worker_name":        workerName,
+			"path":               path,
 		}).
 		RunWith(f.conn).
 		QueryRow().
@@ -95,13 +95,14 @@ func (wtc WorkerTaskCache) FindOrCreate(
 	tx Tx,
 ) (*UsedWorkerTaskCache, error) {
 	var id int
+
 	err := psql.Select("id").
 		From("worker_task_caches").
 		Where(sq.Eq{
-			"job_id":      wtc.JobID,
-			"step_name":   wtc.StepName,
-			"worker_name": wtc.WorkerName,
-			"path":        wtc.Path,
+			"job_permutation_id": wtc.JobID,
+			"step_name":          wtc.StepName,
+			"worker_name":        wtc.WorkerName,
+			"path":               wtc.Path,
 		}).
 		RunWith(tx).
 		QueryRow().
@@ -110,7 +111,7 @@ func (wtc WorkerTaskCache) FindOrCreate(
 		if err == sql.ErrNoRows {
 			err = psql.Insert("worker_task_caches").
 				Columns(
-					"job_id",
+					"job_permutation_id",
 					"step_name",
 					"worker_name",
 					"path",
