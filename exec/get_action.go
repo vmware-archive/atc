@@ -19,6 +19,7 @@ type GetAction struct {
 	Type          string
 	Name          string
 	Resource      string
+	ResourceSpace string
 	Source        creds.Source
 	Params        creds.Params
 	VersionSource VersionSource

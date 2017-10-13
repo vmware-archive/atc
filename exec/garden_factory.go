@@ -87,6 +87,7 @@ func (factory *gardenFactory) Get(
 		Type:          plan.Get.Type,
 		Name:          plan.Get.Name,
 		Resource:      plan.Get.Resource,
+		ResourceSpace: plan.Get.ResourceSpace,
 		Source:        creds.NewSource(variables, plan.Get.Source),
 		Params:        creds.NewParams(variables, plan.Get.Params),
 		VersionSource: NewVersionSourceFromPlan(plan.Get, factory.putActions),
@@ -125,12 +126,13 @@ func (factory *gardenFactory) Put(
 	variables := factory.variablesFactory.NewVariables(build.TeamName(), build.PipelineName())
 
 	putAction := &PutAction{
-		Type:     plan.Put.Type,
-		Name:     plan.Put.Name,
-		Resource: plan.Put.Resource,
-		Source:   creds.NewSource(variables, plan.Put.Source),
-		Params:   creds.NewParams(variables, plan.Put.Params),
-		Tags:     plan.Put.Tags,
+		Type:          plan.Put.Type,
+		Name:          plan.Put.Name,
+		Resource:      plan.Put.Resource,
+		ResourceSpace: plan.Put.ResourceSpace,
+		Source:        creds.NewSource(variables, plan.Put.Source),
+		Params:        creds.NewParams(variables, plan.Put.Params),
+		Tags:          plan.Put.Tags,
 
 		imageFetchingDelegate: imageFetchingDelegate,
 		resourceFactory:       factory.resourceFactory,

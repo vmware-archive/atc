@@ -26,7 +26,7 @@ type BuildStarter interface {
 //go:generate counterfeiter . BuildFactory
 
 type BuildFactory interface {
-	Create(atc.JobConfig, atc.ResourceConfigs, atc.VersionedResourceTypes, []db.BuildInput) (atc.Plan, error)
+	Create(atc.JobConfig, atc.ResourceConfigs, atc.VersionedResourceTypes, []db.BuildInput, db.JobPermutation) (atc.Plan, error)
 }
 
 func NewBuildStarter(
@@ -175,7 +175,7 @@ func (s *buildStarter) tryStartNextPendingBuild(
 		})
 	}
 
-	plan, err := s.factory.Create(job.Config(), resourceConfigs, resourceTypes, buildInputs)
+	plan, err := s.factory.Create(job.Config(), resourceConfigs, resourceTypes, buildInputs, jobPermutation)
 	if err != nil {
 		// Don't use ErrorBuild because it logs a build event, and this build hasn't started
 		err := nextPendingBuild.Finish(db.BuildStatusErrored)

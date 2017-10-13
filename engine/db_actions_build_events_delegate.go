@@ -62,8 +62,9 @@ func (d *dbActionsBuildEventsDelegate) ActionCompleted(logger lager.Logger, acti
 			}
 
 			d.implicitOutputsRepo.Register(a.Resource, implicitOutput{
-				resourceType: a.Type,
-				info:         versionInfo,
+				resourceType:  a.Type,
+				resourceSpace: a.ResourceSpace,
+				info:          versionInfo,
 			})
 		}
 
@@ -118,10 +119,11 @@ func (d *dbActionsBuildEventsDelegate) ActionCompleted(logger lager.Logger, acti
 		if exitStatus == exec.ExitStatus(0) {
 			err := d.build.SaveOutput(
 				db.VersionedResource{
-					Resource: a.Resource,
-					Type:     a.Type,
-					Version:  db.ResourceVersion(versionInfo.Version),
-					Metadata: db.NewResourceMetadataFields(versionInfo.Metadata),
+					Resource:      a.Resource,
+					ResourceSpace: a.ResourceSpace,
+					Type:          a.Type,
+					Version:       db.ResourceVersion(versionInfo.Version),
+					Metadata:      db.NewResourceMetadataFields(versionInfo.Metadata),
 				},
 				true,
 			)

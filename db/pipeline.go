@@ -278,23 +278,25 @@ func (p *pipeline) SaveResourceVersions(config atc.ResourceConfig, versions []at
 			return err
 		}
 
-		var resourceID int
+		var resourceSpaceID int
 		err = psql.Select("id").
-			From("resources").
+			From("resource_spaces rs").
+			Join("resources r ON r.id = rs.resource_id").
 			Where(sq.Eq{
-				"name":        vr.Resource,
-				"pipeline_id": p.id,
-			}).RunWith(tx).QueryRow().Scan(&resourceID)
+				"r.name":        vr.Resource,
+				"r.pipeline_id": p.id,
+				"rs.name":       vr.ResourceSpace,
+			}).RunWith(tx).QueryRow().Scan(&resourceSpaceID)
 		if err != nil {
 			return err
 		}
 
-		_, _, err = p.saveVersionedResource(tx, resourceID, vr)
+		_, _, err = p.saveVersionedResource(tx, resourceSpaceID, vr)
 		if err != nil {
 			return err
 		}
 
-		err = p.incrementCheckOrderWhenNewerVersion(tx, resourceID, vr.Type, string(versionJSON))
+		err = p.incrementCheckOrderWhenNewerVersion(tx, resourceSpaceID, vr.Type, string(versionJSON))
 		if err != nil {
 			return err
 		}
@@ -438,7 +440,7 @@ func (p *pipeline) GetResourceVersions(resourceName string, page Page) ([]SavedV
 		SELECT COALESCE(MAX(v.check_order), 0) as maxCheckOrder,
 			COALESCE(MIN(v.check_order), 0) as minCheckOrder
 		FROM versioned_resources v, resource_spaces rs
-		WHERE rs.id = v.resource_version_id
+		WHERE rs.id = v.resource_space_id
 		AND rs.resource_id = $1
 	`, resourceID).Scan(&maxCheckOrder, &minCheckOrder)
 	if err != nil {
@@ -1254,7 +1256,7 @@ func (p *pipeline) saveInputTx(tx Tx, buildID int, input BuildInput) error {
 	return nil
 }
 
-func (p *pipeline) saveVersionedResource(tx Tx, resourceID int, vr VersionedResource) (SavedVersionedResource, bool, error) {
+func (p *pipeline) saveVersionedResource(tx Tx, resourceSpaceID int, vr VersionedResource) (SavedVersionedResource, bool, error) {
 	versionJSON, err := json.Marshal(vr.Version)
 	if err != nil {
 		return SavedVersionedResource{}, false, err
@@ -1280,7 +1282,7 @@ func (p *pipeline) saveVersionedResource(tx Tx, resourceID int, vr VersionedReso
 			AND type = $2
 			AND version = $3
 		)
-		`, resourceID, vr.Type, string(versionJSON), string(metadataJSON))
+		`, resourceSpaceID, vr.Type, string(versionJSON), string(metadataJSON))
 
 	var rowsAffected int64
 	if err == nil {
@@ -1303,9 +1305,9 @@ func (p *pipeline) saveVersionedResource(tx Tx, resourceID int, vr VersionedReso
 			Set("metadata", string(metadataJSON)).
 			Set("modified_time", sq.Expr("now()")).
 			Where(sq.Eq{
-				"resource_id": resourceID,
-				"type":        vr.Type,
-				"version":     string(versionJSON),
+				"resource_space_id": resourceSpaceID,
+				"type":              vr.Type,
+				"version":           string(versionJSON),
 			}).
 			Suffix("RETURNING id, enabled, metadata, modified_time, check_order").
 			RunWith(tx).
@@ -1315,7 +1317,7 @@ func (p *pipeline) saveVersionedResource(tx Tx, resourceID int, vr VersionedReso
 		err = psql.Select("id, enabled, metadata, modified_time, check_order").
 			From("versioned_resources").
 			Where(sq.Eq{
-				"resource_id": resourceID,
+				"resource_id": resourceSpaceID,
 				"type":        vr.Type,
 				"version":     string(versionJSON),
 			}).
@@ -1343,22 +1345,22 @@ func (p *pipeline) saveVersionedResource(tx Tx, resourceID int, vr VersionedReso
 	}, created, nil
 }
 
-func (p *pipeline) incrementCheckOrderWhenNewerVersion(tx Tx, resourceID int, resourceType string, version string) error {
+func (p *pipeline) incrementCheckOrderWhenNewerVersion(tx Tx, resourceSpaceID int, resourceType string, version string) error {
 	_, err := tx.Exec(`
 		WITH max_checkorder AS (
 			SELECT max(check_order) co
 			FROM versioned_resources
-			WHERE resource_id = $1
+			WHERE resource_space_id = $1
 			AND type = $2
 		)
 
 		UPDATE versioned_resources
 		SET check_order = mc.co + 1
 		FROM max_checkorder mc
-		WHERE resource_id = $1
+		WHERE resource_space_id = $1
 		AND type = $2
 		AND version = $3
-		AND check_order <= mc.co;`, resourceID, resourceType, version)
+		AND check_order <= mc.co;`, resourceSpaceID, resourceType, version)
 	if err != nil {
 		return err
 	}

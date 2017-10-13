@@ -14,12 +14,13 @@ import (
 // PutAction produces a resource version using preconfigured params and any data
 // available in the worker.ArtifactRepository.
 type PutAction struct {
-	Type     string
-	Name     string
-	Resource string
-	Source   creds.Source
-	Params   creds.Params
-	Tags     atc.Tags
+	Type          string
+	Name          string
+	Resource      string
+	ResourceSpace string
+	Source        creds.Source
+	Params        creds.Params
+	Tags          atc.Tags
 
 	imageFetchingDelegate ImageFetchingDelegate
 	resourceFactory       resource.ResourceFactory
@@ -35,39 +36,41 @@ type PutAction struct {
 	exitStatus  ExitStatus
 }
 
-func NewPutAction(
-	resourceType string,
-	name string,
-	resourceName string,
-	source creds.Source,
-	params creds.Params,
-	tags atc.Tags,
-	imageFetchingDelegate ImageFetchingDelegate,
-	resourceFactory resource.ResourceFactory,
-	teamID int,
-	buildID int,
-	planID atc.PlanID,
-	containerMetadata db.ContainerMetadata,
-	stepMetadata StepMetadata,
-	resourceTypes creds.VersionedResourceTypes,
-) *PutAction {
-	return &PutAction{
-		Type:     resourceType,
-		Name:     name,
-		Resource: resourceName,
-		Source:   source,
-		Params:   params,
-		Tags:     tags,
-		imageFetchingDelegate: imageFetchingDelegate,
-		resourceFactory:       resourceFactory,
-		teamID:                teamID,
-		buildID:               buildID,
-		planID:                planID,
-		containerMetadata:     containerMetadata,
-		stepMetadata:          stepMetadata,
-		resourceTypes:         resourceTypes,
-	}
-}
+// func NewPutAction(
+// 	resourceType string,
+// 	name string,
+// 	resourceName string,
+// 	resourceSpace string,
+// 	source creds.Source,
+// 	params creds.Params,
+// 	tags atc.Tags,
+// 	imageFetchingDelegate ImageFetchingDelegate,
+// 	resourceFactory resource.ResourceFactory,
+// 	teamID int,
+// 	buildID int,
+// 	planID atc.PlanID,
+// 	containerMetadata db.ContainerMetadata,
+// 	stepMetadata StepMetadata,
+// 	resourceTypes creds.VersionedResourceTypes,
+// ) *PutAction {
+// 	return &PutAction{
+// 		Type:          resourceType,
+// 		Name:          name,
+// 		Resource:      resourceName,
+// 		ResourceSpace: resourceSpace,
+// 		Source:        source,
+// 		Params:        params,
+// 		Tags:          tags,
+// 		imageFetchingDelegate: imageFetchingDelegate,
+// 		resourceFactory:       resourceFactory,
+// 		teamID:                teamID,
+// 		buildID:               buildID,
+// 		planID:                planID,
+// 		containerMetadata:     containerMetadata,
+// 		stepMetadata:          stepMetadata,
+// 		resourceTypes:         resourceTypes,
+// 	}
+// }
 
 // Run chooses a worker that supports the step's resource type and creates a
 // container.

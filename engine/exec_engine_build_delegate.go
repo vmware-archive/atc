@@ -86,7 +86,7 @@ func (delegate *delegate) Finish(logger lager.Logger, err error, succeeded exec.
 		implicits := logger.Session("implicit-outputs")
 
 		for resourceName, o := range delegate.implicitOutputsRepo.outputs {
-			delegate.saveImplicitOutput(implicits.Session(resourceName), resourceName, o.resourceType, o.info)
+			delegate.saveImplicitOutput(implicits.Session(resourceName), resourceName, o.resourceSpace, o.resourceType, o.info)
 		}
 
 		logger.Info("succeeded")
@@ -104,7 +104,7 @@ func (delegate *delegate) saveStatus(logger lager.Logger, status atc.BuildStatus
 	}
 }
 
-func (delegate *delegate) saveImplicitOutput(logger lager.Logger, resourceName string, resourceType string, info exec.VersionInfo) {
+func (delegate *delegate) saveImplicitOutput(logger lager.Logger, resourceName string, resourceSpaceName string, resourceType string, info exec.VersionInfo) {
 	metadata := make([]db.ResourceMetadataField, len(info.Metadata))
 	for i, md := range info.Metadata {
 		metadata[i] = db.ResourceMetadataField{
@@ -114,10 +114,11 @@ func (delegate *delegate) saveImplicitOutput(logger lager.Logger, resourceName s
 	}
 
 	err := delegate.build.SaveOutput(db.VersionedResource{
-		Resource: resourceName,
-		Type:     resourceType,
-		Version:  db.ResourceVersion(info.Version),
-		Metadata: metadata,
+		Resource:      resourceName,
+		ResourceSpace: resourceSpaceName,
+		Type:          resourceType,
+		Version:       db.ResourceVersion(info.Version),
+		Metadata:      metadata,
 	}, false)
 	if err != nil {
 		logger.Error("failed-to-save", err)

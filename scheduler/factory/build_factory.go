@@ -12,7 +12,7 @@ var ErrResourceNotFound = errors.New("resource not found")
 //go:generate counterfeiter . BuildFactory
 
 type BuildFactory interface {
-	Create(atc.JobConfig, atc.ResourceConfigs, atc.VersionedResourceTypes, []db.BuildInput) (atc.Plan, error)
+	Create(atc.JobConfig, atc.ResourceConfigs, atc.VersionedResourceTypes, []db.BuildInput, db.JobPermutation) (atc.Plan, error)
 }
 
 type buildFactory struct {
@@ -32,18 +32,20 @@ func (factory *buildFactory) Create(
 	resources atc.ResourceConfigs,
 	resourceTypes atc.VersionedResourceTypes,
 	inputs []db.BuildInput,
+	jobPermutation db.JobPermutation,
 ) (atc.Plan, error) {
-	plan, err := factory.constructPlanFromJob(job, resources, resourceTypes, inputs)
+	plan, err := factory.constructPlanFromJob(job, resources, resourceTypes, inputs, jobPermutation)
 	if err != nil {
 		return atc.Plan{}, err
 	}
 
 	return factory.applyHooks(constructionParams{
-		plan:          plan,
-		hooks:         job.Hooks(),
-		resources:     resources,
-		resourceTypes: resourceTypes,
-		inputs:        inputs,
+		plan:           plan,
+		hooks:          job.Hooks(),
+		resources:      resources,
+		resourceTypes:  resourceTypes,
+		inputs:         inputs,
+		jobPermutation: jobPermutation,
 	})
 }
 
@@ -52,6 +54,7 @@ func (factory *buildFactory) constructPlanFromJob(
 	resources atc.ResourceConfigs,
 	resourceTypes atc.VersionedResourceTypes,
 	inputs []db.BuildInput,
+	jobPermutation db.JobPermutation,
 ) (atc.Plan, error) {
 	planSequence := job.Plan
 
@@ -61,10 +64,11 @@ func (factory *buildFactory) constructPlanFromJob(
 			resources,
 			resourceTypes,
 			inputs,
+			jobPermutation,
 		)
 	}
 
-	return factory.do(planSequence, resources, resourceTypes, inputs)
+	return factory.do(planSequence, resources, resourceTypes, inputs, jobPermutation)
 }
 
 func (factory *buildFactory) do(
@@ -72,6 +76,7 @@ func (factory *buildFactory) do(
 	resources atc.ResourceConfigs,
 	resourceTypes atc.VersionedResourceTypes,
 	inputs []db.BuildInput,
+	jobPermutation db.JobPermutation,
 ) (atc.Plan, error) {
 	do := atc.DoPlan{}
 
@@ -82,6 +87,7 @@ func (factory *buildFactory) do(
 			resources,
 			resourceTypes,
 			inputs,
+			jobPermutation,
 		)
 		if err != nil {
 			return atc.Plan{}, err
@@ -98,12 +104,13 @@ func (factory *buildFactory) constructPlanFromConfig(
 	resources atc.ResourceConfigs,
 	resourceTypes atc.VersionedResourceTypes,
 	inputs []db.BuildInput,
+	jobPermutation db.JobPermutation,
 ) (atc.Plan, error) {
 	var plan atc.Plan
 	var err error
 
 	if planConfig.Attempts == 0 {
-		plan, err = factory.constructUnhookedPlan(planConfig, resources, resourceTypes, inputs)
+		plan, err = factory.constructUnhookedPlan(planConfig, resources, resourceTypes, inputs, jobPermutation)
 		if err != nil {
 			return atc.Plan{}, err
 		}
@@ -111,7 +118,7 @@ func (factory *buildFactory) constructPlanFromConfig(
 		retryStep := make(atc.RetryPlan, planConfig.Attempts)
 
 		for i := 0; i < planConfig.Attempts; i++ {
-			attempt, err := factory.constructUnhookedPlan(planConfig, resources, resourceTypes, inputs)
+			attempt, err := factory.constructUnhookedPlan(planConfig, resources, resourceTypes, inputs, jobPermutation)
 			if err != nil {
 				return atc.Plan{}, err
 			}
@@ -123,11 +130,12 @@ func (factory *buildFactory) constructPlanFromConfig(
 	}
 
 	return factory.applyHooks(constructionParams{
-		plan:          plan,
-		hooks:         planConfig.Hooks(),
-		resources:     resources,
-		resourceTypes: resourceTypes,
-		inputs:        inputs,
+		plan:           plan,
+		hooks:          planConfig.Hooks(),
+		resources:      resources,
+		resourceTypes:  resourceTypes,
+		inputs:         inputs,
+		jobPermutation: jobPermutation,
 	})
 }
 
@@ -136,6 +144,7 @@ func (factory *buildFactory) constructUnhookedPlan(
 	resources atc.ResourceConfigs,
 	resourceTypes atc.VersionedResourceTypes,
 	inputs []db.BuildInput,
+	jobPermutation db.JobPermutation,
 ) (atc.Plan, error) {
 	var plan atc.Plan
 	var err error
@@ -147,6 +156,7 @@ func (factory *buildFactory) constructUnhookedPlan(
 			resources,
 			resourceTypes,
 			inputs,
+			jobPermutation,
 		)
 		if err != nil {
 			return atc.Plan{}, err
@@ -166,21 +176,23 @@ func (factory *buildFactory) constructUnhookedPlan(
 		}
 
 		putPlan := factory.planFactory.NewPlan(atc.PutPlan{
-			Type:     resource.Type,
-			Name:     logicalName,
-			Resource: resourceName,
-			Source:   resource.Source,
-			Params:   planConfig.Params,
-			Tags:     planConfig.Tags,
+			Type:          resource.Type,
+			Name:          logicalName,
+			Resource:      resourceName,
+			ResourceSpace: jobPermutation.ResourceSpaces()[resourceName],
+			Source:        resource.Source,
+			Params:        planConfig.Params,
+			Tags:          planConfig.Tags,
 
 			VersionedResourceTypes: resourceTypes,
 		})
 
 		dependentGetPlan := factory.planFactory.NewPlan(atc.GetPlan{
-			Type:        resource.Type,
-			Name:        logicalName,
-			Resource:    resourceName,
-			VersionFrom: &putPlan.ID,
+			Type:          resource.Type,
+			Name:          logicalName,
+			Resource:      resourceName,
+			ResourceSpace: jobPermutation.ResourceSpaces()[resourceName],
+			VersionFrom:   &putPlan.ID,
 
 			Params: planConfig.GetParams,
 			Tags:   planConfig.Tags,
@@ -215,13 +227,14 @@ func (factory *buildFactory) constructUnhookedPlan(
 		}
 
 		plan = factory.planFactory.NewPlan(atc.GetPlan{
-			Type:     resource.Type,
-			Name:     name,
-			Resource: resourceName,
-			Source:   resource.Source,
-			Params:   planConfig.Params,
-			Version:  &version,
-			Tags:     planConfig.Tags,
+			Type:          resource.Type,
+			Name:          name,
+			Resource:      resourceName,
+			ResourceSpace: jobPermutation.ResourceSpaces()[resourceName],
+			Source:        resource.Source,
+			Params:        planConfig.Params,
+			Version:       &version,
+			Tags:          planConfig.Tags,
 
 			VersionedResourceTypes: resourceTypes,
 		})
@@ -246,6 +259,7 @@ func (factory *buildFactory) constructUnhookedPlan(
 			resources,
 			resourceTypes,
 			inputs,
+			jobPermutation,
 		)
 		if err != nil {
 			return atc.Plan{}, err
@@ -264,6 +278,7 @@ func (factory *buildFactory) constructUnhookedPlan(
 				resources,
 				resourceTypes,
 				inputs,
+				jobPermutation,
 			)
 			if err != nil {
 				return atc.Plan{}, err
@@ -286,11 +301,12 @@ func (factory *buildFactory) constructUnhookedPlan(
 }
 
 type constructionParams struct {
-	plan          atc.Plan
-	hooks         atc.Hooks
-	resources     atc.ResourceConfigs
-	resourceTypes atc.VersionedResourceTypes
-	inputs        []db.BuildInput
+	plan           atc.Plan
+	hooks          atc.Hooks
+	resources      atc.ResourceConfigs
+	resourceTypes  atc.VersionedResourceTypes
+	inputs         []db.BuildInput
+	jobPermutation db.JobPermutation
 }
 
 func (factory *buildFactory) applyHooks(cp constructionParams) (atc.Plan, error) {
@@ -322,6 +338,7 @@ func (factory *buildFactory) successIfPresent(cp constructionParams) (constructi
 			cp.resources,
 			cp.resourceTypes,
 			cp.inputs,
+			cp.jobPermutation,
 		)
 		if err != nil {
 			return constructionParams{}, err
@@ -342,6 +359,7 @@ func (factory *buildFactory) failureIfPresent(cp constructionParams) (constructi
 			cp.resources,
 			cp.resourceTypes,
 			cp.inputs,
+			cp.jobPermutation,
 		)
 		if err != nil {
 			return constructionParams{}, err
@@ -363,6 +381,7 @@ func (factory *buildFactory) ensureIfPresent(cp constructionParams) (constructio
 			cp.resources,
 			cp.resourceTypes,
 			cp.inputs,
+			cp.jobPermutation,
 		)
 		if err != nil {
 			return constructionParams{}, err

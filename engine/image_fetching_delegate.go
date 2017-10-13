@@ -78,8 +78,9 @@ func (writer *dbEventWriter) Write(data []byte) (int, error) {
 }
 
 type implicitOutput struct {
-	resourceType string
-	info         exec.VersionInfo
+	resourceType  string
+	resourceSpace string
+	info          exec.VersionInfo
 }
 
 type implicitOutputsRepo struct {
