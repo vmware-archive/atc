@@ -9,7 +9,8 @@ type InputConfig struct {
 	// XXX: this is *job permutation*, not *job*, since there's a subset of the
 	// permutations that is implied by not mentioning other resources and their
 	// spaces (the fan-in)
-	Passed JobPermutationSet
+	Passed    JobPermutationSet
+	PassedAll JobPermutationSet
 
 	UseEveryVersion  bool
 	PinnedVersionID  int
@@ -51,6 +52,7 @@ func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
 			versionCandidates = db.VersionsOfResourcePassedJobs(
 				inputConfig.ResourceSpaceID,
 				inputConfig.Passed,
+				inputConfig.PassedAll,
 			)
 
 			if versionCandidates.IsEmpty() {

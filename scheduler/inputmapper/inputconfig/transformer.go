@@ -44,11 +44,14 @@ func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, al
 
 		ourSpaces := jobPermutation.ResourceSpaces()
 
-		jobs := algorithm.JobPermutationSet{}
-		for _, passedJobName := range input.Passed {
+		passedJobs := algorithm.JobPermutationSet{}
+		passedAllJobs := algorithm.JobPermutationSet{}
+		for _, passedConfig := range input.Passed {
+			jobName := passedConfig.JobName
+
 			var passedJob db.Job
 			for job, _ := range allJobPermutations {
-				if job.Name() == passedJobName {
+				if jobName == job.Name() {
 					passedJob = job
 					break
 				}
@@ -59,6 +62,11 @@ func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, al
 			}
 
 			for _, permutation := range allJobPermutations[passedJob] {
+				if passedConfig.All {
+					passedAllJobs.Add(permutation.ID())
+					continue
+				}
+
 				otherSpaces := permutation.ResourceSpaces()
 
 				var mismatch bool
@@ -71,7 +79,7 @@ func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, al
 				}
 
 				if !mismatch {
-					jobs.Add(permutation.ID())
+					passedJobs.Add(permutation.ID())
 				}
 			}
 		}
@@ -81,7 +89,8 @@ func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, al
 			UseEveryVersion:  input.Version.Every,
 			PinnedVersionID:  pinnedVersionID,
 			ResourceSpaceID:  versionsDB.ResourceSpaceIDs[input.Resource+"{"+ourSpaces[input.Resource]+"}"], // XXX: please no
-			Passed:           jobs,
+			Passed:           passedJobs,
+			PassedAll:        passedAllJobs,
 			JobPermutationID: jobPermutation.ID(),
 		})
 	}

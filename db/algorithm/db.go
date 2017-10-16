@@ -92,15 +92,15 @@ func (db VersionsDB) FindVersionOfResource(resourceID int, versionID int) (Versi
 	return candidate, found
 }
 
-func (db VersionsDB) VersionsOfResourcePassedJobs(resourceID int, passed JobPermutationSet) VersionCandidates {
+func (db VersionsDB) VersionsOfResourcePassedJobs(resourceSpaceID int, passed JobPermutationSet, passedAll JobPermutationSet) VersionCandidates {
 	candidates := VersionCandidates{}
 
 	firstTick := true
-	for jobID, _ := range passed {
+	for jobPermutationID, _ := range passed {
 		versions := VersionCandidates{}
 
 		for _, output := range db.BuildOutputs {
-			if output.ResourceSpaceID == resourceID && output.JobPermutationID == jobID {
+			if output.ResourceSpaceID == resourceSpaceID && output.JobPermutationID == jobPermutationID {
 				versions.Add(VersionCandidate{
 					VersionID:        output.VersionID,
 					CheckOrder:       output.CheckOrder,
@@ -116,6 +116,23 @@ func (db VersionsDB) VersionsOfResourcePassedJobs(resourceID int, passed JobPerm
 		} else {
 			candidates = candidates.IntersectByVersion(versions)
 		}
+	}
+
+	for jobPermutationID, _ := range passedAll {
+		versions := VersionCandidates{}
+
+		for _, output := range db.BuildOutputs {
+			if output.JobPermutationID == jobPermutationID {
+				versions.Add(VersionCandidate{
+					VersionID:        output.VersionID,
+					CheckOrder:       output.CheckOrder,
+					BuildID:          output.BuildID,
+					JobPermutationID: output.JobPermutationID,
+				})
+			}
+		}
+
+		candidates = candidates.IntersectByVersion(versions)
 	}
 
 	return candidates

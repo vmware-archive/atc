@@ -368,14 +368,16 @@ func validatePlan(c Config, identifier string, plan PlanConfig) ([]Warning, []st
 		}
 
 		for _, job := range plan.Passed {
-			jobConfig, found := c.Jobs.Lookup(job)
+			jobName := job.JobName
+
+			jobConfig, found := c.Jobs.Lookup(jobName)
 			if !found {
 				errorMessages = append(
 					errorMessages,
 					fmt.Sprintf(
 						"%s.passed references an unknown job ('%s')",
 						identifier,
-						job,
+						jobName,
 					),
 				)
 			} else {

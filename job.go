@@ -19,14 +19,14 @@ type Job struct {
 }
 
 type JobInput struct {
-	Name     string         `json:"name"`
-	Resource string         `json:"resource"`
-	Passed   []string       `json:"passed,omitempty"`
-	Trigger  bool           `json:"trigger"`
-	Version  *VersionConfig `json:"version,omitempty"`
-	Params   Params         `json:"params,omitempty"`
-	Tags     Tags           `json:"tags,omitempty"`
-	Spaces   []string       `json:"spaces,omitempty"`
+	Name     string          `json:"name"`
+	Resource string          `json:"resource"`
+	Passed   []*PassedConfig `json:"passed,omitempty"`
+	Trigger  bool            `json:"trigger"`
+	Version  *VersionConfig  `json:"version,omitempty"`
+	Params   Params          `json:"params,omitempty"`
+	Tags     Tags            `json:"tags,omitempty"`
+	Spaces   []string        `json:"spaces,omitempty"`
 }
 
 type JobOutput struct {

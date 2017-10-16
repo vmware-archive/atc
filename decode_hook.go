@@ -11,6 +11,43 @@ import (
 const VersionLatest = "latest"
 const VersionEvery = "every"
 
+var PassedConfigDecodeHook = func(
+	srcType reflect.Type,
+	dstType reflect.Type,
+	data interface{},
+) (interface{}, error) {
+	if dstType != reflect.TypeOf(PassedConfig{}) {
+		return data, nil
+	}
+
+	switch {
+	case srcType.Kind() == reflect.String:
+		if s, ok := data.(string); ok {
+			return PassedConfig{
+				All:     false,
+				JobName: s,
+			}, nil
+		}
+	case srcType.Kind() == reflect.Map:
+		if passedConfig, ok := data.(map[interface{}]interface{}); ok {
+			for key, val := range passedConfig {
+				if sKey, ok := key.(string); ok {
+					if sVal, ok := val.(string); ok {
+						if sVal == "all" {
+							return PassedConfig{
+								All:     true,
+								JobName: sKey,
+							}, nil
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return data, nil
+}
+
 var VersionConfigDecodeHook = func(
 	srcType reflect.Type,
 	dstType reflect.Type,

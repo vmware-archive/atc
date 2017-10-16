@@ -100,8 +100,6 @@ type Hooks struct {
 // `on: [success]` after every Task plan.
 type PlanSequence []PlanConfig
 
-// A VersionConfig represents the choice to include every version of a
-// resource, the latest version of a resource, or a pinned (specific) one.
 type VersionConfig struct {
 	Every  bool    `yaml:"every,omitempty" json:"every,omitempty"`
 	Latest bool    `yaml:"latest,omitempty" json:"latest,omitempty"`
@@ -200,6 +198,84 @@ func (c *VersionConfig) MarshalJSON() ([]byte, error) {
 	return json.Marshal("")
 }
 
+type PassedConfig struct {
+	All     bool   `yaml:"all,omitempty" json:"all,omitempty"`
+	JobName string `yaml:"job_name,omitempty" json:"job_name,omitempty"`
+}
+
+func (c *PassedConfig) UnmarshalJSON(version []byte) error {
+	var data interface{}
+
+	err := json.Unmarshal(version, &data)
+	if err != nil {
+		return err
+	}
+
+	switch actual := data.(type) {
+	case string:
+		c.All = false
+		c.JobName = actual
+	case map[string]interface{}:
+		for k, v := range actual {
+			if v != "all" {
+				return errors.New("unknown value type for passed")
+			}
+
+			c.All = true
+			c.JobName = k
+			break
+		}
+	default:
+		return errors.New("unknown type for passed")
+	}
+
+	return nil
+}
+
+func (c *PassedConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var data interface{}
+
+	err := unmarshal(&data)
+	if err != nil {
+		return err
+	}
+
+	switch actual := data.(type) {
+	case string:
+		c.All = false
+		c.JobName = actual
+	case map[interface{}]interface{}:
+		for k, v := range actual {
+			if v != "all" {
+				return errors.New("unknown value type for passed")
+			}
+
+			c.All = true
+			c.JobName = k.(string)
+			break
+		}
+	default:
+		return errors.New("unknown type for passed")
+	}
+
+	return nil
+}
+
+func (c *PassedConfig) MarshalYAML() (interface{}, error) {
+	if c.All {
+		return map[string]string{c.JobName: "all"}, nil
+	}
+
+	return c.JobName, nil
+}
+
+func (c *PassedConfig) MarshalJSON() ([]byte, error) {
+	if c.All {
+		return json.Marshal(map[string]string{c.JobName: "all"})
+	}
+	return json.Marshal(c.JobName)
+}
+
 // A PlanConfig is a flattened set of configuration corresponding to
 // a particular Plan, where Source and Version are populated lazily.
 type PlanConfig struct {
@@ -220,7 +296,7 @@ type PlanConfig struct {
 	// name of 'input', e.g. bosh-stemcell
 	Get string `yaml:"get,omitempty" json:"get,omitempty" mapstructure:"get"`
 	// jobs that this resource must have made it through
-	Passed []string `yaml:"passed,omitempty" json:"passed,omitempty" mapstructure:"passed"`
+	Passed []*PassedConfig `yaml:"passed,omitempty" json:"passed,omitempty" mapstructure:"passed"`
 	// whether to trigger based on this resource changing
 	Trigger bool `yaml:"trigger,omitempty" json:"trigger,omitempty" mapstructure:"trigger"`
 
