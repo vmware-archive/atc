@@ -27,7 +27,7 @@ func (s *Server) CheckResource(dbPipeline db.Pipeline) http.Handler {
 
 		fromVersion := reqBody.From
 		if fromVersion == nil {
-			latestVersion, found, err := dbPipeline.GetLatestVersionedResource(resourceName)
+			latestVersion, found, err := dbPipeline.GetLatestVersionedResource(resourceName, "")
 			if err != nil {
 				logger.Info("failed-to-get-latest-versioned-resource", lager.Data{"error": err.Error()})
 				w.WriteHeader(http.StatusInternalServerError)

@@ -140,6 +140,7 @@ func (s *resourceInstanceFetchSource) Create(signals <-chan os.Signal, ready cha
 		},
 		s.resourceInstance.Source(),
 		s.resourceInstance.Params(),
+		s.resourceInstance.Space(),
 		s.resourceInstance.Version(),
 		signals,
 		ready,

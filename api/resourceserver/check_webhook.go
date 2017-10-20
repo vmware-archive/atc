@@ -44,7 +44,7 @@ func (s *Server) CheckResourceWebHook(dbPipeline db.Pipeline) http.Handler {
 			return
 		}
 		var fromVersion atc.Version
-		latestVersion, found, err := dbPipeline.GetLatestVersionedResource(resourceName)
+		latestVersion, found, err := dbPipeline.GetLatestVersionedResource(resourceName, "")
 		if err != nil {
 			logger.Info("failed-to-get-latest-versioned-resource", lager.Data{"error": err.Error()})
 			w.WriteHeader(http.StatusInternalServerError)

@@ -16,7 +16,7 @@ import (
 
 type Scanner interface {
 	Run(lager.Logger, string) (time.Duration, error)
-	Scan(lager.Logger, string) error
+	Scan(lager.Logger, string, string) error
 	ScanFromVersion(lager.Logger, string, atc.Version) error
 }
 

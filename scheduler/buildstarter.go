@@ -109,7 +109,7 @@ func (s *buildStarter) tryStartNextPendingBuild(
 				"resource": input.Resource,
 			})
 
-			err := s.scanner.Scan(scanLog, input.Resource)
+			err := s.scanner.Scan(scanLog, input.Resource, jobPermutation.ResourceSpaces()[input.Resource])
 			if err != nil {
 				return false, err
 			}

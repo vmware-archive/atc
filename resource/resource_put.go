@@ -9,12 +9,14 @@ import (
 type putRequest struct {
 	Source atc.Source `json:"source"`
 	Params atc.Params `json:"params,omitempty"`
+	Space  string     `json:"space,omitempty"`
 }
 
 func (resource *resource) Put(
 	ioConfig IOConfig,
 	source atc.Source,
 	params atc.Params,
+	space string,
 	signals <-chan os.Signal,
 	ready chan<- struct{},
 ) (VersionedSource, error) {
@@ -31,6 +33,7 @@ func (resource *resource) Put(
 		putRequest{
 			Params: params,
 			Source: source,
+			Space:  space,
 		},
 		&vs.versionResult,
 		ioConfig.Stderr,

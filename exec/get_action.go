@@ -118,6 +118,7 @@ func (action *GetAction) Run(
 		version,
 		source,
 		params,
+		action.ResourceSpace,
 		action.resourceTypes,
 		resourceCache,
 		db.NewBuildStepContainerOwner(action.buildID, action.planID),

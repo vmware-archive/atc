@@ -21,7 +21,7 @@ type Scheduler struct {
 //go:generate counterfeiter . Scanner
 
 type Scanner interface {
-	Scan(lager.Logger, string) error
+	Scan(lager.Logger, string, string) error
 }
 
 func (s *Scheduler) Schedule(

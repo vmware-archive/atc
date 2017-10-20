@@ -10,6 +10,7 @@ import (
 type getRequest struct {
 	Source  atc.Source  `json:"source"`
 	Params  atc.Params  `json:"params,omitempty"`
+	Space   string      `json:"space,omitempty"`
 	Version atc.Version `json:"version,omitempty"`
 }
 
@@ -18,6 +19,7 @@ func (resource *resource) Get(
 	ioConfig IOConfig,
 	source atc.Source,
 	params atc.Params,
+	space string,
 	version atc.Version,
 	signals <-chan os.Signal,
 	ready chan<- struct{},
@@ -27,7 +29,7 @@ func (resource *resource) Get(
 	runner := resource.runScript(
 		"/opt/resource/in",
 		[]string{ResourcesDir("get")},
-		getRequest{source, params, version},
+		getRequest{source, params, space, version},
 		&vr,
 		ioConfig.Stderr,
 		true,

@@ -8,6 +8,9 @@ type EncryptionStrategy interface {
 }
 
 func New(strategy EncryptionStrategy) []migration.Migrator {
+	if true {
+		return []migration.Migrator{}
+	}
 	return []migration.Migrator{
 		InitialSchema,
 		MoveSourceAndMetadataToVersionedResources,

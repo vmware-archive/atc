@@ -19,6 +19,7 @@ type ResourceInstance interface {
 	Source() atc.Source
 	Params() atc.Params
 	Version() atc.Version
+	Space() string
 	ResourceType() ResourceType
 
 	ResourceCache() *db.UsedResourceCache
@@ -34,6 +35,7 @@ type resourceInstance struct {
 	version          atc.Version
 	source           atc.Source
 	params           atc.Params
+	space            string
 	resourceTypes    creds.VersionedResourceTypes
 
 	resourceCache  *db.UsedResourceCache
@@ -45,6 +47,7 @@ func NewResourceInstance(
 	version atc.Version,
 	source atc.Source,
 	params atc.Params,
+	space string,
 	resourceTypes creds.VersionedResourceTypes,
 
 	resourceCache *db.UsedResourceCache,
@@ -55,6 +58,7 @@ func NewResourceInstance(
 		version:          version,
 		source:           source,
 		params:           params,
+		space:            space,
 		resourceTypes:    resourceTypes,
 
 		resourceCache:  resourceCache,
@@ -80,6 +84,10 @@ func (instance resourceInstance) Params() atc.Params {
 
 func (instance resourceInstance) Version() atc.Version {
 	return instance.version
+}
+
+func (instance resourceInstance) Space() string {
+	return instance.space
 }
 
 func (instance resourceInstance) ResourceType() ResourceType {
@@ -115,5 +123,6 @@ type resourceInstanceLockID struct {
 	Version    atc.Version  `json:"version,omitempty"`
 	Source     atc.Source   `json:"source,omitempty"`
 	Params     atc.Params   `json:"params,omitempty"`
+	Space      string       `json:"params,omitempty"`
 	WorkerName string       `json:"worker_name,omitempty"`
 }

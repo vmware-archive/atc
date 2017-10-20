@@ -249,7 +249,7 @@ func (runner *Runner) Truncate() {
 			BEGIN
 					FOR stmt IN statements LOOP
 						INSERT INTO teams (name) VALUES ('main');
-						CREATE TABLE team_build_events_1 ()
+						CREATE TABLE IF NOT EXISTS team_build_events_1 ()
 						INHERITS (build_events);
 					END LOOP;
 			END;

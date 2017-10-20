@@ -41,12 +41,13 @@ type Pipeline interface {
 	Reload() (bool, error)
 
 	SetResourceCheckError(Resource, error) error
-	SaveResourceVersions(atc.ResourceConfig, []atc.Version) error
+	SaveSpaces(int, []string) error
+	SaveResourceVersions(atc.ResourceConfig, string, []atc.Version) error
 	GetResourceVersions(resourceName string, page Page) ([]SavedVersionedResource, Pagination, bool, error)
 
 	GetAllPendingBuilds() ([]Build, error)
 
-	GetLatestVersionedResource(resourceName string) (SavedVersionedResource, bool, error)
+	GetLatestVersionedResource(resourceName string, spaceName string) (SavedVersionedResource, bool, error)
 	GetVersionedResourceByVersion(atcVersion atc.Version, resourceName string) (SavedVersionedResource, bool, error)
 
 	DisableVersionedResource(versionedResourceID int) error
@@ -258,7 +259,31 @@ func (p *pipeline) GetAllPendingBuilds() ([]Build, error) {
 	return builds, nil
 }
 
-func (p *pipeline) SaveResourceVersions(config atc.ResourceConfig, versions []atc.Version) error {
+func (p *pipeline) SaveSpaces(resourceID int, spaces []string) error {
+	tx, err := p.conn.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	for _, space := range spaces {
+		_, err = psql.Insert("resource_spaces").
+			Columns("resource_id", "name").
+			Values(resourceID, space).
+			RunWith(tx).
+			Exec()
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *pipeline) SaveResourceVersions(config atc.ResourceConfig, space string, versions []atc.Version) error {
 	tx, err := p.conn.Begin()
 	if err != nil {
 		return err
@@ -268,9 +293,10 @@ func (p *pipeline) SaveResourceVersions(config atc.ResourceConfig, versions []at
 
 	for _, version := range versions {
 		vr := VersionedResource{
-			Resource: config.Name,
-			Type:     config.Type,
-			Version:  ResourceVersion(version),
+			Resource:      config.Name,
+			Type:          config.Type,
+			Version:       ResourceVersion(version),
+			ResourceSpace: space,
 		}
 
 		versionJSON, err := json.Marshal(vr.Version)
@@ -279,7 +305,7 @@ func (p *pipeline) SaveResourceVersions(config atc.ResourceConfig, versions []at
 		}
 
 		var resourceSpaceID int
-		err = psql.Select("id").
+		err = psql.Select("rs.id").
 			From("resource_spaces rs").
 			Join("resources r ON r.id = rs.resource_id").
 			Where(sq.Eq{
@@ -469,7 +495,7 @@ func (p *pipeline) GetResourceVersions(resourceName string, page Page) ([]SavedV
 	return savedVersionedResources, pagination, true, nil
 }
 
-func (p *pipeline) GetLatestVersionedResource(resourceName string) (SavedVersionedResource, bool, error) {
+func (p *pipeline) GetLatestVersionedResource(resourceName string, spaceName string) (SavedVersionedResource, bool, error) {
 	var versionBytes, metadataBytes string
 
 	svr := SavedVersionedResource{
@@ -482,6 +508,7 @@ func (p *pipeline) GetLatestVersionedResource(resourceName string) (SavedVersion
 		From("versioned_resources v, resources r, resource_spaces rs").
 		Where(sq.Eq{
 			"r.name":        resourceName,
+			"rs.name":       spaceName,
 			"r.pipeline_id": p.id,
 		}).
 		Where(sq.Expr("rs.resource_id = r.id AND v.resource_space_id = rs.id")).
@@ -1317,9 +1344,9 @@ func (p *pipeline) saveVersionedResource(tx Tx, resourceSpaceID int, vr Versione
 		err = psql.Select("id, enabled, metadata, modified_time, check_order").
 			From("versioned_resources").
 			Where(sq.Eq{
-				"resource_id": resourceSpaceID,
-				"type":        vr.Type,
-				"version":     string(versionJSON),
+				"resource_space_id": resourceSpaceID,
+				"type":              vr.Type,
+				"version":           string(versionJSON),
 			}).
 			RunWith(tx).
 			QueryRow().

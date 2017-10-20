@@ -130,6 +130,8 @@ func (action *PutAction) Run(
 		return err
 	}
 
+	space := action.ResourceSpace
+
 	versionedSource, err := putResource.Put(
 		resource.IOConfig{
 			Stdout: action.imageFetchingDelegate.Stdout(),
@@ -137,6 +139,7 @@ func (action *PutAction) Run(
 		},
 		source,
 		params,
+		space,
 		signals,
 		ready,
 	)

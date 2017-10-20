@@ -13,9 +13,10 @@ import (
 //go:generate counterfeiter . Resource
 
 type Resource interface {
-	Get(worker.Volume, IOConfig, atc.Source, atc.Params, atc.Version, <-chan os.Signal, chan<- struct{}) (VersionedSource, error)
-	Put(IOConfig, atc.Source, atc.Params, <-chan os.Signal, chan<- struct{}) (VersionedSource, error)
-	Check(atc.Source, atc.Version) ([]atc.Version, error)
+	Get(worker.Volume, IOConfig, atc.Source, atc.Params, string, atc.Version, <-chan os.Signal, chan<- struct{}) (VersionedSource, error)
+	Put(IOConfig, atc.Source, atc.Params, string, <-chan os.Signal, chan<- struct{}) (VersionedSource, error)
+	Check(atc.Source, string, atc.Version) ([]atc.Version, error)
+	CheckSpaces(atc.Source) ([]string, error)
 	Container() worker.Container
 }
 

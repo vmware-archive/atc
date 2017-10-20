@@ -157,6 +157,7 @@ func (i *imageResourceFetcher) Fetch(
 		version,
 		source,
 		params,
+		"",
 		i.customTypes,
 		resourceCache,
 		db.NewImageGetContainerOwner(container),
@@ -248,7 +249,7 @@ func (i *imageResourceFetcher) getLatestVersion(
 		return nil, err
 	}
 
-	versions, err := checkingResource.Check(source, nil)
+	versions, err := checkingResource.Check(source, "", nil)
 	if err != nil {
 		return nil, err
 	}

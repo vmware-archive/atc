@@ -122,7 +122,7 @@ func (scanner *resourceTypeScanner) Run(logger lager.Logger, resourceTypeName st
 	return scanner.defaultInterval, nil
 }
 
-func (scanner *resourceTypeScanner) Scan(logger lager.Logger, resourceTypeName string) error {
+func (scanner *resourceTypeScanner) Scan(logger lager.Logger, resourceTypeName string, spaceName string) error {
 	return nil
 }
 
@@ -155,7 +155,7 @@ func (scanner *resourceTypeScanner) resourceTypeScan(logger lager.Logger, resour
 		return err
 	}
 
-	newVersions, err := res.Check(source, atc.Version(savedResourceType.Version()))
+	newVersions, err := res.Check(source, "", atc.Version(savedResourceType.Version()))
 	if err != nil {
 		if rErr, ok := err.(resource.ErrResourceScriptFailed); ok {
 			logger.Info("check-failed", lager.Data{"exit-status": rErr.ExitStatus})
