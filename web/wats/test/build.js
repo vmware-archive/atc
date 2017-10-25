@@ -27,15 +27,10 @@ test('can be switched between', async t => {
 
   await t.context.page.goto(t.context.web.route(`/teams/${t.context.teamName}/pipelines/some-pipeline/jobs/passing/builds/1`));
 
-  await t.context.page.waitFor('#builds li:nth-child(1) a');
-  await t.context.page.waitFor('#builds li:nth-child(2) a');
-
-  await t.context.page.click('#builds li:nth-child(1) a');
-  await t.context.page.waitForNavigation({waitUntil: 'networkidle'});
+  await t.context.web.clickAndWait(t.context.page, '#builds li:nth-child(1) a');
   t.regex(await t.context.web.text(t.context.page), /passing #2/);
 
-  await t.context.page.click('#builds li:nth-child(2) a');
-  await t.context.page.waitForNavigation({waitUntil: 'networkidle'});
+  await t.context.web.clickAndWait(t.context.page, '#builds li:nth-child(2) a');
   t.regex(await t.context.web.text(t.context.page), /passing #1/);
 });
 
