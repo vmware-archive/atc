@@ -3,6 +3,7 @@ package radar
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"reflect"
 	"time"
 
@@ -345,6 +346,7 @@ func (scanner *resourceScanner) scan(
 
 	spaces, err := res.CheckSpaces(source)
 	if err != nil {
+		// if spaces is empty we need to execute this loop once for the default case where space is empty string
 		spaces = append(spaces, "")
 	}
 
@@ -353,56 +355,60 @@ func (scanner *resourceScanner) scan(
 		return err
 	}
 
-	// in the non-spike case if spaces is empty we need to execute this loop once for the default case where space is empty string
 	for _, space := range spaces {
-		vr, _, err := scanner.dbPipeline.GetLatestVersionedResource(savedResource.Name(), space)
-		if err != nil {
-			logger.Error("failed-to-get-current-version", err)
-			return err
-		}
+		go func(savedResoure db.Resource, spaceName string) error {
+			r := rand.Intn(30)
+			time.Sleep(time.Duration(r) * time.Second)
 
-		fromVersion := atc.Version(vr.Version)
-
-		logger.Debug("checking", lager.Data{
-			"from": fromVersion,
-		})
-
-		newVersions, err := res.Check(source, space, fromVersion)
-
-		setErr := scanner.dbPipeline.SetResourceCheckError(savedResource, err)
-		if setErr != nil {
-			logger.Error("failed-to-set-check-error", err)
-		}
-
-		if err != nil {
-			if rErr, ok := err.(resource.ErrResourceScriptFailed); ok {
-				logger.Info("check-failed", lager.Data{"exit-status": rErr.ExitStatus})
-				return rErr
+			vr, _, err := scanner.dbPipeline.GetLatestVersionedResource(savedResource.Name(), spaceName)
+			if err != nil {
+				logger.Error("failed-to-get-current-version", err)
+				return err
 			}
 
-			logger.Error("failed-to-check", err)
-			return err
-		}
+			fromVersion := atc.Version(vr.Version)
 
-		if len(newVersions) == 0 || reflect.DeepEqual(newVersions, []atc.Version{fromVersion}) {
-			logger.Debug("no-new-versions")
-			return nil
-		}
-
-		logger.Info("versions-found", lager.Data{
-			"versions": newVersions,
-			"total":    len(newVersions),
-		})
-
-		err = scanner.dbPipeline.SaveResourceVersions(atc.ResourceConfig{
-			Name: savedResource.Name(),
-			Type: savedResource.Type(),
-		}, space, newVersions)
-		if err != nil {
-			logger.Error("failed-to-save-versions", err, lager.Data{
-				"versions": newVersions,
+			logger.Debug("checking", lager.Data{
+				"from": fromVersion,
 			})
-		}
+
+			newVersions, err := res.Check(source, spaceName, fromVersion)
+
+			setErr := scanner.dbPipeline.SetResourceCheckError(savedResource, err)
+			if setErr != nil {
+				logger.Error("failed-to-set-check-error", err)
+			}
+
+			if err != nil {
+				if rErr, ok := err.(resource.ErrResourceScriptFailed); ok {
+					return rErr
+				}
+
+				logger.Error("failed-to-check", err)
+				return err
+			}
+
+			if len(newVersions) == 0 || reflect.DeepEqual(newVersions, []atc.Version{fromVersion}) {
+				logger.Debug("no-new-versions")
+				return nil
+			}
+
+			logger.Info("versions-found", lager.Data{
+				"versions": newVersions,
+				"total":    len(newVersions),
+			})
+
+			err = scanner.dbPipeline.SaveResourceVersions(atc.ResourceConfig{
+				Name: savedResource.Name(),
+				Type: savedResource.Type(),
+			}, spaceName, newVersions)
+			if err != nil {
+				logger.Error("failed-to-save-versions", err, lager.Data{
+					"versions": newVersions,
+				})
+			}
+			return nil
+		}(savedResource, space)
 	}
 
 	return nil

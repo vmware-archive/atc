@@ -271,6 +271,7 @@ func (p *pipeline) SaveSpaces(resourceID int, spaces []string) error {
 		_, err = psql.Insert("resource_spaces").
 			Columns("resource_id", "name").
 			Values(resourceID, space).
+			Suffix("ON CONFLICT (resource_id, name) DO NOTHING").
 			RunWith(tx).
 			Exec()
 	}

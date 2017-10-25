@@ -139,7 +139,7 @@ type ATCCommand struct {
 		WorkerConcurrency int           `long:"worker-concurrency" default:"50" description:"Maximum number of delete operations to have in flight per worker."`
 	} `group:"Garbage Collection" namespace:"gc"`
 
-	BuildTrackerInterval time.Duration `long:"build-tracker-interval" default:"10s" description:"Interval on which to run build tracking."`
+	BuildTrackerInterval time.Duration `long:"build-tracker-interval" default:"1m" description:"Interval on which to run build tracking."`
 
 	TelemetryOptIn bool `long:"telemetry-opt-in" hidden:"true" description:"Enable anonymous concourse version reporting."`
 }

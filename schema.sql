@@ -634,15 +634,6 @@ CREATE SEQUENCE one_off_name
 
 
 --
--- Name: pipeline_build_events_5; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE pipeline_build_events_5 (
-)
-INHERITS (build_events);
-
-
---
 -- Name: pipelines; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -895,15 +886,6 @@ CREATE SEQUENCE resources_id_seq
 --
 
 ALTER SEQUENCE resources_id_seq OWNED BY resources.id;
-
-
---
--- Name: team_build_events_1; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE team_build_events_1 (
-)
-INHERITS (build_events);
 
 
 --
@@ -1950,20 +1932,6 @@ CREATE UNIQUE INDEX next_builds_per_job_id ON next_builds_per_job USING btree (i
 
 
 --
--- Name: pipeline_build_events_5_build_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX pipeline_build_events_5_build_id ON pipeline_build_events_5 USING btree (build_id);
-
-
---
--- Name: pipeline_build_events_5_build_id_event_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX pipeline_build_events_5_build_id_event_id ON pipeline_build_events_5 USING btree (build_id, event_id);
-
-
---
 -- Name: pipelines_team_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2027,6 +1995,13 @@ CREATE INDEX resource_configs_resource_cache_id ON resource_configs USING btree 
 
 
 --
+-- Name: resource_spaces_resource_id_name_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX resource_spaces_resource_id_name_idx ON resource_spaces USING btree (resource_id, name);
+
+
+--
 -- Name: resource_types_pipeline_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2052,20 +2027,6 @@ CREATE INDEX resources_pipeline_id ON resources USING btree (pipeline_id);
 --
 
 CREATE INDEX resources_resource_config_id ON resources USING btree (resource_config_id);
-
-
---
--- Name: teams_build_events_1_build_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX teams_build_events_1_build_id ON team_build_events_1 USING btree (build_id);
-
-
---
--- Name: teams_build_events_1_build_id_event_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX teams_build_events_1_build_id_event_id ON team_build_events_1 USING btree (build_id, event_id);
 
 
 --
