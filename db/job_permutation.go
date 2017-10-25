@@ -77,7 +77,7 @@ func (j *jobPermutation) CreateBuild() (Build, error) {
 		return nil, err
 	}
 
-	_, err = j.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job`)
+	_, err = j.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job_permutation`)
 	if err != nil {
 		return nil, err
 	}
