@@ -2037,6 +2037,27 @@ CREATE UNIQUE INDEX transition_builds_per_job_id ON transition_builds_per_job US
 
 
 --
+-- Name: transition_builds_per_job_permutation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX transition_builds_per_job_permutation_id ON transition_builds_per_job_permutation USING btree (id);
+
+
+--
+-- Name: latest_completed_builds_per_job_permutation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX latest_completed_builds_per_job_permutation_id ON latest_completed_builds_per_job_permutation USING btree (id);
+
+
+--
+-- Name: next_builds_per_job_permutation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX next_builds_per_job_permutation_id ON next_builds_per_job_permutation USING btree (id);
+
+
+--
 -- Name: versioned_resources_resource_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
