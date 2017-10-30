@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/base64"
 	"net/http"
 )
 
@@ -17,11 +18,12 @@ func (handler CookieSetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	if err == nil {
 		ctx := context.WithValue(r.Context(), CSRFRequiredKey, true)
 		r = r.WithContext(ctx)
-
 		if r.Header.Get("Authorization") == "" {
-			r.Header.Set("Authorization", cookie.Value)
+			data, err := base64.StdEncoding.DecodeString(cookie.Value);
+			if err == nil {
+				r.Header.Set("Authorization", string(data[:]))
+			}
 		}
 	}
-
 	handler.Handler.ServeHTTP(w, r)
 }
