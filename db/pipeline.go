@@ -799,7 +799,7 @@ func (p *pipeline) Dashboard(include string) (Dashboard, atc.GroupConfigs, error
 		return nil, nil, err
 	}
 
-	var transitionBuilds map[string]Build
+	var transitionBuilds map[int]Build
 
 	if include == "transitionBuilds" {
 		transitionBuilds, err = p.getBuildsFrom("transition_builds_per_job_permutation")
@@ -813,15 +813,15 @@ func (p *pipeline) Dashboard(include string) (Dashboard, atc.GroupConfigs, error
 			Job: job,
 		}
 
-		if nextBuild, found := nextBuilds[job.Name()]; found {
+		if nextBuild, found := nextBuilds[job.ID()]; found {
 			dashboardJob.NextBuild = nextBuild
 		}
 
-		if finishedBuild, found := finishedBuilds[job.Name()]; found {
+		if finishedBuild, found := finishedBuilds[job.ID()]; found {
 			dashboardJob.FinishedBuild = finishedBuild
 		}
 
-		if transitionBuild, found := transitionBuilds[job.Name()]; found {
+		if transitionBuild, found := transitionBuilds[job.ID()]; found {
 			dashboardJob.TransitionBuild = transitionBuild
 		}
 
@@ -1458,7 +1458,7 @@ func (p *pipeline) getLatestModifiedTime() (time.Time, error) {
 	return max_modified_time, err
 }
 
-func (p *pipeline) getBuildsFrom(view string) (map[string]Build, error) {
+func (p *pipeline) getBuildsFrom(view string) (map[int]Build, error) {
 	rows, err := buildsQuery.
 		From(view + " b").
 		Where(sq.Eq{"b.pipeline_id": p.id}).
@@ -1469,7 +1469,7 @@ func (p *pipeline) getBuildsFrom(view string) (map[string]Build, error) {
 
 	defer rows.Close()
 
-	nextBuilds := make(map[string]Build)
+	nextBuilds := make(map[int]Build)
 
 	for rows.Next() {
 		build := &build{conn: p.conn, lockFactory: p.lockFactory}
@@ -1477,7 +1477,7 @@ func (p *pipeline) getBuildsFrom(view string) (map[string]Build, error) {
 		if err != nil {
 			return nil, err
 		}
-		nextBuilds[build.JobName()] = build
+		nextBuilds[build.JobPermutationID()] = build
 	}
 
 	return nextBuilds, nil
