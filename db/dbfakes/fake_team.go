@@ -49,6 +49,15 @@ type FakeTeam struct {
 	basicAuthReturnsOnCall map[int]struct {
 		result1 *atc.BasicAuth
 	}
+	LdapBasicAuthStub        func() *atc.LdapBasicAuth
+	ldapBasicAuthMutex       sync.RWMutex
+	ldapBasicAuthArgsForCall []struct{}
+	ldapBasicAuthReturns     struct {
+		result1 *atc.LdapBasicAuth
+	}
+	ldapBasicAuthReturnsOnCall map[int]struct {
+		result1 *atc.LdapBasicAuth
+	}
 	AuthStub        func() map[string]*json.RawMessage
 	authMutex       sync.RWMutex
 	authArgsForCall []struct{}
@@ -326,6 +335,17 @@ type FakeTeam struct {
 	updateBasicAuthReturnsOnCall map[int]struct {
 		result1 error
 	}
+	UpdateLdapBasicAuthStub        func(ldapBasicAuth *atc.LdapBasicAuth) error
+	updateLdapBasicAuthMutex       sync.RWMutex
+	updateLdapBasicAuthArgsForCall []struct {
+		ldapBasicAuth *atc.LdapBasicAuth
+	}
+	updateLdapBasicAuthReturns struct {
+		result1 error
+	}
+	updateLdapBasicAuthReturnsOnCall map[int]struct {
+		result1 error
+	}
 	UpdateProviderAuthStub        func(auth map[string]*json.RawMessage) error
 	updateProviderAuthMutex       sync.RWMutex
 	updateProviderAuthArgsForCall []struct {
@@ -523,6 +543,46 @@ func (fake *FakeTeam) BasicAuthReturnsOnCall(i int, result1 *atc.BasicAuth) {
 	}
 	fake.basicAuthReturnsOnCall[i] = struct {
 		result1 *atc.BasicAuth
+	}{result1}
+}
+
+func (fake *FakeTeam) LdapBasicAuth() *atc.LdapBasicAuth {
+	fake.ldapBasicAuthMutex.Lock()
+	ret, specificReturn := fake.ldapBasicAuthReturnsOnCall[len(fake.ldapBasicAuthArgsForCall)]
+	fake.ldapBasicAuthArgsForCall = append(fake.ldapBasicAuthArgsForCall, struct{}{})
+	fake.recordInvocation("LdapBasicAuth", []interface{}{})
+	fake.ldapBasicAuthMutex.Unlock()
+	if fake.LdapBasicAuthStub != nil {
+		return fake.LdapBasicAuthStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.ldapBasicAuthReturns.result1
+}
+
+func (fake *FakeTeam) LdapBasicAuthCallCount() int {
+	fake.ldapBasicAuthMutex.RLock()
+	defer fake.ldapBasicAuthMutex.RUnlock()
+	return len(fake.ldapBasicAuthArgsForCall)
+}
+
+func (fake *FakeTeam) LdapBasicAuthReturns(result1 *atc.LdapBasicAuth) {
+	fake.LdapBasicAuthStub = nil
+	fake.ldapBasicAuthReturns = struct {
+		result1 *atc.LdapBasicAuth
+	}{result1}
+}
+
+func (fake *FakeTeam) LdapBasicAuthReturnsOnCall(i int, result1 *atc.LdapBasicAuth) {
+	fake.LdapBasicAuthStub = nil
+	if fake.ldapBasicAuthReturnsOnCall == nil {
+		fake.ldapBasicAuthReturnsOnCall = make(map[int]struct {
+			result1 *atc.LdapBasicAuth
+		})
+	}
+	fake.ldapBasicAuthReturnsOnCall[i] = struct {
+		result1 *atc.LdapBasicAuth
 	}{result1}
 }
 
@@ -1568,6 +1628,54 @@ func (fake *FakeTeam) UpdateBasicAuthReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeTeam) UpdateLdapBasicAuth(ldapBasicAuth *atc.LdapBasicAuth) error {
+	fake.updateLdapBasicAuthMutex.Lock()
+	ret, specificReturn := fake.updateLdapBasicAuthReturnsOnCall[len(fake.updateLdapBasicAuthArgsForCall)]
+	fake.updateLdapBasicAuthArgsForCall = append(fake.updateLdapBasicAuthArgsForCall, struct {
+		ldapBasicAuth *atc.LdapBasicAuth
+	}{ldapBasicAuth})
+	fake.recordInvocation("UpdateLdapBasicAuth", []interface{}{ldapBasicAuth})
+	fake.updateLdapBasicAuthMutex.Unlock()
+	if fake.UpdateLdapBasicAuthStub != nil {
+		return fake.UpdateLdapBasicAuthStub(ldapBasicAuth)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.updateLdapBasicAuthReturns.result1
+}
+
+func (fake *FakeTeam) UpdateLdapBasicAuthCallCount() int {
+	fake.updateLdapBasicAuthMutex.RLock()
+	defer fake.updateLdapBasicAuthMutex.RUnlock()
+	return len(fake.updateLdapBasicAuthArgsForCall)
+}
+
+func (fake *FakeTeam) UpdateLdapBasicAuthArgsForCall(i int) *atc.LdapBasicAuth {
+	fake.updateLdapBasicAuthMutex.RLock()
+	defer fake.updateLdapBasicAuthMutex.RUnlock()
+	return fake.updateLdapBasicAuthArgsForCall[i].ldapBasicAuth
+}
+
+func (fake *FakeTeam) UpdateLdapBasicAuthReturns(result1 error) {
+	fake.UpdateLdapBasicAuthStub = nil
+	fake.updateLdapBasicAuthReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeTeam) UpdateLdapBasicAuthReturnsOnCall(i int, result1 error) {
+	fake.UpdateLdapBasicAuthStub = nil
+	if fake.updateLdapBasicAuthReturnsOnCall == nil {
+		fake.updateLdapBasicAuthReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.updateLdapBasicAuthReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeTeam) UpdateProviderAuth(auth map[string]*json.RawMessage) error {
 	fake.updateProviderAuthMutex.Lock()
 	ret, specificReturn := fake.updateProviderAuthReturnsOnCall[len(fake.updateProviderAuthArgsForCall)]
@@ -1727,6 +1835,8 @@ func (fake *FakeTeam) Invocations() map[string][][]interface{} {
 	defer fake.adminMutex.RUnlock()
 	fake.basicAuthMutex.RLock()
 	defer fake.basicAuthMutex.RUnlock()
+	fake.ldapBasicAuthMutex.RLock()
+	defer fake.ldapBasicAuthMutex.RUnlock()
 	fake.authMutex.RLock()
 	defer fake.authMutex.RUnlock()
 	fake.deleteMutex.RLock()
@@ -1769,6 +1879,8 @@ func (fake *FakeTeam) Invocations() map[string][][]interface{} {
 	defer fake.createContainerMutex.RUnlock()
 	fake.updateBasicAuthMutex.RLock()
 	defer fake.updateBasicAuthMutex.RUnlock()
+	fake.updateLdapBasicAuthMutex.RLock()
+	defer fake.updateLdapBasicAuthMutex.RUnlock()
 	fake.updateProviderAuthMutex.RLock()
 	defer fake.updateProviderAuthMutex.RUnlock()
 	fake.createPipeMutex.RLock()

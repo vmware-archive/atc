@@ -871,6 +871,29 @@ func (cmd *ATCCommand) configureAuthForDefaultTeam(teamFactory db.TeamFactory) e
 		return err
 	}
 
+	var ldapBasicAuth *atc.LdapBasicAuth
+	if cmd.Authentication.LdapBasicAuth.IsConfigured() {
+		ldapBasicAuth = &atc.LdapBasicAuth{
+			Server:                cmd.Authentication.LdapBasicAuth.Server,
+			Port:                  cmd.Authentication.LdapBasicAuth.Port,
+			TLSEnabled:            cmd.Authentication.LdapBasicAuth.TLSEnabled,
+			TLSInsecureSkipVerify: cmd.Authentication.LdapBasicAuth.TLSInsecureSkipVerify,
+			TLSCA:         cmd.Authentication.LdapBasicAuth.TLSCA,
+			BindUsername:  cmd.Authentication.LdapBasicAuth.BindUsername,
+			BindPassword:  cmd.Authentication.LdapBasicAuth.BindPassword,
+			UserBaseDN:    cmd.Authentication.LdapBasicAuth.UserBaseDN,
+			GroupBaseDN:   cmd.Authentication.LdapBasicAuth.GroupBaseDN,
+			GroupDN:       cmd.Authentication.LdapBasicAuth.GroupDN,
+			UserAttribute: cmd.Authentication.LdapBasicAuth.UserAttribute,
+			GroupFilter:   cmd.Authentication.LdapBasicAuth.GroupFilter,
+		}
+	}
+
+	err = team.UpdateLdapBasicAuth(ldapBasicAuth)
+	if err != nil {
+		return err
+	}
+
 	teamAuth := make(map[string]*json.RawMessage)
 	for name, config := range cmd.ProviderAuth {
 		if config.IsConfigured() {
@@ -986,6 +1009,7 @@ func (cmd *ATCCommand) constructAPIHandler(
 	apiWrapper := wrappa.MultiWrappa{
 		wrappa.NewAPIMetricsWrappa(logger),
 		wrappa.NewAPIAuthWrappa(
+			logger,
 			authValidator,
 			getTokenValidator,
 			auth.JWTReader{PublicKey: &signingKey.PublicKey},

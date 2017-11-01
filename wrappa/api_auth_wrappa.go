@@ -1,12 +1,14 @@
 package wrappa
 
 import (
+	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/auth"
 	"github.com/tedsuo/rata"
 )
 
 type APIAuthWrappa struct {
+	logger                              lager.Logger
 	authValidator                       auth.Validator
 	getTokenValidator                   auth.Validator
 	userContextReader                   auth.UserContextReader
@@ -17,6 +19,7 @@ type APIAuthWrappa struct {
 }
 
 func NewAPIAuthWrappa(
+	logger lager.Logger,
 	authValidator auth.Validator,
 	getTokenValidator auth.Validator,
 	userContextReader auth.UserContextReader,
@@ -26,6 +29,7 @@ func NewAPIAuthWrappa(
 	checkWorkerTeamAccessHandlerFactory auth.CheckWorkerTeamAccessHandlerFactory,
 ) *APIAuthWrappa {
 	return &APIAuthWrappa{
+		logger:                              logger,
 		authValidator:                       authValidator,
 		getTokenValidator:                   getTokenValidator,
 		userContextReader:                   userContextReader,
@@ -146,9 +150,9 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 		}
 
 		if name == atc.GetAuthToken {
-			newHandler = auth.WrapHandler(newHandler, wrappa.getTokenValidator, wrappa.userContextReader)
+			newHandler = auth.WrapHandler(wrappa.logger, newHandler, wrappa.getTokenValidator, wrappa.userContextReader)
 		} else {
-			newHandler = auth.WrapHandler(newHandler, wrappa.authValidator, wrappa.userContextReader)
+			newHandler = auth.WrapHandler(wrappa.logger, newHandler, wrappa.authValidator, wrappa.userContextReader)
 		}
 		wrapped[name] = auth.CSRFValidationHandler(newHandler, rejector, wrappa.userContextReader)
 	}

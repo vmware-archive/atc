@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc/db"
 
 	"golang.org/x/crypto/bcrypt"
@@ -18,7 +19,7 @@ func NewBasicAuthValidator(team db.Team) Validator {
 	}
 }
 
-func (v basicAuthValidator) IsAuthenticated(r *http.Request) bool {
+func (v basicAuthValidator) IsAuthenticated(logger lager.Logger, r *http.Request) bool {
 	auth := r.Header.Get("Authorization")
 	username, password, err := extractUsernameAndPassword(auth)
 	if err != nil {

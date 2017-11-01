@@ -30,6 +30,7 @@ type Team interface {
 	Admin() bool
 
 	BasicAuth() *atc.BasicAuth
+	LdapBasicAuth() *atc.LdapBasicAuth
 	Auth() map[string]*json.RawMessage
 
 	Delete() error
@@ -66,6 +67,7 @@ type Team interface {
 	CreateContainer(workerName string, owner ContainerOwner, meta ContainerMetadata) (CreatingContainer, error)
 
 	UpdateBasicAuth(basicAuth *atc.BasicAuth) error
+	UpdateLdapBasicAuth(ldapBasicAuth *atc.LdapBasicAuth) error
 	UpdateProviderAuth(auth map[string]*json.RawMessage) error
 
 	CreatePipe(string, string) error
@@ -80,7 +82,8 @@ type team struct {
 	name  string
 	admin bool
 
-	basicAuth *atc.BasicAuth
+	basicAuth     *atc.BasicAuth
+	ldapBasicAuth *atc.LdapBasicAuth
 
 	auth map[string]*json.RawMessage
 }
@@ -89,6 +92,7 @@ func (t *team) ID() int                           { return t.id }
 func (t *team) Name() string                      { return t.name }
 func (t *team) Admin() bool                       { return t.admin }
 func (t *team) BasicAuth() *atc.BasicAuth         { return t.basicAuth }
+func (t *team) LdapBasicAuth() *atc.LdapBasicAuth { return t.ldapBasicAuth }
 func (t *team) Auth() map[string]*json.RawMessage { return t.auth }
 
 func (t *team) Delete() error {
@@ -772,11 +776,34 @@ func (t *team) UpdateBasicAuth(basicAuth *atc.BasicAuth) error {
 		UPDATE teams
 		SET basic_auth = $1
 		WHERE LOWER(name) = LOWER($2)
-		RETURNING id, name, admin, basic_auth, auth, nonce
+		RETURNING id, name, admin, basic_auth, ldap_basic_auth, auth, nonce, ldap_nonce
 	`
 
 	params := []interface{}{encryptedBasicAuth, t.name}
 
+	return t.queryTeam(query, params)
+}
+
+// Updates LDAP Config
+func (t *team) UpdateLdapBasicAuth(ldapBasicAuth *atc.LdapBasicAuth) error {
+	jsonEncodedLdapBasicAuth, err := json.Marshal(ldapBasicAuth)
+	if err != nil {
+		return err
+	}
+
+	es := t.conn.EncryptionStrategy()
+	encryptedLdapBasicAuth, nonce, err := es.Encrypt(jsonEncodedLdapBasicAuth)
+	if err != nil {
+		return err
+	}
+
+	query := `
+		UPDATE teams
+		SET ldap_basic_auth = $1, ldap_nonce = $3
+		WHERE LOWER(name) = LOWER($2)
+		RETURNING id, name, admin, basic_auth, ldap_basic_auth, auth, nonce, ldap_nonce
+	`
+	params := []interface{}{string(encryptedLdapBasicAuth), t.name, nonce}
 	return t.queryTeam(query, params)
 }
 
@@ -796,7 +823,7 @@ func (t *team) UpdateProviderAuth(auth map[string]*json.RawMessage) error {
 		UPDATE teams
 		SET auth = $1, nonce = $3
 		WHERE LOWER(name) = LOWER($2)
-		RETURNING id, name, admin, basic_auth, auth, nonce
+		RETURNING id, name, admin, basic_auth, ldap_basic_auth, auth, nonce, ldap_nonce
 	`
 	params := []interface{}{string(encryptedAuth), t.name, nonce}
 	return t.queryTeam(query, params)
@@ -1072,7 +1099,7 @@ func scanPipelines(conn Conn, lockFactory lock.LockFactory, rows *sql.Rows) ([]P
 }
 
 func (t *team) queryTeam(query string, params []interface{}) error {
-	var basicAuth, providerAuth, nonce sql.NullString
+	var basicAuth, ldapBasicAuth, providerAuth, nonce, ldapNonce sql.NullString
 
 	tx, err := t.conn.Begin()
 	if err != nil {
@@ -1085,8 +1112,10 @@ func (t *team) queryTeam(query string, params []interface{}) error {
 		&t.name,
 		&t.admin,
 		&basicAuth,
+		&ldapBasicAuth,
 		&providerAuth,
 		&nonce,
+		&ldapNonce,
 	)
 	if err != nil {
 		return err
@@ -1117,6 +1146,25 @@ func (t *team) queryTeam(query string, params []interface{}) error {
 		}
 
 		err = json.Unmarshal(pAuth, &t.auth)
+		if err != nil {
+			return err
+		}
+	}
+
+	if ldapBasicAuth.Valid {
+		es := t.conn.EncryptionStrategy()
+
+		var noncense *string
+		if ldapNonce.Valid {
+			noncense = &ldapNonce.String
+		}
+
+		lAuth, err := es.Decrypt(ldapBasicAuth.String, noncense)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(lAuth, &t.ldapBasicAuth)
 		if err != nil {
 			return err
 		}

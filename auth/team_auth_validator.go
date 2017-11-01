@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc/auth/provider"
 	"github.com/concourse/atc/db"
 )
@@ -22,7 +23,7 @@ func NewTeamAuthValidator(
 	}
 }
 
-func (v teamAuthValidator) IsAuthenticated(r *http.Request) bool {
+func (v teamAuthValidator) IsAuthenticated(logger lager.Logger, r *http.Request) bool {
 	teamName := r.FormValue(":team_name")
 	team, found, err := v.teamFactory.FindTeam(teamName)
 	if err != nil || !found {
@@ -33,11 +34,15 @@ func (v teamAuthValidator) IsAuthenticated(r *http.Request) bool {
 		return true
 	}
 
-	if team.BasicAuth != nil && NewBasicAuthValidator(team).IsAuthenticated(r) {
+	if team.BasicAuth != nil && NewBasicAuthValidator(team).IsAuthenticated(logger, r) {
+		return true
+	}
+	// try ldap if configured
+	if team.LdapBasicAuth != nil && NewLdapBasicAuthValidator(team).IsAuthenticated(logger, r) {
 		return true
 	}
 
-	return v.jwtValidator.IsAuthenticated(r)
+	return v.jwtValidator.IsAuthenticated(logger, r)
 
 }
 
