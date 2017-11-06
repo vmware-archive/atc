@@ -369,6 +369,14 @@ func (c *volumeClient) findOrCreateVolume(
 		)
 		if err != nil {
 			logger.Error("failed-to-create-volume-in-baggageclaim", err)
+
+			_, failedErr := creatingVolume.Failed()
+			if failedErr != nil {
+				logger.Error("failed-to-mark-volume-as-failed", failedErr)
+			}
+
+			metric.FailedVolumes.Inc()
+
 			return nil, err
 		}
 

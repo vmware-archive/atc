@@ -36,6 +36,7 @@ import (
 	"github.com/concourse/atc/resource"
 	"github.com/concourse/atc/scheduler"
 	"github.com/concourse/atc/web"
+	"github.com/concourse/atc/web/manifest"
 	"github.com/concourse/atc/web/publichandler"
 	"github.com/concourse/atc/web/robotstxt"
 	"github.com/concourse/atc/worker"
@@ -140,7 +141,7 @@ type ATCCommand struct {
 
 	BuildTrackerInterval time.Duration `long:"build-tracker-interval" default:"10s" description:"Interval on which to run build tracking."`
 
-	TelemetryOptIn bool `long:"telemetry-opt-in" description:"Enable anonymous concourse version reporting."`
+	TelemetryOptIn bool `long:"telemetry-opt-in" hidden:"true" description:"Enable anonymous concourse version reporting."`
 }
 
 func (cmd *ATCCommand) WireDynamicFlags(commandFlags *flags.Command) {
@@ -191,7 +192,7 @@ func (cmd *ATCCommand) WireDynamicFlags(commandFlags *flags.Command) {
 
 	managerConfigs := make(creds.Managers)
 	for name, p := range creds.ManagerFactories() {
-		managerConfigs[name] = p.AddConfig(authGroup)
+		managerConfigs[name] = p.AddConfig(credsGroup)
 	}
 	cmd.CredentialManagers = managerConfigs
 
@@ -207,7 +208,10 @@ func (cmd *ATCCommand) Execute(args []string) error {
 	return <-ifrit.Invoke(sigmon.New(runner)).Wait()
 }
 
-func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
+func (cmd *ATCCommand) Runner(positionalArguments []string) (ifrit.Runner, error) {
+	if len(positionalArguments) != 0 {
+		return nil, fmt.Errorf("unexpected positional arguments: %v", positionalArguments)
+	}
 	err := cmd.validate()
 	if err != nil {
 		return nil, err
@@ -231,11 +235,8 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 		return nil, err
 	}
 
-	connectionCountingDriverName := "connection-counting"
-	metric.SetupConnectionCountingDriver("postgres", cmd.Postgres.ConnectionString(), connectionCountingDriverName)
-
 	retryingDriverName := "too-many-connections-retrying"
-	db.SetupConnectionRetryingDriver(connectionCountingDriverName, cmd.Postgres.ConnectionString(), retryingDriverName)
+	db.SetupConnectionRetryingDriver("postgres", cmd.Postgres.ConnectionString(), retryingDriverName)
 
 	var variablesFactory creds.VariablesFactory = noop.NewNoopFactory()
 	for name, manager := range cmd.CredentialManagers {
@@ -286,7 +287,7 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 	resourceFactoryFactory := resource.NewResourceFactoryFactory()
 	dbBuildFactory := db.NewBuildFactory(dbConn, lockFactory)
 	dbVolumeFactory := db.NewVolumeFactory(dbConn)
-	dbContainerFactory := db.NewContainerFactory(dbConn)
+	dbContainerRepository := db.NewContainerRepository(dbConn)
 	dbPipelineFactory := db.NewPipelineFactory(dbConn, lockFactory)
 	dbWorkerFactory := db.NewWorkerFactory(dbConn)
 	dbWorkerLifecycle := db.NewWorkerLifecycle(dbConn)
@@ -367,7 +368,7 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 		dbPipelineFactory,
 		dbWorkerFactory,
 		dbVolumeFactory,
-		dbContainerFactory,
+		dbContainerRepository,
 		dbBuildFactory,
 		providerFactory,
 		signingKey,
@@ -451,6 +452,12 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 		)
 	}
 
+	http.HandleFunc("/debug/connections", func(w http.ResponseWriter, r *http.Request) {
+		for _, stack := range db.GlobalConnectionTracker.Current() {
+			fmt.Fprintln(w, stack)
+		}
+	})
+
 	members := []grouper.Member{
 		{"drainer", drainer{
 			logger: logger.Session("drain"),
@@ -533,7 +540,7 @@ func (cmd *ATCCommand) Runner(args []string) (ifrit.Runner, error) {
 				),
 				gc.NewContainerCollector(
 					logger.Session("container-collector"),
-					dbContainerFactory,
+					dbContainerRepository,
 					gc.NewWorkerJobRunner(
 						logger.Session("container-collector-worker-job-runner"),
 						workerClient,
@@ -750,6 +757,7 @@ func (cmd *ATCCommand) constructDBConn(driverName string, logger lager.Logger, n
 
 	// Instrument with Metrics
 	dbConn = metric.CountQueries(dbConn)
+	metric.Database = dbConn
 
 	// Instrument with Logging
 	if cmd.LogDBQueries {
@@ -920,6 +928,7 @@ func (cmd *ATCCommand) constructHTTPHandler(
 	webMux.Handle("/api/v1/", apiHandler)
 	webMux.Handle("/auth/", oauthHandler)
 	webMux.Handle("/public/", publicHandler)
+	webMux.Handle("/manifest.json", manifest.NewHandler())
 	webMux.Handle("/robots.txt", robotstxt.Handler{})
 	webMux.Handle("/", webHandler)
 
@@ -947,7 +956,7 @@ func (cmd *ATCCommand) constructAPIHandler(
 	dbPipelineFactory db.PipelineFactory,
 	dbWorkerFactory db.WorkerFactory,
 	dbVolumeFactory db.VolumeFactory,
-	dbContainerFactory db.ContainerFactory,
+	dbContainerRepository db.ContainerRepository,
 	dbBuildFactory db.BuildFactory,
 	providerFactory auth.OAuthFactory,
 	signingKey *rsa.PrivateKey,
@@ -1002,7 +1011,7 @@ func (cmd *ATCCommand) constructAPIHandler(
 		dbPipelineFactory,
 		dbWorkerFactory,
 		dbVolumeFactory,
-		dbContainerFactory,
+		dbContainerRepository,
 		dbBuildFactory,
 
 		cmd.PeerURL.String(),

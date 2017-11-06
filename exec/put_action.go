@@ -18,16 +18,16 @@ type PutAction struct {
 	Name     string
 	Resource string
 	Source   creds.Source
-	Params   atc.Params
+	Params   creds.Params
 	Tags     atc.Tags
 
-	imageFetchingDelegate ImageFetchingDelegate
-	resourceFactory       resource.ResourceFactory
-	teamID                int
-	buildID               int
-	planID                atc.PlanID
-	containerMetadata     db.ContainerMetadata
-	stepMetadata          StepMetadata
+	buildStepDelegate BuildStepDelegate
+	resourceFactory   resource.ResourceFactory
+	teamID            int
+	buildID           int
+	planID            atc.PlanID
+	containerMetadata db.ContainerMetadata
+	stepMetadata      StepMetadata
 
 	resourceTypes creds.VersionedResourceTypes
 
@@ -40,9 +40,9 @@ func NewPutAction(
 	name string,
 	resourceName string,
 	source creds.Source,
-	params atc.Params,
+	params creds.Params,
 	tags atc.Tags,
-	imageFetchingDelegate ImageFetchingDelegate,
+	buildStepDelegate BuildStepDelegate,
 	resourceFactory resource.ResourceFactory,
 	teamID int,
 	buildID int,
@@ -52,20 +52,20 @@ func NewPutAction(
 	resourceTypes creds.VersionedResourceTypes,
 ) *PutAction {
 	return &PutAction{
-		Type:     resourceType,
-		Name:     name,
-		Resource: resourceName,
-		Source:   source,
-		Params:   params,
-		Tags:     tags,
-		imageFetchingDelegate: imageFetchingDelegate,
-		resourceFactory:       resourceFactory,
-		teamID:                teamID,
-		buildID:               buildID,
-		planID:                planID,
-		containerMetadata:     containerMetadata,
-		stepMetadata:          stepMetadata,
-		resourceTypes:         resourceTypes,
+		Type:              resourceType,
+		Name:              name,
+		Resource:          resourceName,
+		Source:            source,
+		Params:            params,
+		Tags:              tags,
+		buildStepDelegate: buildStepDelegate,
+		resourceFactory:   resourceFactory,
+		teamID:            teamID,
+		buildID:           buildID,
+		planID:            planID,
+		containerMetadata: containerMetadata,
+		stepMetadata:      stepMetadata,
+		resourceTypes:     resourceTypes,
 	}
 }
 
@@ -111,7 +111,7 @@ func (action *PutAction) Run(
 		action.containerMetadata,
 		containerSpec,
 		action.resourceTypes,
-		action.imageFetchingDelegate,
+		action.buildStepDelegate,
 	)
 	if err != nil {
 		return err
@@ -122,13 +122,18 @@ func (action *PutAction) Run(
 		return err
 	}
 
+	params, err := action.Params.Evaluate()
+	if err != nil {
+		return err
+	}
+
 	versionedSource, err := putResource.Put(
 		resource.IOConfig{
-			Stdout: action.imageFetchingDelegate.Stdout(),
-			Stderr: action.imageFetchingDelegate.Stderr(),
+			Stdout: action.buildStepDelegate.Stdout(),
+			Stderr: action.buildStepDelegate.Stderr(),
 		},
 		source,
-		action.Params,
+		params,
 		signals,
 		ready,
 	)

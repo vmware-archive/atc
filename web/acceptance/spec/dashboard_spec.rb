@@ -1,15 +1,8 @@
-require 'color'
 require 'securerandom'
+require 'colors'
 
 describe 'dashboard', type: :feature do
-  let(:red) { Color::RGB.by_hex('E74C3C') }
-  let(:green) { Color::RGB.by_hex('2ECC71') }
-  let(:orange) { Color::RGB.by_hex('E67E22') }
-  let(:yellow) { Color::RGB.by_hex('F1C40F') }
-  let(:brown) { Color::RGB.by_hex('8F4B2D') }
-  let(:blue) { Color::RGB.by_hex('3498DB') }
-  let(:grey) { Color::RGB.by_hex('ECF0F1') }
-  let(:palette) { [red, green, orange, yellow, brown, blue, grey] }
+  include Colors
 
   let(:team_name) { generate_team_name }
   let(:other_team_name) { generate_team_name }
@@ -32,10 +25,10 @@ describe 'dashboard', type: :feature do
     fly_login team_name
   end
 
-  it 'shows all pipelins from the authenticated team and public pipelines from other teams' do
+  it 'shows all pipelines from the authenticated team and public pipelines from other teams' do
     dash_login team_name
 
-    visit dash_route('/dashboard')
+    visit dash_route('/beta/dashboard')
 
     within '.dashboard-team-group', text: team_name do
       expect(page).to have_content 'some-pipeline'
@@ -45,6 +38,16 @@ describe 'dashboard', type: :feature do
       expect(page).to have_content 'other-pipeline-public'
       expect(page).to_not have_content 'other-pipeline-private'
     end
+  end
+
+  it 'shows authenticated team first' do
+    dash_login team_name
+
+    visit dash_route('/beta/dashboard')
+
+    expect(page).to have_content(team_name)
+    expect(page).to have_content(other_team_name)
+    expect(page.first('.dashboard-team-name').text).to eq(team_name)
   end
 
   context 'when pipelines have different states' do
@@ -90,8 +93,8 @@ describe 'dashboard', type: :feature do
     it 'displays the pipelines in correct sort order' do
       visit_dashboard
       within '.dashboard-team-group', text: team_name do
-        expect(page.find_all('.dashboard-pipeline-name').map(&:text)).to eq (
-          ['other-failing-pipeline', 'failing-pipeline', 'errored-pipeline', 'aborted-pipeline', 'succeeded-pipeline', 'pending-pipeline', 'paused-pipeline']
+        expect(page.find_all('.dashboard-pipeline-name').map(&:text)).to eq(
+          ['failing-pipeline', 'other-failing-pipeline', 'errored-pipeline', 'aborted-pipeline', 'paused-pipeline', 'succeeded-pipeline', 'pending-pipeline']
         )
       end
     end
@@ -100,10 +103,34 @@ describe 'dashboard', type: :feature do
   context 'when a pipeline is paused' do
     before do
       fly('pause-pipeline -p some-pipeline')
+      visit_dashboard
     end
 
     it 'is shown in blue' do
-      expect(border_color.closest_match(palette)).to eq(blue)
+      expect(border_palette).to eq(BLUE)
+    end
+
+    it 'is labelled "paused"' do
+      within '.dashboard-pipeline', text: 'some-pipeline' do
+        expect(page).to have_content('paused')
+      end
+    end
+  end
+
+  context 'when a pipeline is pending' do
+    before do
+      fly('trigger-job -j some-pipeline/pending')
+      visit_dashboard
+    end
+
+    it 'is shown in grey' do
+      expect(border_color).to be_greyscale
+    end
+
+    it 'is labelled "pending"' do
+      within '.dashboard-pipeline', text: 'some-pipeline' do
+        expect(page).to have_content('pending', wait: 10)
+      end
     end
   end
 
@@ -117,14 +144,8 @@ describe 'dashboard', type: :feature do
     end
 
     it 'is shown in red' do
-      expect(border_color('some-other-pipeline').closest_match(palette)).to eq(red)
-    end
-
-    it 'rises to the top' do
       visit_dashboard
-      within '.dashboard-team-group', text: team_name do
-        expect(page.find_all('.dashboard-pipeline-name').map(&:text)).to eq ['some-other-pipeline', 'some-pipeline', 'another-pipeline']
-      end
+      expect(border_palette('some-other-pipeline')).to eq(RED)
     end
   end
 
@@ -134,7 +155,8 @@ describe 'dashboard', type: :feature do
     end
 
     it 'is shown in green' do
-      expect(border_color.closest_match(palette)).to eq(green)
+      visit_dashboard
+      expect(border_palette).to eq(GREEN)
     end
   end
 
@@ -145,13 +167,15 @@ describe 'dashboard', type: :feature do
     end
 
     it 'is shown in brown' do
-      expect(border_color.closest_match(palette)).to eq(brown)
+      visit_dashboard
+      expect(border_palette).to eq(BROWN)
     end
   end
 
   context 'when a pipeline is pending' do
     it 'is shown in grey' do
-      expect(border_color.closest_match(palette)).to eq(grey)
+      visit_dashboard
+      expect(border_color).to be_greyscale
     end
   end
 
@@ -161,16 +185,18 @@ describe 'dashboard', type: :feature do
     end
 
     it 'is shown in amber' do
-      expect(border_color.closest_match(palette)).to eq(orange)
+      visit_dashboard
+      expect(border_palette).to eq(ORANGE)
     end
   end
 
   context 'when a pipeline changes its state' do
     it 'updates the dashboard automatically' do
-      expect(border_color.closest_match(palette)).to eq(grey)
-      fly('trigger-job -j some-pipeline/passing')
+      visit_dashboard
+      expect(border_color).to be_greyscale
+      fly('trigger-job -w -j some-pipeline/passing')
       sleep 5
-      expect(border_color.closest_match(palette)).to eq(green)
+      expect(border_palette).to eq(GREEN)
     end
   end
 
@@ -191,15 +217,22 @@ describe 'dashboard', type: :feature do
     it 'displays the time since the earliest failed build' do
       visit_dashboard
       within '.dashboard-pipeline', text: 'some-pipeline' do
-        expect(page.text).to match(/some-pipeline failing for: [\d]{1,2}s\z/)
+        expect(page.text).to match(/some-pipeline [\d]{1,2}s/)
       end
     end
   end
 
   it 'anchors URL links on team groups' do
     login
-    visit dash_route('/dashboard')
+    visit dash_route('/beta/dashboard')
     expect(page).to have_css('.dashboard-team-group', id: team_name)
+  end
+
+  it 'links to latest build in the preview' do
+    login
+    visit dash_route('/beta/dashboard')
+    fly_fail('trigger-job -w -j some-pipeline/failing')
+    expect(page.find("a[href=\"/beta/teams/#{team_name}/pipelines/some-pipeline/jobs/failing/builds/1\"]").text).not_to be_nil
   end
 
   private
@@ -208,24 +241,20 @@ describe 'dashboard', type: :feature do
     @login ||= dash_login team_name
   end
 
+  def border_palette(pipeline = 'some-pipeline')
+    background_palette(border_element(pipeline))
+  end
+
   def border_color(pipeline = 'some-pipeline')
-    visit_dashboard
-    pipeline = page.find('.dashboard-pipeline', text: pipeline)
-    by_rgb(computed_style(pipeline.find('.dashboard-pipeline-banner'), 'backgroundColor'))
+    background_color(border_element(pipeline))
   end
 
-  def computed_style(node, attribute)
-    page.evaluate_script("window.getComputedStyle(document.evaluate('#{node.path}', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue).#{attribute}")
-  end
-
-  def by_rgb(rgb)
-    /rgb\((\d+),\s*(\d+),\s*(\d+)\)/.match(rgb) do |m|
-      Color::RGB.new(m[1].to_i, m[2].to_i, m[3].to_i)
-    end
+  def border_element(pipeline = 'some-pipeline')
+    page.find('.dashboard-pipeline', text: pipeline).find('.dashboard-pipeline-banner')
   end
 
   def visit_dashboard
     login
-    visit dash_route('/dashboard')
+    visit dash_route('/beta/dashboard')
   end
 end

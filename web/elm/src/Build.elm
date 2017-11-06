@@ -13,35 +13,37 @@ module Build
         , changeToBuild
         )
 
-import Date exposing (Date)
-import Date.Format
-import Debug
-import Maybe.Extra
-import Dict exposing (Dict)
-import Html exposing (Html)
-import Html.Attributes exposing (action, class, classList, href, id, method, title, disabled, attribute, tabindex)
-import Html.Lazy
-import Http
-import Navigation
-import Process
-import Task exposing (Task)
-import Time exposing (Time)
-import String
 import Autoscroll
 import BuildDuration
 import BuildOutput
+import Char
 import Concourse
 import Concourse.Build
 import Concourse.BuildPrep
 import Concourse.BuildStatus
 import Concourse.Job
 import Concourse.Pagination exposing (Paginated)
+import Date exposing (Date)
+import Date.Format
+import Debug
+import Dict exposing (Dict)
 import Favicon
+import Html exposing (Html)
+import Html.Attributes exposing (action, class, classList, href, id, method, title, disabled, attribute, tabindex)
+import Html.Lazy
+import Http
+import Keyboard
 import LoadingIndicator
-import StrictEvents exposing (onLeftClick, onMouseWheel, onScroll)
-import Scroll
 import LoginRedirect
+import Maybe.Extra
+import Navigation
+import Process
 import RemoteData exposing (WebData)
+import Scroll
+import StrictEvents exposing (onLeftClick, onMouseWheel, onScroll)
+import String
+import Task exposing (Task)
+import Time exposing (Time)
 import UpdateMsg exposing (UpdateMsg)
 
 
@@ -73,7 +75,8 @@ type alias CurrentBuild =
 
 
 type alias Model =
-    { now : Maybe Time.Time
+    { page : Page
+    , now : Maybe Time.Time
     , job : Maybe Concourse.Job
     , history : List Concourse.Build
     , currentBuild : WebData CurrentBuild
@@ -81,6 +84,9 @@ type alias Model =
     , autoScroll : Bool
     , ports : Ports
     , csrfToken : String
+    , previousKeyPress : Maybe Char
+    , showHelp : Bool
+    , hash : String
     }
 
 
@@ -109,10 +115,12 @@ type Msg
     | WindowScrolled Scroll.FromBottom
     | NavTo String
     | NewCSRFToken String
+    | KeyPressed Keyboard.KeyCode
 
 
 type alias Flags =
     { csrfToken : String
+    , hash : String
     }
 
 
@@ -122,7 +130,8 @@ init ports flags page =
         ( model, cmd ) =
             changeToBuild
                 page
-                { now = Nothing
+                { page = page
+                , now = Nothing
                 , job = Nothing
                 , history = []
                 , currentBuild = RemoteData.NotAsked
@@ -130,6 +139,9 @@ init ports flags page =
                 , autoScroll = True
                 , ports = ports
                 , csrfToken = flags.csrfToken
+                , previousKeyPress = Nothing
+                , showHelp = False
+                , hash = flags.hash
                 }
     in
         ( model, Cmd.batch [ cmd, getCurrentTime ] )
@@ -146,31 +158,36 @@ subscriptions model =
 
             Just buildOutput ->
                 Sub.map (BuildOutputMsg model.browsingIndex) buildOutput.events
+        , Keyboard.presses KeyPressed
         ]
 
 
 changeToBuild : Page -> Model -> ( Model, Cmd Msg )
 changeToBuild page model =
-    let
-        newIndex =
-            model.browsingIndex + 1
+    if model.browsingIndex > 0 && page == model.page then
+        ( model, Cmd.none )
+    else
+        let
+            newIndex =
+                model.browsingIndex + 1
 
-        newBuild =
-            RemoteData.map (\cb -> { cb | prep = Nothing, output = Nothing })
-                model.currentBuild
-    in
-        ( { model
-            | browsingIndex = newIndex
-            , currentBuild = newBuild
-            , autoScroll = True
-          }
-        , case page of
-            BuildPage buildId ->
-                fetchBuild 0 newIndex buildId
+            newBuild =
+                RemoteData.map (\cb -> { cb | prep = Nothing, output = Nothing })
+                    model.currentBuild
+        in
+            ( { model
+                | browsingIndex = newIndex
+                , currentBuild = newBuild
+                , autoScroll = True
+                , page = page
+              }
+            , case page of
+                BuildPage buildId ->
+                    fetchBuild 0 newIndex buildId
 
-            JobBuildPage jbi ->
-                fetchJobBuild newIndex jbi
-        )
+                JobBuildPage jbi ->
+                    fetchJobBuild newIndex jbi
+            )
 
 
 extractTitle : Model -> String
@@ -343,6 +360,102 @@ update action model =
         NewCSRFToken token ->
             ( { model | csrfToken = token }, Cmd.none )
 
+        KeyPressed keycode ->
+            handleKeyPressed (Char.fromCode keycode) model
+
+
+handleKeyPressed : Char -> Model -> ( Model, Cmd Msg )
+handleKeyPressed key model =
+    let
+        currentBuild =
+            Maybe.map .build (model.currentBuild |> RemoteData.toMaybe)
+
+        newModel =
+            case ( model.previousKeyPress, key ) of
+                ( Nothing, 'g' ) ->
+                    { model | previousKeyPress = Just 'g' }
+
+                _ ->
+                    { model | previousKeyPress = Nothing }
+    in
+        case key of
+            'h' ->
+                case Maybe.andThen (nextBuild model.history) currentBuild of
+                    Just build ->
+                        update (SwitchToBuild build) newModel
+
+                    Nothing ->
+                        ( newModel, Cmd.none )
+
+            'l' ->
+                case Maybe.andThen (prevBuild model.history) currentBuild of
+                    Just build ->
+                        update (SwitchToBuild build) newModel
+
+                    Nothing ->
+                        ( newModel, Cmd.none )
+
+            'j' ->
+                ( newModel, Task.perform (always Noop) Scroll.scrollDown )
+
+            'k' ->
+                ( newModel, Task.perform (always Noop) Scroll.scrollUp )
+
+            'T' ->
+                update (TriggerBuild (currentBuild |> Maybe.andThen .job)) newModel
+
+            'A' ->
+                if currentBuild == List.head model.history then
+                    case currentBuild of
+                        Just build ->
+                            update (AbortBuild build.id) newModel
+
+                        Nothing ->
+                            ( newModel, Cmd.none )
+                else
+                    ( newModel, Cmd.none )
+
+            'g' ->
+                if model.previousKeyPress == Just 'g' then
+                    ( { newModel | autoScroll = False }, Task.perform (always Noop) Scroll.toWindowTop )
+                else
+                    ( newModel, Cmd.none )
+
+            'G' ->
+                ( { newModel | autoScroll = True }, Task.perform (always Noop) Scroll.toWindowBottom )
+
+            '?' ->
+                ( { model | showHelp = not model.showHelp }, Cmd.none )
+
+            _ ->
+                ( newModel, Cmd.none )
+
+
+nextBuild : List Concourse.Build -> Concourse.Build -> Maybe Concourse.Build
+nextBuild builds build =
+    case builds of
+        first :: second :: rest ->
+            if second == build then
+                Just first
+            else
+                nextBuild (second :: rest) build
+
+        _ ->
+            Nothing
+
+
+prevBuild : List Concourse.Build -> Concourse.Build -> Maybe Concourse.Build
+prevBuild builds build =
+    case builds of
+        first :: second :: rest ->
+            if first == build then
+                Just second
+            else
+                prevBuild (second :: rest) build
+
+        _ ->
+            Nothing
+
 
 handleBuildFetched : Int -> Concourse.Build -> Model -> ( Model, Cmd Msg )
 handleBuildFetched browsingIndex build model =
@@ -420,7 +533,7 @@ initBuildOutput : Concourse.Build -> Model -> ( Model, Cmd Msg )
 initBuildOutput build model =
     let
         ( output, outputCmd ) =
-            BuildOutput.init build
+            BuildOutput.init { hash = model.hash } build
     in
         ( { model
             | currentBuild =
@@ -492,6 +605,21 @@ view model =
                     [ viewBuildPrep currentBuild.prep
                     , Html.Lazy.lazy2 viewBuildOutput model.browsingIndex <|
                         currentBuild.output
+                    , Html.div
+                        [ classList
+                            [ ( "keyboard-help", True )
+                            , ( "hidden", not model.showHelp )
+                            ]
+                        ]
+                        [ Html.div [ class "help-title" ] [ Html.text "keyboard shortcuts" ]
+                        , Html.div [ class "help-line" ] [ Html.div [ class "keys" ] [ Html.span [ class "key" ] [ Html.text "h" ], Html.span [ class "key" ] [ Html.text "l" ] ], Html.text "previous/next build" ]
+                        , Html.div [ class "help-line" ] [ Html.div [ class "keys" ] [ Html.span [ class "key" ] [ Html.text "j" ], Html.span [ class "key" ] [ Html.text "k" ] ], Html.text "scroll down/up" ]
+                        , Html.div [ class "help-line" ] [ Html.div [ class "keys" ] [ Html.span [ class "key" ] [ Html.text "T" ] ], Html.text "trigger a new build" ]
+                        , Html.div [ class "help-line" ] [ Html.div [ class "keys" ] [ Html.span [ class "key" ] [ Html.text "A" ] ], Html.text "abort build" ]
+                        , Html.div [ class "help-line" ] [ Html.div [ class "keys" ] [ Html.span [ class "key" ] [ Html.text "gg" ] ], Html.text "scroll to the top" ]
+                        , Html.div [ class "help-line" ] [ Html.div [ class "keys" ] [ Html.span [ class "key" ] [ Html.text "G" ] ], Html.text "scroll to the bottom" ]
+                        , Html.div [ class "help-line" ] [ Html.div [ class "keys" ] [ Html.span [ class "key" ] [ Html.text "?" ] ], Html.text "hide/show help" ]
+                        ]
                     ]
                         ++ let
                             build =
@@ -678,7 +806,7 @@ viewBuildHeader build { now, job, history } =
                                 Just job ->
                                     job.disableManualTrigger
                     in
-                        Html.span
+                        Html.button
                             [ class "build-action fr"
                             , disabled buttonDisabled
                             , attribute "role" "button"
@@ -690,11 +818,11 @@ viewBuildHeader build { now, job, history } =
                             [ Html.i [ class "fa fa-plus-circle" ] [] ]
 
                 _ ->
-                    Html.span [] []
+                    Html.text ""
 
         abortButton =
             if Concourse.BuildStatus.isRunning build.status then
-                Html.span
+                Html.button
                     [ class "build-action build-action-abort fr"
                     , onLeftClick (AbortBuild build.id)
                     , attribute "role" "button"
@@ -704,7 +832,7 @@ viewBuildHeader build { now, job, history } =
                     ]
                     [ Html.i [ class "fa fa-times-circle" ] [] ]
             else
-                Html.span [] []
+                Html.text ""
 
         buildTitle =
             case build.job of

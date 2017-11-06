@@ -55,6 +55,17 @@ type FakeCreatingContainer struct {
 		result1 db.CreatedContainer
 		result2 error
 	}
+	FailedStub        func() (db.FailedContainer, error)
+	failedMutex       sync.RWMutex
+	failedArgsForCall []struct{}
+	failedReturns     struct {
+		result1 db.FailedContainer
+		result2 error
+	}
+	failedReturnsOnCall map[int]struct {
+		result1 db.FailedContainer
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -262,6 +273,49 @@ func (fake *FakeCreatingContainer) CreatedReturnsOnCall(i int, result1 db.Create
 	}{result1, result2}
 }
 
+func (fake *FakeCreatingContainer) Failed() (db.FailedContainer, error) {
+	fake.failedMutex.Lock()
+	ret, specificReturn := fake.failedReturnsOnCall[len(fake.failedArgsForCall)]
+	fake.failedArgsForCall = append(fake.failedArgsForCall, struct{}{})
+	fake.recordInvocation("Failed", []interface{}{})
+	fake.failedMutex.Unlock()
+	if fake.FailedStub != nil {
+		return fake.FailedStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.failedReturns.result1, fake.failedReturns.result2
+}
+
+func (fake *FakeCreatingContainer) FailedCallCount() int {
+	fake.failedMutex.RLock()
+	defer fake.failedMutex.RUnlock()
+	return len(fake.failedArgsForCall)
+}
+
+func (fake *FakeCreatingContainer) FailedReturns(result1 db.FailedContainer, result2 error) {
+	fake.FailedStub = nil
+	fake.failedReturns = struct {
+		result1 db.FailedContainer
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCreatingContainer) FailedReturnsOnCall(i int, result1 db.FailedContainer, result2 error) {
+	fake.FailedStub = nil
+	if fake.failedReturnsOnCall == nil {
+		fake.failedReturnsOnCall = make(map[int]struct {
+			result1 db.FailedContainer
+			result2 error
+		})
+	}
+	fake.failedReturnsOnCall[i] = struct {
+		result1 db.FailedContainer
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeCreatingContainer) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -275,6 +329,8 @@ func (fake *FakeCreatingContainer) Invocations() map[string][][]interface{} {
 	defer fake.metadataMutex.RUnlock()
 	fake.createdMutex.RLock()
 	defer fake.createdMutex.RUnlock()
+	fake.failedMutex.RLock()
+	defer fake.failedMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

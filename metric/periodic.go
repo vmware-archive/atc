@@ -23,14 +23,16 @@ func PeriodicallyEmit(logger lager.Logger, interval time.Duration) {
 			},
 		)
 
-		emit(
-			tLog.Session("database-connections"),
-			Event{
-				Name:  "database connections",
-				Value: DatabaseConnections.Max(),
-				State: EventStateOK,
-			},
-		)
+		if Database != nil {
+			emit(
+				tLog.Session("database-connections"),
+				Event{
+					Name:  "database connections",
+					Value: Database.Stats().OpenConnections,
+					State: EventStateOK,
+				},
+			)
+		}
 
 		emit(
 			logger.Session("containers-deleted"),
@@ -64,6 +66,24 @@ func PeriodicallyEmit(logger lager.Logger, interval time.Duration) {
 			Event{
 				Name:  "volumes created",
 				Value: VolumesCreated.Delta(),
+				State: EventStateOK,
+			},
+		)
+
+		emit(
+			logger.Session("failed-containers"),
+			Event{
+				Name:  "failed containers",
+				Value: FailedContainers.Delta(),
+				State: EventStateOK,
+			},
+		)
+
+		emit(
+			logger.Session("failed-volumes"),
+			Event{
+				Name:  "failed volumes",
+				Value: FailedVolumes.Delta(),
 				State: EventStateOK,
 			},
 		)

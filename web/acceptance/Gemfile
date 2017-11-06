@@ -1,8 +1,9 @@
 source 'https://rubygems.org'
 
 gem 'capybara'
+gem 'capybara-selenium'
 gem 'color'
 gem 'launchy'
-gem 'poltergeist'
 gem 'rspec'
 gem 'rubocop'
+gem 'selenium-webdriver', github: 'topherbullock/selenium-gemspec', branch: 'gemspec'

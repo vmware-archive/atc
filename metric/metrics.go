@@ -8,11 +8,14 @@ import (
 	"github.com/concourse/atc/db"
 )
 
+var Database db.Conn
 var DatabaseQueries = Meter(0)
-var DatabaseConnections = &Gauge{}
 
 var ContainersCreated = Meter(0)
 var VolumesCreated = Meter(0)
+
+var FailedContainers = Meter(0)
+var FailedVolumes = Meter(0)
 
 var ContainersDeleted = Meter(0)
 var VolumesDeleted = Meter(0)
@@ -192,15 +195,63 @@ func (event DestroyingContainersToBeGarbageCollected) Emit(logger lager.Logger) 
 	)
 }
 
-type VolumesToBeGarbageCollected struct {
+type FailedContainersToBeGarbageCollected struct {
+	Containers int
+}
+
+func (event FailedContainersToBeGarbageCollected) Emit(logger lager.Logger) {
+	emit(
+		logger.Session("gc-found-failed-containers-for-deletion"),
+		Event{
+			Name:       "failed containers to be garbage collected",
+			Value:      event.Containers,
+			State:      EventStateOK,
+			Attributes: map[string]string{},
+		},
+	)
+}
+
+type CreatedVolumesToBeGarbageCollected struct {
 	Volumes int
 }
 
-func (event VolumesToBeGarbageCollected) Emit(logger lager.Logger) {
+func (event CreatedVolumesToBeGarbageCollected) Emit(logger lager.Logger) {
 	emit(
-		logger.Session("gc-found-volumes-for-deletion"),
+		logger.Session("gc-found-created-volumes-for-deletion"),
 		Event{
-			Name:       "volumes to be garbage collected",
+			Name:       "created volumes to be garbage collected",
+			Value:      event.Volumes,
+			State:      EventStateOK,
+			Attributes: map[string]string{},
+		},
+	)
+}
+
+type DestroyingVolumesToBeGarbageCollected struct {
+	Volumes int
+}
+
+func (event DestroyingVolumesToBeGarbageCollected) Emit(logger lager.Logger) {
+	emit(
+		logger.Session("gc-found-destroying-volumes-for-deletion"),
+		Event{
+			Name:       "destroying volumes to be garbage collected",
+			Value:      event.Volumes,
+			State:      EventStateOK,
+			Attributes: map[string]string{},
+		},
+	)
+}
+
+type FailedVolumesToBeGarbageCollected struct {
+	Volumes int
+}
+
+func (event FailedVolumesToBeGarbageCollected) Emit(logger lager.Logger) {
+	emit(
+		logger.Session("gc-found-failed-volumes-for-deletion"),
+		Event{
+			Name:       "failed volumes to be garbage collected",
 			Value:      event.Volumes,
 			State:      EventStateOK,
 			Attributes: map[string]string{},
@@ -249,6 +300,7 @@ type BuildStarted struct {
 	JobName      string
 	BuildName    string
 	BuildID      int
+	TeamName     string
 }
 
 func (event BuildStarted) Emit(logger lager.Logger) {
@@ -263,6 +315,7 @@ func (event BuildStarted) Emit(logger lager.Logger) {
 				"job":        event.JobName,
 				"build_name": event.BuildName,
 				"build_id":   strconv.Itoa(event.BuildID),
+				"team_name":  event.TeamName,
 			},
 		},
 	)
@@ -275,6 +328,7 @@ type BuildFinished struct {
 	BuildID       int
 	BuildStatus   db.BuildStatus
 	BuildDuration time.Duration
+	TeamName      string
 }
 
 func (event BuildFinished) Emit(logger lager.Logger) {
@@ -290,6 +344,7 @@ func (event BuildFinished) Emit(logger lager.Logger) {
 				"build_name":   event.BuildName,
 				"build_id":     strconv.Itoa(event.BuildID),
 				"build_status": string(event.BuildStatus),
+				"team_name":    event.TeamName,
 			},
 		},
 	)

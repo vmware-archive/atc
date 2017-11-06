@@ -273,7 +273,7 @@ func (t *team) FindContainersByMetadata(metadata ContainerMetadata) ([]Container
 
 	var containers []Container
 	for rows.Next() {
-		creating, created, destroying, err := scanContainer(rows, t.conn)
+		creating, created, destroying, _, err := scanContainer(rows, t.conn)
 		if err != nil {
 			return nil, err
 		}
@@ -356,7 +356,7 @@ func (t *team) FindCheckContainers(logger lager.Logger, pipelineName string, res
 
 	var containers []Container
 	for rows.Next() {
-		creating, created, destroying, err := scanContainer(rows, t.conn)
+		creating, created, destroying, _, err := scanContainer(rows, t.conn)
 		if err != nil {
 			return nil, err
 		}
@@ -434,7 +434,7 @@ func (t *team) SavePipeline(
 				"name":     pipelineName,
 				"groups":   groupsPayload,
 				"version":  sq.Expr("nextval('config_version_seq')"),
-				"ordering": sq.Expr("(SELECT COUNT(1) + 1 FROM pipelines)"),
+				"ordering": sq.Expr("currval('pipelines_id_seq')"),
 				"paused":   pausedState.Bool(),
 				"team_id":  t.id,
 			}).
@@ -635,7 +635,7 @@ func (t *team) PublicPipelines() ([]Pipeline, error) {
 			"team_id": t.id,
 			"public":  true,
 		}).
-		OrderBy("ordering").
+		OrderBy("team_id ASC", "ordering ASC").
 		RunWith(t.conn).
 		Query()
 	if err != nil {
@@ -653,7 +653,7 @@ func (t *team) PublicPipelines() ([]Pipeline, error) {
 func (t *team) VisiblePipelines() ([]Pipeline, error) {
 	rows, err := pipelinesQuery.
 		Where(sq.Eq{"team_id": t.id}).
-		OrderBy("ordering").
+		OrderBy("team_id ASC", "ordering ASC").
 		RunWith(t.conn).
 		Query()
 	if err != nil {
@@ -668,7 +668,7 @@ func (t *team) VisiblePipelines() ([]Pipeline, error) {
 	rows, err = pipelinesQuery.
 		Where(sq.NotEq{"team_id": t.id}).
 		Where(sq.Eq{"public": true}).
-		OrderBy("ordering").
+		OrderBy("team_id ASC", "ordering ASC").
 		RunWith(t.conn).
 		Query()
 	if err != nil {
@@ -691,29 +691,8 @@ func (t *team) OrderPipelines(pipelineNames []string) error {
 
 	defer tx.Rollback()
 
-	var pipelineCount int
-
-	err = psql.Select("COUNT(1)").
-		From("pipelines").
-		Where(sq.Eq{"team_id": t.id}).
-		RunWith(tx).
-		QueryRow().
-		Scan(&pipelineCount)
-	if err != nil {
-		return err
-	}
-
-	_, err = psql.Update("pipelines").
-		Set("ordering", pipelineCount+1).
-		Where(sq.Eq{"team_id": t.id}).
-		RunWith(tx).
-		Exec()
-	if err != nil {
-		return err
-	}
-
 	for i, name := range pipelineNames {
-		_, err = psql.Update("pipelines").
+		_, err := psql.Update("pipelines").
 			Set("ordering", i).
 			Where(sq.Eq{
 				"name":    name,
@@ -957,12 +936,25 @@ func (t *team) saveResource(tx Tx, resource atc.ResourceConfig, pipelineID int) 
 		return nil
 	}
 
-	_, err = tx.Exec(`
+	var resourceID string
+
+	err = tx.QueryRow(`
 		INSERT INTO resources (name, pipeline_id, config, active, nonce)
 		VALUES ($1, $2, $3, true, $4)
-	`, resource.Name, pipelineID, encryptedPayload, nonce)
+		RETURNING id
+	`, resource.Name, pipelineID, encryptedPayload, nonce).Scan(&resourceID)
 
-	return swallowUniqueViolation(err)
+	err = swallowUniqueViolation(err)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`
+		INSERT INTO resource_spaces (name, resource_id)
+		VALUES ('default', $1)
+	`, resourceID)
+
+	return err
 }
 
 func (t *team) saveResourceType(tx Tx, resourceType atc.ResourceType, pipelineID int) error {
@@ -1031,7 +1023,7 @@ func swallowUniqueViolation(err error) error {
 }
 
 func (t *team) findContainer(whereClause sq.Sqlizer) (CreatingContainer, CreatedContainer, error) {
-	creating, created, destroying, err := scanContainer(
+	creating, created, destroying, _, err := scanContainer(
 		selectContainers().
 			Where(whereClause).
 			Where(sq.Eq{"team_id": t.id}).

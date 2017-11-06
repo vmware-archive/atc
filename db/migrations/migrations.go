@@ -193,5 +193,12 @@ func New(strategy EncryptionStrategy) []migration.Migrator {
 		AddBuildsInterceptibleCompletedIndex,
 		DropUnusedBuildsCompletedIndex,
 		AddUniqueIndexToVolumeHandles,
+		AddTeamIdToWorkerResourceConfigCheckSessions,
+		AddViewsForBuildStates,
+		AddUniqueIndexesToMaterializedViews,
+		AddFailedStateToVolumes,
+		AddFailedStateToContainers,
+		CreateResourceSpaces,
+		UseMd5ForResourceCacheVersions,
 	}
 }

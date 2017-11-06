@@ -1,12 +1,16 @@
 package gc
 
 import (
+	"errors"
+
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/metric"
 	"github.com/concourse/atc/worker"
 	"github.com/concourse/baggageclaim"
 )
+
+var volumeCollectorFailedErr = errors.New("volume collector failed")
 
 type volumeCollector struct {
 	rootLogger    lager.Logger
@@ -32,6 +36,49 @@ func (vc *volumeCollector) Run() error {
 	logger.Debug("start")
 	defer logger.Debug("done")
 
+	var err error
+
+	orphanedErr := vc.cleanupOrphanedVolumes(logger.Session("orphaned-volumes"))
+	if orphanedErr != nil {
+		vc.rootLogger.Error("volume-collector", orphanedErr)
+		err = volumeCollectorFailedErr
+	}
+
+	failedErr := vc.cleanupFailedVolumes(logger.Session("failed-volumes"))
+	if failedErr != nil {
+		vc.rootLogger.Error("volume-collector", failedErr)
+		err = volumeCollectorFailedErr
+	}
+
+	return err
+}
+
+func (vc *volumeCollector) cleanupFailedVolumes(logger lager.Logger) error {
+
+	failedVolumes, err := vc.volumeFactory.GetFailedVolumes()
+	if err != nil {
+		logger.Error("failed-to-get-failed-volumes", err)
+		return err
+	}
+
+	if len(failedVolumes) > 0 {
+		logger.Debug("found-failed-volumes", lager.Data{
+			"failed": len(failedVolumes),
+		})
+	}
+
+	metric.FailedVolumesToBeGarbageCollected{
+		Volumes: len(failedVolumes),
+	}.Emit(logger)
+
+	for _, failedVolume := range failedVolumes {
+		destroyDBVolume(logger, failedVolume)
+	}
+
+	return nil
+}
+
+func (vc *volumeCollector) cleanupOrphanedVolumes(logger lager.Logger) error {
 	createdVolumes, destroyingVolumes, err := vc.volumeFactory.GetOrphanedVolumes()
 	if err != nil {
 		logger.Error("failed-to-get-orphaned-volumes", err)
@@ -45,8 +92,12 @@ func (vc *volumeCollector) Run() error {
 		})
 	}
 
-	metric.VolumesToBeGarbageCollected{
-		Volumes: len(createdVolumes) + len(destroyingVolumes),
+	metric.CreatedVolumesToBeGarbageCollected{
+		Volumes: len(createdVolumes),
+	}.Emit(logger)
+
+	metric.DestroyingVolumesToBeGarbageCollected{
+		Volumes: len(destroyingVolumes),
 	}.Emit(logger)
 
 	for _, createdVolume := range createdVolumes {
