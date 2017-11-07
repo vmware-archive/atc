@@ -35,7 +35,7 @@ func (s *Server) GetJob(pipeline db.Pipeline) http.Handler {
 		teamName := r.FormValue(":team_name")
 
 		w.WriteHeader(http.StatusOK)
-
+		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(present.Job(
 			teamName,
 			job,
