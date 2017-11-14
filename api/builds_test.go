@@ -265,6 +265,10 @@ var _ = Describe("Builds API", func() {
 						It("returns 200", func() {
 							Expect(response.StatusCode).To(Equal(http.StatusOK))
 						})
+
+						It("returns application/json", func() {
+							Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
+						})
 					})
 				})
 
@@ -275,6 +279,10 @@ var _ = Describe("Builds API", func() {
 
 					It("returns 200 OK", func() {
 						Expect(response.StatusCode).To(Equal(http.StatusOK))
+					})
+
+					It("returns application/json", func() {
+						Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
 					})
 
 					It("returns the build with the given build_id", func() {
@@ -380,6 +388,10 @@ var _ = Describe("Builds API", func() {
 
 				It("returns 200 OK", func() {
 					Expect(response.StatusCode).To(Equal(http.StatusOK))
+				})
+
+				It("returns application/json", func() {
+					Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
 				})
 
 				Context("when the build inputs/ouputs are not empty", func() {
@@ -623,6 +635,10 @@ var _ = Describe("Builds API", func() {
 
 				It("returns 200 OK", func() {
 					Expect(response.StatusCode).To(Equal(http.StatusOK))
+				})
+
+				It("returns application/json", func() {
+					Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
 				})
 
 				It("returns all builds", func() {
@@ -1418,6 +1434,10 @@ var _ = Describe("Builds API", func() {
 					It("returns 200", func() {
 						Expect(response.StatusCode).To(Equal(http.StatusOK))
 					})
+
+					It("returns application/json", func() {
+						Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
+					})
 				})
 			})
 
@@ -1435,6 +1455,10 @@ var _ = Describe("Builds API", func() {
 
 					It("returns OK", func() {
 						Expect(response.StatusCode).To(Equal(http.StatusOK))
+					})
+
+					It("returns application/json", func() {
+						Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
 					})
 
 					It("returns the plan", func() {
