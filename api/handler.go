@@ -180,6 +180,7 @@ func NewHandler(
 		atc.GetResourceVersion:            pipelineHandlerFactory.HandlerFor(versionServer.GetResourceVersion),
 		atc.EnableResourceVersion:         pipelineHandlerFactory.HandlerFor(versionServer.EnableResourceVersion),
 		atc.DisableResourceVersion:        pipelineHandlerFactory.HandlerFor(versionServer.DisableResourceVersion),
+		atc.ReattemptResourceVersion:      pipelineHandlerFactory.HandlerFor(versionServer.ReattemptResourceVersion),
 		atc.ListBuildsWithVersionAsInput:  pipelineHandlerFactory.HandlerFor(versionServer.ListBuildsWithVersionAsInput),
 		atc.ListBuildsWithVersionAsOutput: pipelineHandlerFactory.HandlerFor(versionServer.ListBuildsWithVersionAsOutput),
 		atc.GetResourceCausality:          pipelineHandlerFactory.HandlerFor(versionServer.GetCausality),
