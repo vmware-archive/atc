@@ -349,6 +349,9 @@ var _ = Describe("Versions API", func() {
 		})
 	})
 
+	Describe("PUT /api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/versions/:resource_version_id/reattempt", func() {
+	})
+
 	Describe("GET /api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/versions/:resource_version_id/input_to", func() {
 		var response *http.Response
 		var stringVersionID string

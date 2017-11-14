@@ -59,6 +59,7 @@ type Pipeline interface {
 	VersionedResource(versionedResourceID int) (SavedVersionedResource, bool, error)
 	DisableVersionedResource(versionedResourceID int) error
 	EnableVersionedResource(versionedResourceID int) error
+	ReattemptVersionedResource(versionedResourceID int) error
 	GetBuildsWithVersionAsInput(versionedResourceID int) ([]Build, error)
 	GetBuildsWithVersionAsOutput(versionedResourceID int) ([]Build, error)
 
@@ -694,6 +695,24 @@ func (p *pipeline) DisableVersionedResource(versionedResourceID int) error {
 
 func (p *pipeline) EnableVersionedResource(versionedResourceID int) error {
 	return p.toggleVersionedResource(versionedResourceID, true)
+}
+
+func (p *pipeline) ReattemptVersionedResource(versionedResourceID int) error {
+	_, err := psql.Insert("versioned_resources").
+		Columns("version", "metadata", "type", "enabled", "resource_id", "check_order", "attempts").
+		Values(sq.Expr(fmt.Sprintf(`
+			SELECT version,metadata,type,enabled,resource_id,check_order,attempts + 1
+			FROM versioned_resources
+			WHERE id = %d
+		`), versionedResourceID)).
+		RunWith(p.conn).
+		Exec()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *pipeline) GetBuildsWithVersionAsInput(versionedResourceID int) ([]Build, error) {
