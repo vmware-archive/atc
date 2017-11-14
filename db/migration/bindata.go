@@ -2,6 +2,8 @@
 // sources:
 // 1510262030_initial_schema.down.sql
 // 1510262030_initial_schema.up.sql
+// 1510670987_update_unique_constraint_for_resource_caches.down.sql
+// 1510670987_update_unique_constraint_for_resource_caches.up.sql
 // DO NOT EDIT!
 
 package migration
@@ -109,6 +111,46 @@ func _1510262030_initial_schemaUpSql() (*asset, error) {
 	return a, nil
 }
 
+var __1510670987_update_unique_constraint_for_resource_cachesDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xa4\xcd\xb1\x0a\xc2\x30\x14\x85\xe1\x3d\x4f\x71\x46\x85\xbe\x41\xa6\xb4\x09\x12\x68\x6f\xb4\xa6\xa0\xd3\x25\xd4\x68\x8b\xd8\x4a\x82\x82\x6f\xef\x22\x28\x3a\x3a\x9e\xe1\x3b\x7f\x69\x56\x96\xa4\x00\x74\xeb\xd6\xb0\xa4\xcd\x0e\x29\xe6\xf9\x96\xfa\xc8\x7d\xe8\x87\x98\xf9\xbd\xe7\xe9\x38\x9e\x78\x3c\xf0\x3d\xa6\x3c\xce\x13\x5f\x43\x0a\x97\xcc\x43\xc8\x03\x9f\xe3\x43\x0a\x01\xa8\xda\x9b\x16\x5e\x95\xb5\x81\xa3\x7a\xff\xfd\x07\xa5\x35\x2a\x47\x5b\xdf\x2a\x4b\xfe\x8f\x1c\x3a\xb2\x9b\xce\x60\xf1\x4b\x0a\xbc\x4c\x81\x0f\xb4\x94\xa2\x72\x4d\x63\xbd\x14\xcf\x00\x00\x00\xff\xff\xf5\x10\xa1\xf9\xf9\x00\x00\x00")
+
+func _1510670987_update_unique_constraint_for_resource_cachesDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1510670987_update_unique_constraint_for_resource_cachesDownSql,
+		"1510670987_update_unique_constraint_for_resource_caches.down.sql",
+	)
+}
+
+func _1510670987_update_unique_constraint_for_resource_cachesDownSql() (*asset, error) {
+	bytes, err := _1510670987_update_unique_constraint_for_resource_cachesDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.down.sql", size: 249, mode: os.FileMode(420), modTime: time.Unix(1510689170, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1510670987_update_unique_constraint_for_resource_cachesUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xa4\xce\xb1\xca\xc2\x30\x1c\x04\xf0\x3d\x4f\x71\x63\x0b\x5d\xbf\x29\x53\xda\x86\x8f\x40\x9b\x68\x4c\xc1\xed\x4f\x68\xa3\x2d\xd2\x56\x12\x14\x7c\x7b\x17\x41\xb1\xa3\xe3\x71\xdc\x8f\x2b\xe5\xbf\xd2\x9c\x01\xa2\x71\xd2\xc2\x89\xb2\x91\x88\x21\xad\xb7\xd8\x07\xea\x7d\x3f\x86\x84\xda\x9a\x1d\x2a\xa3\x0f\xce\x0a\xa5\xdd\x77\x4f\xef\xbc\x2e\xa7\xe9\x4c\xd3\x40\xf7\x10\xd3\xb4\x2e\x74\xf5\xd1\xcf\x89\x46\x9f\x46\xba\x84\x07\x67\x0c\xa8\xac\x14\x4e\xa2\xd3\x6a\xdf\x49\x28\x5d\xcb\xe3\x0f\x24\x8c\xde\x1c\xce\xb6\xf3\x02\xf3\xf0\x97\xbd\x8c\xbc\xc0\x87\x92\x73\x56\x99\xb6\x55\x8e\xb3\x67\x00\x00\x00\xff\xff\xab\x56\x72\x04\x0f\x01\x00\x00")
+
+func _1510670987_update_unique_constraint_for_resource_cachesUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1510670987_update_unique_constraint_for_resource_cachesUpSql,
+		"1510670987_update_unique_constraint_for_resource_caches.up.sql",
+	)
+}
+
+func _1510670987_update_unique_constraint_for_resource_cachesUpSql() (*asset, error) {
+	bytes, err := _1510670987_update_unique_constraint_for_resource_cachesUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.up.sql", size: 271, mode: os.FileMode(420), modTime: time.Unix(1510688775, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -163,6 +205,8 @@ func AssetNames() []string {
 var _bindata = map[string]func() (*asset, error){
 	"1510262030_initial_schema.down.sql": _1510262030_initial_schemaDownSql,
 	"1510262030_initial_schema.up.sql": _1510262030_initial_schemaUpSql,
+	"1510670987_update_unique_constraint_for_resource_caches.down.sql": _1510670987_update_unique_constraint_for_resource_cachesDownSql,
+	"1510670987_update_unique_constraint_for_resource_caches.up.sql": _1510670987_update_unique_constraint_for_resource_cachesUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -207,6 +251,8 @@ type bintree struct {
 var _bintree = &bintree{nil, map[string]*bintree{
 	"1510262030_initial_schema.down.sql": &bintree{_1510262030_initial_schemaDownSql, map[string]*bintree{}},
 	"1510262030_initial_schema.up.sql": &bintree{_1510262030_initial_schemaUpSql, map[string]*bintree{}},
+	"1510670987_update_unique_constraint_for_resource_caches.down.sql": &bintree{_1510670987_update_unique_constraint_for_resource_cachesDownSql, map[string]*bintree{}},
+	"1510670987_update_unique_constraint_for_resource_caches.up.sql": &bintree{_1510670987_update_unique_constraint_for_resource_cachesUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
