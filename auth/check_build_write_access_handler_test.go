@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/concourse/atc/auth"
 	"github.com/concourse/atc/auth/authfakes"
 	"github.com/concourse/atc/db/dbfakes"
@@ -27,6 +28,7 @@ var _ = Describe("CheckBuildWriteAccessHandler", func() {
 
 		build    *dbfakes.FakeBuild
 		pipeline *dbfakes.FakePipeline
+		logger   *lagertest.TestLogger
 	)
 
 	BeforeEach(func() {
@@ -45,7 +47,7 @@ var _ = Describe("CheckBuildWriteAccessHandler", func() {
 		build.JobNameReturns("some-job")
 
 		checkBuildWriteAccessHandler := handlerFactory.HandlerFor(delegate, auth.UnauthorizedRejector{})
-		handler = auth.WrapHandler(checkBuildWriteAccessHandler, authValidator, userContextReader)
+		handler = auth.WrapHandler(logger, checkBuildWriteAccessHandler, authValidator, userContextReader)
 	})
 
 	JustBeforeEach(func() {

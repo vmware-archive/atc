@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/concourse/atc"
@@ -13,6 +14,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+var logger *lagertest.TestLogger
 
 var _ = Describe("GetTokenValidator", func() {
 	var (
@@ -37,13 +40,15 @@ var _ = Describe("GetTokenValidator", func() {
 		fakeTeam = new(dbfakes.FakeTeam)
 		fakeTeam.NameReturns(atc.DefaultTeamName)
 
+		logger = lagertest.NewTestLogger("auth")
+
 		validator = auth.NewGetTokenValidator(fakeTeamFactory)
 		request, err = http.NewRequest("GET", "http://example.com", nil)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
 	JustBeforeEach(func() {
-		isAuthenticated = validator.IsAuthenticated(request)
+		isAuthenticated = validator.IsAuthenticated(logger, request)
 	})
 
 	Context("when the team cannot be found", func() {

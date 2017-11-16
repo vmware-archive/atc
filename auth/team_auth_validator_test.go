@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/concourse/atc"
@@ -48,6 +49,8 @@ var _ = Describe("TeamAuthValidator", func() {
 		fakeTeam = new(dbfakes.FakeTeam)
 		fakeTeam.NameReturns(atc.DefaultTeamName)
 
+		logger = lagertest.NewTestLogger("auth")
+
 		validator = auth.NewTeamAuthValidator(fakeTeamFactory, jwtValidator)
 
 		request, err = http.NewRequest("GET", "http://example.com", nil)
@@ -55,7 +58,7 @@ var _ = Describe("TeamAuthValidator", func() {
 	})
 
 	JustBeforeEach(func() {
-		isAuthenticated = validator.IsAuthenticated(request)
+		isAuthenticated = validator.IsAuthenticated(logger, request)
 	})
 
 	Context("when the team can be found", func() {
@@ -117,7 +120,9 @@ var _ = Describe("TeamAuthValidator", func() {
 
 			It("delegates to jwtValidator", func() {
 				Expect(jwtValidator.IsAuthenticatedCallCount()).To(Equal(1))
-				Expect(jwtValidator.IsAuthenticatedArgsForCall(0)).To(Equal(request))
+				checkLogger, checkRequest := jwtValidator.IsAuthenticatedArgsForCall(0)
+				Expect(checkLogger).To(Equal(logger))
+				Expect(checkRequest).To(Equal(request))
 			})
 
 			Context("when jwtValidator returns false", func() {

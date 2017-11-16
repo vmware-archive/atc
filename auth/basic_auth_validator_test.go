@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"net/http"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"golang.org/x/crypto/bcrypt"
 
 	. "github.com/onsi/ginkgo"
@@ -21,6 +22,7 @@ var _ = Describe("BasicAuthValidator", func() {
 	var (
 		validator auth.Validator
 		fakeTeam  *dbfakes.FakeTeam
+		logger    *lagertest.TestLogger
 	)
 	BeforeEach(func() {
 		fakeTeam = new(dbfakes.FakeTeam)
@@ -50,7 +52,7 @@ var _ = Describe("BasicAuthValidator", func() {
 		})
 
 		JustBeforeEach(func() {
-			isAuthenticated = validator.IsAuthenticated(request)
+			isAuthenticated = validator.IsAuthenticated(logger, request)
 		})
 
 		Context("when the request's basic auth header has the correct credentials", func() {

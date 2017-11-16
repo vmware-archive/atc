@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -19,6 +20,7 @@ var _ = Describe("WrapHandler", func() {
 
 		server *httptest.Server
 		client *http.Client
+		logger *lagertest.TestLogger
 
 		authenticated   <-chan bool
 		teamNameChan    <-chan string
@@ -62,6 +64,7 @@ var _ = Describe("WrapHandler", func() {
 		})
 
 		server = httptest.NewServer(auth.WrapHandler(
+			logger,
 			simpleHandler,
 			fakeValidator,
 			fakeUserContextReader,

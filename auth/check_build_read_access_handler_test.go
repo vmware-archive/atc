@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/auth"
 	"github.com/concourse/atc/auth/authfakes"
@@ -29,6 +30,7 @@ var _ = Describe("CheckBuildReadAccessHandler", func() {
 
 		build    *dbfakes.FakeBuild
 		pipeline *dbfakes.FakePipeline
+		logger   *lagertest.TestLogger
 	)
 
 	BeforeEach(func() {
@@ -105,7 +107,7 @@ var _ = Describe("CheckBuildReadAccessHandler", func() {
 	Context("AnyJobHandler", func() {
 		BeforeEach(func() {
 			checkBuildReadAccessHandler := handlerFactory.AnyJobHandler(delegate, auth.UnauthorizedRejector{})
-			handler = auth.WrapHandler(checkBuildReadAccessHandler, authValidator, userContextReader)
+			handler = auth.WrapHandler(logger, checkBuildReadAccessHandler, authValidator, userContextReader)
 		})
 
 		Context("when authenticated and accessing same team's build", func() {
@@ -182,7 +184,7 @@ var _ = Describe("CheckBuildReadAccessHandler", func() {
 		BeforeEach(func() {
 			fakeJob = new(dbfakes.FakeJob)
 			checkBuildReadAccessHandler := handlerFactory.CheckIfPrivateJobHandler(delegate, auth.UnauthorizedRejector{})
-			handler = auth.WrapHandler(checkBuildReadAccessHandler, authValidator, userContextReader)
+			handler = auth.WrapHandler(logger, checkBuildReadAccessHandler, authValidator, userContextReader)
 		})
 
 		ItChecksIfJobIsPrivate := func(status int) {

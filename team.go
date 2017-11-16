@@ -1,6 +1,8 @@
 package atc
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type Team struct {
 	ID   int    `json:"id,omitempty"`
@@ -18,6 +20,7 @@ type BasicAuth struct {
 }
 
 type LdapBasicAuth struct {
+	LdapClient            *LdapDialer
 	Server                string `json:"server,omitempty"`
 	Port                  uint16 `json:"port,omitempty"`
 	TLSEnabled            bool   `json:"tls_enabled,omitempty"`

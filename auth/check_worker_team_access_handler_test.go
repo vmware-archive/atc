@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/auth"
 	"github.com/concourse/atc/auth/authfakes"
@@ -26,6 +27,7 @@ var _ = Describe("CheckWorkerTeamAccessHandler", func() {
 		authValidator     *authfakes.FakeValidator
 		userContextReader *authfakes.FakeUserContextReader
 		fakeWorker        *dbfakes.FakeWorker
+		logger            *lagertest.TestLogger
 	)
 
 	BeforeEach(func() {
@@ -37,7 +39,7 @@ var _ = Describe("CheckWorkerTeamAccessHandler", func() {
 
 		delegate = &workerDelegateHandler{}
 		checkWorkerTeamAccessHandler := handlerFactory.HandlerFor(delegate, auth.UnauthorizedRejector{})
-		handler = auth.WrapHandler(checkWorkerTeamAccessHandler, authValidator, userContextReader)
+		handler = auth.WrapHandler(logger, checkWorkerTeamAccessHandler, authValidator, userContextReader)
 	})
 
 	JustBeforeEach(func() {

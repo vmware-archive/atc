@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/concourse/atc/auth"
 	"github.com/concourse/atc/auth/authfakes"
 
@@ -22,6 +23,7 @@ var _ = Describe("CheckAdminHandler", func() {
 
 		server *httptest.Server
 		client *http.Client
+		logger *lagertest.TestLogger
 	)
 
 	simpleHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +47,7 @@ var _ = Describe("CheckAdminHandler", func() {
 		}
 
 		server = httptest.NewServer(auth.WrapHandler(
+			logger,
 			auth.CheckAdminHandler(
 				simpleHandler,
 				fakeRejector,

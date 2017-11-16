@@ -166,6 +166,7 @@ func (v ldapBasicAuthValidator) correctCredentials(
 		logger.Debug("Group membership found: " + entry.DN)
 		if entry.DN == ldapAuthConfig.GroupDN {
 			userInGroup = true
+			break
 		}
 	}
 	if !userInGroup {
