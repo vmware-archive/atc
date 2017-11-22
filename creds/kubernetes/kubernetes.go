@@ -1,14 +1,12 @@
 package kubernetes
 
 import (
-	"fmt"
-
 	"code.cloudfoundry.org/lager"
-
 	"github.com/cloudfoundry/bosh-cli/director/template"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type Kubernetes struct {
@@ -19,47 +17,65 @@ type Kubernetes struct {
 }
 
 func (k Kubernetes) Get(varDef template.VariableDefinition) (interface{}, bool, error) {
-	// Look up secret ${TeamName}/${PipelineName}-concourse-secrets
-	secret, err := k.findSecret(k.TeamName, k.defautSecretName())
-	if err == nil {
-		// Look up key ${varDef.Name} in secret
-		if value, exists := secret.Data[varDef.Name]; exists {
-			return string(value), true, nil
-		}
-		err = fmt.Errorf("key '%s' not found in secret", varDef.Name)
-	}
-	k.Logger.Debug("failed-to-load-k8s-secret", lager.Data{
-		"namespace": k.TeamName,
-		"name":      k.defautSecretName(),
-		"error":     err.Error(),
-	})
+	var namespace = k.TeamName
 
-	// Look up secret ${TeamName}/${varDef.Name}
-	secret, err = k.findSecret(k.TeamName, varDef.Name)
-	if err == nil {
-		// Can't look up nested path
-		stringMap := map[string]string{}
-		for k, v := range secret.Data {
-			stringMap[k] = string(v)
-		}
-		return stringMap, true, nil
-	}
-	k.Logger.Debug("failed-to-load-k8s-secret", lager.Data{
-		"namespace": k.TeamName,
-		"name":      varDef.Name,
-		"error":     err.Error(),
-	})
+	//first try
+	secret, found, err := k.findSecret(namespace, k.PipelineName + "." + varDef.Name)
 
-	// give up. We never pass the error back as it's not clear which one to pass
+	if err != nil {
+		return nil, false, err
+	}
+
+	if found {
+		return k.getValueFromSecret(secret)
+	}
+
+	//fallback name
+	secret, found, err = k.findSecret(namespace, varDef.Name)
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	if found {
+		return k.getValueFromSecret(secret)
+	}
+
+	//didn't find it.
 	return nil, false, nil
+}
+
+func (k Kubernetes) getValueFromSecret(secret *v1.Secret) (interface{}, bool, error) {
+	val, found := secret.Data["value"]
+	if found {
+		return val, true, nil
+	}
+
+	evenLessTyped := map[interface{}]interface{}{}
+	for k, v := range secret.Data {
+		evenLessTyped[k] = v
+	}
+
+	return evenLessTyped, true, nil
 }
 
 func (k Kubernetes) defautSecretName() string {
 	return k.PipelineName + "-concourse-secrets"
 }
 
-func (k Kubernetes) findSecret(namespace, name string) (*v1.Secret, error) {
-	return k.Clientset.Core().Secrets(namespace).Get(name, meta_v1.GetOptions{})
+func (k Kubernetes) findSecret(namespace, name string) (*v1.Secret, bool, error) {
+	var secret *v1.Secret
+	var err error
+
+	secret, err = k.Clientset.Core().Secrets(namespace).Get(name, meta_v1.GetOptions{})
+
+	if err != nil && k8s_errors.IsNotFound(err) {
+		return nil, false, nil
+	} else if err != nil {
+		return nil, false, err
+	} else {
+		return secret, true, err
+	}
 }
 
 func (k Kubernetes) List() ([]template.VariableDefinition, error) {
