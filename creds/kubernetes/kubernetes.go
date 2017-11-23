@@ -13,11 +13,12 @@ type Kubernetes struct {
 	Clientset    *kubernetes.Clientset
 	TeamName     string
 	PipelineName string
+	NamespacePrefix string
 	Logger       lager.Logger
 }
 
 func (k Kubernetes) Get(varDef template.VariableDefinition) (interface{}, bool, error) {
-	var namespace = k.TeamName
+	var namespace = k.NamespacePrefix + k.TeamName
 
 	//first try
 	secret, found, err := k.findSecret(namespace, k.PipelineName + "." + varDef.Name)
