@@ -18,6 +18,28 @@ test.always.afterEach(async t => {
   await t.context.finish(t);
 });
 
+test('shows abort hooks', async t => {
+  await t.context.fly.run('set-pipeline -n -p some-pipeline -c fixtures/hooks-pipeline.yml');
+  await t.context.fly.run('unpause-pipeline -p some-pipeline');
+
+  await t.context.fly.run('trigger-job -j some-pipeline/on_abort');
+
+  await t.context.page.goto(t.context.web.route(`/teams/${t.context.teamName}/pipelines/some-pipeline/jobs/on_abort/builds/1`));
+  await t.context.web.waitForText(t.context.page, "say-bye-from-step");
+  await t.context.web.waitForText(t.context.page, "say-bye-from-job");
+  await t.context.web.waitForText(t.context.page, "looping");
+
+  await t.context.web.clickAndWait(t.context.page, '.build-action-abort');
+  await t.context.page.waitFor('[data-step-name="say-bye-from-step"] i.succeeded');
+  await t.context.page.waitFor('[data-step-name="say-bye-from-job"] i.succeeded');
+
+  await t.context.web.clickAndWait(t.context.page, '[data-step-name="say-bye-from-step"] .header');
+  t.regex(await t.context.web.text(t.context.page), /bye from step/);
+
+  await t.context.web.clickAndWait(t.context.page, '[data-step-name="say-bye-from-job"] .header');
+  t.regex(await t.context.web.text(t.context.page), /bye from job/);
+});
+
 test('can be switched between', async t => {
   await t.context.fly.run('set-pipeline -n -p some-pipeline -c fixtures/states-pipeline.yml');
   await t.context.fly.run('unpause-pipeline -p some-pipeline');
