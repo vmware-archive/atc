@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e -u -x
+
+govendor fetch k8s.io/client-go/rest
+govendor fetch k8s.io/client-go/tools/clientcmd
+govendor fetch k8s.io/client-go/kubernetes
+govendor fetch k8s.io/api/core/v1
+govendor fetch k8s.io/apimachinery/pkg/apis/meta/v1
