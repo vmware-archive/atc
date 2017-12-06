@@ -97,7 +97,7 @@ var _ = Describe("Inputmapper", func() {
 					Expect(fakeTransformer.TransformInputConfigsCallCount()).To(Equal(1))
 					actualVersionsDB, actualJobName, actualJobInputs := fakeTransformer.TransformInputConfigsArgsForCall(0)
 					Expect(actualVersionsDB).To(Equal(versionsDB))
-					Expect(actualJobName).To(Equal("some-job"))
+					Expect(actualJobName).To(BeNil())
 					Expect(actualJobInputs).To(ConsistOf(
 						atc.JobInput{
 							Name:     "alias",
