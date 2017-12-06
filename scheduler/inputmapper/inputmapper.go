@@ -35,7 +35,7 @@ func (i *inputMapper) SaveNextInputMapping(
 
 	inputConfigs := job.Config().Inputs()
 
-	algorithmInputConfigs, err := i.transformer.TransformInputConfigs(versions, job.Name(), inputConfigs)
+	algorithmInputConfigs, err := i.transformer.TransformInputConfigs(versions, nil, inputConfigs)
 	if err != nil {
 		logger.Error("failed-to-get-algorithm-input-configs", err)
 		return nil, err
