@@ -9,7 +9,7 @@ import (
 //go:generate counterfeiter . Transformer
 
 type Transformer interface {
-	TransformInputConfigs(db *algorithm.VersionsDB, jobName string, inputs []atc.JobInput) (algorithm.InputConfigs, error)
+	TransformInputConfigs(versionsDB *algorithm.VersionsDB, jobCombination db.JobCombination, inputs []atc.JobInput) (algorithm.InputConfigs, error)
 }
 
 func NewTransformer(pipeline db.Pipeline) Transformer {
@@ -20,7 +20,7 @@ type transformer struct {
 	pipeline db.Pipeline
 }
 
-func (i *transformer) TransformInputConfigs(db *algorithm.VersionsDB, jobName string, inputs []atc.JobInput) (algorithm.InputConfigs, error) {
+func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, jobCombination db.JobCombination, inputs []atc.JobInput) (algorithm.InputConfigs, error) {
 	inputConfigs := algorithm.InputConfigs{}
 
 	for _, input := range inputs {
@@ -44,16 +44,18 @@ func (i *transformer) TransformInputConfigs(db *algorithm.VersionsDB, jobName st
 
 		jobs := algorithm.JobSet{}
 		for _, passedJobName := range input.Passed {
-			jobs[db.JobIDs[passedJobName]] = struct{}{}
+			jobs[versionsDB.JobIDs[passedJobName]] = struct{}{}
 		}
 
 		inputConfigs = append(inputConfigs, algorithm.InputConfig{
-			Name:            input.Name,
-			UseEveryVersion: input.Version.Every,
-			PinnedVersionID: pinnedVersionID,
-			ResourceID:      db.ResourceIDs[input.Resource],
-			Passed:          jobs,
-			JobID:           db.JobIDs[jobName],
+			Name:             input.Name,
+			UseEveryVersion:  input.Version.Every,
+			PinnedVersionID:  pinnedVersionID,
+			ResourceID:       versionsDB.ResourceIDs[input.Resource],
+			Passed:           jobs,
+			JobID:            jobCombination.JobID(),
+			JobCombinationID: jobCombination.ID(),
+			ResourceSpaceID:  jobCombination.ResourceSpaceID(),
 		})
 	}
 

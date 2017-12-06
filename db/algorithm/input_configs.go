@@ -3,13 +3,15 @@ package algorithm
 type InputConfigs []InputConfig
 
 type InputConfig struct {
-	Name            string
-	JobName         string
-	Passed          JobSet
-	UseEveryVersion bool
-	PinnedVersionID int
-	ResourceID      int
-	JobID           int
+	Name             string
+	JobName          string
+	Passed           JobSet
+	UseEveryVersion  bool
+	PinnedVersionID  int
+	ResourceID       int
+	JobID            int
+	JobCombinationID string
+	ResourceSpaceID  int
 }
 
 func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
