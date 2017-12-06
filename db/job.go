@@ -4,11 +4,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/db/lock"
+	"github.com/mitchellh/hashstructure"
 )
 
 //go:generate counterfeiter . Job
@@ -46,6 +48,7 @@ type Job interface {
 	SetMaxInFlightReached(bool) error
 	GetRunningBuildsBySerialGroup(serialGroups []string) ([]Build, error)
 	GetNextPendingBuildBySerialGroup(serialGroups []string) (Build, bool, error)
+	SyncResourceSpaceCombinations([]map[string]string) ([]JobCombination, error)
 }
 
 var jobsQuery = psql.Select("j.id", "j.name", "j.config", "j.paused", "j.first_logged_build_id", "j.pipeline_id", "p.name", "p.team_id", "t.name", "j.nonce").
@@ -913,4 +916,73 @@ func scanJobs(conn Conn, lockFactory lock.LockFactory, rows *sql.Rows) (Jobs, er
 	}
 
 	return jobs, nil
+}
+
+func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([]JobCombination, error) {
+	tx, err := j.conn.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	defer Rollback(tx)
+
+	for _, c := range combinations {
+		marshaled, err := json.Marshal(c)
+		if err != nil {
+			return nil, err
+		}
+
+		hash, err := hashstructure.Hash(c, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		for resource, space := range c {
+			var resourceSpaceID int
+
+			err := psql.Select("rs.id").
+				From("resource_spaces rs").
+				Join("resources r ON r.id = rs.resource_id").
+				Where(sq.Eq{
+					"r.name":        resource,
+					"r.pipeline_id": j.PipelineID(),
+					"rs.name":       space,
+				}).RunWith(tx).QueryRow().Scan(&resourceSpaceID)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = psql.Insert("job_resource_space_combinations").
+				Columns("job_id", "resource_space_id", "combination", "hash").
+				Values(j.ID(), resourceSpaceID, marshaled, strconv.FormatUint(hash, 10)).
+				RunWith(tx).
+				Exec()
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	rows, err := psql.Select("c.hash, c.job_id, json_object_agg(r.name, rs.name)").
+		From("job_resource_space_combinations c").
+		Join("resource_spaces rs ON rs.id = c.resource_space_id").
+		Join("resources r ON r.id = rs.resource_id").
+		Where(sq.Eq{"c.job_id": j.ID()}).
+		GroupBy("c.hash, c.job_id").
+		RunWith(tx).Query()
+	if err != nil {
+		return nil, err
+	}
+
+	jobCombinations, err := scanJobCombinations(j.conn, j.lockFactory, rows)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return jobCombinations, nil
 }

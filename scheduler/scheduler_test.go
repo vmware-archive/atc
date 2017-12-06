@@ -406,4 +406,35 @@ var _ = Describe("Scheduler", func() {
 			})
 		})
 	})
+
+	Describe("Combinations", func() {
+		var resourceSpaces map[string][]string
+
+		Context("when resource spaces are empty", func() {
+			It("returns no combinations", func() {
+				resourceSpaces = map[string][]string{}
+				Expect(Combinations(resourceSpaces)).To(Equal([]map[string]string{}))
+			})
+		})
+
+		Context("when resource spaces contain exactly one resource", func() {
+			It("returns no combinations", func() {
+				resourceSpaces = map[string][]string{"some-resource": []string{"some-space", "another-space"}}
+				combination1 := map[string]string{"some-resource": "some-space"}
+				combination2 := map[string]string{"some-resource": "another-space"}
+				Expect(Combinations(resourceSpaces)).To(Equal([]map[string]string{combination1, combination2}))
+			})
+		})
+
+		Context("when resource spaces contain multiple resources", func() {
+			It("returns all combinations", func() {
+				resourceSpaces = map[string][]string{"some-resource": []string{"some-space", "another-space"}, "foo": []string{"bar", "baz"}}
+				combination1 := map[string]string{"some-resource": "some-space", "foo": "bar"}
+				combination2 := map[string]string{"some-resource": "another-space", "foo": "bar"}
+				combination3 := map[string]string{"some-resource": "some-space", "foo": "baz"}
+				combination4 := map[string]string{"some-resource": "another-space", "foo": "baz"}
+				Expect(Combinations(resourceSpaces)).To(Equal([]map[string]string{combination2, combination3, combination1, combination4}))
+			})
+		})
+	})
 })

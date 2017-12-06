@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"sort"
 	"sync"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/scheduler/inputmapper"
+	"github.com/mitchellh/hashstructure"
 )
 
 type Scheduler struct {
@@ -24,6 +26,60 @@ type Scanner interface {
 	Scan(lager.Logger, string) error
 }
 
+type Foo []map[string]string
+
+func (s Foo) Len() int {
+	return len(s)
+}
+func (s Foo) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s Foo) Less(i, j int) bool {
+	v1, _ := hashstructure.Hash(s[i], nil)
+	v2, _ := hashstructure.Hash(s[j], nil)
+	return v1 < v2
+}
+
+func Combinations(resourceSpaces map[string][]string) []map[string]string {
+	var resource, space string
+	var spaces []string
+
+	combinations := []map[string]string{}
+
+	if len(resourceSpaces) == 0 {
+		return combinations
+	}
+
+	if len(resourceSpaces) == 1 {
+		for resource, spaces = range resourceSpaces {
+			for _, space = range spaces {
+				combinations = append(combinations, map[string]string{resource: space})
+			}
+		}
+		return combinations
+	}
+
+	for resource, spaces = range resourceSpaces {
+		break
+	}
+	delete(resourceSpaces, resource)
+
+	for _, combination := range Combinations(resourceSpaces) {
+		for _, space = range spaces {
+			copy := map[string]string{}
+			for k, v := range combination {
+				copy[k] = v
+			}
+
+			copy[resource] = space
+			combinations = append(combinations, copy)
+		}
+	}
+
+	sort.Sort(Foo(combinations))
+	return combinations
+}
+
 func (s *Scheduler) Schedule(
 	logger lager.Logger,
 	versions *algorithm.VersionsDB,
@@ -34,8 +90,9 @@ func (s *Scheduler) Schedule(
 	jobSchedulingTime := map[string]time.Duration{}
 
 	for _, job := range jobs {
+		_, err := job.SyncResourceSpaceCombinations(Combinations(map[string][]string{}))
 		jStart := time.Now()
-		err := s.ensurePendingBuildExists(logger, versions, job)
+		err = s.ensurePendingBuildExists(logger, versions, job)
 		jobSchedulingTime[job.Name()] = time.Since(jStart)
 
 		if err != nil {
