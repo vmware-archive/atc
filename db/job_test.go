@@ -3,6 +3,7 @@ package db_test
 import (
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/algorithm"
@@ -1185,6 +1186,65 @@ var _ = Describe("Job", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(builds2).To(HaveLen(0))
 			})
+		})
+	})
+
+	Describe("SyncResourceSpaceCombinations", func() {
+		It("creates job_resource_space_combinations for each space in every combination", func() {
+			tx, err := dbConn.Begin()
+			Expect(err).NotTo(HaveOccurred())
+
+			defer db.Rollback(tx)
+
+			var someResourceID, someOtherResourceID int
+
+			err = psql.Select("id").From("resources").Where(sq.Eq{
+				"resources.pipeline_id": job.PipelineID(),
+				"resources.name":        "some-resource",
+			}).RunWith(tx).QueryRow().Scan(&someResourceID)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = psql.Select("id").From("resources").Where(sq.Eq{
+				"resources.pipeline_id": job.PipelineID(),
+				"resources.name":        "some-other-resource",
+			}).RunWith(tx).QueryRow().Scan(&someOtherResourceID)
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = psql.Insert("resource_spaces").
+				Columns("resource_id", "name").
+				Values(someResourceID, "some-space").
+				RunWith(tx).
+				Exec()
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = psql.Insert("resource_spaces").
+				Columns("resource_id", "name").
+				Values(someOtherResourceID, "some-other-space").
+				RunWith(tx).
+				Exec()
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = psql.Insert("resource_spaces").
+				Columns("resource_id", "name").
+				Values(someOtherResourceID, "some-another-space").
+				RunWith(tx).
+				Exec()
+			Expect(err).NotTo(HaveOccurred())
+
+			err = tx.Commit()
+			Expect(err).NotTo(HaveOccurred())
+
+			combination1 := map[string]string{"some-resource": "some-space", "some-other-resource": "some-other-space"}
+			combination2 := map[string]string{"some-resource": "some-space", "some-other-resource": "some-another-space"}
+			jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{combination1, combination2})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(jobCombinations).To(HaveLen(2))
+			Expect(jobCombinations[0].ID()).To(Equal("15050631812826599335"))
+			Expect(jobCombinations[0].JobID()).To(Equal(job.ID()))
+			Expect(jobCombinations[0].ResourceSpaces()).To(Equal(combination2))
+			Expect(jobCombinations[1].ID()).To(Equal("17779099878970182411"))
+			Expect(jobCombinations[1].JobID()).To(Equal(job.ID()))
+			Expect(jobCombinations[1].ResourceSpaces()).To(Equal(combination1))
 		})
 	})
 })

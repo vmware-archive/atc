@@ -308,6 +308,19 @@ type FakeJob struct {
 		result2 bool
 		result3 error
 	}
+	SyncResourceSpaceCombinationsStub        func([]map[string]string) ([]db.JobCombination, error)
+	syncResourceSpaceCombinationsMutex       sync.RWMutex
+	syncResourceSpaceCombinationsArgsForCall []struct {
+		arg1 []map[string]string
+	}
+	syncResourceSpaceCombinationsReturns struct {
+		result1 []db.JobCombination
+		result2 error
+	}
+	syncResourceSpaceCombinationsReturnsOnCall map[int]struct {
+		result1 []db.JobCombination
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -1551,6 +1564,62 @@ func (fake *FakeJob) GetNextPendingBuildBySerialGroupReturnsOnCall(i int, result
 	}{result1, result2, result3}
 }
 
+func (fake *FakeJob) SyncResourceSpaceCombinations(arg1 []map[string]string) ([]db.JobCombination, error) {
+	var arg1Copy []map[string]string
+	if arg1 != nil {
+		arg1Copy = make([]map[string]string, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.syncResourceSpaceCombinationsMutex.Lock()
+	ret, specificReturn := fake.syncResourceSpaceCombinationsReturnsOnCall[len(fake.syncResourceSpaceCombinationsArgsForCall)]
+	fake.syncResourceSpaceCombinationsArgsForCall = append(fake.syncResourceSpaceCombinationsArgsForCall, struct {
+		arg1 []map[string]string
+	}{arg1Copy})
+	fake.recordInvocation("SyncResourceSpaceCombinations", []interface{}{arg1Copy})
+	fake.syncResourceSpaceCombinationsMutex.Unlock()
+	if fake.SyncResourceSpaceCombinationsStub != nil {
+		return fake.SyncResourceSpaceCombinationsStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.syncResourceSpaceCombinationsReturns.result1, fake.syncResourceSpaceCombinationsReturns.result2
+}
+
+func (fake *FakeJob) SyncResourceSpaceCombinationsCallCount() int {
+	fake.syncResourceSpaceCombinationsMutex.RLock()
+	defer fake.syncResourceSpaceCombinationsMutex.RUnlock()
+	return len(fake.syncResourceSpaceCombinationsArgsForCall)
+}
+
+func (fake *FakeJob) SyncResourceSpaceCombinationsArgsForCall(i int) []map[string]string {
+	fake.syncResourceSpaceCombinationsMutex.RLock()
+	defer fake.syncResourceSpaceCombinationsMutex.RUnlock()
+	return fake.syncResourceSpaceCombinationsArgsForCall[i].arg1
+}
+
+func (fake *FakeJob) SyncResourceSpaceCombinationsReturns(result1 []db.JobCombination, result2 error) {
+	fake.SyncResourceSpaceCombinationsStub = nil
+	fake.syncResourceSpaceCombinationsReturns = struct {
+		result1 []db.JobCombination
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeJob) SyncResourceSpaceCombinationsReturnsOnCall(i int, result1 []db.JobCombination, result2 error) {
+	fake.SyncResourceSpaceCombinationsStub = nil
+	if fake.syncResourceSpaceCombinationsReturnsOnCall == nil {
+		fake.syncResourceSpaceCombinationsReturnsOnCall = make(map[int]struct {
+			result1 []db.JobCombination
+			result2 error
+		})
+	}
+	fake.syncResourceSpaceCombinationsReturnsOnCall[i] = struct {
+		result1 []db.JobCombination
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeJob) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -1610,6 +1679,8 @@ func (fake *FakeJob) Invocations() map[string][][]interface{} {
 	defer fake.getRunningBuildsBySerialGroupMutex.RUnlock()
 	fake.getNextPendingBuildBySerialGroupMutex.RLock()
 	defer fake.getNextPendingBuildBySerialGroupMutex.RUnlock()
+	fake.syncResourceSpaceCombinationsMutex.RLock()
+	defer fake.syncResourceSpaceCombinationsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
