@@ -6,6 +6,8 @@
 // db/migration/migrations/1510670987_update_unique_constraint_for_resource_caches.up.sql
 // db/migration/migrations/1511810746_create_resource_spaces.down.sql
 // db/migration/migrations/1511810746_create_resource_spaces.up.sql
+// db/migration/migrations/1511973786_create_job_resource_space_combinations.down.sql
+// db/migration/migrations/1511973786_create_job_resource_space_combinations.up.sql
 // db/migration/migrations/1513895878_update_timestamp_with_timezone.down.sql
 // db/migration/migrations/1513895878_update_timestamp_with_timezone.up.sql
 // DO NOT EDIT!
@@ -195,6 +197,46 @@ func _1511810746_create_resource_spacesUpSql() (*asset, error) {
 	return a, nil
 }
 
+var __1511973786_create_job_resource_space_combinationsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\xe2\x52\x50\x70\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xc8\xca\x4f\x8a\x2f\x4a\x2d\xce\x2f\x2d\x4a\x4e\x8d\x2f\x2e\x48\x4c\x4e\x8d\x4f\xce\xcf\x4d\xca\xcc\x4b\x2c\xc9\xcc\xcf\x2b\xb6\xe6\xe2\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\x02\x04\x00\x00\xff\xff\x9a\xe5\x73\x34\x3f\x00\x00\x00")
+
+func _1511973786_create_job_resource_space_combinationsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1511973786_create_job_resource_space_combinationsDownSql,
+		"1511973786_create_job_resource_space_combinations.down.sql",
+	)
+}
+
+func _1511973786_create_job_resource_space_combinationsDownSql() (*asset, error) {
+	bytes, err := _1511973786_create_job_resource_space_combinationsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1511973786_create_job_resource_space_combinations.down.sql", size: 63, mode: os.FileMode(420), modTime: time.Unix(1515427584, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1511973786_create_job_resource_space_combinationsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x8f\x41\x6b\x84\x30\x14\x84\xef\xf9\x15\x73\x4c\xc0\x43\xe9\xd5\x53\x36\xfb\x5a\x84\x6c\xa4\x6e\x3c\x4b\xcc\x0a\x46\x68\x52\x12\xdb\xdf\x5f\xaa\x97\x56\xa1\xd7\x37\xf3\x3e\xbe\xb9\xd0\x6b\x63\x6a\xc6\x00\xd5\x91\xb4\x04\x2b\x2f\x9a\xb0\xa4\x71\xc8\x53\x49\x9f\xd9\x4f\x43\xf9\x70\x7e\x1a\x7c\x7a\x1f\x43\x74\x6b\x48\xb1\x80\x33\x00\x5b\x2b\x3c\x10\xe2\x8a\x8e\x5e\xa8\x23\xa3\xe8\xfe\x73\x2d\xe0\xe1\x21\xd0\x1a\x5c\x49\x93\x25\x28\x79\x57\xf2\x4a\xd5\xf6\x76\x00\x9f\x09\x7f\x0b\xff\xc3\x7e\x69\x61\x29\x29\x8e\x30\xad\x85\xe9\xb5\xde\xf3\xd9\x95\x19\x5f\x2e\xfb\xd9\x65\xfe\xfc\x24\x0e\x71\x6f\x9a\xb7\x9e\xc0\xf7\x29\xd5\xd9\xad\xda\x08\x82\x01\xa2\x66\x4c\xb5\xb7\x5b\x63\x6b\xf6\x1d\x00\x00\xff\xff\xed\xb4\xd0\x01\x37\x01\x00\x00")
+
+func _1511973786_create_job_resource_space_combinationsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1511973786_create_job_resource_space_combinationsUpSql,
+		"1511973786_create_job_resource_space_combinations.up.sql",
+	)
+}
+
+func _1511973786_create_job_resource_space_combinationsUpSql() (*asset, error) {
+	bytes, err := _1511973786_create_job_resource_space_combinationsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1511973786_create_job_resource_space_combinations.up.sql", size: 311, mode: os.FileMode(420), modTime: time.Unix(1515427584, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var __1513895878_update_timestamp_with_timezoneDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xc4\x94\xb1\x6a\xc3\x30\x10\x86\x77\x3f\xc5\x6d\x99\x02\xce\x54\x6a\x4f\x4e\xaa\x96\x80\x9d\x94\x56\x19\x3a\x09\x59\xba\xe0\xa3\xb6\x64\x2c\x29\x25\x7d\xfa\x12\x43\xe9\x62\x4c\xe3\x26\x29\x68\x10\x3a\xa1\xef\xff\xfe\x41\x4b\xf6\xb4\xde\xa4\x11\x00\x40\x96\x73\xf6\x02\x3c\x5b\xe6\x0c\xca\x40\xb5\x16\x64\xda\xe0\x5d\x3f\xfc\x1e\xaf\xb6\xf9\xae\xd8\x40\x63\x35\xed\x09\xb5\xf0\xd4\x20\xf0\xb7\x67\x06\xa7\x9d\xf3\xb2\x69\xe1\x83\x7c\x65\x83\xef\x4f\xe0\xd3\x1a\x4c\xa3\xd5\xb6\x28\xd6\x3c\x8d\xa2\x51\x9e\x0d\xfe\x56\x40\x25\x55\x85\x82\xcc\x41\xd6\xa4\xa5\xb7\xdd\x10\xb4\x96\xce\xff\xdc\x41\xfd\x0b\xee\x65\x38\xaf\x8c\xc3\x03\x7b\xcc\x76\x39\x87\xd9\xe2\xfe\x2e\x9e\xc7\x8b\x79\xbc\x80\x38\x4e\xfa\x35\x4b\x92\xbf\xd9\x5b\xe3\x25\x19\xec\x06\xbb\x2e\xf1\x14\x67\x2f\x82\x43\x2d\xca\xe3\x05\xda\x6e\xa9\xc5\x9a\x0c\x0e\xe2\x7a\x7b\xa7\x2a\xd4\xa1\x9e\xd4\xf1\x39\xaf\x5f\xbb\xd9\x0e\x9d\x0d\x9d\x42\xe1\x8f\xed\x48\x20\x55\xa1\x7a\x9f\x24\x7b\x26\xe0\x56\xbe\xd7\x54\xfd\x7f\xcb\x03\x76\x8e\xac\x41\x2d\x46\x33\x4d\xfd\xa4\xbe\x02\x00\x00\xff\xff\x83\x92\x3a\x56\x85\x05\x00\x00")
 
 func _1513895878_update_timestamp_with_timezoneDownSqlBytes() ([]byte, error) {
@@ -293,6 +335,8 @@ var _bindata = map[string]func() (*asset, error){
 	"1510670987_update_unique_constraint_for_resource_caches.up.sql": _1510670987_update_unique_constraint_for_resource_cachesUpSql,
 	"1511810746_create_resource_spaces.down.sql": _1511810746_create_resource_spacesDownSql,
 	"1511810746_create_resource_spaces.up.sql": _1511810746_create_resource_spacesUpSql,
+	"1511973786_create_job_resource_space_combinations.down.sql": _1511973786_create_job_resource_space_combinationsDownSql,
+	"1511973786_create_job_resource_space_combinations.up.sql": _1511973786_create_job_resource_space_combinationsUpSql,
 	"1513895878_update_timestamp_with_timezone.down.sql": _1513895878_update_timestamp_with_timezoneDownSql,
 	"1513895878_update_timestamp_with_timezone.up.sql": _1513895878_update_timestamp_with_timezoneUpSql,
 }
@@ -343,6 +387,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1510670987_update_unique_constraint_for_resource_caches.up.sql": &bintree{_1510670987_update_unique_constraint_for_resource_cachesUpSql, map[string]*bintree{}},
 	"1511810746_create_resource_spaces.down.sql": &bintree{_1511810746_create_resource_spacesDownSql, map[string]*bintree{}},
 	"1511810746_create_resource_spaces.up.sql": &bintree{_1511810746_create_resource_spacesUpSql, map[string]*bintree{}},
+	"1511973786_create_job_resource_space_combinations.down.sql": &bintree{_1511973786_create_job_resource_space_combinationsDownSql, map[string]*bintree{}},
+	"1511973786_create_job_resource_space_combinations.up.sql": &bintree{_1511973786_create_job_resource_space_combinationsUpSql, map[string]*bintree{}},
 	"1513895878_update_timestamp_with_timezone.down.sql": &bintree{_1513895878_update_timestamp_with_timezoneDownSql, map[string]*bintree{}},
 	"1513895878_update_timestamp_with_timezone.up.sql": &bintree{_1513895878_update_timestamp_with_timezoneUpSql, map[string]*bintree{}},
 }}
