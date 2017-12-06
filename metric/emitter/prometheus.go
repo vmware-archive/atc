@@ -30,8 +30,9 @@ type PrometheusEmitter struct {
 }
 
 type PrometheusConfig struct {
-	BindIP   string `long:"prometheus-bind-ip" description:"IP to listen on to expose Prometheus metrics."`
-	BindPort string `long:"prometheus-bind-port" description:"Port to listen on to expose Prometheus metrics."`
+	BindIP   string            `long:"prometheus-bind-ip" description:"IP to listen on to expose Prometheus metrics."`
+	BindPort string            `long:"prometheus-bind-port" description:"Port to listen on to expose Prometheus metrics."`
+	Labels   map[string]string `long:"prometheus-labels" description:"Labels to add to all Prometheus metrics. Can be specified multiple times." value:name:"NAME:VALUE"`
 }
 
 func init() {
@@ -47,70 +48,80 @@ func (config *PrometheusConfig) bind() string {
 }
 
 func (config *PrometheusConfig) NewEmitter() (metric.Emitter, error) {
+	labels := prometheus.Labels(config.Labels)
+
 	buildsStarted := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "concourse",
-		Subsystem: "builds",
-		Name:      "started_total",
-		Help:      "Total number of Concourse builds started.",
+		Namespace:   "concourse",
+		Subsystem:   "builds",
+		Name:        "started_total",
+		Help:        "Total number of Concourse builds started.",
+		ConstLabels: labels,
 	})
 	prometheus.MustRegister(buildsStarted)
 
 	buildsFinished := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "concourse",
-		Subsystem: "builds",
-		Name:      "finished_total",
-		Help:      "Total number of Concourse builds finished.",
+		Namespace:   "concourse",
+		Subsystem:   "builds",
+		Name:        "finished_total",
+		Help:        "Total number of Concourse builds finished.",
+		ConstLabels: labels,
 	})
 	prometheus.MustRegister(buildsFinished)
 
 	buildsSucceeded := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "concourse",
-		Subsystem: "builds",
-		Name:      "succeeded_total",
-		Help:      "Total number of Concourse builds succeeded.",
+		Namespace:   "concourse",
+		Subsystem:   "builds",
+		Name:        "succeeded_total",
+		Help:        "Total number of Concourse builds succeeded.",
+		ConstLabels: labels,
 	})
 	prometheus.MustRegister(buildsSucceeded)
 
 	buildsErrored := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "concourse",
-		Subsystem: "builds",
-		Name:      "errored_total",
-		Help:      "Total number of Concourse builds errored.",
+		Namespace:   "concourse",
+		Subsystem:   "builds",
+		Name:        "errored_total",
+		Help:        "Total number of Concourse builds errored.",
+		ConstLabels: labels,
 	})
 	prometheus.MustRegister(buildsErrored)
 
 	buildsFailed := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "concourse",
-		Subsystem: "builds",
-		Name:      "failed_total",
-		Help:      "Total number of Concourse builds failed.",
+		Namespace:   "concourse",
+		Subsystem:   "builds",
+		Name:        "failed_total",
+		Help:        "Total number of Concourse builds failed.",
+		ConstLabels: labels,
 	})
 	prometheus.MustRegister(buildsFailed)
 
 	buildsAborted := prometheus.NewCounter(prometheus.CounterOpts{
-		Namespace: "concourse",
-		Subsystem: "builds",
-		Name:      "aborted_total",
-		Help:      "Total number of Concourse builds aborted.",
+		Namespace:   "concourse",
+		Subsystem:   "builds",
+		Name:        "aborted_total",
+		Help:        "Total number of Concourse builds aborted.",
+		ConstLabels: labels,
 	})
 	prometheus.MustRegister(buildsAborted)
 
 	buildsFinishedVec := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Namespace: "concourse",
-			Subsystem: "builds",
-			Name:      "finished",
-			Help:      "Count of builds finished across various dimensions.",
+			Namespace:   "concourse",
+			Subsystem:   "builds",
+			Name:        "finished",
+			Help:        "Count of builds finished across various dimensions.",
+			ConstLabels: labels,
 		},
 		[]string{"team", "pipeline", "status"},
 	)
 	prometheus.MustRegister(buildsFinishedVec)
 	buildDurationsVec := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: "concourse",
-			Subsystem: "builds",
-			Name:      "duration_seconds",
-			Help:      "Build time in seconds",
+			Namespace:   "concourse",
+			Subsystem:   "builds",
+			Name:        "duration_seconds",
+			Help:        "Build time in seconds",
+			ConstLabels: labels,
 		},
 		[]string{"team", "pipeline"},
 	)
@@ -118,20 +129,22 @@ func (config *PrometheusConfig) NewEmitter() (metric.Emitter, error) {
 
 	workerContainers := prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "concourse",
-			Subsystem: "workers",
-			Name:      "containers",
-			Help:      "Number of containers per worker",
+			Namespace:   "concourse",
+			Subsystem:   "workers",
+			Name:        "containers",
+			Help:        "Number of containers per worker",
+			ConstLabels: labels,
 		},
 		[]string{"worker"},
 	)
 	prometheus.MustRegister(workerContainers)
 	workerVolumes := prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "concourse",
-			Subsystem: "workers",
-			Name:      "volumes",
-			Help:      "Number of volumes per worker",
+			Namespace:   "concourse",
+			Subsystem:   "workers",
+			Name:        "volumes",
+			Help:        "Number of volumes per worker",
+			ConstLabels: labels,
 		},
 		[]string{"worker"},
 	)
@@ -139,10 +152,11 @@ func (config *PrometheusConfig) NewEmitter() (metric.Emitter, error) {
 
 	httpRequestsDuration := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: "concourse",
-			Subsystem: "http_responses",
-			Name:      "duration_seconds",
-			Help:      "Response time in seconds",
+			Namespace:   "concourse",
+			Subsystem:   "http_responses",
+			Name:        "duration_seconds",
+			Help:        "Response time in seconds",
+			ConstLabels: labels,
 		},
 		[]string{"path", "method"},
 	)
