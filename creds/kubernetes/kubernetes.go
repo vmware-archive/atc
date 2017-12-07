@@ -25,18 +25,11 @@ func (k Kubernetes) Get(varDef template.VariableDefinition) (interface{}, bool, 
 
 	secret, found, err := k.findSecret(namespace, pipelineSecretName)
 
-	if !found && err == nil {
-		secret, found, err = k.findSecret(namespace, secretName)
+	if found {
+		return k.getValueFromSecret(secret)
 	}
 
-	if err != nil {
-		k.logger.Error("k8s-secret-error", err, lager.Data{
-			"namespace":          namespace,
-			"pipelineSecretName": pipelineSecretName,
-			"secretName":         secretName,
-		})
-		return nil, false, err
-	}
+	secret, found, err = k.findSecret(namespace, secretName)
 
 	if found {
 		return k.getValueFromSecret(secret)
@@ -73,6 +66,10 @@ func (k Kubernetes) findSecret(namespace, name string) (*v1.Secret, bool, error)
 	if err != nil && k8s_errors.IsNotFound(err) {
 		return nil, false, nil
 	} else if err != nil {
+		k.logger.Error("k8s-secret-error", err, lager.Data{
+			"namespace": namespace,
+			"name":      name,
+		})
 		return nil, false, err
 	} else {
 		return secret, true, err
