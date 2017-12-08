@@ -1190,7 +1190,7 @@ var _ = Describe("Job", func() {
 	})
 
 	Describe("SyncResourceSpaceCombinations", func() {
-		It("creates job_resource_space_combinations for each space in every combination", func() {
+		It("creates a job_resource_space_combination for each space in every combination", func() {
 			tx, err := dbConn.Begin()
 			Expect(err).NotTo(HaveOccurred())
 
@@ -1245,6 +1245,16 @@ var _ = Describe("Job", func() {
 			Expect(jobCombinations[1].ID()).To(Equal("17779099878970182411"))
 			Expect(jobCombinations[1].JobID()).To(Equal(job.ID()))
 			Expect(jobCombinations[1].ResourceSpaces()).To(Equal(combination1))
+		})
+
+		It("Creates an empty job_resource_space_combination when no combinations are provided", func() {
+			jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(jobCombinations).To(HaveLen(1))
+			Expect(jobCombinations[0].ID()).To(Equal("0"))
+			Expect(jobCombinations[0].JobID()).To(Equal(job.ID()))
+			Expect(jobCombinations[0].ResourceSpaceID()).To(Equal(0))
+			Expect(jobCombinations[0].ResourceSpaces()).To(BeNil())
 		})
 	})
 })

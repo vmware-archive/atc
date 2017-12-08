@@ -411,14 +411,14 @@ var _ = Describe("Scheduler", func() {
 		var resourceSpaces map[string][]string
 
 		Context("when resource spaces are empty", func() {
-			It("returns no combinations", func() {
+			It("returns an empty combination", func() {
 				resourceSpaces = map[string][]string{}
-				Expect(Combinations(resourceSpaces)).To(Equal([]map[string]string{}))
+				Expect(Combinations(resourceSpaces)).To(Equal([]map[string]string{map[string]string{}}))
 			})
 		})
 
 		Context("when resource spaces contain exactly one resource", func() {
-			It("returns no combinations", func() {
+			It("returns one combination", func() {
 				resourceSpaces = map[string][]string{"some-resource": []string{"some-space", "another-space"}}
 				combination1 := map[string]string{"some-resource": "some-space"}
 				combination2 := map[string]string{"some-resource": "another-space"}
