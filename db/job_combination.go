@@ -19,6 +19,12 @@ type jobCombination struct {
 	jobID           int
 	resourceSpaceID int
 	resourceSpaces  map[string]string
+
+	pipelineID int
+	teamID     int
+
+	conn        Conn
+	lockFactory lock.LockFactory
 }
 
 func (c *jobCombination) ID() string {
@@ -40,7 +46,7 @@ func (c *jobCombination) ResourceSpaces() map[string]string {
 func scanJobCombination(c *jobCombination, row scannable) error {
 	var resourceSpacesBlob []byte
 
-	err := row.Scan(&c.id, &c.jobID, &resourceSpacesBlob)
+	err := row.Scan(&c.id, &c.jobID, &resourceSpacesBlob, &c.pipelineID, &c.teamID)
 	if err != nil {
 		return err
 	}
@@ -55,7 +61,7 @@ func scanJobCombinations(conn Conn, lockFactory lock.LockFactory, rows *sql.Rows
 	jobCombinations := []JobCombination{}
 
 	for rows.Next() {
-		jobCombination := &jobCombination{}
+		jobCombination := &jobCombination{conn: conn, lockFactory: lockFactory}
 
 		err := scanJobCombination(jobCombination, rows)
 		if err != nil {

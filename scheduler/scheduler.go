@@ -47,7 +47,7 @@ func Combinations(resourceSpaces map[string][]string) []map[string]string {
 	combinations := []map[string]string{}
 
 	if len(resourceSpaces) == 0 {
-		return combinations
+		return []map[string]string{map[string]string{}}
 	}
 
 	if len(resourceSpaces) == 1 {

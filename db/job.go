@@ -961,14 +961,27 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 				return nil, err
 			}
 		}
+
+		if len(c) == 0 {
+			_, err = psql.Insert("job_resource_space_combinations").
+				Columns("job_id", "resource_space_id", "combination", "hash").
+				Values(j.ID(), nil, marshaled, strconv.FormatUint(hash, 10)).
+				RunWith(tx).
+				Exec()
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
-	rows, err := psql.Select("c.hash, c.job_id, json_object_agg(r.name, rs.name)").
+	rows, err := psql.Select("c.hash, c.job_id, json_object_agg(r.name, rs.name), j.pipeline_id, p.team_id").
 		From("job_resource_space_combinations c").
 		Join("resource_spaces rs ON rs.id = c.resource_space_id").
 		Join("resources r ON r.id = rs.resource_id").
+		Join("jobs j ON j.id = c.job_id").
+		Join("pipelines p ON p.id = j.pipeline_id").
 		Where(sq.Eq{"c.job_id": j.ID()}).
-		GroupBy("c.hash, c.job_id").
+		GroupBy("c.hash, c.job_id, j.pipeline_id, p.team_id").
 		RunWith(tx).Query()
 	if err != nil {
 		return nil, err
@@ -982,6 +995,11 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 	err = tx.Commit()
 	if err != nil {
 		return nil, err
+	}
+
+	if len(jobCombinations) == 0 {
+		jobCombination := &jobCombination{conn: j.conn, lockFactory: j.lockFactory, id: "0", jobID: j.id, pipelineID: j.pipelineID, teamID: j.teamID}
+		jobCombinations = append(jobCombinations, jobCombination)
 	}
 
 	return jobCombinations, nil
