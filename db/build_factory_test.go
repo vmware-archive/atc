@@ -81,10 +81,10 @@ var _ = Describe("BuildFactory", func() {
 		Context("pipeline builds", func() {
 
 			It("[#139963615] marks builds that aren't the latest as non-interceptible, ", func() {
-				build1, err := defaultJob.CreateBuild()
+				build1, err := defaultJobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
 
-				build2, err := defaultJob.CreateBuild()
+				build2, err := defaultJobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
 
 				err = build1.Finish(db.BuildStatusErrored)
@@ -105,10 +105,14 @@ var _ = Describe("BuildFactory", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				pb1, err := j.CreateBuild()
+				jobCombinations, err := j.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+				Expect(err).NotTo(HaveOccurred())
+				jobCombination := jobCombinations[0]
+
+				pb1, err := jobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
 
-				pb2, err := j.CreateBuild()
+				pb2, err := jobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
 
 				err = pb1.Finish(db.BuildStatusErrored)
@@ -140,7 +144,7 @@ var _ = Describe("BuildFactory", func() {
 
 			DescribeTable("completed builds",
 				func(status db.BuildStatus, matcher types.GomegaMatcher) {
-					b, err := defaultJob.CreateBuild()
+					b, err := defaultJobCombination.CreateBuild()
 					Expect(err).NotTo(HaveOccurred())
 
 					var i bool
@@ -161,7 +165,7 @@ var _ = Describe("BuildFactory", func() {
 			)
 
 			It("does not mark non-completed builds", func() {
-				b, err := defaultJob.CreateBuild()
+				b, err := defaultJobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
 
 				var i bool
@@ -253,7 +257,11 @@ var _ = Describe("BuildFactory", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			_, err = privateJob.CreateBuild()
+			jobCombinations, err := privateJob.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+			Expect(err).NotTo(HaveOccurred())
+			jobCombination := jobCombinations[0]
+
+			_, err = jobCombination.CreateBuild()
 			Expect(err).NotTo(HaveOccurred())
 
 			publicPipeline, _, err := team.SavePipeline("public-pipeline", config, db.ConfigVersion(1), db.PipelineUnpaused)
@@ -265,7 +273,11 @@ var _ = Describe("BuildFactory", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			publicBuild, err = publicJob.CreateBuild()
+			jobCombinations, err = publicJob.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+			Expect(err).NotTo(HaveOccurred())
+			jobCombination = jobCombinations[0]
+
+			publicBuild, err = jobCombination.CreateBuild()
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -296,10 +308,14 @@ var _ = Describe("BuildFactory", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(found).To(BeTrue())
 
+			jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+			Expect(err).NotTo(HaveOccurred())
+			jobCombination := jobCombinations[0]
+
 			build1DB, err = team.CreateOneOffBuild()
 			Expect(err).NotTo(HaveOccurred())
 
-			build2DB, err = job.CreateBuild()
+			build2DB, err = jobCombination.CreateBuild()
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = team.CreateOneOffBuild()

@@ -5,6 +5,7 @@ BEGIN;
     resource_space_id int REFERENCES resource_spaces (id) ON DELETE CASCADE,
     combination jsonb NOT NULL,
     hash varchar(20) NOT NULL,
+    inputs_determined boolean DEFAULT false,
     UNIQUE (job_id, resource_space_id, hash)
   );
 
