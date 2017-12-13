@@ -30,7 +30,7 @@ type BuildScheduler interface {
 		resourceTypes atc.VersionedResourceTypes,
 	) (db.Build, Waiter, error)
 
-	SaveNextInputMapping(logger lager.Logger, job db.Job) error
+	SaveNextInputMapping(logger lager.Logger, job db.Job, jobCombination db.JobCombination) error
 }
 
 var errPipelineRemoved = errors.New("pipeline removed")

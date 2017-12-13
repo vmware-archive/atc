@@ -90,9 +90,20 @@ func (s *Scheduler) Schedule(
 	jobSchedulingTime := map[string]time.Duration{}
 
 	for _, job := range jobs {
-		_, err := job.SyncResourceSpaceCombinations(Combinations(map[string][]string{}))
+		jobCombinations, err := job.SyncResourceSpaceCombinations(Combinations(map[string][]string{}))
+		if err != nil {
+			logger.Error("failed-to-sync-resource-space-combinations", err)
+		}
+
 		jStart := time.Now()
-		err = s.ensurePendingBuildExists(logger, versions, job)
+
+		for _, jobCombination := range jobCombinations {
+			err = s.ensurePendingBuildExists(logger, versions, job, jobCombination)
+			if err != nil {
+				break
+			}
+		}
+
 		jobSchedulingTime[job.Name()] = time.Since(jStart)
 
 		if err != nil {
@@ -128,8 +139,9 @@ func (s *Scheduler) ensurePendingBuildExists(
 	logger lager.Logger,
 	versions *algorithm.VersionsDB,
 	job db.Job,
+	jobCombination db.JobCombination,
 ) error {
-	inputMapping, err := s.InputMapper.SaveNextInputMapping(logger, versions, job)
+	inputMapping, err := s.InputMapper.SaveNextInputMapping(logger, versions, job, jobCombination)
 	if err != nil {
 		return err
 	}
@@ -139,7 +151,7 @@ func (s *Scheduler) ensurePendingBuildExists(
 
 		//trigger: true, and the version has not been used
 		if ok && inputVersion.FirstOccurrence && inputConfig.Trigger {
-			err := job.EnsurePendingBuildExists()
+			err := jobCombination.EnsurePendingBuildExists()
 			if err != nil {
 				logger.Error("failed-to-ensure-pending-build-exists", err)
 				return err
@@ -191,13 +203,13 @@ func (s *Scheduler) TriggerImmediately(
 	return build, wg, nil
 }
 
-func (s *Scheduler) SaveNextInputMapping(logger lager.Logger, job db.Job) error {
+func (s *Scheduler) SaveNextInputMapping(logger lager.Logger, job db.Job, jobCombination db.JobCombination) error {
 	versions, err := s.Pipeline.LoadVersionsDB()
 	if err != nil {
 		logger.Error("failed-to-load-versions-db", err)
 		return err
 	}
 
-	_, err = s.InputMapper.SaveNextInputMapping(logger, versions, job)
+	_, err = s.InputMapper.SaveNextInputMapping(logger, versions, job, jobCombination)
 	return err
 }
