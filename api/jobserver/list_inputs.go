@@ -30,7 +30,7 @@ func (s *Server) ListJobInputs(pipeline db.Pipeline) http.Handler {
 
 		scheduler := s.schedulerFactory.BuildScheduler(pipeline, s.externalURL, variables)
 
-		err = scheduler.SaveNextInputMapping(logger, job)
+		err = scheduler.SaveNextInputMapping(logger, job, nil)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
