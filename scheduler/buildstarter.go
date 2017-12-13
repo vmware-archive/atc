@@ -115,7 +115,7 @@ func (s *buildStarter) tryStartNextPendingBuild(
 			return false, err
 		}
 
-		_, err = s.inputMapper.SaveNextInputMapping(logger, versions, job)
+		_, err = s.inputMapper.SaveNextInputMapping(logger, versions, job, nil)
 		if err != nil {
 			return false, err
 		}

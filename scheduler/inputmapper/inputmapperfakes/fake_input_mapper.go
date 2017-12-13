@@ -11,12 +11,13 @@ import (
 )
 
 type FakeInputMapper struct {
-	SaveNextInputMappingStub        func(logger lager.Logger, versions *algorithm.VersionsDB, job db.Job) (algorithm.InputMapping, error)
+	SaveNextInputMappingStub        func(logger lager.Logger, versions *algorithm.VersionsDB, job db.Job, jobCombination db.JobCombination) (algorithm.InputMapping, error)
 	saveNextInputMappingMutex       sync.RWMutex
 	saveNextInputMappingArgsForCall []struct {
-		logger   lager.Logger
-		versions *algorithm.VersionsDB
-		job      db.Job
+		logger         lager.Logger
+		versions       *algorithm.VersionsDB
+		job            db.Job
+		jobCombination db.JobCombination
 	}
 	saveNextInputMappingReturns struct {
 		result1 algorithm.InputMapping
@@ -30,18 +31,19 @@ type FakeInputMapper struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeInputMapper) SaveNextInputMapping(logger lager.Logger, versions *algorithm.VersionsDB, job db.Job) (algorithm.InputMapping, error) {
+func (fake *FakeInputMapper) SaveNextInputMapping(logger lager.Logger, versions *algorithm.VersionsDB, job db.Job, jobCombination db.JobCombination) (algorithm.InputMapping, error) {
 	fake.saveNextInputMappingMutex.Lock()
 	ret, specificReturn := fake.saveNextInputMappingReturnsOnCall[len(fake.saveNextInputMappingArgsForCall)]
 	fake.saveNextInputMappingArgsForCall = append(fake.saveNextInputMappingArgsForCall, struct {
-		logger   lager.Logger
-		versions *algorithm.VersionsDB
-		job      db.Job
-	}{logger, versions, job})
-	fake.recordInvocation("SaveNextInputMapping", []interface{}{logger, versions, job})
+		logger         lager.Logger
+		versions       *algorithm.VersionsDB
+		job            db.Job
+		jobCombination db.JobCombination
+	}{logger, versions, job, jobCombination})
+	fake.recordInvocation("SaveNextInputMapping", []interface{}{logger, versions, job, jobCombination})
 	fake.saveNextInputMappingMutex.Unlock()
 	if fake.SaveNextInputMappingStub != nil {
-		return fake.SaveNextInputMappingStub(logger, versions, job)
+		return fake.SaveNextInputMappingStub(logger, versions, job, jobCombination)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -55,10 +57,10 @@ func (fake *FakeInputMapper) SaveNextInputMappingCallCount() int {
 	return len(fake.saveNextInputMappingArgsForCall)
 }
 
-func (fake *FakeInputMapper) SaveNextInputMappingArgsForCall(i int) (lager.Logger, *algorithm.VersionsDB, db.Job) {
+func (fake *FakeInputMapper) SaveNextInputMappingArgsForCall(i int) (lager.Logger, *algorithm.VersionsDB, db.Job, db.JobCombination) {
 	fake.saveNextInputMappingMutex.RLock()
 	defer fake.saveNextInputMappingMutex.RUnlock()
-	return fake.saveNextInputMappingArgsForCall[i].logger, fake.saveNextInputMappingArgsForCall[i].versions, fake.saveNextInputMappingArgsForCall[i].job
+	return fake.saveNextInputMappingArgsForCall[i].logger, fake.saveNextInputMappingArgsForCall[i].versions, fake.saveNextInputMappingArgsForCall[i].job, fake.saveNextInputMappingArgsForCall[i].jobCombination
 }
 
 func (fake *FakeInputMapper) SaveNextInputMappingReturns(result1 algorithm.InputMapping, result2 error) {

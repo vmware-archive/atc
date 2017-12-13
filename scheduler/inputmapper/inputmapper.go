@@ -14,6 +14,7 @@ type InputMapper interface {
 		logger lager.Logger,
 		versions *algorithm.VersionsDB,
 		job db.Job,
+		jobCombination db.JobCombination,
 	) (algorithm.InputMapping, error)
 }
 
@@ -30,12 +31,13 @@ func (i *inputMapper) SaveNextInputMapping(
 	logger lager.Logger,
 	versions *algorithm.VersionsDB,
 	job db.Job,
+	jobCombination db.JobCombination,
 ) (algorithm.InputMapping, error) {
 	logger = logger.Session("save-next-input-mapping")
 
 	inputConfigs := job.Config().Inputs()
 
-	algorithmInputConfigs, err := i.transformer.TransformInputConfigs(versions, nil, inputConfigs)
+	algorithmInputConfigs, err := i.transformer.TransformInputConfigs(versions, jobCombination, inputConfigs)
 	if err != nil {
 		logger.Error("failed-to-get-algorithm-input-configs", err)
 		return nil, err
@@ -49,7 +51,7 @@ func (i *inputMapper) SaveNextInputMapping(
 		}
 	}
 
-	err = job.SaveIndependentInputMapping(independentMapping)
+	err = jobCombination.SaveIndependentInputMapping(independentMapping)
 	if err != nil {
 		logger.Error("failed-to-save-independent-input-mapping", err)
 		return nil, err
@@ -57,7 +59,7 @@ func (i *inputMapper) SaveNextInputMapping(
 
 	if len(independentMapping) < len(inputConfigs) {
 		// this is necessary to prevent builds from running with missing pinned versions
-		err := job.DeleteNextInputMapping()
+		err := jobCombination.DeleteNextInputMapping()
 		if err != nil {
 			logger.Error("failed-to-delete-next-input-mapping-after-missing-pending", err)
 		}
@@ -67,7 +69,7 @@ func (i *inputMapper) SaveNextInputMapping(
 
 	resolvedMapping, ok := algorithmInputConfigs.Resolve(versions)
 	if !ok {
-		err := job.DeleteNextInputMapping()
+		err := jobCombination.DeleteNextInputMapping()
 		if err != nil {
 			logger.Error("failed-to-delete-next-input-mapping-after-failed-resolve", err)
 		}
@@ -75,7 +77,7 @@ func (i *inputMapper) SaveNextInputMapping(
 		return nil, err
 	}
 
-	err = job.SaveNextInputMapping(resolvedMapping)
+	err = jobCombination.SaveNextInputMapping(resolvedMapping)
 	if err != nil {
 		logger.Error("failed-to-save-next-input-mapping", err)
 		return nil, err
