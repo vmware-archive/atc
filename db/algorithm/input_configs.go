@@ -10,7 +10,7 @@ type InputConfig struct {
 	PinnedVersionID  int
 	ResourceID       int
 	JobID            int
-	JobCombinationID string
+	JobCombinationID int
 	ResourceSpaceID  int
 }
 

@@ -9,14 +9,14 @@ import (
 )
 
 type FakeJobCombination struct {
-	IDStub        func() string
+	IDStub        func() int
 	iDMutex       sync.RWMutex
 	iDArgsForCall []struct{}
 	iDReturns     struct {
-		result1 string
+		result1 int
 	}
 	iDReturnsOnCall map[int]struct {
-		result1 string
+		result1 int
 	}
 	JobIDStub        func() int
 	jobIDMutex       sync.RWMutex
@@ -27,22 +27,13 @@ type FakeJobCombination struct {
 	jobIDReturnsOnCall map[int]struct {
 		result1 int
 	}
-	ResourceSpaceIDStub        func() int
-	resourceSpaceIDMutex       sync.RWMutex
-	resourceSpaceIDArgsForCall []struct{}
-	resourceSpaceIDReturns     struct {
-		result1 int
-	}
-	resourceSpaceIDReturnsOnCall map[int]struct {
-		result1 int
-	}
-	ResourceSpacesStub        func() map[string]string
-	resourceSpacesMutex       sync.RWMutex
-	resourceSpacesArgsForCall []struct{}
-	resourceSpacesReturns     struct {
+	CombinationStub        func() map[string]string
+	combinationMutex       sync.RWMutex
+	combinationArgsForCall []struct{}
+	combinationReturns     struct {
 		result1 map[string]string
 	}
-	resourceSpacesReturnsOnCall map[int]struct {
+	combinationReturnsOnCall map[int]struct {
 		result1 map[string]string
 	}
 	CreateBuildStub        func() (db.Build, error)
@@ -113,7 +104,7 @@ type FakeJobCombination struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeJobCombination) ID() string {
+func (fake *FakeJobCombination) ID() int {
 	fake.iDMutex.Lock()
 	ret, specificReturn := fake.iDReturnsOnCall[len(fake.iDArgsForCall)]
 	fake.iDArgsForCall = append(fake.iDArgsForCall, struct{}{})
@@ -134,22 +125,22 @@ func (fake *FakeJobCombination) IDCallCount() int {
 	return len(fake.iDArgsForCall)
 }
 
-func (fake *FakeJobCombination) IDReturns(result1 string) {
+func (fake *FakeJobCombination) IDReturns(result1 int) {
 	fake.IDStub = nil
 	fake.iDReturns = struct {
-		result1 string
+		result1 int
 	}{result1}
 }
 
-func (fake *FakeJobCombination) IDReturnsOnCall(i int, result1 string) {
+func (fake *FakeJobCombination) IDReturnsOnCall(i int, result1 int) {
 	fake.IDStub = nil
 	if fake.iDReturnsOnCall == nil {
 		fake.iDReturnsOnCall = make(map[int]struct {
-			result1 string
+			result1 int
 		})
 	}
 	fake.iDReturnsOnCall[i] = struct {
-		result1 string
+		result1 int
 	}{result1}
 }
 
@@ -193,82 +184,42 @@ func (fake *FakeJobCombination) JobIDReturnsOnCall(i int, result1 int) {
 	}{result1}
 }
 
-func (fake *FakeJobCombination) ResourceSpaceID() int {
-	fake.resourceSpaceIDMutex.Lock()
-	ret, specificReturn := fake.resourceSpaceIDReturnsOnCall[len(fake.resourceSpaceIDArgsForCall)]
-	fake.resourceSpaceIDArgsForCall = append(fake.resourceSpaceIDArgsForCall, struct{}{})
-	fake.recordInvocation("ResourceSpaceID", []interface{}{})
-	fake.resourceSpaceIDMutex.Unlock()
-	if fake.ResourceSpaceIDStub != nil {
-		return fake.ResourceSpaceIDStub()
+func (fake *FakeJobCombination) Combination() map[string]string {
+	fake.combinationMutex.Lock()
+	ret, specificReturn := fake.combinationReturnsOnCall[len(fake.combinationArgsForCall)]
+	fake.combinationArgsForCall = append(fake.combinationArgsForCall, struct{}{})
+	fake.recordInvocation("Combination", []interface{}{})
+	fake.combinationMutex.Unlock()
+	if fake.CombinationStub != nil {
+		return fake.CombinationStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.resourceSpaceIDReturns.result1
+	return fake.combinationReturns.result1
 }
 
-func (fake *FakeJobCombination) ResourceSpaceIDCallCount() int {
-	fake.resourceSpaceIDMutex.RLock()
-	defer fake.resourceSpaceIDMutex.RUnlock()
-	return len(fake.resourceSpaceIDArgsForCall)
+func (fake *FakeJobCombination) CombinationCallCount() int {
+	fake.combinationMutex.RLock()
+	defer fake.combinationMutex.RUnlock()
+	return len(fake.combinationArgsForCall)
 }
 
-func (fake *FakeJobCombination) ResourceSpaceIDReturns(result1 int) {
-	fake.ResourceSpaceIDStub = nil
-	fake.resourceSpaceIDReturns = struct {
-		result1 int
-	}{result1}
-}
-
-func (fake *FakeJobCombination) ResourceSpaceIDReturnsOnCall(i int, result1 int) {
-	fake.ResourceSpaceIDStub = nil
-	if fake.resourceSpaceIDReturnsOnCall == nil {
-		fake.resourceSpaceIDReturnsOnCall = make(map[int]struct {
-			result1 int
-		})
-	}
-	fake.resourceSpaceIDReturnsOnCall[i] = struct {
-		result1 int
-	}{result1}
-}
-
-func (fake *FakeJobCombination) ResourceSpaces() map[string]string {
-	fake.resourceSpacesMutex.Lock()
-	ret, specificReturn := fake.resourceSpacesReturnsOnCall[len(fake.resourceSpacesArgsForCall)]
-	fake.resourceSpacesArgsForCall = append(fake.resourceSpacesArgsForCall, struct{}{})
-	fake.recordInvocation("ResourceSpaces", []interface{}{})
-	fake.resourceSpacesMutex.Unlock()
-	if fake.ResourceSpacesStub != nil {
-		return fake.ResourceSpacesStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.resourceSpacesReturns.result1
-}
-
-func (fake *FakeJobCombination) ResourceSpacesCallCount() int {
-	fake.resourceSpacesMutex.RLock()
-	defer fake.resourceSpacesMutex.RUnlock()
-	return len(fake.resourceSpacesArgsForCall)
-}
-
-func (fake *FakeJobCombination) ResourceSpacesReturns(result1 map[string]string) {
-	fake.ResourceSpacesStub = nil
-	fake.resourceSpacesReturns = struct {
+func (fake *FakeJobCombination) CombinationReturns(result1 map[string]string) {
+	fake.CombinationStub = nil
+	fake.combinationReturns = struct {
 		result1 map[string]string
 	}{result1}
 }
 
-func (fake *FakeJobCombination) ResourceSpacesReturnsOnCall(i int, result1 map[string]string) {
-	fake.ResourceSpacesStub = nil
-	if fake.resourceSpacesReturnsOnCall == nil {
-		fake.resourceSpacesReturnsOnCall = make(map[int]struct {
+func (fake *FakeJobCombination) CombinationReturnsOnCall(i int, result1 map[string]string) {
+	fake.CombinationStub = nil
+	if fake.combinationReturnsOnCall == nil {
+		fake.combinationReturnsOnCall = make(map[int]struct {
 			result1 map[string]string
 		})
 	}
-	fake.resourceSpacesReturnsOnCall[i] = struct {
+	fake.combinationReturnsOnCall[i] = struct {
 		result1 map[string]string
 	}{result1}
 }
@@ -545,10 +496,8 @@ func (fake *FakeJobCombination) Invocations() map[string][][]interface{} {
 	defer fake.iDMutex.RUnlock()
 	fake.jobIDMutex.RLock()
 	defer fake.jobIDMutex.RUnlock()
-	fake.resourceSpaceIDMutex.RLock()
-	defer fake.resourceSpaceIDMutex.RUnlock()
-	fake.resourceSpacesMutex.RLock()
-	defer fake.resourceSpacesMutex.RUnlock()
+	fake.combinationMutex.RLock()
+	defer fake.combinationMutex.RUnlock()
 	fake.createBuildMutex.RLock()
 	defer fake.createBuildMutex.RUnlock()
 	fake.ensurePendingBuildExistsMutex.RLock()

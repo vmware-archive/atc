@@ -34,9 +34,8 @@ var _ = Describe("Transformer", func() {
 
 			JustBeforeEach(func() {
 				fakeJobCombination := new(dbfakes.FakeJobCombination)
-				fakeJobCombination.IDReturns("some-hash")
+				fakeJobCombination.IDReturns(11)
 				fakeJobCombination.JobIDReturns(1)
-				fakeJobCombination.ResourceSpaceIDReturns(111)
 
 				algorithmInputs, tranformErr = transformer.TransformInputConfigs(
 					&algorithm.VersionsDB{
@@ -65,8 +64,7 @@ var _ = Describe("Transformer", func() {
 						ResourceID:       11,
 						Passed:           algorithm.JobSet{},
 						JobID:            1,
-						JobCombinationID: "some-hash",
-						ResourceSpaceID:  111,
+						JobCombinationID: 11,
 					}))
 				})
 			})
@@ -89,8 +87,7 @@ var _ = Describe("Transformer", func() {
 						ResourceID:       11,
 						Passed:           algorithm.JobSet{1: struct{}{}, 2: struct{}{}},
 						JobID:            1,
-						JobCombinationID: "some-hash",
-						ResourceSpaceID:  111,
+						JobCombinationID: 11,
 					}))
 				})
 			})
@@ -112,8 +109,7 @@ var _ = Describe("Transformer", func() {
 						ResourceID:       11,
 						Passed:           algorithm.JobSet{},
 						JobID:            1,
-						JobCombinationID: "some-hash",
-						ResourceSpaceID:  111,
+						JobCombinationID: 11,
 					}))
 				})
 			})
@@ -167,8 +163,7 @@ var _ = Describe("Transformer", func() {
 							ResourceID:       12,
 							Passed:           algorithm.JobSet{},
 							JobID:            1,
-							JobCombinationID: "some-hash",
-							ResourceSpaceID:  111,
+							JobCombinationID: 11,
 						}))
 					})
 				})
@@ -187,8 +182,7 @@ var _ = Describe("Transformer", func() {
 								ResourceID:       11,
 								Passed:           algorithm.JobSet{},
 								JobID:            1,
-								JobCombinationID: "some-hash",
-								ResourceSpaceID:  111,
+								JobCombinationID: 11,
 							},
 							algorithm.InputConfig{
 								Name:             "job-input-2",
@@ -197,8 +191,7 @@ var _ = Describe("Transformer", func() {
 								ResourceID:       12,
 								Passed:           algorithm.JobSet{},
 								JobID:            1,
-								JobCombinationID: "some-hash",
-								ResourceSpaceID:  111,
+								JobCombinationID: 11,
 							},
 						))
 					})
