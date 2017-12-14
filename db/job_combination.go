@@ -1,19 +1,15 @@
 package db
 
 import (
-	"database/sql"
-	"encoding/json"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/db/lock"
 )
 
 type JobCombination interface {
-	ID() string
+	ID() int
 	JobID() int
-	ResourceSpaceID() int
-	ResourceSpaces() map[string]string
+	Combination() map[string]string
 
 	CreateBuild() (Build, error)
 	EnsurePendingBuildExists() error
@@ -25,10 +21,9 @@ type JobCombination interface {
 }
 
 type jobCombination struct {
-	id              string
-	jobID           int
-	resourceSpaceID int
-	resourceSpaces  map[string]string
+	id          int
+	jobID       int
+	combination map[string]string
 
 	pipelineID int
 	teamID     int
@@ -37,7 +32,7 @@ type jobCombination struct {
 	lockFactory lock.LockFactory
 }
 
-func (c *jobCombination) ID() string {
+func (c *jobCombination) ID() int {
 	return c.id
 }
 
@@ -45,12 +40,8 @@ func (c *jobCombination) JobID() int {
 	return c.jobID
 }
 
-func (c *jobCombination) ResourceSpaceID() int {
-	return c.resourceSpaceID
-}
-
-func (c *jobCombination) ResourceSpaces() map[string]string {
-	return c.resourceSpaces
+func (c *jobCombination) Combination() map[string]string {
+	return c.combination
 }
 
 func (c *jobCombination) CreateBuild() (Build, error) {
@@ -145,8 +136,8 @@ func (c *jobCombination) EnsurePendingBuildExists() error {
 func (c *jobCombination) GetNextBuildInputs() (algorithm.InputMapping, bool, error) {
 	var found bool
 	err := psql.Select("inputs_determined").
-		From("job_resource_space_combinations").
-		Where(sq.Eq{"hash": c.id}).
+		From("job_combinations").
+		Where(sq.Eq{"id": c.id}).
 		RunWith(c.conn).
 		QueryRow().
 		Scan(&found)
@@ -180,9 +171,9 @@ func (c *jobCombination) DeleteNextInputMapping() error {
 
 	defer Rollback(tx)
 
-	_, err = psql.Update("job_resource_space_combinations").
+	_, err = psql.Update("job_combinations").
 		Set("inputs_determined", false).
-		Where(sq.Eq{"hash": c.id}).
+		Where(sq.Eq{"id": c.id}).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -253,9 +244,9 @@ func (c *jobCombination) saveJobInputMapping(table string, inputMapping algorith
 	defer Rollback(tx)
 
 	if table == "next_build_inputs" {
-		_, err = psql.Update("job_resource_space_combinations").
+		_, err = psql.Update("job_combinations").
 			Set("inputs_determined", true).
-			Where(sq.Eq{"hash": c.id}).
+			Where(sq.Eq{"id": c.id}).
 			Where(sq.Expr("NOT inputs_determined")).
 			RunWith(tx).
 			Exec()
@@ -320,35 +311,4 @@ func (c *jobCombination) saveJobInputMapping(table string, inputMapping algorith
 	}
 
 	return tx.Commit()
-}
-
-func scanJobCombination(c *jobCombination, row scannable) error {
-	var resourceSpacesBlob []byte
-
-	err := row.Scan(&c.id, &c.jobID, &resourceSpacesBlob, &c.pipelineID, &c.teamID)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(resourceSpacesBlob, &c.resourceSpaces)
-	return err
-}
-
-func scanJobCombinations(conn Conn, lockFactory lock.LockFactory, rows *sql.Rows) ([]JobCombination, error) {
-	defer Close(rows)
-
-	jobCombinations := []JobCombination{}
-
-	for rows.Next() {
-		jobCombination := &jobCombination{conn: conn, lockFactory: lockFactory}
-
-		err := scanJobCombination(jobCombination, rows)
-		if err != nil {
-			return nil, err
-		}
-
-		jobCombinations = append(jobCombinations, jobCombination)
-	}
-
-	return jobCombinations, nil
 }

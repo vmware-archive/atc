@@ -4,13 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/db/lock"
-	"github.com/mitchellh/hashstructure"
 )
 
 //go:generate counterfeiter . Job
@@ -906,13 +904,23 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 
 	defer Rollback(tx)
 
+	jobCombinations := []JobCombination{}
+
 	for _, c := range combinations {
+		var jobCombinationID int
+
 		marshaled, err := json.Marshal(c)
 		if err != nil {
 			return nil, err
 		}
 
-		hash, err := hashstructure.Hash(c, nil)
+		err = psql.Insert("job_combinations").
+			Columns("job_id", "combination").
+			Values(j.ID(), marshaled).
+			Suffix("RETURNING id").
+			RunWith(tx).
+			QueryRow().
+			Scan(&jobCombinationID)
 		if err != nil {
 			return nil, err
 		}
@@ -932,9 +940,9 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 				return nil, err
 			}
 
-			_, err = psql.Insert("job_resource_space_combinations").
-				Columns("job_id", "resource_space_id", "combination", "hash").
-				Values(j.ID(), resourceSpaceID, marshaled, strconv.FormatUint(hash, 10)).
+			_, err = psql.Insert("job_combinations_resource_spaces").
+				Columns("job_combination_id", "resource_space_id").
+				Values(jobCombinationID, resourceSpaceID).
 				RunWith(tx).
 				Exec()
 			if err != nil {
@@ -942,44 +950,14 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 			}
 		}
 
-		if len(c) == 0 {
-			_, err = psql.Insert("job_resource_space_combinations").
-				Columns("job_id", "resource_space_id", "combination", "hash").
-				Values(j.ID(), nil, marshaled, strconv.FormatUint(hash, 10)).
-				RunWith(tx).
-				Exec()
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
+		jobCombination := &jobCombination{conn: j.conn, lockFactory: j.lockFactory, id: jobCombinationID, jobID: j.id, combination: c, pipelineID: j.PipelineID(), teamID: j.TeamID()}
 
-	rows, err := psql.Select("c.hash, c.job_id, json_object_agg(r.name, rs.name), j.pipeline_id, p.team_id").
-		From("job_resource_space_combinations c").
-		Join("resource_spaces rs ON rs.id = c.resource_space_id").
-		Join("resources r ON r.id = rs.resource_id").
-		Join("jobs j ON j.id = c.job_id").
-		Join("pipelines p ON p.id = j.pipeline_id").
-		Where(sq.Eq{"c.job_id": j.ID()}).
-		GroupBy("c.hash, c.job_id, j.pipeline_id, p.team_id").
-		RunWith(tx).Query()
-	if err != nil {
-		return nil, err
-	}
-
-	jobCombinations, err := scanJobCombinations(j.conn, j.lockFactory, rows)
-	if err != nil {
-		return nil, err
+		jobCombinations = append(jobCombinations, jobCombination)
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		return nil, err
-	}
-
-	if len(jobCombinations) == 0 {
-		jobCombination := &jobCombination{conn: j.conn, lockFactory: j.lockFactory, id: "0", jobID: j.id, pipelineID: j.pipelineID, teamID: j.teamID}
-		jobCombinations = append(jobCombinations, jobCombination)
 	}
 
 	return jobCombinations, nil

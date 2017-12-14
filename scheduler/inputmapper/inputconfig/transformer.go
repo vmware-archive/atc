@@ -55,7 +55,6 @@ func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, jo
 			Passed:           jobs,
 			JobID:            jobCombination.JobID(),
 			JobCombinationID: jobCombination.ID(),
-			ResourceSpaceID:  jobCombination.ResourceSpaceID(),
 		})
 	}
 
