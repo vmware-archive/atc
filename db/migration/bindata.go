@@ -4,6 +4,8 @@
 // db/migration/migrations/1510262030_initial_schema.up.sql
 // db/migration/migrations/1510670987_update_unique_constraint_for_resource_caches.down.sql
 // db/migration/migrations/1510670987_update_unique_constraint_for_resource_caches.up.sql
+// db/migration/migrations/1512664927_create_version_resources_check_order_index.down.sql
+// db/migration/migrations/1512664927_create_version_resources_check_order_index.up.sql
 // DO NOT EDIT!
 
 package migration
@@ -86,7 +88,7 @@ func _1510262030_initial_schemaDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510262030_initial_schema.down.sql", size: 993, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
+	info := bindataFileInfo{name: "1510262030_initial_schema.down.sql", size: 993, mode: os.FileMode(511), modTime: time.Unix(1512608950, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -106,7 +108,7 @@ func _1510262030_initial_schemaUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510262030_initial_schema.up.sql", size: 38922, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
+	info := bindataFileInfo{name: "1510262030_initial_schema.up.sql", size: 38922, mode: os.FileMode(511), modTime: time.Unix(1512608950, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -126,7 +128,7 @@ func _1510670987_update_unique_constraint_for_resource_cachesDownSql() (*asset, 
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.down.sql", size: 249, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
+	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.down.sql", size: 249, mode: os.FileMode(511), modTime: time.Unix(1512608950, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -146,7 +148,47 @@ func _1510670987_update_unique_constraint_for_resource_cachesUpSql() (*asset, er
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.up.sql", size: 271, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
+	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.up.sql", size: 271, mode: os.FileMode(511), modTime: time.Unix(1512608950, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1512664927_create_version_resources_check_order_indexDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\x09\xf2\x0f\x50\xf0\xf4\x73\x71\x8d\x50\x28\x4b\x2d\x2a\xce\xcc\xcf\x4b\x4d\x89\x2f\x4a\x2d\xce\x2f\x2d\x4a\x4e\x2d\x8e\x4f\xce\x48\x4d\xce\x8e\xcf\x2f\x4a\x49\x2d\xb2\xe6\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\x02\x04\x00\x00\xff\xff\x27\xe3\x82\xfa\x3d\x00\x00\x00")
+
+func _1512664927_create_version_resources_check_order_indexDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1512664927_create_version_resources_check_order_indexDownSql,
+		"1512664927_create_version_resources_check_order_index.down.sql",
+	)
+}
+
+func _1512664927_create_version_resources_check_order_indexDownSql() (*asset, error) {
+	bytes, err := _1512664927_create_version_resources_check_order_indexDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1512664927_create_version_resources_check_order_index.down.sql", size: 61, mode: os.FileMode(511), modTime: time.Unix(1512664981, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1512664927_create_version_resources_check_order_indexUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\x0e\x72\x75\x0c\x71\x55\xf0\xf4\x73\x71\x8d\x50\x28\x4b\x2d\x2a\xce\xcc\xcf\x4b\x4d\x89\x2f\x4a\x2d\xce\x2f\x2d\x4a\x4e\x2d\x8e\x4f\xce\x48\x4d\xce\x8e\xcf\x2f\x4a\x49\x2d\x52\xf0\xf7\xc3\xa6\x44\x41\x03\x59\x8d\x8b\x6b\xb0\xb3\xa6\x35\x97\xb3\xbf\xaf\xaf\x67\x88\x35\x17\x20\x00\x00\xff\xff\xb5\xaf\xf3\xb5\x69\x00\x00\x00")
+
+func _1512664927_create_version_resources_check_order_indexUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1512664927_create_version_resources_check_order_indexUpSql,
+		"1512664927_create_version_resources_check_order_index.up.sql",
+	)
+}
+
+func _1512664927_create_version_resources_check_order_indexUpSql() (*asset, error) {
+	bytes, err := _1512664927_create_version_resources_check_order_indexUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1512664927_create_version_resources_check_order_index.up.sql", size: 105, mode: os.FileMode(511), modTime: time.Unix(1512664977, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -203,10 +245,12 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"1510262030_initial_schema.down.sql":                               _1510262030_initial_schemaDownSql,
-	"1510262030_initial_schema.up.sql":                                 _1510262030_initial_schemaUpSql,
+	"1510262030_initial_schema.down.sql": _1510262030_initial_schemaDownSql,
+	"1510262030_initial_schema.up.sql": _1510262030_initial_schemaUpSql,
 	"1510670987_update_unique_constraint_for_resource_caches.down.sql": _1510670987_update_unique_constraint_for_resource_cachesDownSql,
-	"1510670987_update_unique_constraint_for_resource_caches.up.sql":   _1510670987_update_unique_constraint_for_resource_cachesUpSql,
+	"1510670987_update_unique_constraint_for_resource_caches.up.sql": _1510670987_update_unique_constraint_for_resource_cachesUpSql,
+	"1512664927_create_version_resources_check_order_index.down.sql": _1512664927_create_version_resources_check_order_indexDownSql,
+	"1512664927_create_version_resources_check_order_index.up.sql": _1512664927_create_version_resources_check_order_indexUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -248,12 +292,13 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
-
 var _bintree = &bintree{nil, map[string]*bintree{
-	"1510262030_initial_schema.down.sql":                               &bintree{_1510262030_initial_schemaDownSql, map[string]*bintree{}},
-	"1510262030_initial_schema.up.sql":                                 &bintree{_1510262030_initial_schemaUpSql, map[string]*bintree{}},
+	"1510262030_initial_schema.down.sql": &bintree{_1510262030_initial_schemaDownSql, map[string]*bintree{}},
+	"1510262030_initial_schema.up.sql": &bintree{_1510262030_initial_schemaUpSql, map[string]*bintree{}},
 	"1510670987_update_unique_constraint_for_resource_caches.down.sql": &bintree{_1510670987_update_unique_constraint_for_resource_cachesDownSql, map[string]*bintree{}},
-	"1510670987_update_unique_constraint_for_resource_caches.up.sql":   &bintree{_1510670987_update_unique_constraint_for_resource_cachesUpSql, map[string]*bintree{}},
+	"1510670987_update_unique_constraint_for_resource_caches.up.sql": &bintree{_1510670987_update_unique_constraint_for_resource_cachesUpSql, map[string]*bintree{}},
+	"1512664927_create_version_resources_check_order_index.down.sql": &bintree{_1512664927_create_version_resources_check_order_indexDownSql, map[string]*bintree{}},
+	"1512664927_create_version_resources_check_order_index.up.sql": &bintree{_1512664927_create_version_resources_check_order_indexUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
@@ -302,3 +347,4 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
+
