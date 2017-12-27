@@ -4,6 +4,8 @@
 // db/migration/migrations/1510262030_initial_schema.up.sql
 // db/migration/migrations/1510670987_update_unique_constraint_for_resource_caches.down.sql
 // db/migration/migrations/1510670987_update_unique_constraint_for_resource_caches.up.sql
+// db/migration/migrations/1513895878_update_timestamp_with_timezone.down.sql
+// db/migration/migrations/1513895878_update_timestamp_with_timezone.up.sql
 // DO NOT EDIT!
 
 package migration
@@ -86,7 +88,7 @@ func _1510262030_initial_schemaDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510262030_initial_schema.down.sql", size: 993, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
+	info := bindataFileInfo{name: "1510262030_initial_schema.down.sql", size: 993, mode: os.FileMode(420), modTime: time.Unix(1511496778, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -106,7 +108,7 @@ func _1510262030_initial_schemaUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510262030_initial_schema.up.sql", size: 38922, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
+	info := bindataFileInfo{name: "1510262030_initial_schema.up.sql", size: 38922, mode: os.FileMode(420), modTime: time.Unix(1513910475, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -126,7 +128,7 @@ func _1510670987_update_unique_constraint_for_resource_cachesDownSql() (*asset, 
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.down.sql", size: 249, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
+	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.down.sql", size: 249, mode: os.FileMode(420), modTime: time.Unix(1511496778, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -146,7 +148,47 @@ func _1510670987_update_unique_constraint_for_resource_cachesUpSql() (*asset, er
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.up.sql", size: 271, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
+	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.up.sql", size: 271, mode: os.FileMode(420), modTime: time.Unix(1513895572, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1513895878_update_timestamp_with_timezoneDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xc4\x94\xb1\x6a\xc3\x30\x10\x86\xf7\x3c\xc5\x6d\x99\x02\xf6\x54\x6a\x4f\x4e\xaa\x96\x80\x9d\x94\x56\x19\x3a\x09\x59\xba\xe0\xa3\xb6\x64\x2c\x29\x25\x7d\xfa\x12\x43\xe9\xe2\x86\xda\xc4\x14\x34\x08\x9d\xb8\xef\xbe\x7f\xb8\x35\x7b\xda\xee\xd2\x05\x00\x40\x96\x73\xf6\x02\x3c\x5b\xe7\x0c\xca\x40\xb5\x16\x64\xda\xe0\x5d\x5f\xfc\x2e\x6f\xf6\xf9\xa1\xd8\x41\x63\x35\x1d\x09\xb5\xf0\xd4\x20\xf0\xb7\x67\x06\x97\x9b\xf3\xb2\x69\xe1\x83\x7c\x65\x83\xef\x5f\xe0\xd3\x1a\x4c\x17\xbf\x00\x6c\xf0\xb3\x11\x94\x54\x15\x0a\x32\x27\x59\x93\x96\xde\x76\x43\x94\x5a\x3a\xff\xf3\x07\xf5\x1f\x40\xb7\xe1\xbc\x32\x0e\x0f\xec\x31\x3b\xe4\x1c\x96\xf1\xfd\x5d\xb4\x8a\xe2\x55\x14\x43\x14\x25\xfd\x59\x26\xc9\x48\x5d\x6b\xbc\x24\x83\xdd\x60\x9a\x25\x5e\xf8\x47\x11\x1c\x6a\x51\x9e\xa7\xe4\xd9\x52\x8b\x35\x19\x1c\xec\xdf\xfb\x39\x55\xa1\x0e\xf5\xa4\x14\xc7\x74\xbf\x79\x76\x1d\x3a\x1b\x3a\x85\xc2\x9f\xdb\x2b\x13\xa8\x0a\xd5\xfb\x24\xbb\x91\x80\xd9\x04\xe7\x74\xfb\x07\xad\x13\x76\x8e\xac\x41\x2d\xae\x0e\x31\x76\x95\x6c\xf6\x45\xb1\xe5\xe9\xe2\x2b\x00\x00\xff\xff\x2d\x8b\x28\x9c\x1c\x05\x00\x00")
+
+func _1513895878_update_timestamp_with_timezoneDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1513895878_update_timestamp_with_timezoneDownSql,
+		"1513895878_update_timestamp_with_timezone.down.sql",
+	)
+}
+
+func _1513895878_update_timestamp_with_timezoneDownSql() (*asset, error) {
+	bytes, err := _1513895878_update_timestamp_with_timezoneDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1513895878_update_timestamp_with_timezone.down.sql", size: 1308, mode: os.FileMode(420), modTime: time.Unix(1513912775, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1513895878_update_timestamp_with_timezoneUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xb4\x94\x4f\x6b\x32\x31\x10\xc6\xef\xfb\x29\xe6\xe6\x49\x58\x4f\x2f\xaf\x9e\xfc\x93\x16\x21\xee\x8a\x8d\x87\x9e\x42\x4c\x46\x76\xe8\x9a\x2c\x9b\xc4\x62\x3f\x7d\x71\x41\x7a\xd9\x2a\xa1\x2e\xe4\x90\x30\xe1\xf7\xf0\x7b\x0e\xb3\x60\xaf\xeb\x62\x96\x01\x00\xcc\xb9\x60\x3b\x10\xf3\x05\x67\x70\x88\x54\x1b\x49\xb6\x89\xc1\x77\xc3\xdb\x78\x59\xf2\xfd\xa6\x80\x93\x33\x74\x24\x34\x32\xd0\x09\x41\xbc\x6f\x19\x5c\x6f\x3e\xa8\x53\x03\x9f\x14\xaa\xee\x09\x5f\xce\xe2\x2c\xfb\x85\xee\x62\x18\x06\xaf\x95\xae\x50\x92\x3d\xab\x9a\x8c\x0a\xae\xed\x8b\xa8\x95\x0f\x3f\x7f\xd0\x3c\x4a\x79\x4e\xc8\x1b\x13\xb0\x62\x2f\xf3\x3d\x17\x30\x9a\xfc\xff\x97\x8f\xf3\xc9\x38\x9f\x40\x9e\x4f\xbb\x33\x9a\x4e\x53\x44\x9d\x0d\x8a\x2c\xb6\xbd\x25\x1e\xf0\x1a\x7e\x94\xd1\xa3\x91\x87\x4b\x72\x8d\x0d\x35\x58\x93\xc5\x5e\x78\x67\xe6\x75\x85\x26\xd6\xe9\xe5\xa5\xa0\x9f\x5b\x59\x8b\xde\xc5\x56\xa3\x0c\x97\xe6\x4e\xbc\xae\x50\x7f\xa4\x7b\x25\xd2\x87\x51\x1b\xcc\xea\x31\x78\xb5\x2b\xb7\x37\xa3\x3f\x73\x8a\x52\x40\xb1\xe7\xbc\x47\xf5\x8c\xad\x27\x67\xd1\xc8\xbb\xcc\xa4\x35\xb2\x2c\x37\x9b\xb5\x98\x65\xd9\x77\x00\x00\x00\xff\xff\xd7\x64\xc8\x94\x13\x05\x00\x00")
+
+func _1513895878_update_timestamp_with_timezoneUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1513895878_update_timestamp_with_timezoneUpSql,
+		"1513895878_update_timestamp_with_timezone.up.sql",
+	)
+}
+
+func _1513895878_update_timestamp_with_timezoneUpSql() (*asset, error) {
+	bytes, err := _1513895878_update_timestamp_with_timezoneUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1513895878_update_timestamp_with_timezone.up.sql", size: 1299, mode: os.FileMode(420), modTime: time.Unix(1514000013, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -203,10 +245,12 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"1510262030_initial_schema.down.sql":                               _1510262030_initial_schemaDownSql,
-	"1510262030_initial_schema.up.sql":                                 _1510262030_initial_schemaUpSql,
+	"1510262030_initial_schema.down.sql": _1510262030_initial_schemaDownSql,
+	"1510262030_initial_schema.up.sql": _1510262030_initial_schemaUpSql,
 	"1510670987_update_unique_constraint_for_resource_caches.down.sql": _1510670987_update_unique_constraint_for_resource_cachesDownSql,
-	"1510670987_update_unique_constraint_for_resource_caches.up.sql":   _1510670987_update_unique_constraint_for_resource_cachesUpSql,
+	"1510670987_update_unique_constraint_for_resource_caches.up.sql": _1510670987_update_unique_constraint_for_resource_cachesUpSql,
+	"1513895878_update_timestamp_with_timezone.down.sql": _1513895878_update_timestamp_with_timezoneDownSql,
+	"1513895878_update_timestamp_with_timezone.up.sql": _1513895878_update_timestamp_with_timezoneUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -248,12 +292,13 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
-
 var _bintree = &bintree{nil, map[string]*bintree{
-	"1510262030_initial_schema.down.sql":                               &bintree{_1510262030_initial_schemaDownSql, map[string]*bintree{}},
-	"1510262030_initial_schema.up.sql":                                 &bintree{_1510262030_initial_schemaUpSql, map[string]*bintree{}},
+	"1510262030_initial_schema.down.sql": &bintree{_1510262030_initial_schemaDownSql, map[string]*bintree{}},
+	"1510262030_initial_schema.up.sql": &bintree{_1510262030_initial_schemaUpSql, map[string]*bintree{}},
 	"1510670987_update_unique_constraint_for_resource_caches.down.sql": &bintree{_1510670987_update_unique_constraint_for_resource_cachesDownSql, map[string]*bintree{}},
-	"1510670987_update_unique_constraint_for_resource_caches.up.sql":   &bintree{_1510670987_update_unique_constraint_for_resource_cachesUpSql, map[string]*bintree{}},
+	"1510670987_update_unique_constraint_for_resource_caches.up.sql": &bintree{_1510670987_update_unique_constraint_for_resource_cachesUpSql, map[string]*bintree{}},
+	"1513895878_update_timestamp_with_timezone.down.sql": &bintree{_1513895878_update_timestamp_with_timezoneDownSql, map[string]*bintree{}},
+	"1513895878_update_timestamp_with_timezone.up.sql": &bintree{_1513895878_update_timestamp_with_timezoneUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
@@ -302,3 +347,4 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
+
