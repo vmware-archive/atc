@@ -9,18 +9,10 @@ BEGIN;
 
   INSERT INTO job_combinations(id, job_id, combination)
   SELECT id, id, json_object_agg(resource_name, 'default')
-  FROM jobs, LATERAL (SELECT DISTINCT(json_array_elements(config::json->'plan')->>'get') AS resource_name) _
+  FROM jobs, LATERAL (SELECT DISTINCT(json_array_elements(config::json->'plan')->>'get') AS resource_name
+                      UNION SELECT DISTINCT(json_array_elements(config::json->'plan')->>'put')) _
   WHERE resource_name is NOT NULL
   GROUP BY id;
-
-  INSERT INTO job_combinations(id, job_id, combination)
-  SELECT id, id, json_object_agg(resource_name, 'default')
-  FROM jobs, LATERAL (SELECT DISTINCT(json_array_elements(config::json->'plan')->>'put') AS resource_name) _
-  WHERE resource_name is NOT NULL
-  GROUP BY id;
-
-  /* SELECT id, id, json_object_agg(resource_name, 'default') */
-  /* FROM jobs, LATERAL (SELECT (json_each_text(json_array_elements((config::json->'plan')))).value AS resource_name) _ GROUP BY id; */
 
   SELECT setval('job_combinations_id_seq', (SELECT max(id) FROM job_combinations));
 
