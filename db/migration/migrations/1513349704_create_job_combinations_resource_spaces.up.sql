@@ -7,7 +7,9 @@ BEGIN;
 
   INSERT INTO job_combinations_resource_spaces(job_combination_id, resource_space_id)
   SELECT job_resources.id as job_combination_id, resources.id as resource_space_id FROM (
-    SELECT id, (json_each_text(json_array_elements((config::json->'plan')))).value FROM jobs
-  ) job_resources JOIN resources ON resources.name = job_resources.value;
+    SELECT id, pipeline_id, (json_each_text(json_array_elements((config::json->'plan')))).value FROM jobs
+  ) job_resources
+  JOIN resources ON resources.name = job_resources.value
+  WHERE job_resources.pipeline_id = resources.pipeline_id;
 
 COMMIT;
