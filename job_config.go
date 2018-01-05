@@ -169,3 +169,23 @@ func (config JobConfig) Outputs() []JobOutput {
 
 	return outputs
 }
+
+func (config JobConfig) Spaces() map[string][]string {
+	spaces := map[string][]string{}
+
+	for _, plan := range config.Plans() {
+		resource := plan.Resource
+
+		if resource == "" {
+			resource = plan.Get
+		}
+		if resource == "" {
+			resource = plan.Put
+		}
+		if resource != "" {
+			spaces[resource] = []string{"default"}
+		}
+	}
+
+	return spaces
+}

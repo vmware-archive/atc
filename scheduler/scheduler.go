@@ -73,7 +73,7 @@ func (s *Scheduler) Schedule(
 	jobSchedulingTime := map[string]time.Duration{}
 
 	for _, job := range jobs {
-		jobCombinations, err := job.SyncResourceSpaceCombinations(Combinations(map[string][]string{}))
+		jobCombinations, err := job.SyncResourceSpaceCombinations(Combinations(job.Config().Spaces()))
 		if err != nil {
 			logger.Error("failed-to-sync-resource-space-combinations", err)
 		}

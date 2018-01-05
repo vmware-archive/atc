@@ -818,4 +818,124 @@ var _ = Describe("JobConfig", func() {
 			})
 		})
 	})
+
+	Describe("Spaces", func() {
+		var (
+			jobConfig atc.JobConfig
+			spaces    map[string][]string
+		)
+
+		BeforeEach(func() {
+			jobConfig = atc.JobConfig{}
+		})
+
+		JustBeforeEach(func() {
+			spaces = jobConfig.Spaces()
+		})
+
+		Context("with a build plan", func() {
+			Context("with an empty plan", func() {
+				BeforeEach(func() {
+					jobConfig.Plan = atc.PlanSequence{}
+				})
+
+				It("returns an empty set of spaces", func() {
+					Expect(spaces).To(Equal(map[string][]string{}))
+				})
+			})
+
+			Context("with two serial gets", func() {
+				BeforeEach(func() {
+					jobConfig.Plan = atc.PlanSequence{
+						{
+							Get:     "some-get-plan",
+							Passed:  []string{"a", "b"},
+							Trigger: true,
+						},
+						{
+							Get: "some-other-get-plan",
+						},
+					}
+				})
+
+				It("returns a list of spaces for each resource", func() {
+					Expect(spaces).To(Equal(map[string][]string{
+						"some-get-plan":       []string{"default"},
+						"some-other-get-plan": []string{"default"},
+					}))
+				})
+			})
+
+			Context("with two serial puts", func() {
+				BeforeEach(func() {
+					jobConfig.Plan = atc.PlanSequence{
+						{
+							Put:     "some-put-plan",
+							Passed:  []string{"a", "b"},
+							Trigger: true,
+						},
+						{
+							Put: "some-other-put-plan",
+						},
+					}
+				})
+
+				It("returns a list of spaces for each resource", func() {
+					Expect(spaces).To(Equal(map[string][]string{
+						"some-put-plan":       []string{"default"},
+						"some-other-put-plan": []string{"default"},
+					}))
+				})
+			})
+
+			Context("with aggregated gets and puts", func() {
+				BeforeEach(func() {
+					jobConfig.Plan = atc.PlanSequence{
+						{
+							Aggregate: &atc.PlanSequence{
+								{Get: "a"},
+								{Put: "y", Trigger: true},
+								{Get: "b", Resource: "some-resource", Passed: []string{"x"}},
+								{Do: &atc.PlanSequence{
+									{Get: "c"},
+								}},
+							},
+						},
+					}
+				})
+
+				It("returns a list of spaces for each resource", func() {
+					Expect(spaces).To(Equal(map[string][]string{
+						"a":             []string{"default"},
+						"y":             []string{"default"},
+						"some-resource": []string{"default"},
+						"c":             []string{"default"},
+					}))
+				})
+			})
+
+			Context("with aliased resources", func() {
+				BeforeEach(func() {
+					jobConfig.Plan = atc.PlanSequence{
+						{
+							Get:      "some-plan",
+							Resource: "some-get-plan",
+						},
+						{
+							Put:      "some-other-plan",
+							Resource: "some-other-put-plan",
+						},
+					}
+				})
+
+				It("returns a list of spaces for each resource", func() {
+					Expect(spaces).To(Equal(map[string][]string{
+						"some-get-plan":       []string{"default"},
+						"some-other-put-plan": []string{"default"},
+					}))
+				})
+			})
+		})
+	})
+
 })
