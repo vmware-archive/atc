@@ -5,11 +5,6 @@ BEGIN;
     resource_space_id int REFERENCES resource_spaces (id) ON DELETE CASCADE
   );
 
-  INSERT INTO job_combinations_resource_spaces(job_combination_id, resource_space_id)
-  SELECT job_resources.id as job_combination_id, resources.id as resource_space_id FROM (
-    SELECT id, pipeline_id, (json_each_text(json_array_elements((config::json->'plan')))).value FROM jobs
-  ) job_resources
-  JOIN resources ON resources.name = job_resources.value
-  WHERE job_resources.pipeline_id = resources.pipeline_id;
+  CREATE UNIQUE INDEX job_combinations_resource_spaces_job_combination_id_resource_space_id_key ON job_combinations_resource_spaces (job_combination_id, resource_space_id);
 
 COMMIT;
