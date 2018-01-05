@@ -1,7 +1,6 @@
 package scheduler
 
 import (
-	"sort"
 	"sync"
 	"time"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/scheduler/inputmapper"
-	"github.com/mitchellh/hashstructure"
 )
 
 type Scheduler struct {
@@ -24,20 +22,6 @@ type Scheduler struct {
 
 type Scanner interface {
 	Scan(lager.Logger, string) error
-}
-
-type Foo []map[string]string
-
-func (s Foo) Len() int {
-	return len(s)
-}
-func (s Foo) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-func (s Foo) Less(i, j int) bool {
-	v1, _ := hashstructure.Hash(s[i], nil)
-	v2, _ := hashstructure.Hash(s[j], nil)
-	return v1 < v2
 }
 
 func Combinations(resourceSpaces map[string][]string) []map[string]string {
@@ -76,7 +60,6 @@ func Combinations(resourceSpaces map[string][]string) []map[string]string {
 		}
 	}
 
-	sort.Sort(Foo(combinations))
 	return combinations
 }
 
