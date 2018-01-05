@@ -917,7 +917,7 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 		err = psql.Insert("job_combinations").
 			Columns("job_id", "combination").
 			Values(j.ID(), marshaled).
-			Suffix("RETURNING id").
+			Suffix("ON CONFLICT (job_id, combination) DO NOTHING RETURNING id").
 			RunWith(tx).
 			QueryRow().
 			Scan(&jobCombinationID)
@@ -943,6 +943,7 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 			_, err = psql.Insert("job_combinations_resource_spaces").
 				Columns("job_combination_id", "resource_space_id").
 				Values(jobCombinationID, resourceSpaceID).
+				Suffix("ON CONFLICT (job_combination_id, resource_space_id) DO NOTHING").
 				RunWith(tx).
 				Exec()
 			if err != nil {
