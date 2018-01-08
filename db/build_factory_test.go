@@ -12,11 +12,16 @@ import (
 
 var _ = Describe("BuildFactory", func() {
 	var team db.Team
+	var defaultJobCombination db.JobCombination
 
 	BeforeEach(func() {
 		var err error
 		team, err = teamFactory.CreateTeam(atc.Team{Name: "some-team"})
 		Expect(err).ToNot(HaveOccurred())
+
+		defaultJobCombinations, err := defaultJob.SyncResourceSpaceCombinations([]map[string]string{map[string]string{"some-resource": "default"}})
+		Expect(err).NotTo(HaveOccurred())
+		defaultJobCombination = defaultJobCombinations[0]
 	})
 
 	Describe("Build", func() {
