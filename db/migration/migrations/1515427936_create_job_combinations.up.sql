@@ -9,9 +9,13 @@ BEGIN;
 
   CREATE UNIQUE INDEX job_combinations_job_id_combination_key ON job_combinations (job_id, combination);
 
-  ALTER TABLE builds RENAME job_id TO job_combination_id;
-  ALTER TABLE builds DROP CONSTRAINT fkey_job_id;
-  ALTER TABLE builds ADD CONSTRAINT fkey_job_combination_id FOREIGN KEY (job_combination_id) REFERENCES job_combinations(id) ON DELETE CASCADE;
-  ALTER INDEX builds_job_id RENAME TO builds_job_combination_id;
+  INSERT INTO job_combinations(id, job_id)
+  SELECT id, id
+  FROM jobs;
+
+  /* ALTER TABLE builds RENAME job_id TO job_combination_id; */
+  /* ALTER TABLE builds DROP CONSTRAINT fkey_job_id; */
+  /* ALTER TABLE builds ADD CONSTRAINT fkey_job_combination_id FOREIGN KEY (job_combination_id) REFERENCES job_combinations(id) ON DELETE CASCADE; */
+  /* ALTER INDEX builds_job_id RENAME TO builds_job_combination_id; */
 
 COMMIT;

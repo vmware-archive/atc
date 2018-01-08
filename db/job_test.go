@@ -1,6 +1,7 @@
 package db_test
 
 import (
+	"encoding/json"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -1240,7 +1241,7 @@ var _ = Describe("Job", func() {
 	})
 
 	Describe("SyncResourceSpaceCombinations", func() {
-		It("creates a job_resource_space_combination for each space in every combination", func() {
+		BeforeEach(func() {
 			tx, err := dbConn.Begin()
 			Expect(err).NotTo(HaveOccurred())
 
@@ -1283,28 +1284,100 @@ var _ = Describe("Job", func() {
 
 			err = tx.Commit()
 			Expect(err).NotTo(HaveOccurred())
+		})
 
+		It("creates a job_resource_space_combination for each space in every combination", func() {
 			combination1 := map[string]string{"some-resource": "some-space", "some-other-resource": "some-other-space"}
 			combination2 := map[string]string{"some-resource": "some-space", "some-other-resource": "some-another-space"}
+
 			jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{combination1, combination2})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(jobCombinations).To(HaveLen(2))
-			Expect(jobCombinations[0].ID()).To(Equal(2))
+			Expect(jobCombinations[0].ID()).To(Equal(1))
 			Expect(jobCombinations[0].JobID()).To(Equal(job.ID()))
 			Expect(jobCombinations[0].Combination()).To(Equal(combination1))
-			Expect(jobCombinations[1].ID()).To(Equal(3))
+			Expect(jobCombinations[1].ID()).To(Equal(2))
 			Expect(jobCombinations[1].JobID()).To(Equal(job.ID()))
 			Expect(jobCombinations[1].Combination()).To(Equal(combination2))
 		})
 
 		It("Creates an empty job_combination when no combinations are provided", func() {
 			combination := map[string]string{}
+
 			jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{combination})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(jobCombinations).To(HaveLen(1))
-			Expect(jobCombinations[0].ID()).To(Equal(2))
+			Expect(jobCombinations[0].ID()).To(Equal(1))
 			Expect(jobCombinations[0].JobID()).To(Equal(job.ID()))
 			Expect(jobCombinations[0].Combination()).To(Equal(combination))
+		})
+
+		It("Updates a job_combination when the existing combination is null", func() {
+			tx, err := dbConn.Begin()
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = psql.Insert("job_combinations").
+				Columns("id", "job_id").
+				Values(job.ID(), job.ID()).
+				RunWith(tx).
+				Exec()
+			Expect(err).NotTo(HaveOccurred())
+
+			err = tx.Commit()
+			Expect(err).NotTo(HaveOccurred())
+
+			db.Rollback(tx)
+
+			combination := map[string]string{"some-resource": "some-space", "some-other-resource": "some-other-space"}
+
+			jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{combination})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(jobCombinations).To(HaveLen(1))
+			Expect(jobCombinations[0].ID()).To(Equal(job.ID()))
+			Expect(jobCombinations[0].JobID()).To(Equal(job.ID()))
+			Expect(jobCombinations[0].Combination()).To(Equal(combination))
+		})
+
+		It("Create new job_combinations when combinations have changed", func() {
+			combination1 := map[string]string{"some-resource": "some-space", "some-other-resource": "some-other-space"}
+			combination2 := map[string]string{"some-resource": "some-space", "some-other-resource": "some-another-space"}
+
+			tx, err := dbConn.Begin()
+			Expect(err).NotTo(HaveOccurred())
+
+			marshaled, _ := json.Marshal(combination1)
+			var oldJobCombinationId int
+			err = psql.Insert("job_combinations").
+				Columns("id", "job_id", "combination").
+				Values(job.ID(), job.ID(), marshaled).
+				Suffix("RETURNING id").
+				RunWith(tx).
+				QueryRow().
+				Scan(&oldJobCombinationId)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = tx.Commit()
+			Expect(err).NotTo(HaveOccurred())
+
+			db.Rollback(tx)
+
+			jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{combination2})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(jobCombinations).To(HaveLen(1))
+			Expect(jobCombinations[0].JobID()).To(Equal(job.ID()))
+			Expect(jobCombinations[0].Combination()).To(Equal(combination2))
+
+			var combinationCount int
+			tx, err = dbConn.Begin()
+			Expect(err).NotTo(HaveOccurred())
+
+			err = psql.Select("count(*)").
+				From("job_combinations").
+				RunWith(tx).QueryRow().Scan(&combinationCount)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(combinationCount).To(Equal(2))
+
+			db.Rollback(tx)
 		})
 	})
 })

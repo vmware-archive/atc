@@ -934,15 +934,29 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 			return nil, err
 		}
 
-		err = psql.Insert("job_combinations").
-			Columns("job_id", "combination").
-			Values(j.ID(), marshaled).
-			Suffix("ON CONFLICT (job_id, combination) DO NOTHING RETURNING id").
-			RunWith(tx).
-			QueryRow().
-			Scan(&jobCombinationID)
+		needsMigration, err := findInvalidJobCombination(tx, j.ID())
 		if err != nil {
 			return nil, err
+		}
+
+		if needsMigration {
+			err = psql.Update("job_combinations").
+				Set("combination", marshaled).
+				Where(sq.Eq{"job_id": j.ID()}).
+				Suffix("RETURNING id").
+				RunWith(tx).QueryRow().Scan(&jobCombinationID)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			err = psql.Insert("job_combinations").
+				Columns("job_id", "combination").
+				Values(j.ID(), marshaled).
+				Suffix("ON CONFLICT (job_id, combination) DO NOTHING RETURNING id").
+				RunWith(tx).QueryRow().Scan(&jobCombinationID)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		for resource, space := range c {
@@ -982,4 +996,27 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 	}
 
 	return jobCombinations, nil
+}
+
+func findInvalidJobCombination(tx Tx, jobID int) (bool, error) {
+	var combination sql.NullString
+	combinationsPresent := false
+
+	rows, err := psql.Select("combination").
+		From("job_combinations").
+		Where(sq.Eq{"job_id": jobID}).
+		Limit(1).RunWith(tx).Query()
+	if err != nil {
+		return false, err
+	}
+
+	for rows.Next() {
+		combinationsPresent = true
+		err = rows.Scan(&combination)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	return combinationsPresent && !combination.Valid, nil
 }
