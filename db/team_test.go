@@ -255,7 +255,7 @@ var _ = Describe("Team", func() {
 			diffPipelineID.PipelineID = fullMetadata.PipelineID + 1
 
 			diffJobID := fullMetadata
-			diffJobID.JobID = fullMetadata.JobID + 1
+			diffJobID.JobCombinationID = fullMetadata.JobCombinationID + 1
 
 			diffBuildID := fullMetadata
 			diffBuildID.BuildID = fullMetadata.BuildID + 1
@@ -282,7 +282,10 @@ var _ = Describe("Team", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build, err := job.CreateBuild()
+			combination := map[string]string{"some-resource": "default"}
+			jobCombination := getJobCombination(job, combination)
+
+			build, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			metaContainers = make(map[db.ContainerMetadata][]db.Container)
@@ -496,7 +499,10 @@ var _ = Describe("Team", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build, err := job.CreateBuild()
+			combination := map[string]string{"some-resource": "default"}
+			jobCombination := getJobCombination(job, combination)
+
+			build, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			creatingContainer, err := defaultTeam.CreateContainer(defaultWorker.Name(), db.NewBuildStepContainerOwner(build.ID(), atc.PlanID("some-job")), db.ContainerMetadata{Type: "task", StepName: "some-task"})
@@ -1032,8 +1038,11 @@ var _ = Describe("Team", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
+				combination := map[string]string{}
+				jobCombination := getJobCombination(job, combination)
+
 				for i := 3; i < 5; i++ {
-					build, err := job.CreateBuild()
+					build, err := jobCombination.CreateBuild()
 					Expect(err).ToNot(HaveOccurred())
 					allBuilds[i] = build
 					pipelineBuilds[i-3] = build

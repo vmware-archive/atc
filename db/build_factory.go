@@ -60,10 +60,10 @@ func (f *buildFactory) MarkNonInterceptibleBuilds() error {
 	latestBuildsPrefix := `WITH
 		latest_builds AS (
 			SELECT COALESCE(MAX(b.id)) AS build_id
-			FROM builds b, jobs j
-			WHERE b.job_id = j.id
+			FROM builds b, job_combinations c
+			WHERE b.job_combination_id = c.id
 			AND b.completed
-			GROUP BY j.id
+			GROUP BY c.id
 		)`
 
 	_, err := psql.Update("builds").

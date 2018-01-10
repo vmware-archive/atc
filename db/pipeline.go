@@ -201,7 +201,7 @@ func (p *pipeline) Causality(versionedResourceID int) ([]Cause, error) {
 					FROM build_outputs obo
 					INNER JOIN builds ob ON ob.id = obo.build_id
 					WHERE obo.build_id < bi.build_id
-					AND ob.job_id = b.job_id
+					AND ob.job_combination_id = b.job_combination_id
 					AND obo.versioned_resource_id = bi.versioned_resource_id
 				)
 		)
@@ -261,55 +261,6 @@ func (p *pipeline) Reload() (bool, error) {
 	}
 
 	return true, nil
-}
-
-func (p *pipeline) CreateJobBuild(jobName string) (Build, error) {
-	tx, err := p.conn.Begin()
-	if err != nil {
-		return nil, err
-	}
-
-	defer Rollback(tx)
-
-	buildName, jobID, err := getNewBuildNameForJob(tx, jobName, p.id)
-	if err != nil {
-		return nil, err
-	}
-
-	var buildID int
-	err = psql.Insert("builds").
-		Columns("name", "job_id", "team_id", "status", "manually_triggered").
-		Values(buildName, jobID, p.teamID, "pending", true).
-		Suffix("RETURNING id").
-		RunWith(tx).
-		QueryRow().
-		Scan(&buildID)
-	if err != nil {
-		return nil, err
-	}
-
-	build := &build{conn: p.conn, lockFactory: p.lockFactory}
-	err = scanBuild(build, buildsQuery.
-		Where(sq.Eq{"b.id": buildID}).
-		RunWith(tx).
-		QueryRow(),
-		p.conn.EncryptionStrategy(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	err = createBuildEventSeq(tx, buildID)
-	if err != nil {
-		return nil, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	return build, nil
 }
 
 func (p *pipeline) SetResourceCheckError(resource Resource, cause error) error {
@@ -901,12 +852,12 @@ func (p *pipeline) Dashboard(include string) (Dashboard, atc.GroupConfigs, error
 		return nil, nil, err
 	}
 
-	nextBuilds, err := p.getBuildsFrom("next_builds_per_job")
+	nextBuilds, err := p.getBuildsFrom("next_builds_per_job_combination")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	finishedBuilds, err := p.getBuildsFrom("latest_completed_builds_per_job")
+	finishedBuilds, err := p.getBuildsFrom("latest_completed_builds_per_job_combination")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -914,7 +865,7 @@ func (p *pipeline) Dashboard(include string) (Dashboard, atc.GroupConfigs, error
 	var transitionBuilds map[string]Build
 
 	if include == "transitionBuilds" {
-		transitionBuilds, err = p.getBuildsFrom("transition_builds_per_job")
+		transitionBuilds, err = p.getBuildsFrom("transition_builds_per_job_combination")
 		if err != nil {
 			return nil, nil, err
 		}
@@ -1039,14 +990,14 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 	}
 
 	db := &algorithm.VersionsDB{
-		BuildOutputs:     []algorithm.BuildOutput{},
-		BuildInputs:      []algorithm.BuildInput{},
-		ResourceVersions: []algorithm.ResourceVersion{},
-		JobIDs:           map[string]int{},
-		ResourceIDs:      map[string]int{},
+		BuildOutputs:      []algorithm.BuildOutput{},
+		BuildInputs:       []algorithm.BuildInput{},
+		ResourceVersions:  []algorithm.ResourceVersion{},
+		JobCombinationIDs: map[string]int{},
+		ResourceIDs:       map[string]int{},
 	}
 
-	rows, err := psql.Select("vr.id, vr.check_order, r.id, o.build_id, b.job_id").
+	rows, err := psql.Select("vr.id, vr.check_order, r.id, o.build_id, b.job_combination_id").
 		From("build_outputs o, builds b, versioned_resources vr, resource_spaces rs, resources r").
 		Where(sq.Expr("vr.id = o.versioned_resource_id")).
 		Where(sq.Expr("b.id = o.build_id")).
@@ -1067,7 +1018,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 
 	for rows.Next() {
 		var output algorithm.BuildOutput
-		err = rows.Scan(&output.VersionID, &output.CheckOrder, &output.ResourceID, &output.BuildID, &output.JobID)
+		err = rows.Scan(&output.VersionID, &output.CheckOrder, &output.ResourceID, &output.BuildID, &output.JobCombinationID)
 		if err != nil {
 			return nil, err
 		}
@@ -1077,7 +1028,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 		db.BuildOutputs = append(db.BuildOutputs, output)
 	}
 
-	rows, err = psql.Select("vr.id, vr.check_order, r.id, i.build_id, i.name, b.job_id").
+	rows, err = psql.Select("vr.id, vr.check_order, r.id, i.build_id, i.name, b.job_combination_id").
 		From("build_inputs i, builds b, versioned_resources vr, resource_spaces rs, resources r").
 		Where(sq.Expr("vr.id = i.versioned_resource_id")).
 		Where(sq.Expr("b.id = i.build_id")).
@@ -1097,7 +1048,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 
 	for rows.Next() {
 		var input algorithm.BuildInput
-		err = rows.Scan(&input.VersionID, &input.CheckOrder, &input.ResourceID, &input.BuildID, &input.InputName, &input.JobID)
+		err = rows.Scan(&input.VersionID, &input.CheckOrder, &input.ResourceID, &input.BuildID, &input.InputName, &input.JobCombinationID)
 		if err != nil {
 			return nil, err
 		}
@@ -1152,7 +1103,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 			return nil, err
 		}
 
-		db.JobIDs[name] = id
+		db.JobCombinationIDs[name] = id
 	}
 
 	rows, err = psql.Select("r.name, r.id").
@@ -1579,16 +1530,4 @@ func (p *pipeline) getBuildsFrom(view string) (map[string]Build, error) {
 	}
 
 	return nextBuilds, nil
-}
-
-func getNewBuildNameForJob(tx Tx, jobName string, pipelineID int) (string, int, error) {
-	var buildName string
-	var jobID int
-	err := tx.QueryRow(`
-		UPDATE jobs
-		SET build_number_seq = build_number_seq + 1
-		WHERE name = $1 AND pipeline_id = $2
-		RETURNING build_number_seq, id
-	`, jobName, pipelineID).Scan(&buildName, &jobID)
-	return buildName, jobID, err
 }

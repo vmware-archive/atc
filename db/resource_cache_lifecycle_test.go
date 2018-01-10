@@ -15,10 +15,13 @@ import (
 )
 
 var _ = Describe("ResourceCacheLifecycle", func() {
-
+	var defaultJobCombination db.JobCombination
 	var resourceCacheLifecycle db.ResourceCacheLifecycle
 
 	BeforeEach(func() {
+		combination := map[string]string{"some-resource": "default"}
+		defaultJobCombination = getJobCombination(defaultJob, combination)
+
 		resourceCacheLifecycle = db.NewResourceCacheLifecycle(dbConn)
 	})
 
@@ -31,7 +34,7 @@ var _ = Describe("ResourceCacheLifecycle", func() {
 			}
 
 			resourceCacheForJobBuild := func() (*db.UsedResourceCache, db.Build) {
-				build, err := defaultJob.CreateBuild()
+				build, err := defaultJobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 				return createResourceCacheWithUser(db.ForBuild(build.ID())), build
 			}
@@ -111,7 +114,7 @@ var _ = Describe("ResourceCacheLifecycle", func() {
 				Context("when the cache is for a saved image resource version for a finished build", func() {
 					setBuildStatus := func(a db.BuildStatus) (*db.UsedResourceCache, db.Build) {
 						resourceCache, build := resourceCacheForJobBuild()
-						Expect(build.JobID()).ToNot(BeZero())
+						Expect(build.JobCombinationID()).ToNot(BeZero())
 
 						err := build.SaveImageResourceVersion(resourceCache)
 						Expect(err).ToNot(HaveOccurred())

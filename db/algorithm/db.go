@@ -1,11 +1,11 @@
 package algorithm
 
 type VersionsDB struct {
-	ResourceVersions []ResourceVersion
-	BuildOutputs     []BuildOutput
-	BuildInputs      []BuildInput
-	JobIDs           map[string]int
-	ResourceIDs      map[string]int
+	ResourceVersions  []ResourceVersion
+	BuildOutputs      []BuildOutput
+	BuildInputs       []BuildInput
+	JobCombinationIDs map[string]int
+	ResourceIDs       map[string]int
 }
 
 type ResourceVersion struct {
@@ -16,21 +16,21 @@ type ResourceVersion struct {
 
 type BuildOutput struct {
 	ResourceVersion
-	BuildID int
-	JobID   int
+	BuildID          int
+	JobCombinationID int
 }
 
 type BuildInput struct {
 	ResourceVersion
-	BuildID   int
-	JobID     int
-	InputName string
+	BuildID          int
+	JobCombinationID int
+	InputName        string
 }
 
-func (db VersionsDB) IsVersionFirstOccurrence(versionID int, jobID int, inputName string) bool {
+func (db VersionsDB) IsVersionFirstOccurrence(versionID int, jobCombinationID int, inputName string) bool {
 	for _, buildInput := range db.BuildInputs {
 		if buildInput.VersionID == versionID &&
-			buildInput.JobID == jobID &&
+			buildInput.JobCombinationID == jobCombinationID &&
 			buildInput.InputName == inputName {
 			return false
 		}
@@ -92,16 +92,16 @@ func (db VersionsDB) VersionsOfResourcePassedJobs(resourceID int, passed JobSet)
 	candidates := VersionCandidates{}
 
 	firstTick := true
-	for jobID, _ := range passed {
+	for jobCombinationID, _ := range passed {
 		versions := VersionCandidates{}
 
 		for _, output := range db.BuildOutputs {
-			if output.ResourceID == resourceID && output.JobID == jobID {
+			if output.ResourceID == resourceID && output.JobCombinationID == jobCombinationID {
 				versions.Add(VersionCandidate{
 					VersionID:  output.VersionID,
 					CheckOrder: output.CheckOrder,
 					BuildID:    output.BuildID,
-					JobID:      output.JobID,
+					JobID:      output.JobCombinationID,
 				})
 			}
 		}

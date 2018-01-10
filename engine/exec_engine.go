@@ -226,9 +226,9 @@ func (build *execBuild) containerMetadata(
 	return db.ContainerMetadata{
 		Type: containerType,
 
-		PipelineID: build.dbBuild.PipelineID(),
-		JobID:      build.dbBuild.JobID(),
-		BuildID:    build.dbBuild.ID(),
+		PipelineID:       build.dbBuild.PipelineID(),
+		JobCombinationID: build.dbBuild.JobCombinationID(),
+		BuildID:          build.dbBuild.ID(),
 
 		PipelineName: build.dbBuild.PipelineName(),
 		JobName:      build.dbBuild.JobName(),

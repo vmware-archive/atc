@@ -27,9 +27,10 @@ const (
 	BuildStatusErrored   BuildStatus = "errored"
 )
 
-var buildsQuery = psql.Select("b.id, b.name, b.job_id, b.team_id, b.status, b.manually_triggered, b.scheduled, b.engine, b.engine_metadata, b.public_plan, b.start_time, b.end_time, b.reap_time, j.name, b.pipeline_id, p.name, t.name, b.nonce").
+var buildsQuery = psql.Select("b.id, b.name, c.id, t.id, b.status, b.manually_triggered, b.scheduled, b.engine, b.engine_metadata, b.public_plan, b.start_time, b.end_time, b.reap_time, j.name, b.pipeline_id, p.name, t.name, b.nonce").
 	From("builds b").
-	JoinClause("LEFT OUTER JOIN jobs j ON b.job_id = j.id").
+	JoinClause("LEFT OUTER JOIN job_combinations c ON b.job_combination_id = c.id").
+	JoinClause("LEFT OUTER JOIN jobs j ON c.job_id = j.id").
 	JoinClause("LEFT OUTER JOIN pipelines p ON b.pipeline_id = p.id").
 	JoinClause("LEFT OUTER JOIN teams t ON b.team_id = t.id")
 
@@ -38,7 +39,7 @@ var buildsQuery = psql.Select("b.id, b.name, b.job_id, b.team_id, b.status, b.ma
 type Build interface {
 	ID() int
 	Name() string
-	JobID() int
+	JobCombinationID() int
 	JobName() string
 	PipelineID() int
 	PipelineName() string
@@ -96,10 +97,10 @@ type build struct {
 	teamID   int
 	teamName string
 
-	pipelineID   int
-	pipelineName string
-	jobID        int
-	jobName      string
+	pipelineID       int
+	pipelineName     string
+	jobCombinationID int
+	jobName          string
 
 	isManuallyTriggered bool
 
@@ -119,7 +120,7 @@ var ErrBuildDisappeared = errors.New("build-disappeared-from-db")
 
 func (b *build) ID() int                      { return b.id }
 func (b *build) Name() string                 { return b.name }
-func (b *build) JobID() int                   { return b.jobID }
+func (b *build) JobCombinationID() int        { return b.jobCombinationID }
 func (b *build) JobName() string              { return b.jobName }
 func (b *build) PipelineID() int              { return b.pipelineID }
 func (b *build) PipelineName() string         { return b.pipelineName }
@@ -258,7 +259,7 @@ func (b *build) Start(engine, metadata string, plan atc.Plan) (bool, error) {
 		return false, err
 	}
 
-	_, err = b.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job`)
+	_, err = b.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job_combination`)
 	if err != nil {
 		return false, err
 	}
@@ -317,11 +318,11 @@ func (b *build) Finish(status BuildStatus) error {
 		return err
 	}
 
-	if b.jobID != 0 && status == BuildStatusSucceeded {
+	if b.jobCombinationID != 0 && status == BuildStatusSucceeded {
 		_, err = psql.Delete("build_image_resource_caches birc USING builds b").
 			Where(sq.Expr("birc.build_id = b.id")).
 			Where(sq.Lt{"build_id": b.id}).
-			Where(sq.Eq{"b.job_id": b.jobID}).
+			Where(sq.Eq{"b.job_combination_id": b.jobCombinationID}).
 			RunWith(tx).
 			Exec()
 		if err != nil {
@@ -339,17 +340,17 @@ func (b *build) Finish(status BuildStatus) error {
 		return err
 	}
 
-	_, err = b.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY latest_completed_builds_per_job`)
+	_, err = b.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY latest_completed_builds_per_job_combination`)
 	if err != nil {
 		return err
 	}
 
-	_, err = b.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job`)
+	_, err = b.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job_combination`)
 	if err != nil {
 		return err
 	}
 
-	_, err = b.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY transition_builds_per_job`)
+	_, err = b.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY transition_builds_per_job_combination`)
 	return err
 }
 
@@ -488,7 +489,7 @@ func (b *build) AcquireTrackingLock(logger lager.Logger, interval time.Duration)
 }
 
 func (b *build) Preparation() (BuildPreparation, bool, error) {
-	if b.jobID == 0 || b.status != BuildStatusPending {
+	if b.jobCombinationID == 0 || b.status != BuildStatusPending {
 		return BuildPreparation{
 			BuildID:             b.id,
 			PausedPipeline:      BuildPreparationStatusNotBlocking,
@@ -509,7 +510,8 @@ func (b *build) Preparation() (BuildPreparation, bool, error) {
 	)
 	err := psql.Select("p.paused, j.paused, j.max_in_flight_reached, j.pipeline_id, j.name").
 		From("builds b").
-		Join("jobs j ON b.job_id = j.id").
+		Join("job_combinations c ON b.job_combination_id = c.id").
+		Join("jobs j ON c.job_id = j.id").
 		Join("pipelines p ON j.pipeline_id = p.id").
 		Where(sq.Eq{"b.id": b.id}).
 		RunWith(b.conn).
@@ -787,7 +789,7 @@ func (b *build) Resources() ([]BuildInput, []BuildOutput, error) {
 			SELECT 1
 			FROM build_inputs ci, builds cb
 			WHERE versioned_resource_id = vr.id
-			AND cb.job_id = b.job_id
+			AND cb.job_combination_id = b.job_combination_id
 			AND ci.build_id = cb.id
 			AND ci.build_id < b.id
 		)
@@ -892,7 +894,8 @@ func (b *build) GetVersionedResources() (SavedVersionedResources, error) {
 			r.name,
 			vr.modified_time
 		FROM builds b
-		INNER JOIN jobs j ON j.id = b.job_id
+		INNER JOIN job_combinations c ON c.id = b.job_combination_id
+		INNER JOIN jobs j ON j.id = c.job_id
 		INNER JOIN build_inputs bi ON bi.build_id = b.id
 		INNER JOIN versioned_resources vr ON vr.id = bi.versioned_resource_id
 		INNER JOIN resource_spaces rs ON rs.id = vr.resource_space_id
@@ -909,7 +912,8 @@ func (b *build) GetVersionedResources() (SavedVersionedResources, error) {
 			r.name,
 			vr.modified_time
 		FROM builds b
-		INNER JOIN jobs j ON j.id = b.job_id
+		INNER JOIN job_combinations c ON c.id = b.job_combination_id
+		INNER JOIN jobs j ON j.id = c.job_id
 		INNER JOIN build_outputs bo ON bo.build_id = b.id
 		INNER JOIN versioned_resources vr ON vr.id = bo.versioned_resource_id
 		INNER JOIN resource_spaces rs ON rs.id = vr.resource_space_id
@@ -965,7 +969,7 @@ func buildEventSeq(buildid int) string {
 
 func scanBuild(b *build, row scannable, encryptionStrategy EncryptionStrategy) error {
 	var (
-		jobID, pipelineID                                         sql.NullInt64
+		jobCombinationID, pipelineID                              sql.NullInt64
 		engine, engineMetadata, jobName, pipelineName, publicPlan sql.NullString
 		startTime, endTime, reapTime                              pq.NullTime
 		nonce                                                     sql.NullString
@@ -973,14 +977,14 @@ func scanBuild(b *build, row scannable, encryptionStrategy EncryptionStrategy) e
 		status string
 	)
 
-	err := row.Scan(&b.id, &b.name, &jobID, &b.teamID, &status, &b.isManuallyTriggered, &b.scheduled, &engine, &engineMetadata, &publicPlan, &startTime, &endTime, &reapTime, &jobName, &pipelineID, &pipelineName, &b.teamName, &nonce)
+	err := row.Scan(&b.id, &b.name, &jobCombinationID, &b.teamID, &status, &b.isManuallyTriggered, &b.scheduled, &engine, &engineMetadata, &publicPlan, &startTime, &endTime, &reapTime, &jobName, &pipelineID, &pipelineName, &b.teamName, &nonce)
 	if err != nil {
 		return err
 	}
 
 	b.status = BuildStatus(status)
 	b.jobName = jobName.String
-	b.jobID = int(jobID.Int64)
+	b.jobCombinationID = int(jobCombinationID.Int64)
 	b.pipelineName = pipelineName.String
 	b.pipelineID = int(pipelineID.Int64)
 	b.engine = engine.String
