@@ -31,13 +31,13 @@ type FakeBuild struct {
 	nameReturnsOnCall map[int]struct {
 		result1 string
 	}
-	JobIDStub        func() int
-	jobIDMutex       sync.RWMutex
-	jobIDArgsForCall []struct{}
-	jobIDReturns     struct {
+	JobCombinationIDStub        func() int
+	jobCombinationIDMutex       sync.RWMutex
+	jobCombinationIDArgsForCall []struct{}
+	jobCombinationIDReturns     struct {
 		result1 int
 	}
-	jobIDReturnsOnCall map[int]struct {
+	jobCombinationIDReturnsOnCall map[int]struct {
 		result1 int
 	}
 	JobNameStub        func() string
@@ -506,42 +506,42 @@ func (fake *FakeBuild) NameReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeBuild) JobID() int {
-	fake.jobIDMutex.Lock()
-	ret, specificReturn := fake.jobIDReturnsOnCall[len(fake.jobIDArgsForCall)]
-	fake.jobIDArgsForCall = append(fake.jobIDArgsForCall, struct{}{})
-	fake.recordInvocation("JobID", []interface{}{})
-	fake.jobIDMutex.Unlock()
-	if fake.JobIDStub != nil {
-		return fake.JobIDStub()
+func (fake *FakeBuild) JobCombinationID() int {
+	fake.jobCombinationIDMutex.Lock()
+	ret, specificReturn := fake.jobCombinationIDReturnsOnCall[len(fake.jobCombinationIDArgsForCall)]
+	fake.jobCombinationIDArgsForCall = append(fake.jobCombinationIDArgsForCall, struct{}{})
+	fake.recordInvocation("JobCombinationID", []interface{}{})
+	fake.jobCombinationIDMutex.Unlock()
+	if fake.JobCombinationIDStub != nil {
+		return fake.JobCombinationIDStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.jobIDReturns.result1
+	return fake.jobCombinationIDReturns.result1
 }
 
-func (fake *FakeBuild) JobIDCallCount() int {
-	fake.jobIDMutex.RLock()
-	defer fake.jobIDMutex.RUnlock()
-	return len(fake.jobIDArgsForCall)
+func (fake *FakeBuild) JobCombinationIDCallCount() int {
+	fake.jobCombinationIDMutex.RLock()
+	defer fake.jobCombinationIDMutex.RUnlock()
+	return len(fake.jobCombinationIDArgsForCall)
 }
 
-func (fake *FakeBuild) JobIDReturns(result1 int) {
-	fake.JobIDStub = nil
-	fake.jobIDReturns = struct {
+func (fake *FakeBuild) JobCombinationIDReturns(result1 int) {
+	fake.JobCombinationIDStub = nil
+	fake.jobCombinationIDReturns = struct {
 		result1 int
 	}{result1}
 }
 
-func (fake *FakeBuild) JobIDReturnsOnCall(i int, result1 int) {
-	fake.JobIDStub = nil
-	if fake.jobIDReturnsOnCall == nil {
-		fake.jobIDReturnsOnCall = make(map[int]struct {
+func (fake *FakeBuild) JobCombinationIDReturnsOnCall(i int, result1 int) {
+	fake.JobCombinationIDStub = nil
+	if fake.jobCombinationIDReturnsOnCall == nil {
+		fake.jobCombinationIDReturnsOnCall = make(map[int]struct {
 			result1 int
 		})
 	}
-	fake.jobIDReturnsOnCall[i] = struct {
+	fake.jobCombinationIDReturnsOnCall[i] = struct {
 		result1 int
 	}{result1}
 }
@@ -2138,8 +2138,8 @@ func (fake *FakeBuild) Invocations() map[string][][]interface{} {
 	defer fake.iDMutex.RUnlock()
 	fake.nameMutex.RLock()
 	defer fake.nameMutex.RUnlock()
-	fake.jobIDMutex.RLock()
-	defer fake.jobIDMutex.RUnlock()
+	fake.jobCombinationIDMutex.RLock()
+	defer fake.jobCombinationIDMutex.RUnlock()
 	fake.jobNameMutex.RLock()
 	defer fake.jobNameMutex.RUnlock()
 	fake.pipelineIDMutex.RLock()

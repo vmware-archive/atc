@@ -44,7 +44,7 @@ func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, jo
 
 		jobs := algorithm.JobSet{}
 		for _, passedJobName := range input.Passed {
-			jobs[versionsDB.JobIDs[passedJobName]] = struct{}{}
+			jobs[versionsDB.JobCombinationIDs[passedJobName]] = struct{}{}
 		}
 
 		inputConfigs = append(inputConfigs, algorithm.InputConfig{

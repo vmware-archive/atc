@@ -59,9 +59,8 @@ func (c *jobCombination) CreateBuild() (Build, error) {
 
 	build := &build{conn: c.conn, lockFactory: c.lockFactory}
 	err = createBuild(tx, build, map[string]interface{}{
-		"name": buildName,
-		//	"job_combination_id": c.id,
-		"job_id":             c.jobID,
+		"name":               buildName,
+		"job_combination_id": c.id,
 		"pipeline_id":        c.pipelineID,
 		"team_id":            c.teamID,
 		"status":             BuildStatusPending,
@@ -76,10 +75,10 @@ func (c *jobCombination) CreateBuild() (Build, error) {
 		return nil, err
 	}
 
-	// _, err = c.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job`)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	_, err = c.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job_combination`)
+	if err != nil {
+		return nil, err
+	}
 
 	return build, nil
 }
@@ -98,12 +97,12 @@ func (c *jobCombination) EnsurePendingBuildExists() error {
 	}
 
 	rows, err := tx.Query(`
-		INSERT INTO builds (name, job_id, pipeline_id, team_id, status)
+		INSERT INTO builds (name, job_combination_id, pipeline_id, team_id, status)
 		SELECT $1, $2, $3, $4, 'pending'
 		WHERE NOT EXISTS
-			(SELECT id FROM builds WHERE job_id = $2 AND status = 'pending')
+			(SELECT id FROM builds WHERE job_combination_id = $2 AND status = 'pending')
 		RETURNING id
-	`, buildName, c.jobID, c.pipelineID, c.teamID)
+	`, buildName, c.ID(), c.pipelineID, c.teamID)
 	if err != nil {
 		return err
 	}

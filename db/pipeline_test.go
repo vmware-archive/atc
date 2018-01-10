@@ -379,7 +379,10 @@ var _ = Describe("Pipeline", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
-					build, err := job.CreateBuild()
+					combination := map[string]string{"some-resource": "default"}
+					jobCombination := getJobCombination(job, combination)
+
+					build, err := jobCombination.CreateBuild()
 					Expect(err).ToNot(HaveOccurred())
 
 					err = build.SaveInput(db.BuildInput{
@@ -671,7 +674,10 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build, err := job.CreateBuild()
+			combination := map[string]string{"some-resource": "default"}
+			jobCombination := getJobCombination(job, combination)
+
+			build, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = build.SaveInput(db.BuildInput{
@@ -974,7 +980,7 @@ var _ = Describe("Pipeline", func() {
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
 			}))
 
-			Expect(versions.JobIDs).To(Equal(map[string]int{
+			Expect(versions.JobCombinationIDs).To(Equal(map[string]int{
 				"some-job":                   job.ID(),
 				"some-other-job":             otherJob.ID(),
 				"a-job":                      aJob.ID(),
@@ -1028,7 +1034,7 @@ var _ = Describe("Pipeline", func() {
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
 			}))
 
-			Expect(versions.JobIDs).To(Equal(map[string]int{
+			Expect(versions.JobCombinationIDs).To(Equal(map[string]int{
 				"some-job":                   job.ID(),
 				"some-other-job":             otherJob.ID(),
 				"a-job":                      aJob.ID(),
@@ -1067,7 +1073,7 @@ var _ = Describe("Pipeline", func() {
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
 			}))
 
-			Expect(versions.JobIDs).To(Equal(map[string]int{
+			Expect(versions.JobCombinationIDs).To(Equal(map[string]int{
 				"some-job":                   job.ID(),
 				"some-other-job":             otherJob.ID(),
 				"a-job":                      aJob.ID(),
@@ -1078,7 +1084,10 @@ var _ = Describe("Pipeline", func() {
 			}))
 
 			By("including outputs of successful builds")
-			build1DB, err := aJob.CreateBuild()
+			combination := map[string]string{}
+			aJobCombination := getJobCombination(job, combination)
+
+			build1DB, err := aJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = build1DB.SaveOutput(savedVR1.VersionedResource, false)
@@ -1101,8 +1110,8 @@ var _ = Describe("Pipeline", func() {
 						ResourceID: resource.ID(),
 						CheckOrder: savedVR1.CheckOrder,
 					},
-					JobID:   aJob.ID(),
-					BuildID: build1DB.ID(),
+					JobCombinationID: aJobCombination.ID(),
+					BuildID:          build1DB.ID(),
 				},
 			}))
 
@@ -1112,7 +1121,7 @@ var _ = Describe("Pipeline", func() {
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
 			}))
 
-			Expect(versions.JobIDs).To(Equal(map[string]int{
+			Expect(versions.JobCombinationIDs).To(Equal(map[string]int{
 				"some-job":                   job.ID(),
 				"a-job":                      aJob.ID(),
 				"some-other-job":             otherJob.ID(),
@@ -1123,7 +1132,7 @@ var _ = Describe("Pipeline", func() {
 			}))
 
 			By("not including outputs of failed builds")
-			build2DB, err := aJob.CreateBuild()
+			build2DB, err := aJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = build2DB.SaveOutput(savedVR1.VersionedResource, false)
@@ -1146,8 +1155,8 @@ var _ = Describe("Pipeline", func() {
 						ResourceID: resource.ID(),
 						CheckOrder: savedVR1.CheckOrder,
 					},
-					JobID:   aJob.ID(),
-					BuildID: build1DB.ID(),
+					JobCombinationID: aJobCombination.ID(),
+					BuildID:          build1DB.ID(),
 				},
 			}))
 
@@ -1157,7 +1166,7 @@ var _ = Describe("Pipeline", func() {
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
 			}))
 
-			Expect(versions.JobIDs).To(Equal(map[string]int{
+			Expect(versions.JobCombinationIDs).To(Equal(map[string]int{
 				"some-job":                   job.ID(),
 				"a-job":                      aJob.ID(),
 				"some-other-job":             otherJob.ID(),
@@ -1172,7 +1181,10 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			otherPipelineBuild, err := anotherJob.CreateBuild()
+			combination = map[string]string{}
+			anotherJobCombination := getJobCombination(anotherJob, combination)
+
+			otherPipelineBuild, err := anotherJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = otherPipelineBuild.SaveOutput(otherPipelineSavedVR.VersionedResource, false)
@@ -1195,8 +1207,8 @@ var _ = Describe("Pipeline", func() {
 						ResourceID: resource.ID(),
 						CheckOrder: savedVR1.CheckOrder,
 					},
-					JobID:   aJob.ID(),
-					BuildID: build1DB.ID(),
+					JobCombinationID: aJobCombination.ID(),
+					BuildID:          build1DB.ID(),
 				},
 			}))
 
@@ -1206,7 +1218,7 @@ var _ = Describe("Pipeline", func() {
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
 			}))
 
-			Expect(versions.JobIDs).To(Equal(map[string]int{
+			Expect(versions.JobCombinationIDs).To(Equal(map[string]int{
 				"some-job":                   job.ID(),
 				"a-job":                      aJob.ID(),
 				"some-other-job":             otherJob.ID(),
@@ -1221,7 +1233,10 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build1DB, err = aJob.CreateBuild()
+			combination = map[string]string{}
+			aJobCombination = getJobCombination(aJob, combination)
+
+			build1DB, err = aJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = build1DB.SaveInput(db.BuildInput{
@@ -1243,9 +1258,9 @@ var _ = Describe("Pipeline", func() {
 						ResourceID: resource.ID(),
 						CheckOrder: savedVR1.CheckOrder,
 					},
-					JobID:     aJob.ID(),
-					BuildID:   build1DB.ID(),
-					InputName: "some-input-name",
+					JobCombinationID: aJobCombination.ID(),
+					BuildID:          build1DB.ID(),
+					InputName:        "some-input-name",
 				},
 			}))
 		})
@@ -1385,7 +1400,10 @@ var _ = Describe("Pipeline", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				build, err := job.CreateBuild()
+				combination := map[string]string{"some-resource": "default"}
+				jobCombination := getJobCombination(job, combination)
+
+				build, err := jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 
 				beforeVR, found, err := dbPipeline.GetLatestVersionedResource(resource.Name())
@@ -1427,7 +1445,10 @@ var _ = Describe("Pipeline", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				build, err := job.CreateBuild()
+				combination := map[string]string{"some-resource": "default"}
+				jobCombination := getJobCombination(job, combination)
+
+				build, err := jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 
 				beforeVR, found, err := dbPipeline.GetLatestVersionedResource(resource.Name())
@@ -1464,7 +1485,10 @@ var _ = Describe("Pipeline", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				build, err := job.CreateBuild()
+				combination := map[string]string{"some-resource": "default"}
+				jobCombination := getJobCombination(job, combination)
+
+				build, err := jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 
 				beforeVR, found, err := dbPipeline.GetLatestVersionedResource(resource.Name())
@@ -1616,7 +1640,10 @@ var _ = Describe("Pipeline", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				build1, err := aJob.CreateBuild()
+				combination := map[string]string{}
+				aJobCombination := getJobCombination(aJob, combination)
+
+				build1, err := aJobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 
 				err = pipelineDB.SaveResourceVersions(atc.ResourceConfig{
@@ -1695,8 +1722,8 @@ var _ = Describe("Pipeline", func() {
 							ResourceID: resource.ID(),
 							CheckOrder: enabledVersion.CheckOrder,
 						},
-						JobID:   aJob.ID(),
-						BuildID: build1.ID(),
+						JobCombinationID: aJobCombination.ID(),
+						BuildID:          build1.ID(),
 					},
 				))
 
@@ -1708,9 +1735,9 @@ var _ = Describe("Pipeline", func() {
 							ResourceID: resource.ID(),
 							CheckOrder: enabledVersion.CheckOrder,
 						},
-						JobID:     aJob.ID(),
-						BuildID:   build1.ID(),
-						InputName: "enabled-input",
+						JobCombinationID: aJobCombination.ID(),
+						BuildID:          build1.ID(),
+						InputName:        "enabled-input",
 					},
 				))
 			})
@@ -1741,7 +1768,10 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build, err := job.CreateBuild()
+			combination := map[string]string{"some-resource": "default"}
+			jobCombination := getJobCombination(job, combination)
+
+			build, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			By("populating build inputs")
@@ -1783,7 +1813,14 @@ var _ = Describe("Pipeline", func() {
 	Describe("GetPendingBuilds/GetAllPendingBuilds", func() {
 		Context("when a build is created", func() {
 			BeforeEach(func() {
-				_, err := job.CreateBuild()
+				job, found, err := pipeline.Job("job-name")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(found).To(BeTrue())
+
+				combination := map[string]string{"some-resource": "default"}
+				jobCombination := getJobCombination(job, combination)
+
+				_, err = jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -1834,7 +1871,10 @@ var _ = Describe("Pipeline", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				build, err = job.CreateBuild()
+				combination := map[string]string{"some-resource": "default"}
+				jobCombination := getJobCombination(job, combination)
+
+				build, err = jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 
 				err = pipeline.SaveResourceVersions(atc.ResourceConfig{
@@ -1882,7 +1922,10 @@ var _ = Describe("Pipeline", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
-					otherBuild, err := job.CreateBuild()
+					combination := map[string]string{"some-other-resource": "default"}
+					jobCombination := getJobCombination(job, combination)
+
+					otherBuild, err := jobCombination.CreateBuild()
 					Expect(err).ToNot(HaveOccurred())
 
 					err = otherPipeline.SaveResourceVersions(atc.ResourceConfig{
@@ -2030,7 +2073,10 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			firstJobBuild, err := job.CreateBuild()
+			combination := map[string]string{"some-resource": "default"}
+			jobCombination := getJobCombination(job, combination)
+
+			firstJobBuild, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			actualDashboard, _, err = pipeline.Dashboard("")
@@ -2058,11 +2104,7 @@ var _ = Describe("Pipeline", func() {
 			Expect(actualDashboard[0].NextBuild.EngineMetadata()).To(Equal(`{"meta":"data"}`))
 
 			By("returning a job's most recent started build even if there is a newer pending build")
-			job, found, err = pipeline.Job("job-name")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(found).To(BeTrue())
-
-			secondJobBuild, err := job.CreateBuild()
+			secondJobBuild, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			actualDashboard, _, err = pipeline.Dashboard("")
@@ -2097,17 +2139,19 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			otherJobBuild, err := otherJob.CreateBuild()
+			combination = map[string]string{}
+			otherJobCombination := getJobCombination(otherJob, combination)
+
+			otherJobBuild, err := otherJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = otherJobBuild.Finish(db.BuildStatusFailed)
 			Expect(err).ToNot(HaveOccurred())
 
-			job, found, err = pipeline.Job("a-job")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(found).To(BeTrue())
+			combination = map[string]string{}
+			aJobCombination := getJobCombination(aJob, combination)
 
-			jobBuild, err := job.CreateBuild()
+			jobBuild, err := aJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = jobBuild.Finish(db.BuildStatusFailed)
@@ -2124,11 +2168,10 @@ var _ = Describe("Pipeline", func() {
 			Expect(actualDashboard[4].TransitionBuild).To(BeNil())
 
 			By("returning a job's transition build as nil when there are only pending builds")
-			job, found, err = pipeline.Job("random-job")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(found).To(BeTrue())
+			combination = map[string]string{}
+			randomJobCombination := getJobCombination(randomJob, combination)
 
-			_, err = job.CreateBuild()
+			_, err = randomJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			actualDashboard, _, err = pipeline.Dashboard("transitionBuilds")
@@ -2137,17 +2180,13 @@ var _ = Describe("Pipeline", func() {
 			Expect(actualDashboard[4].TransitionBuild).To(BeNil())
 
 			By("returning a job's first build as transition build when all builds have the same status")
-			job, found, err = pipeline.Job("random-job")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(found).To(BeTrue())
-
-			transitionBuild, err := job.CreateBuild()
+			transitionBuild, err := randomJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = transitionBuild.Finish(db.BuildStatusFailed)
 			Expect(err).ToNot(HaveOccurred())
 
-			jobBuild, err = job.CreateBuild()
+			jobBuild, err = jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = jobBuild.Finish(db.BuildStatusFailed)
@@ -2160,47 +2199,43 @@ var _ = Describe("Pipeline", func() {
 			Expect(actualDashboard[4].TransitionBuild.ID()).To(Equal(transitionBuild.ID()))
 
 			By("returning a job's transition build when there are builds with different statuses")
-			job, found, err = pipeline.Job("job-name")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(found).To(BeTrue())
-
-			jobBuild, err = job.CreateBuild()
+			jobBuild, err = jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = jobBuild.Finish(db.BuildStatusFailed)
 			Expect(err).ToNot(HaveOccurred())
 
-			jobBuild, err = job.CreateBuild()
+			jobBuild, err = jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = jobBuild.Finish(db.BuildStatusSucceeded)
 			Expect(err).ToNot(HaveOccurred())
 
-			otherJobBuild, err = otherJob.CreateBuild()
+			otherJobBuild, err = otherJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = otherJobBuild.Finish(db.BuildStatusFailed)
 			Expect(err).ToNot(HaveOccurred())
 
-			transitionBuild, err = job.CreateBuild()
+			transitionBuild, err = jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = transitionBuild.Finish(db.BuildStatusFailed)
 			Expect(err).ToNot(HaveOccurred())
 
-			otherJobBuild, err = otherJob.CreateBuild()
+			otherJobBuild, err = otherJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = otherJobBuild.Finish(db.BuildStatusSucceeded)
 			Expect(err).ToNot(HaveOccurred())
 
-			jobBuild, err = job.CreateBuild()
+			jobBuild, err = jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			err = jobBuild.Finish(db.BuildStatusFailed)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, err = job.CreateBuild()
+			_, err = jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			actualDashboard, _, err = pipeline.Dashboard("")
@@ -2360,12 +2395,15 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build, err := job.CreateBuild()
+			combination := map[string]string{"some-resource": "default"}
+			jobCombination := getJobCombination(job, combination)
+
+			build, err := jobCombination.CreateBuild()
 
 			Expect(err).ToNot(HaveOccurred())
 			expectedBuilds = append(expectedBuilds, build)
 
-			secondBuild, err := job.CreateBuild()
+			secondBuild, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 			expectedBuilds = append(expectedBuilds, secondBuild)
 
@@ -2373,7 +2411,10 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			_, err = someOtherJob.CreateBuild()
+			combination = map[string]string{}
+			someOtherJobCombination := getJobCombination(someOtherJob, combination)
+
+			_, err = someOtherJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			dbBuild, found, err := buildFactory.Build(build.ID())
@@ -2453,11 +2494,14 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build, err := job.CreateBuild()
+			combination := map[string]string{"some-resource": "default"}
+			jobCombination := getJobCombination(job, combination)
+
+			build, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 			expectedBuilds = append(expectedBuilds, build)
 
-			secondBuild, err := job.CreateBuild()
+			secondBuild, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 			expectedBuilds = append(expectedBuilds, secondBuild)
 
@@ -2465,7 +2509,10 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			_, err = someOtherJob.CreateBuild()
+			combination = map[string]string{}
+			someOtherJobCombination := getJobCombination(someOtherJob, combination)
+
+			_, err = someOtherJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			dbBuild, found, err := buildFactory.Build(build.ID())

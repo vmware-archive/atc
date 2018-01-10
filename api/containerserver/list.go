@@ -84,7 +84,7 @@ func createContainerLocatorFromRequest(team db.Team, r *http.Request, variablesF
 		return nil, err
 	}
 
-	jobID, err := parseIntParam(r, "job_id")
+	jobCombinationID, err := parseIntParam(r, "job_combination_id")
 	if err != nil {
 		return nil, err
 	}
@@ -103,9 +103,9 @@ func createContainerLocatorFromRequest(team db.Team, r *http.Request, variablesF
 			StepName: query.Get("step_name"),
 			Attempt:  query.Get("attempt"),
 
-			PipelineID: pipelineID,
-			JobID:      jobID,
-			BuildID:    buildID,
+			PipelineID:       pipelineID,
+			JobCombinationID: jobCombinationID,
+			BuildID:          buildID,
 
 			PipelineName: query.Get("pipeline_name"),
 			JobName:      query.Get("job_name"),

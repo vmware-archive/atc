@@ -302,7 +302,8 @@ func (j *job) Builds(page Page) ([]Build, Pagination, error) {
 	var maxID, minID int
 	err = psql.Select("COALESCE(MAX(b.id), 0) as maxID", "COALESCE(MIN(b.id), 0) as minID").
 		From("builds b").
-		Join("jobs j ON b.job_id = j.id").
+		Join("job_combinations c ON c.id = b.job_combination_id").
+		Join("jobs j ON c.job_id = j.id").
 		Where(sq.Eq{
 			"j.name":        j.name,
 			"j.pipeline_id": j.pipelineID,
@@ -341,13 +342,13 @@ func (j *job) Build(name string) (Build, bool, error) {
 
 	if name == "latest" {
 		query = buildsQuery.
-			Where(sq.Eq{"b.job_id": j.id}).
+			Where(sq.Eq{"j.id": j.id}).
 			OrderBy("b.id DESC").
 			Limit(1)
 	} else {
 		query = buildsQuery.Where(sq.Eq{
-			"b.job_id": j.id,
-			"b.name":   name,
+			"j.id":   j.id,
+			"b.name": name,
 		})
 	}
 
@@ -593,7 +594,7 @@ func (j *job) GetPendingBuilds() ([]Build, error) {
 
 	rows, err := buildsQuery.
 		Where(sq.Eq{
-			"b.job_id": j.id,
+			"j.id":     j.id,
 			"b.status": BuildStatusPending,
 		}).
 		OrderBy("b.id ASC").
@@ -649,7 +650,7 @@ func (j *job) CreateBuild() (Build, error) {
 		return nil, err
 	}
 
-	_, err = j.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job`)
+	_, err = j.conn.Exec(`REFRESH MATERIALIZED VIEW CONCURRENTLY next_builds_per_job_combination`)
 	if err != nil {
 		return nil, err
 	}

@@ -9,11 +9,11 @@ type Container struct {
 	StepName string `json:"step_name,omitempty"`
 	Attempt  string `json:"attempt,omitempty"`
 
-	PipelineID     int `json:"pipeline_id,omitempty"`
-	JobID          int `json:"job_id,omitempty"`
-	BuildID        int `json:"build_id,omitempty"`
-	ResourceID     int `json:"resource_id,omitempty"`
-	ResourceTypeID int `json:"resource_type_id,omitempty"`
+	PipelineID       int `json:"pipeline_id,omitempty"`
+	JobCombinationID int `json:"job_combination_id,omitempty"`
+	BuildID          int `json:"build_id,omitempty"`
+	ResourceID       int `json:"resource_id,omitempty"`
+	ResourceTypeID   int `json:"resource_type_id,omitempty"`
 
 	PipelineName     string `json:"pipeline_name,omitempty"`
 	JobName          string `json:"job_name,omitempty"`

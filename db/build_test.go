@@ -300,6 +300,7 @@ var _ = Describe("Build", func() {
 	Describe("SaveInput", func() {
 		var pipeline db.Pipeline
 		var job db.Job
+		var jobCombination db.JobCombination
 
 		BeforeEach(func() {
 			pipelineConfig := atc.Config{
@@ -324,11 +325,13 @@ var _ = Describe("Build", func() {
 			job, found, err = pipeline.Job("some-job")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
+
+			jobCombination = getJobCombination(job, map[string]string{"some-resource": "default"})
 		})
 
 		Context("when a job build", func() {
 			It("saves the build's input", func() {
-				build, err := job.CreateBuild()
+				build, err := jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 
 				versionedResource := db.VersionedResource{
@@ -399,6 +402,7 @@ var _ = Describe("Build", func() {
 	Describe("SaveOutput", func() {
 		var pipeline db.Pipeline
 		var job db.Job
+		var jobCombination db.JobCombination
 
 		BeforeEach(func() {
 			pipelineConfig := atc.Config{
@@ -427,11 +431,14 @@ var _ = Describe("Build", func() {
 			job, found, err = pipeline.Job("some-job")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
+
+			combination := map[string]string{"some-implicit-resource": "default", "some-explicit-resource": "default"}
+			jobCombination = getJobCombination(job, combination)
 		})
 
 		Context("when a job build", func() {
 			It("can get a build's output", func() {
-				build, err := job.CreateBuild()
+				build, err := jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 
 				versionedResource := db.VersionedResource{
@@ -535,10 +542,11 @@ var _ = Describe("Build", func() {
 
 	Describe("GetResources", func() {
 		var (
-			pipeline db.Pipeline
-			job      db.Job
-			vr1      db.VersionedResource
-			vr2      db.VersionedResource
+			pipeline       db.Pipeline
+			job            db.Job
+			jobCombination db.JobCombination
+			vr1            db.VersionedResource
+			vr2            db.VersionedResource
 		)
 
 		BeforeEach(func() {
@@ -580,10 +588,13 @@ var _ = Describe("Build", func() {
 			job, found, err = pipeline.Job("some-job")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
+
+			combination := map[string]string{"some-resource": "default", "some-other-resource": "default"}
+			jobCombination = getJobCombination(job, combination)
 		})
 
 		It("correctly distinguishes them", func() {
-			build, err := job.CreateBuild()
+			build, err := jobCombination.CreateBuild()
 			Expect(err).NotTo(HaveOccurred())
 
 			// save a normal 'get'
@@ -625,7 +636,7 @@ var _ = Describe("Build", func() {
 		})
 
 		It("fails to save build output if resource does not exist", func() {
-			build, err := job.CreateBuild()
+			build, err := jobCombination.CreateBuild()
 			Expect(err).NotTo(HaveOccurred())
 
 			vr := db.VersionedResource{
@@ -657,6 +668,7 @@ var _ = Describe("Build", func() {
 		Context("when a job build", func() {
 			BeforeEach(func() {
 				var err error
+				var jobCombination db.JobCombination
 				createdPipeline, _, err = team.SavePipeline("some-pipeline", atc.Config{
 					Jobs: atc.JobConfigs{
 						{
@@ -670,7 +682,10 @@ var _ = Describe("Build", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				build, err = job.CreateBuild()
+				combination := map[string]string{}
+				jobCombination = getJobCombination(job, combination)
+
+				build, err = jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -749,8 +764,9 @@ var _ = Describe("Build", func() {
 
 		Context("for job build", func() {
 			var (
-				pipeline db.Pipeline
-				job      db.Job
+				pipeline       db.Pipeline
+				job            db.Job
+				jobCombination db.JobCombination
 			)
 
 			BeforeEach(func() {
@@ -778,7 +794,9 @@ var _ = Describe("Build", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				build, err = job.CreateBuild()
+				jobCombination = getJobCombination(job, map[string]string{"some-resource": "default"})
+
+				build, err = jobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedBuildPrep.BuildID = build.ID()
@@ -1021,9 +1039,10 @@ var _ = Describe("Build", func() {
 
 		Describe("Schedule", func() {
 			var (
-				build db.Build
-				found bool
-				f     bool
+				build          db.Build
+				found          bool
+				f              bool
+				jobCombination db.JobCombination
 			)
 
 			BeforeEach(func() {
@@ -1040,7 +1059,10 @@ var _ = Describe("Build", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				build, err = job.CreateBuild()
+				combination := map[string]string{}
+				jobCombination = getJobCombination(job, combination)
+
+				build, err = jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(build.IsScheduled()).To(BeFalse())
 			})
@@ -1117,6 +1139,7 @@ var _ = Describe("Build", func() {
 			}
 
 			var err error
+
 			pipeline, _, err := team.SavePipeline("some-pipeline", pipelineConfig, db.ConfigVersion(1), db.PipelineUnpaused)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -1124,7 +1147,10 @@ var _ = Describe("Build", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build, err = job.CreateBuild()
+			combination := map[string]string{"some-resource": "default", "some-other-resource": "default", "weird": "default"}
+			jobCombination := getJobCombination(job, combination)
+
+			build, err = jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 
 			versionedResource := db.VersionedResource{
@@ -1243,4 +1269,10 @@ func envelope(ev atc.Event) event.Envelope {
 		Version: ev.Version(),
 		Data:    &data,
 	}
+}
+
+func getJobCombination(job db.Job, combination map[string]string) (jobCombination db.JobCombination) {
+	jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{combination})
+	Expect(err).ToNot(HaveOccurred())
+	return jobCombinations[0]
 }

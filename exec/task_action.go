@@ -91,7 +91,7 @@ type TaskAction struct {
 	workerPool          worker.Client
 	teamID              int
 	buildID             int
-	jobID               int
+	jobCombinationID    int
 	stepName            string
 	planID              atc.PlanID
 	containerMetadata   db.ContainerMetadata
@@ -116,7 +116,7 @@ func NewTaskAction(
 	workerPool worker.Client,
 	teamID int,
 	buildID int,
-	jobID int,
+	jobCombinationID int,
 	stepName string,
 	planID atc.PlanID,
 	containerMetadata db.ContainerMetadata,
@@ -136,7 +136,7 @@ func NewTaskAction(
 		workerPool:          workerPool,
 		teamID:              teamID,
 		buildID:             buildID,
-		jobID:               jobID,
+		jobCombinationID:    jobCombinationID,
 		stepName:            stepName,
 		planID:              planID,
 		containerMetadata:   containerMetadata,
@@ -370,7 +370,7 @@ func (action *TaskAction) containerSpec(logger lager.Logger, repository *worker.
 	}
 
 	for _, cacheConfig := range config.Caches {
-		source := newTaskCacheSource(logger, action.teamID, action.jobID, action.stepName, cacheConfig.Path)
+		source := newTaskCacheSource(logger, action.teamID, action.jobCombinationID, action.stepName, cacheConfig.Path)
 		containerSpec.Inputs = append(containerSpec.Inputs, &taskCacheInputSource{
 			source:        source,
 			artifactsRoot: action.artifactsRoot,
@@ -408,7 +408,7 @@ func (action *TaskAction) registerOutputs(logger lager.Logger, repository *worke
 	}
 
 	// Do not initialize caches for one-off builds
-	if action.jobID != 0 {
+	if action.jobCombinationID != 0 {
 		logger.Debug("initializing-caches", lager.Data{"caches": config.Caches})
 
 		for _, cacheConfig := range config.Caches {
@@ -416,7 +416,7 @@ func (action *TaskAction) registerOutputs(logger lager.Logger, repository *worke
 				if volumeMount.MountPath == filepath.Join(action.artifactsRoot, cacheConfig.Path) {
 					logger.Debug("initializing-cache", lager.Data{"path": volumeMount.MountPath})
 
-					err := volumeMount.Volume.InitializeTaskCache(logger, action.jobID, action.stepName, cacheConfig.Path, bool(action.privileged))
+					err := volumeMount.Volume.InitializeTaskCache(logger, action.jobCombinationID, action.stepName, cacheConfig.Path, bool(action.privileged))
 					if err != nil {
 						return err
 					}

@@ -56,9 +56,9 @@ func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
 		}
 
 		existingBuildResolver := &ExistingBuildResolver{
-			BuildInputs: db.BuildInputs,
-			JobID:       inputConfig.JobID,
-			ResourceID:  inputConfig.ResourceID,
+			BuildInputs:      db.BuildInputs,
+			JobCombinationID: inputConfig.JobCombinationID,
+			ResourceID:       inputConfig.ResourceID,
 		}
 
 		inputCandidates = append(inputCandidates, InputVersionCandidates{
