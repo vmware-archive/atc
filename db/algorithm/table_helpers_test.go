@@ -79,7 +79,7 @@ const CurrentJobName = "current"
 func (example Example) Run() {
 	db := &algorithm.VersionsDB{}
 
-	jobIDs := StringMapping{}
+	jobCombinationIDs := StringMapping{}
 	resourceIDs := StringMapping{}
 	versionIDs := StringMapping{}
 
@@ -93,8 +93,8 @@ func (example Example) Run() {
 		err = json.NewDecoder(gr).Decode(db)
 		Expect(err).ToNot(HaveOccurred())
 
-		for name, id := range db.JobIDs {
-			jobIDs[name] = id
+		for name, id := range db.JobCombinationIDs {
+			jobCombinationIDs[name] = id
 		}
 
 		for name, id := range db.ResourceIDs {
@@ -121,9 +121,9 @@ func (example Example) Run() {
 				CheckOrder: row.CheckOrder,
 			}
 			db.BuildInputs = append(db.BuildInputs, algorithm.BuildInput{
-				ResourceVersion: version,
-				BuildID:         row.BuildID,
-				JobID:           jobIDs.ID(row.Job),
+				ResourceVersion:  version,
+				BuildID:          row.BuildID,
+				JobCombinationID: jobCombinationIDs.ID(row.Job),
 			})
 		}
 		for _, row := range example.DB.BuildOutputs {
@@ -133,9 +133,9 @@ func (example Example) Run() {
 				CheckOrder: row.CheckOrder,
 			}
 			db.BuildOutputs = append(db.BuildOutputs, algorithm.BuildOutput{
-				ResourceVersion: version,
-				BuildID:         row.BuildID,
-				JobID:           jobIDs.ID(row.Job),
+				ResourceVersion:  version,
+				BuildID:          row.BuildID,
+				JobCombinationID: jobCombinationIDs.ID(row.Job),
 			})
 		}
 	}
@@ -144,7 +144,7 @@ func (example Example) Run() {
 	for i, input := range example.Inputs {
 		passed := algorithm.JobSet{}
 		for _, jobName := range input.Passed {
-			passed[jobIDs.ID(jobName)] = struct{}{}
+			passed[jobCombinationIDs.ID(jobName)] = struct{}{}
 		}
 
 		var versionID int
@@ -158,7 +158,7 @@ func (example Example) Run() {
 			ResourceID:      resourceIDs.ID(input.Resource),
 			UseEveryVersion: input.Version.Every,
 			PinnedVersionID: versionID,
-			JobID:           jobIDs.ID(CurrentJobName),
+			JobID:           jobCombinationIDs.ID(CurrentJobName),
 		}
 	}
 

@@ -30,7 +30,7 @@ var _ = Describe("Containers API", func() {
 		fakeaccess       *accessorfakes.FakeAccess
 		stepName         = "some-step"
 		pipelineID       = 1111
-		jobID            = 2222
+		jobCombinationID = 2222
 		buildID          = 3333
 		workingDirectory = "/tmp/build/my-favorite-guid"
 		attempt          = "1.5"
@@ -53,9 +53,9 @@ var _ = Describe("Containers API", func() {
 			StepName: stepName,
 			Attempt:  attempt,
 
-			PipelineID: pipelineID,
-			JobID:      jobID,
-			BuildID:    buildID,
+			PipelineID:       pipelineID,
+			JobCombinationID: jobCombinationID,
+			BuildID:          buildID,
 
 			WorkingDirectory: workingDirectory,
 			User:             user,
@@ -70,9 +70,9 @@ var _ = Describe("Containers API", func() {
 			StepName: stepName + "-other",
 			Attempt:  attempt + ".1",
 
-			PipelineID: pipelineID + 1,
-			JobID:      jobID + 1,
-			BuildID:    buildID + 1,
+			PipelineID:       pipelineID + 1,
+			JobCombinationID: jobCombinationID + 1,
+			BuildID:          buildID + 1,
 
 			WorkingDirectory: workingDirectory + "/other",
 			User:             user + "-other",
@@ -145,7 +145,7 @@ var _ = Describe("Containers API", func() {
 									"step_name": "some-step",
 									"attempt": "1.5",
 									"pipeline_id": 1111,
-									"job_id": 2222,
+									"job_combination_id": 2222,
 									"build_id": 3333,
 									"working_directory": "/tmp/build/my-favorite-guid",
 									"user": "snoopy"
@@ -157,7 +157,7 @@ var _ = Describe("Containers API", func() {
 									"step_name": "some-step-other",
 									"attempt": "1.5.1",
 									"pipeline_id": 1112,
-									"job_id": 2223,
+									"job_combination_id": 2223,
 									"build_id": 3334,
 									"working_directory": "/tmp/build/my-favorite-guid/other",
 									"user": "snoopy-other"
@@ -231,10 +231,10 @@ var _ = Describe("Containers API", func() {
 				})
 			})
 
-			Describe("querying with job id", func() {
+			Describe("querying with job combination id", func() {
 				BeforeEach(func() {
 					req.URL.RawQuery = url.Values{
-						"job_id": []string{strconv.Itoa(jobID)},
+						"job_combination_id": []string{strconv.Itoa(jobCombinationID)},
 					}.Encode()
 				})
 
@@ -246,7 +246,7 @@ var _ = Describe("Containers API", func() {
 
 					meta := dbTeam.FindContainersByMetadataArgsForCall(0)
 					Expect(meta).To(Equal(db.ContainerMetadata{
-						JobID: jobID,
+						JobCombinationID: jobCombinationID,
 					}))
 				})
 			})
@@ -448,19 +448,19 @@ var _ = Describe("Containers API", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(body).To(MatchJSON(`
-	 					{
-	 						"id": "some-handle",
-	 						"worker_name": "some-worker-name",
-	 						"type": "task",
-	 						"step_name": "some-step",
-	 						"attempt": "1.5",
-	 						"pipeline_id": 1111,
-	 						"job_id": 2222,
-	 						"build_id": 3333,
-	 						"working_directory": "/tmp/build/my-favorite-guid",
-	 						"user": "snoopy"
-	 					}
-	 				`))
+						{
+							"id": "some-handle",
+							"worker_name": "some-worker-name",
+							"type": "task",
+							"step_name": "some-step",
+							"attempt": "1.5",
+							"pipeline_id": 1111,
+							"job_combination_id": 2222,
+							"build_id": 3333,
+							"working_directory": "/tmp/build/my-favorite-guid",
+							"user": "snoopy"
+						}
+					`))
 				})
 			})
 

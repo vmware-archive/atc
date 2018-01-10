@@ -39,8 +39,8 @@ var _ = Describe("Transformer", func() {
 
 				algorithmInputs, tranformErr = transformer.TransformInputConfigs(
 					&algorithm.VersionsDB{
-						JobIDs:      map[string]int{"j1": 1, "j2": 2},
-						ResourceIDs: map[string]int{"r1": 11, "r2": 12},
+						JobCombinationIDs: map[string]int{"j1": 1, "j2": 2},
+						ResourceIDs:       map[string]int{"r1": 11, "r2": 12},
 					},
 					fakeJobCombination,
 					jobInputs,

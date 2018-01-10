@@ -13,6 +13,14 @@ import (
 )
 
 var _ = Describe("ContainerRepository", func() {
+	var defaultJobCombination db.JobCombination
+
+	BeforeEach(func() {
+		combination := map[string]string{"some-resource": "default"}
+		defaultJobCombination = getJobCombination(defaultJob, combination)
+
+	})
+
 	Describe("FindOrphanedContainers", func() {
 		Describe("check containers", func() {
 			var (
@@ -194,7 +202,7 @@ var _ = Describe("ContainerRepository", func() {
 
 			BeforeEach(func() {
 				var err error
-				build, err = defaultJob.CreateBuild()
+				build, err = defaultJobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
 
 				creatingContainer, err = defaultTeam.CreateContainer(
@@ -303,7 +311,7 @@ var _ = Describe("ContainerRepository", func() {
 
 			BeforeEach(func() {
 				var err error
-				build, err = defaultJob.CreateBuild()
+				build, err = defaultJobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
 
 				creatingTaskContainer, err = defaultTeam.CreateContainer(
@@ -372,7 +380,7 @@ var _ = Describe("ContainerRepository", func() {
 
 			BeforeEach(func() {
 				var err error
-				build, err = defaultJob.CreateBuild()
+				build, err = defaultJobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
 
 				creatingTaskContainer, err = defaultTeam.CreateContainer(

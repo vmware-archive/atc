@@ -209,7 +209,10 @@ var _ = Describe("Worker Lifecycle", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
-					dbBuild, err = job.CreateBuild()
+					combination := map[string]string{}
+					jobCombination := getJobCombination(job, combination)
+
+					dbBuild, err = jobCombination.CreateBuild()
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -241,7 +244,10 @@ var _ = Describe("Worker Lifecycle", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
-					dbBuild, err = job.CreateBuild()
+					combination := map[string]string{}
+					jobCombination := getJobCombination(job, combination)
+
+					dbBuild, err = jobCombination.CreateBuild()
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -456,7 +462,10 @@ var _ = Describe("Worker Lifecycle", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
-					dbBuild, err = job.CreateBuild()
+					combination := map[string]string{}
+					jobCombination := getJobCombination(job, combination)
+
+					dbBuild, err = jobCombination.CreateBuild()
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -488,7 +497,10 @@ var _ = Describe("Worker Lifecycle", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
-					dbBuild, err = job.CreateBuild()
+					combination := map[string]string{}
+					jobCombination := getJobCombination(job, combination)
+
+					dbBuild, err = jobCombination.CreateBuild()
 					Expect(err).ToNot(HaveOccurred())
 				})
 

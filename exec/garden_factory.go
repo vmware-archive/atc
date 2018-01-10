@@ -156,7 +156,7 @@ func (factory *gardenFactory) Task(
 		factory.workerClient,
 		build.TeamID(),
 		build.ID(),
-		build.JobID(),
+		build.JobCombinationID(),
 		plan.Task.Name,
 		plan.ID,
 		containerMetadata,
