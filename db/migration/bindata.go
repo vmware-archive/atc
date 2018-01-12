@@ -16,6 +16,8 @@
 // db/migration/migrations/1515772083_rename_builds_job_id_to_job_combination_id.up.sql
 // db/migration/migrations/1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.down.sql
 // db/migration/migrations/1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.up.sql
+// db/migration/migrations/1515777805_rename_next_build_inputs_job_id_to_job_combination_id.down.sql
+// db/migration/migrations/1515777805_rename_next_build_inputs_job_id_to_job_combination_id.up.sql
 // DO NOT EDIT!
 
 package migration
@@ -403,6 +405,46 @@ func _1515774541_rename_independent_build_inputs_job_id_to_job_combination_idUpS
 	return a, nil
 }
 
+var __1515777805_rename_next_build_inputs_job_id_to_job_combination_idDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xac\x92\xd1\x4a\xc3\x30\x18\x85\xef\xf3\x14\xff\xe5\x06\xbe\x41\xaf\xb2\xe4\x6c\x04\xdb\x3f\x9a\x66\xa0\x57\x61\xb5\x15\xa2\x2e\x55\xd6\x82\xbe\xbd\xd4\x39\x54\xe6\x20\x17\xbd\xfd\xcf\xe1\x9c\xf3\x91\xac\xb0\x31\x5c\x08\x41\x24\x4b\x0f\x47\x5e\xae\x4a\x50\xea\xde\x87\xd0\x8c\xf1\xa5\x0d\x31\xbd\x8e\xc3\x81\x1c\x58\x56\xa0\xa7\xbe\x09\x0f\xfd\xbe\x89\x69\x37\xc4\x3e\x85\xd8\x92\xb7\x5f\xd7\xd8\x66\xa4\x68\x67\x6f\x48\x59\xae\xbd\x93\x86\xfd\xb9\x23\x8c\x29\xbe\x8d\x5d\x38\xef\x39\x1a\x42\xda\xed\xbb\x8c\x22\xa9\x75\x76\xcf\x9f\x6c\xda\xb2\xb9\xdd\x82\x16\x47\xe5\x8a\x7e\xa4\xe5\x2c\x80\xff\x90\x3d\x3e\x77\x1f\x73\x30\x7d\xc3\x4c\x71\xb4\xb6\x0e\x66\xc3\x74\x8d\xfb\x13\xcb\x92\x1c\xd6\x70\x60\x85\x7a\x7a\xb2\xc3\x62\xba\x59\x26\x8d\x12\x1e\xa4\x64\xad\xa4\xc6\xaf\x25\x86\x35\xee\xb2\x18\x4e\xff\xc3\xdb\x8b\xbb\x0a\x21\x94\xad\x2a\xe3\x0b\xf1\x19\x00\x00\xff\xff\xda\x45\x26\x51\x75\x02\x00\x00")
+
+func _1515777805_rename_next_build_inputs_job_id_to_job_combination_idDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1515777805_rename_next_build_inputs_job_id_to_job_combination_idDownSql,
+		"1515777805_rename_next_build_inputs_job_id_to_job_combination_id.down.sql",
+	)
+}
+
+func _1515777805_rename_next_build_inputs_job_id_to_job_combination_idDownSql() (*asset, error) {
+	bytes, err := _1515777805_rename_next_build_inputs_job_id_to_job_combination_idDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1515777805_rename_next_build_inputs_job_id_to_job_combination_id.down.sql", size: 629, mode: os.FileMode(420), modTime: time.Unix(1515777910, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1515777805_rename_next_build_inputs_job_id_to_job_combination_idUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xac\x92\xd1\x4a\xc3\x30\x14\x86\xef\xf3\x14\xe7\x72\x03\xdf\xa0\x57\x59\xf2\x6f\x04\xdb\x13\x4d\x33\xd0\xab\xb0\xda\x0a\x51\x97\x2a\x6b\x41\xdf\x5e\xe6\x14\xa7\xdb\x20\x17\xbd\x0b\xc9\xcf\x77\xfe\x8f\x9c\x05\x56\x86\x0b\x21\x88\x64\xe9\xe1\xc8\xcb\x45\x09\x4a\xdd\xfb\x10\x9a\x31\xbe\xb4\x21\xa6\xd7\x71\xd8\x91\x03\xcb\x0a\xf4\xd4\x37\x21\xb6\xe4\xed\xd7\xe9\xa1\xdf\x36\x31\x6d\x86\xd8\xa7\x10\xdb\x0c\x8a\x76\xf6\x86\x94\xe5\xda\x3b\x69\xd8\x9f\x26\xc2\x98\xe2\xdb\xd8\x85\xc3\x9c\xc3\x65\x48\x9b\x6d\x97\x01\x97\x5a\x67\xb3\xff\x36\x3f\x9a\x43\x6b\x36\xb7\x6b\xd0\xec\x34\x75\x45\xbf\xb1\xf9\x24\xb2\xdf\x96\x8f\xcf\xdd\xc7\x14\x7e\x67\xc4\xf6\x68\x5a\x5a\x07\xb3\x62\xba\xc6\xfd\x39\xaf\x39\x39\x2c\xe1\xc0\x0a\xf5\xff\x6f\xdd\xcd\xf6\xef\x96\x49\xa3\x84\x07\x29\x59\x2b\xa9\x71\xd4\xd6\xb0\xc6\xdd\x45\xb7\x9f\xbd\xf1\x36\xab\x6f\x21\x84\xb2\x55\x65\x7c\x21\x3e\x03\x00\x00\xff\xff\x3f\x3f\x0f\x15\x99\x02\x00\x00")
+
+func _1515777805_rename_next_build_inputs_job_id_to_job_combination_idUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1515777805_rename_next_build_inputs_job_id_to_job_combination_idUpSql,
+		"1515777805_rename_next_build_inputs_job_id_to_job_combination_id.up.sql",
+	)
+}
+
+func _1515777805_rename_next_build_inputs_job_id_to_job_combination_idUpSql() (*asset, error) {
+	bytes, err := _1515777805_rename_next_build_inputs_job_id_to_job_combination_idUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1515777805_rename_next_build_inputs_job_id_to_job_combination_id.up.sql", size: 665, mode: os.FileMode(420), modTime: time.Unix(1515777893, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -471,6 +513,8 @@ var _bindata = map[string]func() (*asset, error){
 	"1515772083_rename_builds_job_id_to_job_combination_id.up.sql": _1515772083_rename_builds_job_id_to_job_combination_idUpSql,
 	"1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.down.sql": _1515774541_rename_independent_build_inputs_job_id_to_job_combination_idDownSql,
 	"1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.up.sql": _1515774541_rename_independent_build_inputs_job_id_to_job_combination_idUpSql,
+	"1515777805_rename_next_build_inputs_job_id_to_job_combination_id.down.sql": _1515777805_rename_next_build_inputs_job_id_to_job_combination_idDownSql,
+	"1515777805_rename_next_build_inputs_job_id_to_job_combination_id.up.sql": _1515777805_rename_next_build_inputs_job_id_to_job_combination_idUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -529,6 +573,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1515772083_rename_builds_job_id_to_job_combination_id.up.sql": &bintree{_1515772083_rename_builds_job_id_to_job_combination_idUpSql, map[string]*bintree{}},
 	"1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.down.sql": &bintree{_1515774541_rename_independent_build_inputs_job_id_to_job_combination_idDownSql, map[string]*bintree{}},
 	"1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.up.sql": &bintree{_1515774541_rename_independent_build_inputs_job_id_to_job_combination_idUpSql, map[string]*bintree{}},
+	"1515777805_rename_next_build_inputs_job_id_to_job_combination_id.down.sql": &bintree{_1515777805_rename_next_build_inputs_job_id_to_job_combination_idDownSql, map[string]*bintree{}},
+	"1515777805_rename_next_build_inputs_job_id_to_job_combination_id.up.sql": &bintree{_1515777805_rename_next_build_inputs_job_id_to_job_combination_idUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
