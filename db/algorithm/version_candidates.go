@@ -3,14 +3,14 @@ package algorithm
 import "fmt"
 
 type VersionCandidate struct {
-	VersionID  int
-	BuildID    int
-	JobID      int
-	CheckOrder int
+	VersionID        int
+	BuildID          int
+	JobCombinationID int
+	CheckOrder       int
 }
 
 func (candidate VersionCandidate) String() string {
-	return fmt.Sprintf("{v%d, j%db%d}", candidate.VersionID, candidate.JobID, candidate.BuildID)
+	return fmt.Sprintf("{v%d, j%db%d}", candidate.VersionID, candidate.JobCombinationID, candidate.BuildID)
 }
 
 type VersionCandidates struct {
@@ -22,15 +22,15 @@ type VersionCandidates struct {
 func (candidates *VersionCandidates) Add(candidate VersionCandidate) {
 	candidates.versions = candidates.versions.With(candidate)
 
-	if candidate.JobID != 0 {
+	if candidate.JobCombinationID != 0 {
 		if candidates.buildIDs == nil {
 			candidates.buildIDs = map[int]BuildSet{}
 		}
 
-		builds, found := candidates.buildIDs[candidate.JobID]
+		builds, found := candidates.buildIDs[candidate.JobCombinationID]
 		if !found {
 			builds = BuildSet{}
-			candidates.buildIDs[candidate.JobID] = builds
+			candidates.buildIDs[candidate.JobCombinationID] = builds
 		}
 
 		builds[candidate.BuildID] = struct{}{}
