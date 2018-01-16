@@ -96,13 +96,13 @@ func (v *volume) InitializeResourceCache(urc *db.UsedResourceCache) error {
 
 func (v *volume) InitializeTaskCache(
 	logger lager.Logger,
-	jobID int,
+	jobCombinationID int,
 	stepName string,
 	path string,
 	privileged bool,
 ) error {
 	if v.dbVolume.ParentHandle() == "" {
-		return v.dbVolume.InitializeTaskCache(jobID, stepName, path)
+		return v.dbVolume.InitializeTaskCache(jobCombinationID, stepName, path)
 	}
 
 	logger.Debug("creating-an-import-volume", lager.Data{"path": v.bcVolume.Path()})
@@ -116,7 +116,7 @@ func (v *volume) InitializeTaskCache(
 			Privileged: privileged,
 		},
 		v.dbVolume.TeamID(),
-		jobID,
+		jobCombinationID,
 		stepName,
 		path,
 	)
@@ -124,7 +124,7 @@ func (v *volume) InitializeTaskCache(
 		return err
 	}
 
-	return importVolume.InitializeTaskCache(logger, jobID, stepName, path, privileged)
+	return importVolume.InitializeTaskCache(logger, jobCombinationID, stepName, path, privileged)
 }
 
 func (v *volume) CreateChildForContainer(creatingContainer db.CreatingContainer, mountPath string) (db.CreatingVolume, error) {

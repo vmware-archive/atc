@@ -13,15 +13,18 @@ import (
 
 var _ = Describe("VolumeFactory", func() {
 	var (
-		team2             db.Team
-		usedResourceCache *db.UsedResourceCache
-		build             db.Build
+		team2                 db.Team
+		usedResourceCache     *db.UsedResourceCache
+		build                 db.Build
+		defaultJobCombination db.JobCombination
 	)
 
 	BeforeEach(func() {
 		var err error
 		build, err = defaultTeam.CreateOneOffBuild()
 		Expect(err).ToNot(HaveOccurred())
+
+		defaultJobCombination = getJobCombination(defaultJob, map[string]string{})
 
 		usedResourceCache, err = resourceCacheFactory.FindOrCreateResourceCache(
 			logger,
@@ -58,7 +61,7 @@ var _ = Describe("VolumeFactory", func() {
 		)
 
 		It("returns task cache volumes", func() {
-			taskCache, err := workerTaskCacheFactory.FindOrCreate(defaultJob.ID(), "some-step", "some-path", defaultWorker.Name())
+			taskCache, err := workerTaskCacheFactory.FindOrCreate(defaultJobCombination.ID(), "some-step", "some-path", defaultWorker.Name())
 			Expect(err).NotTo(HaveOccurred())
 
 			creatingVolume, err := volumeFactory.CreateTaskCacheVolume(defaultTeam.ID(), taskCache)

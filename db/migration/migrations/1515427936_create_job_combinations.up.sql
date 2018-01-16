@@ -9,8 +9,8 @@ BEGIN;
 
   CREATE UNIQUE INDEX job_combinations_job_id_combination_key ON job_combinations (job_id, combination);
 
-  INSERT INTO job_combinations(id, job_id)
-  SELECT id, id
+  INSERT INTO job_combinations(id, job_id, inputs_determined)
+  SELECT id, id, inputs_determined
   FROM jobs;
 
 COMMIT;
