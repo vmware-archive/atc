@@ -63,7 +63,6 @@ var _ = Describe("Transformer", func() {
 						PinnedVersionID:  0,
 						ResourceID:       11,
 						Passed:           algorithm.JobSet{},
-						JobID:            1,
 						JobCombinationID: 11,
 					}))
 				})
@@ -86,7 +85,6 @@ var _ = Describe("Transformer", func() {
 						PinnedVersionID:  0,
 						ResourceID:       11,
 						Passed:           algorithm.JobSet{1: struct{}{}, 2: struct{}{}},
-						JobID:            1,
 						JobCombinationID: 11,
 					}))
 				})
@@ -108,7 +106,6 @@ var _ = Describe("Transformer", func() {
 						PinnedVersionID:  0,
 						ResourceID:       11,
 						Passed:           algorithm.JobSet{},
-						JobID:            1,
 						JobCombinationID: 11,
 					}))
 				})
@@ -162,7 +159,6 @@ var _ = Describe("Transformer", func() {
 							PinnedVersionID:  0,
 							ResourceID:       12,
 							Passed:           algorithm.JobSet{},
-							JobID:            1,
 							JobCombinationID: 11,
 						}))
 					})
@@ -181,7 +177,6 @@ var _ = Describe("Transformer", func() {
 								PinnedVersionID:  99,
 								ResourceID:       11,
 								Passed:           algorithm.JobSet{},
-								JobID:            1,
 								JobCombinationID: 11,
 							},
 							algorithm.InputConfig{
@@ -190,7 +185,6 @@ var _ = Describe("Transformer", func() {
 								PinnedVersionID:  0,
 								ResourceID:       12,
 								Passed:           algorithm.JobSet{},
-								JobID:            1,
 								JobCombinationID: 11,
 							},
 						))
@@ -199,28 +193,29 @@ var _ = Describe("Transformer", func() {
 			})
 		})
 
-		// Context("when an input has things that don't exist", func() {
-		// 	It("at least doesn't panic", func() {
-		// 		algorithmInputs, transformErr := transformer.TransformInputConfigs(
-		// 			&algorithm.VersionsDB{},
-		// 			"no",
-		// 			[]atc.JobInput{{
-		// 				Name:     "job-input-1",
-		// 				Resource: "nah",
-		// 				Version:  &atc.VersionConfig{},
-		// 				Passed:   []string{"nope", "gone"},
-		// 			}},
-		// 		)
-		// 		Expect(transformErr).NotTo(HaveOccurred())
-		// 		Expect(algorithmInputs).To(ConsistOf(algorithm.InputConfig{
-		// 			Name:            "job-input-1",
-		// 			UseEveryVersion: false,
-		// 			PinnedVersionID: 0,
-		// 			ResourceID:      0,
-		// 			Passed:          algorithm.JobSet{0: struct{}{}},
-		// 			JobID:           0,
-		// 		}))
-		// 	})
-		// })
+		// FIXME
+		XContext("when an input has things that don't exist", func() {
+			It("at least doesn't panic", func() {
+				algorithmInputs, transformErr := transformer.TransformInputConfigs(
+					&algorithm.VersionsDB{},
+					nil,
+					[]atc.JobInput{{
+						Name:     "job-input-1",
+						Resource: "nah",
+						Version:  &atc.VersionConfig{},
+						Passed:   []string{"nope", "gone"},
+					}},
+				)
+				Expect(transformErr).NotTo(HaveOccurred())
+				Expect(algorithmInputs).To(ConsistOf(algorithm.InputConfig{
+					Name:             "job-input-1",
+					UseEveryVersion:  false,
+					PinnedVersionID:  0,
+					ResourceID:       0,
+					Passed:           algorithm.JobSet{0: struct{}{}},
+					JobCombinationID: 0,
+				}))
+			})
+		})
 	})
 })

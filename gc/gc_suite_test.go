@@ -40,10 +40,11 @@ var (
 
 	teamFactory db.TeamFactory
 
-	defaultTeam     db.Team
-	defaultPipeline db.Pipeline
-	defaultJob      db.Job
-	defaultBuild    db.Build
+	defaultTeam           db.Team
+	defaultPipeline       db.Pipeline
+	defaultJob            db.Job
+	defaultJobCombination db.JobCombination
+	defaultBuild          db.Build
 
 	usedResource db.Resource
 	logger       *lagertest.TestLogger
@@ -100,6 +101,10 @@ var _ = BeforeEach(func() {
 	defaultJob, found, err = defaultPipeline.Job("some-job")
 	Expect(err).NotTo(HaveOccurred())
 	Expect(found).To(BeTrue())
+
+	combinations, err := defaultJob.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+	Expect(err).ToNot(HaveOccurred())
+	defaultJobCombination = combinations[0]
 
 	usedResource, found, err = defaultPipeline.Resource("some-resource")
 	Expect(err).NotTo(HaveOccurred())
