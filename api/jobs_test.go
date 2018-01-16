@@ -1463,7 +1463,12 @@ var _ = Describe("Jobs API", func() {
 					})
 
 					Context("when triggering the build succeeds", func() {
+						var fakeJobCombination *dbfakes.FakeJobCombination
+
 						BeforeEach(func() {
+							fakeJobCombination = new(dbfakes.FakeJobCombination)
+							fakeJob.JobCombinationReturns(fakeJobCombination, nil)
+
 							build := new(dbfakes.FakeBuild)
 							build.IDReturns(42)
 							build.NameReturns("1")
@@ -1489,8 +1494,9 @@ var _ = Describe("Jobs API", func() {
 						It("triggers using the current config", func() {
 							Expect(fakeScheduler.TriggerImmediatelyCallCount()).To(Equal(1))
 
-							_, job, resources, resourceTypes := fakeScheduler.TriggerImmediatelyArgsForCall(0)
+							_, job, jobCombination, resources, resourceTypes := fakeScheduler.TriggerImmediatelyArgsForCall(0)
 							Expect(job).To(Equal(fakeJob))
+							Expect(jobCombination).To(Equal(fakeJobCombination))
 							Expect(resources).To(Equal(db.Resources{fakeResource, fakeResource2}))
 							Expect(resourceTypes).To(Equal(versionedResourceTypes))
 						})
@@ -1589,10 +1595,13 @@ var _ = Describe("Jobs API", func() {
 
 			Context("when getting the job succeeds", func() {
 				var fakeJob *dbfakes.FakeJob
+				var fakeJobCombination *dbfakes.FakeJobCombination
 
 				Context("when it contains the requested job", func() {
 					var fakeScheduler *schedulerfakes.FakeBuildScheduler
 					BeforeEach(func() {
+						fakeJobCombination = new(dbfakes.FakeJobCombination)
+
 						fakeJob = new(dbfakes.FakeJob)
 						fakeJob.NameReturns("some-job")
 						fakeJob.ConfigReturns(atc.JobConfig{
@@ -1613,6 +1622,7 @@ var _ = Describe("Jobs API", func() {
 								},
 							},
 						})
+						fakeJob.JobCombinationReturns(fakeJobCombination, nil)
 						fakePipeline.JobReturns(fakeJob, true, nil)
 
 						fakeScheduler = new(schedulerfakes.FakeBuildScheduler)
@@ -1630,7 +1640,7 @@ var _ = Describe("Jobs API", func() {
 
 					Context("when the input versions for the job can be determined", func() {
 						BeforeEach(func() {
-							fakeJob.GetNextBuildInputsStub = func() ([]db.BuildInput, bool, error) {
+							fakeJobCombination.GetNextBuildInputsStub = func() ([]db.BuildInput, bool, error) {
 								defer GinkgoRecover()
 								Expect(fakeScheduler.SaveNextInputMappingCallCount()).To(Equal(1))
 								return []db.BuildInput{
@@ -1713,7 +1723,7 @@ var _ = Describe("Jobs API", func() {
 
 					Context("when the job has no input versions available", func() {
 						BeforeEach(func() {
-							fakeJob.GetNextBuildInputsReturns(nil, false, nil)
+							fakeJobCombination.GetNextBuildInputsReturns(nil, false, nil)
 						})
 
 						It("returns 404", func() {
@@ -1723,7 +1733,7 @@ var _ = Describe("Jobs API", func() {
 
 					Context("when the input versions for the job can not be determined", func() {
 						BeforeEach(func() {
-							fakeJob.GetNextBuildInputsReturns(nil, false, errors.New("oh no!"))
+							fakeJobCombination.GetNextBuildInputsReturns(nil, false, errors.New("oh no!"))
 						})
 
 						It("returns 500", func() {

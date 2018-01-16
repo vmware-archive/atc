@@ -26,6 +26,7 @@ type BuildScheduler interface {
 	TriggerImmediately(
 		logger lager.Logger,
 		job db.Job,
+		jobCombination db.JobCombination,
 		resources db.Resources,
 		resourceTypes atc.VersionedResourceTypes,
 	) (db.Build, Waiter, error)

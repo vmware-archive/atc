@@ -1,6 +1,8 @@
 package db
 
 import (
+	"encoding/json"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/db/lock"
@@ -14,7 +16,9 @@ type JobCombination interface {
 	CreateBuild() (Build, error)
 	EnsurePendingBuildExists() error
 
-	GetNextBuildInputs() (algorithm.InputMapping, bool, error)
+	GetNextBuildInputs() ([]BuildInput, bool, error)
+	GetIndependentBuildInputs() ([]BuildInput, error)
+
 	SaveNextInputMapping(inputMapping algorithm.InputMapping) error
 	SaveIndependentInputMapping(inputMapping algorithm.InputMapping) error
 	DeleteNextInputMapping() error
@@ -132,7 +136,7 @@ func (c *jobCombination) EnsurePendingBuildExists() error {
 	return nil
 }
 
-func (c *jobCombination) GetNextBuildInputs() (algorithm.InputMapping, bool, error) {
+func (c *jobCombination) GetNextBuildInputs() ([]BuildInput, bool, error) {
 	var found bool
 	err := psql.Select("inputs_determined").
 		From("job_combinations").
@@ -152,6 +156,10 @@ func (c *jobCombination) GetNextBuildInputs() (algorithm.InputMapping, bool, err
 	// inputs are deleted by the time we get here
 	buildInputs, err := c.getBuildInputs("next_build_inputs")
 	return buildInputs, true, err
+}
+
+func (c *jobCombination) GetIndependentBuildInputs() ([]BuildInput, error) {
+	return c.getBuildInputs("independent_build_inputs")
 }
 
 func (c *jobCombination) SaveNextInputMapping(inputMapping algorithm.InputMapping) error {
@@ -180,7 +188,7 @@ func (c *jobCombination) DeleteNextInputMapping() error {
 	}
 
 	_, err = psql.Delete("next_build_inputs").
-		Where(sq.Eq{"job_id": c.jobID}).
+		Where(sq.Eq{"job_combination_id": c.id}).
 		RunWith(tx).Exec()
 	if err != nil {
 		return err
@@ -202,35 +210,59 @@ func (c *jobCombination) getNewBuildName(tx Tx) (string, error) {
 	return buildName, err
 }
 
-func (c *jobCombination) getBuildInputs(table string) (algorithm.InputMapping, error) {
-	rows, err := psql.Select("input_name", "version_id", "first_occurrence").
+func (c *jobCombination) getBuildInputs(table string) ([]BuildInput, error) {
+	rows, err := psql.Select("i.input_name, i.first_occurrence, r.name, vr.type, vr.version, vr.metadata").
 		From(table + " i").
-		Where(sq.Eq{"job_id": c.jobID}).
+		Join("job_combinations c ON c.id = i.job_combination_id").
+		Join("versioned_resources vr ON vr.id = i.version_id").
+		Join("resource_spaces rs ON rs.id = vr.resource_space_id").
+		Join("resources r ON r.id = rs.resource_id").
+		Where(sq.Eq{"c.id": c.id}).
 		RunWith(c.conn).
 		Query()
 	if err != nil {
 		return nil, err
 	}
 
-	buildInputs := algorithm.InputMapping{}
+	buildInputs := []BuildInput{}
 	for rows.Next() {
 		var (
 			inputName       string
-			versionID       int
 			firstOccurrence bool
+			resourceName    string
+			resourceType    string
+			versionBlob     string
+			metadataBlob    string
+			version         ResourceVersion
+			metadata        []ResourceMetadataField
 		)
 
-		err := rows.Scan(&inputName, &versionID, &firstOccurrence)
+		err := rows.Scan(&inputName, &firstOccurrence, &resourceName, &resourceType, &versionBlob, &metadataBlob)
 		if err != nil {
 			return nil, err
 		}
 
-		buildInputs[inputName] = algorithm.InputVersion{
-			VersionID:       versionID,
-			FirstOccurrence: firstOccurrence,
+		err = json.Unmarshal([]byte(versionBlob), &version)
+		if err != nil {
+			return nil, err
 		}
-	}
 
+		err = json.Unmarshal([]byte(metadataBlob), &metadata)
+		if err != nil {
+			return nil, err
+		}
+
+		buildInputs = append(buildInputs, BuildInput{
+			Name: inputName,
+			VersionedResource: VersionedResource{
+				Resource: resourceName,
+				Type:     resourceType,
+				Version:  version,
+				Metadata: metadata,
+			},
+			FirstOccurrence: firstOccurrence,
+		})
+	}
 	return buildInputs, nil
 }
 
@@ -256,7 +288,7 @@ func (c *jobCombination) saveJobInputMapping(table string, inputMapping algorith
 
 	rows, err := psql.Select("input_name, version_id, first_occurrence").
 		From(table).
-		Where(sq.Eq{"job_id": c.jobID}).
+		Where(sq.Eq{"job_combination_id": c.ID()}).
 		RunWith(tx).
 		Query()
 	if err != nil {
@@ -280,8 +312,8 @@ func (c *jobCombination) saveJobInputMapping(table string, inputMapping algorith
 		if !found || inputVersion != oldInputVersion {
 			_, err = psql.Delete(table).
 				Where(sq.Eq{
-					"job_id":     c.jobID,
-					"input_name": inputName,
+					"job_combination_id": c.id,
+					"input_name":         inputName,
 				}).
 				RunWith(tx).
 				Exec()
@@ -296,10 +328,10 @@ func (c *jobCombination) saveJobInputMapping(table string, inputMapping algorith
 		if !found || inputVersion != oldInputVersion {
 			_, err := psql.Insert(table).
 				SetMap(map[string]interface{}{
-					"job_id":           c.jobID,
-					"input_name":       inputName,
-					"version_id":       inputVersion.VersionID,
-					"first_occurrence": inputVersion.FirstOccurrence,
+					"job_combination_id": c.id,
+					"input_name":         inputName,
+					"version_id":         inputVersion.VersionID,
+					"first_occurrence":   inputVersion.FirstOccurrence,
 				}).
 				RunWith(tx).
 				Exec()

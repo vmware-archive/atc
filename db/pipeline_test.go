@@ -1701,7 +1701,7 @@ var _ = Describe("Pipeline", func() {
 				versions, err := pipelineDB.LoadVersionsDB()
 				Expect(err).ToNot(HaveOccurred())
 
-				aJob, found, err = pipelineDB.Job("a-job")
+				_, found, err = pipelineDB.Job("a-job")
 				Expect(found).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
