@@ -27,11 +27,11 @@ var _ = Describe("Resolve", func() {
 
 		inputConfigs = algorithm.InputConfigs{
 			{
-				Name:       "some-input",
-				JobName:    "j1",
-				Passed:     algorithm.JobSet{},
-				ResourceID: 21,
-				JobID:      11,
+				Name:             "some-input",
+				JobName:          "j1",
+				Passed:           algorithm.JobSet{},
+				ResourceID:       21,
+				JobCombinationID: 11,
 			},
 		}
 	})

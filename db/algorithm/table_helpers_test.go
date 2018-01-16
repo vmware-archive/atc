@@ -153,12 +153,12 @@ func (example Example) Run() {
 		}
 
 		inputConfigs[i] = algorithm.InputConfig{
-			Name:            input.Name,
-			Passed:          passed,
-			ResourceID:      resourceIDs.ID(input.Resource),
-			UseEveryVersion: input.Version.Every,
-			PinnedVersionID: versionID,
-			JobID:           jobCombinationIDs.ID(CurrentJobName),
+			Name:             input.Name,
+			Passed:           passed,
+			ResourceID:       resourceIDs.ID(input.Resource),
+			UseEveryVersion:  input.Version.Every,
+			PinnedVersionID:  versionID,
+			JobCombinationID: jobCombinationIDs.ID(CurrentJobName),
 		}
 	}
 

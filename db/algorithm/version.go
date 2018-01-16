@@ -15,8 +15,8 @@ func NewVersion(candidate VersionCandidate) Version {
 		passed: map[int]BuildSet{},
 	}
 
-	if candidate.JobID != 0 {
-		v.passed[candidate.JobID] = BuildSet{candidate.BuildID: struct{}{}}
+	if candidate.JobCombinationID != 0 {
+		v.passed[candidate.JobCombinationID] = BuildSet{candidate.BuildID: struct{}{}}
 	}
 
 	return v
@@ -45,11 +45,11 @@ func (vs Versions) With(candidate VersionCandidate) Versions {
 		vs = append(vs, Version{})
 		copy(vs[i+1:], vs[i:])
 		vs[i] = NewVersion(candidate)
-	} else if candidate.JobID != 0 {
-		builds, found := vs[i].passed[candidate.JobID]
+	} else if candidate.JobCombinationID != 0 {
+		builds, found := vs[i].passed[candidate.JobCombinationID]
 		if !found {
 			builds = BuildSet{}
-			vs[i].passed[candidate.JobID] = builds
+			vs[i].passed[candidate.JobCombinationID] = builds
 		}
 
 		builds[candidate.BuildID] = struct{}{}
