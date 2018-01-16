@@ -794,7 +794,7 @@ var _ = Describe("Build", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				jobCombination = getJobCombination(job, map[string]string{"some-resource": "default"})
+				jobCombination = getJobCombination(job, map[string]string{})
 
 				build, err = jobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
@@ -824,7 +824,7 @@ var _ = Describe("Build", func() {
 					Expect(found).To(BeTrue())
 					Expect(versions).To(HaveLen(1))
 
-					err = job.SaveNextInputMapping(algorithm.InputMapping{
+					err = jobCombination.SaveNextInputMapping(algorithm.InputMapping{
 						"some-input": {VersionID: versions[0].ID, FirstOccurrence: true},
 					})
 					Expect(err).NotTo(HaveOccurred())
@@ -1000,12 +1000,19 @@ var _ = Describe("Build", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(found).To(BeTrue())
 
+					combination := map[string]string{"input1": "default", "input2": "default", "input3": "default", "input4": "default", "input5": "default", "input6": "default"}
+					jobCombination = getJobCombination(job, combination)
+
+					build, err = jobCombination.CreateBuild()
+					Expect(err).NotTo(HaveOccurred())
+
+					expectedBuildPrep.BuildID = build.ID()
 					versions, _, found, err := pipeline.GetResourceVersions("input1", db.Page{Limit: 1})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(found).To(BeTrue())
 					Expect(versions).To(HaveLen(1))
 
-					err = job.SaveIndependentInputMapping(algorithm.InputMapping{
+					err = jobCombination.SaveIndependentInputMapping(algorithm.InputMapping{
 						"input1": {VersionID: versions[0].ID, FirstOccurrence: true},
 					})
 					Expect(err).NotTo(HaveOccurred())
@@ -1114,7 +1121,9 @@ var _ = Describe("Build", func() {
 	})
 
 	Describe("UseInput", func() {
+		var pipeline db.Pipeline
 		var build db.Build
+
 		BeforeEach(func() {
 			pipelineConfig := atc.Config{
 				Jobs: atc.JobConfigs{
@@ -1140,7 +1149,7 @@ var _ = Describe("Build", func() {
 
 			var err error
 
-			pipeline, _, err := team.SavePipeline("some-pipeline", pipelineConfig, db.ConfigVersion(1), db.PipelineUnpaused)
+			pipeline, _, err = team.SavePipeline("some-pipeline", pipelineConfig, db.ConfigVersion(1), db.PipelineUnpaused)
 			Expect(err).ToNot(HaveOccurred())
 
 			job, found, err := pipeline.Job("some-job")

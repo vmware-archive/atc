@@ -507,8 +507,9 @@ func (b *build) Preparation() (BuildPreparation, bool, error) {
 		maxInFlightReached bool
 		pipelineID         int
 		jobName            string
+		jobCombinationID   int
 	)
-	err := psql.Select("p.paused, j.paused, j.max_in_flight_reached, j.pipeline_id, j.name").
+	err := psql.Select("p.paused, j.paused, j.max_in_flight_reached, j.pipeline_id, j.name, c.id").
 		From("builds b").
 		Join("job_combinations c ON b.job_combination_id = c.id").
 		Join("jobs j ON c.job_id = j.id").
@@ -516,7 +517,7 @@ func (b *build) Preparation() (BuildPreparation, bool, error) {
 		Where(sq.Eq{"b.id": b.id}).
 		RunWith(b.conn).
 		QueryRow().
-		Scan(&pausedPipeline, &pausedJob, &maxInFlightReached, &pipelineID, &jobName)
+		Scan(&pausedPipeline, &pausedJob, &maxInFlightReached, &pipelineID, &jobName, &jobCombinationID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return BuildPreparation{}, false, nil
@@ -569,7 +570,12 @@ func (b *build) Preparation() (BuildPreparation, bool, error) {
 
 	configInputs := job.Config().Inputs()
 
-	nextBuildInputs, found, err := job.GetNextBuildInputs()
+	jobCombination, err := job.JobCombination(jobCombinationID)
+	if err != nil {
+		return BuildPreparation{}, false, err
+	}
+
+	nextBuildInputs, found, err := jobCombination.GetNextBuildInputs()
 	if err != nil {
 		return BuildPreparation{}, false, err
 	}
@@ -584,7 +590,7 @@ func (b *build) Preparation() (BuildPreparation, bool, error) {
 			inputs[buildInput.Name] = BuildPreparationStatusNotBlocking
 		}
 	} else {
-		buildInputs, err := job.GetIndependentBuildInputs()
+		buildInputs, err := jobCombination.GetIndependentBuildInputs()
 		if err != nil {
 			return BuildPreparation{}, false, err
 		}

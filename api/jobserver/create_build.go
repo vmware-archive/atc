@@ -51,7 +51,14 @@ func (s *Server) CreateJobBuild(pipeline db.Pipeline) http.Handler {
 			return
 		}
 
-		build, _, err := scheduler.TriggerImmediately(logger, job, resources, versionedResourceTypes)
+		jobCombination, err := job.JobCombination(job.ID())
+		if err != nil {
+			logger.Error("failed-to-get-job-combination", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		build, _, err := scheduler.TriggerImmediately(logger, job, jobCombination, resources, versionedResourceTypes)
 		if err != nil {
 			logger.Error("failed-to-trigger", err)
 			w.WriteHeader(http.StatusInternalServerError)

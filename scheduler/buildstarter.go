@@ -15,6 +15,7 @@ type BuildStarter interface {
 	TryStartPendingBuildsForJob(
 		logger lager.Logger,
 		job db.Job,
+		jobCombination db.JobCombination,
 		resources db.Resources,
 		resourceTypes atc.VersionedResourceTypes,
 		nextPendingBuilds []db.Build,
@@ -57,12 +58,13 @@ type buildStarter struct {
 func (s *buildStarter) TryStartPendingBuildsForJob(
 	logger lager.Logger,
 	job db.Job,
+	jobCombination db.JobCombination,
 	resources db.Resources,
 	resourceTypes atc.VersionedResourceTypes,
 	nextPendingBuildsForJob []db.Build,
 ) error {
 	for _, nextPendingBuild := range nextPendingBuildsForJob {
-		started, err := s.tryStartNextPendingBuild(logger, nextPendingBuild, job, resources, resourceTypes)
+		started, err := s.tryStartNextPendingBuild(logger, nextPendingBuild, job, jobCombination, resources, resourceTypes)
 		if err != nil {
 			return err
 		}
@@ -79,6 +81,7 @@ func (s *buildStarter) tryStartNextPendingBuild(
 	logger lager.Logger,
 	nextPendingBuild db.Build,
 	job db.Job,
+	jobCombination db.JobCombination,
 	resources db.Resources,
 	resourceTypes atc.VersionedResourceTypes,
 ) (bool, error) {
@@ -127,7 +130,7 @@ func (s *buildStarter) tryStartNextPendingBuild(
 		resourceTypes = dbResourceTypes.Deserialize()
 	}
 
-	buildInputs, found, err := job.GetNextBuildInputs()
+	buildInputs, found, err := jobCombination.GetNextBuildInputs()
 	if err != nil {
 		logger.Error("failed-to-get-next-build-inputs", err)
 		return false, err

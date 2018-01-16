@@ -54,6 +54,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 		var tryStartErr error
 		var createdBuild *dbfakes.FakeBuild
 		var job *dbfakes.FakeJob
+		var jobCombination *dbfakes.FakeJobCombination
 		var resource *dbfakes.FakeResource
 		var versionedResourceTypes atc.VersionedResourceTypes
 
@@ -80,12 +81,15 @@ var _ = Describe("I'm a BuildStarter", func() {
 				job = new(dbfakes.FakeJob)
 				job.NameReturns("some-job")
 				job.ConfigReturns(atc.JobConfig{Plan: atc.PlanSequence{{Get: "input-1"}, {Get: "input-2"}}})
+
+				jobCombination = new(dbfakes.FakeJobCombination)
 			})
 
 			JustBeforeEach(func() {
 				tryStartErr = buildStarter.TryStartPendingBuildsForJob(
 					lagertest.NewTestLogger("test"),
 					job,
+					jobCombination,
 					db.Resources{resource},
 					versionedResourceTypes,
 					pendingBuilds,
@@ -203,8 +207,8 @@ var _ = Describe("I'm a BuildStarter", func() {
 											ResourceID: 127,
 											CheckOrder: 123,
 										},
-										BuildID: 66,
-										JobID:   13,
+										BuildID:          66,
+										JobCombinationID: 13,
 									},
 								},
 								BuildInputs: []algorithm.BuildInput{
@@ -214,12 +218,12 @@ var _ = Describe("I'm a BuildStarter", func() {
 											ResourceID: 77,
 											CheckOrder: 88,
 										},
-										BuildID:   66,
-										JobID:     13,
-										InputName: "some-input-name",
+										BuildID:          66,
+										JobCombinationID: 13,
+										InputName:        "some-input-name",
 									},
 								},
-								JobIDs: map[string]int{
+								JobCombinationIDs: map[string]int{
 									"bad-luck-job": 13,
 								},
 								ResourceIDs: map[string]int{
@@ -227,7 +231,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 								},
 							}, nil)
 
-							versionsDB = &algorithm.VersionsDB{JobIDs: map[string]int{"j1": 1}}
+							versionsDB = &algorithm.VersionsDB{JobCombinationIDs: map[string]int{"j1": 1}}
 							fakePipeline.LoadVersionsDBReturns(versionsDB, nil)
 						})
 
@@ -258,10 +262,10 @@ var _ = Describe("I'm a BuildStarter", func() {
 
 							Context("when creaing a build plan", func() {
 								BeforeEach(func() {
-									job.GetNextBuildInputsReturns([]db.BuildInput{}, true, nil)
+									jobCombination.GetNextBuildInputsReturns(algorithm.InputMapping{}, true, nil)
 									fakePipeline.CheckPausedReturns(false, nil)
 									createdBuild.ScheduleReturns(true, nil)
-									createdBuild.UseInputsReturns(nil)
+									createdBuild.UseInputsReturns([]db.BuildInput{}, nil)
 									fakeEngine.CreateBuildReturns(new(enginefakes.FakeBuild), nil)
 								})
 
@@ -292,12 +296,15 @@ var _ = Describe("I'm a BuildStarter", func() {
 				job.NameReturns("some-job")
 				job.ConfigReturns(atc.JobConfig{Name: "some-job"})
 				createdBuild.IsManuallyTriggeredReturns(false)
+
+				jobCombination = new(dbfakes.FakeJobCombination)
 			})
 
 			JustBeforeEach(func() {
 				tryStartErr = buildStarter.TryStartPendingBuildsForJob(
 					lagertest.NewTestLogger("test"),
 					job,
+					jobCombination,
 					db.Resources{resource},
 					atc.VersionedResourceTypes{
 						{
@@ -355,7 +362,11 @@ var _ = Describe("I'm a BuildStarter", func() {
 				BeforeEach(func() {
 					job.PausedReturns(false)
 					fakeUpdater.UpdateMaxInFlightReachedReturns(false, nil)
-					job.GetNextBuildInputsReturns([]db.BuildInput{{Name: "some-input"}}, true, nil)
+					jobCombination.GetNextBuildInputsReturns(
+						algorithm.InputMapping{"some-input": algorithm.InputVersion{VersionID: 66, FirstOccurrence: true}},
+						true,
+						nil,
+					)
 					fakePipeline.PausedReturns(false)
 				})
 
@@ -412,7 +423,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 
 						Context("when using inputs for build fails", func() {
 							BeforeEach(func() {
-								pendingBuild1.UseInputsReturns(disaster)
+								pendingBuild1.UseInputsReturns(nil, disaster)
 							})
 
 							It("returns the error", func() {
@@ -428,7 +439,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 
 						Context("when using inputs for build succeeds", func() {
 							BeforeEach(func() {
-								pendingBuild1.UseInputsReturns(nil)
+								pendingBuild1.UseInputsReturns(nil, nil)
 							})
 
 							Context("when creating the build plan fails", func() {
@@ -584,7 +595,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 
 					Context("when getting the next build inputs fails", func() {
 						BeforeEach(func() {
-							job.GetNextBuildInputsReturns(nil, false, disaster)
+							jobCombination.GetNextBuildInputsReturns(nil, false, disaster)
 						})
 
 						itReturnsTheError()
@@ -593,7 +604,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 
 					Context("when there are no next build inputs", func() {
 						BeforeEach(func() {
-							job.GetNextBuildInputsReturns(nil, false, nil)
+							jobCombination.GetNextBuildInputsReturns(nil, false, nil)
 						})
 
 						itDoesntReturnAnErrorOrMarkTheBuildAsScheduled()

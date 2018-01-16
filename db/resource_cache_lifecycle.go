@@ -81,7 +81,8 @@ func (f *resourceCacheLifecycle) CleanUpInvalidCaches(logger lager.Logger) error
 		Join("resources r ON r.id = rs.resource_id").
 		Join("resource_caches r_cache ON r_cache.version = vr.version").
 		Join("resource_configs r_config ON r_cache.resource_config_id = r_config.id").
-		Join("jobs j ON nbi.job_id = j.id").
+		Join("job_combinations c ON nbi.job_combination_id = c.id").
+		Join("jobs j ON c.job_id = j.id").
 		Join("pipelines p ON j.pipeline_id = p.id").
 		Where(sq.Expr("r.resource_config_id = r_config.id")).
 		Where(sq.Expr("p.paused = false")).
