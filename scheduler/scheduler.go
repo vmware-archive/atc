@@ -107,7 +107,7 @@ func (s *Scheduler) Schedule(
 			continue
 		}
 
-		err := s.BuildStarter.TryStartPendingBuildsForJob(logger, job, resources, resourceTypes, nextPendingBuildsForJob)
+		err := s.BuildStarter.TryStartPendingBuildsForJob(logger, job, nil, resources, resourceTypes, nextPendingBuildsForJob)
 		jobSchedulingTime[job.Name()] = jobSchedulingTime[job.Name()] + time.Since(jStart)
 
 		if err != nil {
@@ -154,12 +154,13 @@ type Waiter interface {
 func (s *Scheduler) TriggerImmediately(
 	logger lager.Logger,
 	job db.Job,
+	jobCombination db.JobCombination,
 	resources db.Resources,
 	resourceTypes atc.VersionedResourceTypes,
 ) (db.Build, Waiter, error) {
 	logger = logger.Session("trigger-immediately", lager.Data{"job_name": job.Name()})
 
-	build, err := job.CreateBuild()
+	build, err := jobCombination.CreateBuild()
 	if err != nil {
 		logger.Error("failed-to-create-job-build", err)
 		return nil, nil, err
@@ -176,7 +177,7 @@ func (s *Scheduler) TriggerImmediately(
 			return
 		}
 
-		err = s.BuildStarter.TryStartPendingBuildsForJob(logger, job, resources, resourceTypes, nextPendingBuilds)
+		err = s.BuildStarter.TryStartPendingBuildsForJob(logger, job, jobCombination, resources, resourceTypes, nextPendingBuilds)
 		if err != nil {
 			logger.Error("failed-to-start-next-pending-build-for-job", err, lager.Data{"job-name": job.Name()})
 			return

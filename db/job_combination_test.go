@@ -347,6 +347,7 @@ var _ = Describe("Job Combination", func() {
 			// save metadata for v1
 			build, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
+
 			err = build.SaveInput(db.BuildInput{
 				Name: "some-input",
 				VersionedResource: db.VersionedResource{
@@ -426,7 +427,7 @@ var _ = Describe("Job Combination", func() {
 					},
 				}
 
-				actualBuildInputs, err := job.GetIndependentBuildInputs()
+				actualBuildInputs, err := jobCombination.GetIndependentBuildInputs()
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(actualBuildInputs).To(ConsistOf(buildInputs))
@@ -458,7 +459,7 @@ var _ = Describe("Job Combination", func() {
 					},
 				}
 
-				actualBuildInputs2, err := job.GetIndependentBuildInputs()
+				actualBuildInputs2, err := jobCombination.GetIndependentBuildInputs()
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(actualBuildInputs2).To(ConsistOf(buildInputs2))
@@ -467,7 +468,7 @@ var _ = Describe("Job Combination", func() {
 				err = jobCombination.SaveIndependentInputMapping(nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				actualBuildInputs3, err := job.GetIndependentBuildInputs()
+				actualBuildInputs3, err := jobCombination.GetIndependentBuildInputs()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualBuildInputs3).To(BeEmpty())
 			})
@@ -497,11 +498,24 @@ var _ = Describe("Job Combination", func() {
 				err = jobCombination2.SaveNextInputMapping(pipeline2InputVersions)
 				Expect(err).NotTo(HaveOccurred())
 
+				buildInputs := []db.BuildInput{
+					{
+						Name:              "some-input-1",
+						VersionedResource: versions[0].VersionedResource,
+						FirstOccurrence:   false,
+					},
+					{
+						Name:              "some-input-2",
+						VersionedResource: versions[1].VersionedResource,
+						FirstOccurrence:   true,
+					},
+				}
+
 				actualBuildInputs, found, err := jobCombination.GetNextBuildInputs()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				Expect(actualBuildInputs).To(Equal(inputVersions))
+				Expect(actualBuildInputs).To(ConsistOf(buildInputs))
 
 				By("updating the set of next build inputs")
 				inputVersions2 := algorithm.InputMapping{
@@ -517,11 +531,24 @@ var _ = Describe("Job Combination", func() {
 				err = jobCombination.SaveNextInputMapping(inputVersions2)
 				Expect(err).NotTo(HaveOccurred())
 
+				buildInputs2 := []db.BuildInput{
+					{
+						Name:              "some-input-2",
+						VersionedResource: versions[2].VersionedResource,
+						FirstOccurrence:   false,
+					},
+					{
+						Name:              "some-input-3",
+						VersionedResource: versions[2].VersionedResource,
+						FirstOccurrence:   true,
+					},
+				}
+
 				actualBuildInputs2, found, err := jobCombination.GetNextBuildInputs()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				Expect(actualBuildInputs2).To(Equal(inputVersions2))
+				Expect(actualBuildInputs2).To(ConsistOf(buildInputs2))
 
 				By("updating next build inputs to an empty set when the mapping is nil")
 				err = jobCombination.SaveNextInputMapping(nil)
@@ -557,5 +584,4 @@ var _ = Describe("Job Combination", func() {
 			})
 		})
 	})
-
 })

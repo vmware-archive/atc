@@ -30,13 +30,14 @@ type FakeBuildScheduler struct {
 		result1 map[string]time.Duration
 		result2 error
 	}
-	TriggerImmediatelyStub        func(logger lager.Logger, job db.Job, resources db.Resources, resourceTypes atc.VersionedResourceTypes) (db.Build, scheduler.Waiter, error)
+	TriggerImmediatelyStub        func(logger lager.Logger, job db.Job, jobCombination db.JobCombination, resources db.Resources, resourceTypes atc.VersionedResourceTypes) (db.Build, scheduler.Waiter, error)
 	triggerImmediatelyMutex       sync.RWMutex
 	triggerImmediatelyArgsForCall []struct {
-		logger        lager.Logger
-		job           db.Job
-		resources     db.Resources
-		resourceTypes atc.VersionedResourceTypes
+		logger         lager.Logger
+		job            db.Job
+		jobCombination db.JobCombination
+		resources      db.Resources
+		resourceTypes  atc.VersionedResourceTypes
 	}
 	triggerImmediatelyReturns struct {
 		result1 db.Build
@@ -125,19 +126,20 @@ func (fake *FakeBuildScheduler) ScheduleReturnsOnCall(i int, result1 map[string]
 	}{result1, result2}
 }
 
-func (fake *FakeBuildScheduler) TriggerImmediately(logger lager.Logger, job db.Job, resources db.Resources, resourceTypes atc.VersionedResourceTypes) (db.Build, scheduler.Waiter, error) {
+func (fake *FakeBuildScheduler) TriggerImmediately(logger lager.Logger, job db.Job, jobCombination db.JobCombination, resources db.Resources, resourceTypes atc.VersionedResourceTypes) (db.Build, scheduler.Waiter, error) {
 	fake.triggerImmediatelyMutex.Lock()
 	ret, specificReturn := fake.triggerImmediatelyReturnsOnCall[len(fake.triggerImmediatelyArgsForCall)]
 	fake.triggerImmediatelyArgsForCall = append(fake.triggerImmediatelyArgsForCall, struct {
-		logger        lager.Logger
-		job           db.Job
-		resources     db.Resources
-		resourceTypes atc.VersionedResourceTypes
-	}{logger, job, resources, resourceTypes})
-	fake.recordInvocation("TriggerImmediately", []interface{}{logger, job, resources, resourceTypes})
+		logger         lager.Logger
+		job            db.Job
+		jobCombination db.JobCombination
+		resources      db.Resources
+		resourceTypes  atc.VersionedResourceTypes
+	}{logger, job, jobCombination, resources, resourceTypes})
+	fake.recordInvocation("TriggerImmediately", []interface{}{logger, job, jobCombination, resources, resourceTypes})
 	fake.triggerImmediatelyMutex.Unlock()
 	if fake.TriggerImmediatelyStub != nil {
-		return fake.TriggerImmediatelyStub(logger, job, resources, resourceTypes)
+		return fake.TriggerImmediatelyStub(logger, job, jobCombination, resources, resourceTypes)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
@@ -151,10 +153,10 @@ func (fake *FakeBuildScheduler) TriggerImmediatelyCallCount() int {
 	return len(fake.triggerImmediatelyArgsForCall)
 }
 
-func (fake *FakeBuildScheduler) TriggerImmediatelyArgsForCall(i int) (lager.Logger, db.Job, db.Resources, atc.VersionedResourceTypes) {
+func (fake *FakeBuildScheduler) TriggerImmediatelyArgsForCall(i int) (lager.Logger, db.Job, db.JobCombination, db.Resources, atc.VersionedResourceTypes) {
 	fake.triggerImmediatelyMutex.RLock()
 	defer fake.triggerImmediatelyMutex.RUnlock()
-	return fake.triggerImmediatelyArgsForCall[i].logger, fake.triggerImmediatelyArgsForCall[i].job, fake.triggerImmediatelyArgsForCall[i].resources, fake.triggerImmediatelyArgsForCall[i].resourceTypes
+	return fake.triggerImmediatelyArgsForCall[i].logger, fake.triggerImmediatelyArgsForCall[i].job, fake.triggerImmediatelyArgsForCall[i].jobCombination, fake.triggerImmediatelyArgsForCall[i].resources, fake.triggerImmediatelyArgsForCall[i].resourceTypes
 }
 
 func (fake *FakeBuildScheduler) TriggerImmediatelyReturns(result1 db.Build, result2 scheduler.Waiter, result3 error) {

@@ -82,7 +82,7 @@ var _ = Describe("Scheduler", func() {
 		})
 
 		JustBeforeEach(func() {
-			versionsDB = &algorithm.VersionsDB{JobIDs: map[string]int{"j1": 1}}
+			versionsDB = &algorithm.VersionsDB{JobCombinationIDs: map[string]int{"j1": 1}}
 
 			var waiter Waiter
 			_, scheduleErr = scheduler.Schedule(
@@ -150,8 +150,9 @@ var _ = Describe("Scheduler", func() {
 
 					It("started all pending builds for the right job", func() {
 						Expect(fakeBuildStarter.TryStartPendingBuildsForJobCallCount()).To(Equal(1))
-						_, actualJob, actualResources, actualResourceTypes, actualPendingBuilds := fakeBuildStarter.TryStartPendingBuildsForJobArgsForCall(0)
+						_, actualJob, actualJobCombination, actualResources, actualResourceTypes, actualPendingBuilds := fakeBuildStarter.TryStartPendingBuildsForJobArgsForCall(0)
 						Expect(actualJob.Name()).To(Equal(fakeJob.Name()))
+						Expect(actualJobCombination.ID()).To(Equal(fakeJobCombination.ID()))
 						Expect(actualResources).To(Equal(db.Resources{fakeResource}))
 						Expect(actualResourceTypes).To(Equal(versionedResourceTypes))
 						Expect(actualPendingBuilds).To(Equal(nextPendingBuildsJob1))
@@ -169,8 +170,8 @@ var _ = Describe("Scheduler", func() {
 
 					It("didn't create a pending build", func() {
 						//TODO: create a positive test case for this
-						Expect(fakeJob.EnsurePendingBuildExistsCallCount()).To(BeZero())
-						Expect(fakeJob2.EnsurePendingBuildExistsCallCount()).To(BeZero())
+						Expect(fakeJobCombination.EnsurePendingBuildExistsCallCount()).To(BeZero())
+						Expect(fakeJobCombination2.EnsurePendingBuildExistsCallCount()).To(BeZero())
 					})
 				})
 			})
@@ -266,17 +267,20 @@ var _ = Describe("Scheduler", func() {
 
 	Describe("TriggerImmediately", func() {
 		var (
-			fakeJob           *dbfakes.FakeJob
-			fakeResource      *dbfakes.FakeResource
-			triggeredBuild    db.Build
-			triggerErr        error
-			nextPendingBuilds []db.Build
+			fakeJob            *dbfakes.FakeJob
+			fakeJobCombination *dbfakes.FakeJobCombination
+			fakeResource       *dbfakes.FakeResource
+			triggeredBuild     db.Build
+			triggerErr         error
+			nextPendingBuilds  []db.Build
 		)
 
 		BeforeEach(func() {
 			fakeJob = new(dbfakes.FakeJob)
 			fakeJob.NameReturns("some-job")
 			fakeJob.ConfigReturns(atc.JobConfig{Plan: atc.PlanSequence{{Get: "input-1"}, {Get: "input-2"}}})
+
+			fakeJobCombination = new(dbfakes.FakeJobCombination)
 
 			fakeResource = new(dbfakes.FakeResource)
 			fakeResource.NameReturns("some-resource")
@@ -287,6 +291,7 @@ var _ = Describe("Scheduler", func() {
 			triggeredBuild, waiter, triggerErr = scheduler.TriggerImmediately(
 				lagertest.NewTestLogger("test"),
 				fakeJob,
+				fakeJobCombination,
 				db.Resources{fakeResource},
 				atc.VersionedResourceTypes{
 					{
@@ -302,7 +307,7 @@ var _ = Describe("Scheduler", func() {
 
 		Context("when creating the build fails", func() {
 			BeforeEach(func() {
-				fakeJob.CreateBuildReturns(nil, disaster)
+				fakeJobCombination.CreateBuildReturns(nil, disaster)
 			})
 
 			It("returns the error", func() {
@@ -316,11 +321,11 @@ var _ = Describe("Scheduler", func() {
 			BeforeEach(func() {
 				createdBuild = new(dbfakes.FakeBuild)
 				createdBuild.IsManuallyTriggeredReturns(true)
-				fakeJob.CreateBuildReturns(createdBuild, nil)
+				fakeJobCombination.CreateBuildReturns(createdBuild, nil)
 			})
 
 			It("tried to create a build for the right job", func() {
-				Expect(fakeJob.CreateBuildCallCount()).To(Equal(1))
+				Expect(fakeJobCombination.CreateBuildCallCount()).To(Equal(1))
 			})
 
 			Context("when get pending builds for job fails", func() {
@@ -350,7 +355,7 @@ var _ = Describe("Scheduler", func() {
 
 					It("tries to start builds for the right job", func() {
 						Expect(fakeBuildStarter.TryStartPendingBuildsForJobCallCount()).To(Equal(1))
-						_, _, _, _, b := fakeBuildStarter.TryStartPendingBuildsForJobArgsForCall(0)
+						_, _, _, _, _, b := fakeBuildStarter.TryStartPendingBuildsForJobArgsForCall(0)
 						Expect(b).To(Equal(nextPendingBuilds))
 					})
 				})
@@ -383,7 +388,7 @@ var _ = Describe("Scheduler", func() {
 			var versionsDB *algorithm.VersionsDB
 
 			BeforeEach(func() {
-				versionsDB = &algorithm.VersionsDB{JobIDs: map[string]int{"j1": 1}}
+				versionsDB = &algorithm.VersionsDB{JobCombinationIDs: map[string]int{"j1": 1}}
 				fakePipeline.LoadVersionsDBReturns(versionsDB, nil)
 			})
 

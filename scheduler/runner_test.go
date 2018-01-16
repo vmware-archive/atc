@@ -87,16 +87,16 @@ var _ = Describe("Runner", func() {
 						VersionID:  1,
 						ResourceID: 2,
 					},
-					BuildID: 3,
-					JobID:   4,
+					BuildID:          3,
+					JobCombinationID: 4,
 				},
 				{
 					ResourceVersion: algorithm.ResourceVersion{
 						VersionID:  1,
 						ResourceID: 2,
 					},
-					BuildID: 7,
-					JobID:   8,
+					BuildID:          7,
+					JobCombinationID: 8,
 				},
 			},
 		}

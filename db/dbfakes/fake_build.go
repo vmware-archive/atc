@@ -298,10 +298,10 @@ type FakeBuild struct {
 	saveEventReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SaveInputStub        func(input db.BuildInput) error
+	SaveInputStub        func(db.BuildInput) error
 	saveInputMutex       sync.RWMutex
 	saveInputArgsForCall []struct {
-		input db.BuildInput
+		arg1 db.BuildInput
 	}
 	saveInputReturns struct {
 		result1 error
@@ -1629,16 +1629,16 @@ func (fake *FakeBuild) SaveEventReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeBuild) SaveInput(input db.BuildInput) error {
+func (fake *FakeBuild) SaveInput(arg1 db.BuildInput) error {
 	fake.saveInputMutex.Lock()
 	ret, specificReturn := fake.saveInputReturnsOnCall[len(fake.saveInputArgsForCall)]
 	fake.saveInputArgsForCall = append(fake.saveInputArgsForCall, struct {
-		input db.BuildInput
-	}{input})
-	fake.recordInvocation("SaveInput", []interface{}{input})
+		arg1 db.BuildInput
+	}{arg1})
+	fake.recordInvocation("SaveInput", []interface{}{arg1})
 	fake.saveInputMutex.Unlock()
 	if fake.SaveInputStub != nil {
-		return fake.SaveInputStub(input)
+		return fake.SaveInputStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1655,7 +1655,7 @@ func (fake *FakeBuild) SaveInputCallCount() int {
 func (fake *FakeBuild) SaveInputArgsForCall(i int) db.BuildInput {
 	fake.saveInputMutex.RLock()
 	defer fake.saveInputMutex.RUnlock()
-	return fake.saveInputArgsForCall[i].input
+	return fake.saveInputArgsForCall[i].arg1
 }
 
 func (fake *FakeBuild) SaveInputReturns(result1 error) {
