@@ -98,10 +98,10 @@ func (db VersionsDB) VersionsOfResourcePassedJobs(resourceID int, passed JobSet)
 		for _, output := range db.BuildOutputs {
 			if output.ResourceID == resourceID && output.JobCombinationID == jobCombinationID {
 				versions.Add(VersionCandidate{
-					VersionID:  output.VersionID,
-					CheckOrder: output.CheckOrder,
-					BuildID:    output.BuildID,
-					JobID:      output.JobCombinationID,
+					VersionID:        output.VersionID,
+					CheckOrder:       output.CheckOrder,
+					BuildID:          output.BuildID,
+					JobCombinationID: output.JobCombinationID,
 				})
 			}
 		}

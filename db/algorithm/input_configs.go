@@ -9,7 +9,6 @@ type InputConfig struct {
 	UseEveryVersion  bool
 	PinnedVersionID  int
 	ResourceID       int
-	JobID            int
 	JobCombinationID int
 	ResourceSpaceID  int
 }
@@ -80,7 +79,7 @@ func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
 	for _, inputConfig := range configs {
 		inputName := inputConfig.Name
 		inputVersionID := basicMapping[inputName]
-		firstOccurrence := db.IsVersionFirstOccurrence(inputVersionID, inputConfig.JobID, inputName)
+		firstOccurrence := db.IsVersionFirstOccurrence(inputVersionID, inputConfig.JobCombinationID, inputName)
 		mapping[inputName] = InputVersion{
 			VersionID:       inputVersionID,
 			FirstOccurrence: firstOccurrence,
