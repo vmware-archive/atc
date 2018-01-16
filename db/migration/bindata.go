@@ -10,6 +10,8 @@
 // db/migration/migrations/1515427859_create_resource_spaces.up.sql
 // db/migration/migrations/1515427936_create_job_combinations.down.sql
 // db/migration/migrations/1515427936_create_job_combinations.up.sql
+// db/migration/migrations/1515427950_remove_inputs_determined_from_jobs.down.sql
+// db/migration/migrations/1515427950_remove_inputs_determined_from_jobs.up.sql
 // db/migration/migrations/1515427989_create_job_combinations_resource_spaces.down.sql
 // db/migration/migrations/1515427989_create_job_combinations_resource_spaces.up.sql
 // db/migration/migrations/1515772083_rename_builds_job_id_to_job_combination_id.down.sql
@@ -18,6 +20,8 @@
 // db/migration/migrations/1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.up.sql
 // db/migration/migrations/1515777805_rename_next_build_inputs_job_id_to_job_combination_id.down.sql
 // db/migration/migrations/1515777805_rename_next_build_inputs_job_id_to_job_combination_id.up.sql
+// db/migration/migrations/1516131253_rename_worker_task_caches_job_id_to_job_combination_id.down.sql
+// db/migration/migrations/1516131253_rename_worker_task_caches_job_id_to_job_combination_id.up.sql
 // db/migration/migrations/1516643303_update_auth_providers.down.go
 // db/migration/migrations/1516643303_update_auth_providers.up.go
 // db/migration/migrations/1517330648_add_worker_resource_certs.down.sql
@@ -295,7 +299,7 @@ func _1515427936_create_job_combinationsDownSql() (*asset, error) {
 	return a, nil
 }
 
-var __1515427936_create_job_combinationsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\x90\xc1\x6e\x84\x20\x10\x86\xef\x3c\xc5\x7f\xd4\x64\xdf\xc0\x13\x8b\x63\x43\xaa\xd8\x22\x26\xdd\x93\xd1\x42\x13\xb6\xbb\xd0\x54\x7b\xe8\xdb\x6f\x58\x2e\x26\x5e\x3f\xf8\x32\xdf\xcc\x99\x5e\xa4\xaa\x18\x03\x84\x26\x6e\x08\x86\x9f\x5b\xc2\x35\x2e\xd3\x67\xbc\x2f\x3e\xcc\x9b\x8f\x61\x45\xc1\x00\xc0\x5b\x0c\xa4\x25\x6f\xf1\xa6\x65\xc7\xf5\x05\xaf\x74\x39\x3d\x9f\x92\xe1\x2d\x7c\xd8\xa0\xa9\x21\x4d\x4a\xd0\x90\xe8\x8a\xc2\xdb\x12\xbd\x42\x4d\x2d\x19\x82\xe0\x83\xe0\x35\x65\x6d\x37\x04\xd7\x35\x86\x25\x63\x1f\x7e\xfe\xb6\x75\xb2\x6e\x73\xbf\x77\x1f\x9c\xc5\x12\xe3\xcd\xcd\x01\x35\x35\x7c\x6c\x0d\xbe\xe6\xdb\xea\x18\x50\xee\xe3\x47\x25\xdf\x47\x82\x54\x35\x7d\x1c\x76\x98\x72\xe2\x9e\x4d\xdf\xee\x3f\x95\x1d\xd7\xcd\x7f\x4f\xfb\xbe\x3c\x49\xaa\x81\xb4\x81\x54\xa6\x3f\x68\x45\x32\xb2\x59\x32\x60\xa0\x96\x84\x41\x82\xde\x32\xa0\xd1\x7d\xf7\xbc\x48\xc5\x98\xe8\xbb\x4e\x9a\x8a\x3d\x02\x00\x00\xff\xff\x9f\xb9\x61\x79\x80\x01\x00\x00")
+var __1515427936_create_job_combinationsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\xc1\x6a\x84\x30\x10\x86\xef\x79\x8a\xff\xa8\xb0\x6f\xe0\x29\x1b\xc7\x12\xaa\xb1\x8d\x11\xba\x27\xd1\x9a\x42\xb6\xbb\x49\x69\xec\xa1\x6f\x5f\x34\x14\x04\xf7\xfa\xcf\x7c\xcc\xf7\xcf\x99\x9e\xa4\x2a\x18\x03\x84\x26\x6e\x08\x86\x9f\x6b\xc2\x35\x4c\xc3\x7b\xb8\x4f\xce\x8f\x8b\x0b\x3e\x22\x63\x00\xe0\x66\x74\xa4\x25\xaf\xf1\xa2\x65\xc3\xf5\x05\xcf\x74\x39\x6d\xa3\x95\x70\x33\x9c\x5f\xa0\xa9\x22\x4d\x4a\x50\xb7\xa6\x11\x99\x9b\x73\xb4\x0a\x25\xd5\x64\x08\x82\x77\x82\x97\x94\xb0\xdd\x11\x5c\x63\xf0\x53\x8a\x9d\xff\xfa\x59\xe2\x30\xdb\xc5\x7e\xdf\x9d\xb7\x33\xa6\x10\x6e\x76\xf4\x28\xa9\xe2\x7d\x6d\xf0\x31\xde\xa2\x65\x40\xbe\x97\xef\x95\x7c\xed\x09\x52\x95\xf4\x76\xe8\x30\x24\xc5\x7d\x36\x7c\xda\xdf\xd5\xec\x58\x37\xed\x9e\xf6\x7e\xe9\x92\x54\x1d\x69\x03\xa9\x4c\x7b\xc0\xb2\x95\xf8\x27\x0f\x15\x72\x06\x74\x54\x93\x30\xd8\xe6\x8f\x76\x18\x50\xe9\xb6\xd9\xfe\x56\x30\x26\xda\xa6\x91\xa6\x60\x7f\x01\x00\x00\xff\xff\xad\xe4\xa7\xff\xa6\x01\x00\x00")
 
 func _1515427936_create_job_combinationsUpSqlBytes() ([]byte, error) {
 	return bindataRead(
@@ -310,7 +314,47 @@ func _1515427936_create_job_combinationsUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1515427936_create_job_combinations.up.sql", size: 384, mode: os.FileMode(420), modTime: time.Unix(1529589070, 0)}
+	info := bindataFileInfo{name: "1515427936_create_job_combinations.up.sql", size: 422, mode: os.FileMode(420), modTime: time.Unix(1529589072, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1515427950_remove_inputs_determined_from_jobsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x04\xc0\x51\x0a\xc3\x20\x0c\x06\xe0\xf7\x9c\xe2\xbf\x87\x4f\xb6\xba\x51\x88\x11\x46\x7c\x1e\x2d\xcd\xa0\xa3\xd3\x31\xdd\xfd\xfb\x4d\xf1\xbe\x88\x23\x02\x3c\x6b\x7c\x40\xfd\xc4\x11\xef\xb6\x75\xf8\x10\x30\x67\x2e\x49\x70\xd4\xef\x7f\xf4\xe7\x6e\xc3\x7e\x9f\xa3\xda\x8e\xad\xb5\xd3\xd6\x8a\x10\x6f\xbe\xb0\xe2\xb5\x9e\xdd\x20\x59\x21\x85\xd9\x11\xcd\x39\xa5\x45\x1d\x5d\x01\x00\x00\xff\xff\xcd\x2d\xb2\x3a\x61\x00\x00\x00")
+
+func _1515427950_remove_inputs_determined_from_jobsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1515427950_remove_inputs_determined_from_jobsDownSql,
+		"1515427950_remove_inputs_determined_from_jobs.down.sql",
+	)
+}
+
+func _1515427950_remove_inputs_determined_from_jobsDownSql() (*asset, error) {
+	bytes, err := _1515427950_remove_inputs_determined_from_jobsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1515427950_remove_inputs_determined_from_jobs.down.sql", size: 97, mode: os.FileMode(420), modTime: time.Unix(1529589072, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1515427950_remove_inputs_determined_from_jobsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\xe2\x52\x50\x70\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\xc8\xca\x4f\x2a\x56\x70\x09\xf2\x0f\x50\x70\xf6\xf7\x09\xf5\xf5\x53\xc8\xcc\x2b\x28\x2d\x29\x8e\x4f\x49\x2d\x49\x2d\xca\xcd\xcc\x4b\x4d\xb1\xe6\xe2\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\x02\x04\x00\x00\xff\xff\x7b\x76\xca\x50\x43\x00\x00\x00")
+
+func _1515427950_remove_inputs_determined_from_jobsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1515427950_remove_inputs_determined_from_jobsUpSql,
+		"1515427950_remove_inputs_determined_from_jobs.up.sql",
+	)
+}
+
+func _1515427950_remove_inputs_determined_from_jobsUpSql() (*asset, error) {
+	bytes, err := _1515427950_remove_inputs_determined_from_jobsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1515427950_remove_inputs_determined_from_jobs.up.sql", size: 67, mode: os.FileMode(420), modTime: time.Unix(1529589072, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -410,7 +454,7 @@ func _1515774541_rename_independent_build_inputs_job_id_to_job_combination_idDow
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.down.sql", size: 706, mode: os.FileMode(420), modTime: time.Unix(1522942563, 0)}
+	info := bindataFileInfo{name: "1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.down.sql", size: 706, mode: os.FileMode(420), modTime: time.Unix(1529589072, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -430,7 +474,7 @@ func _1515774541_rename_independent_build_inputs_job_id_to_job_combination_idUpS
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.up.sql", size: 742, mode: os.FileMode(420), modTime: time.Unix(1522942563, 0)}
+	info := bindataFileInfo{name: "1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.up.sql", size: 742, mode: os.FileMode(420), modTime: time.Unix(1529589072, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -450,7 +494,7 @@ func _1515777805_rename_next_build_inputs_job_id_to_job_combination_idDownSql() 
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1515777805_rename_next_build_inputs_job_id_to_job_combination_id.down.sql", size: 629, mode: os.FileMode(420), modTime: time.Unix(1522942596, 0)}
+	info := bindataFileInfo{name: "1515777805_rename_next_build_inputs_job_id_to_job_combination_id.down.sql", size: 629, mode: os.FileMode(420), modTime: time.Unix(1529589072, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -470,7 +514,47 @@ func _1515777805_rename_next_build_inputs_job_id_to_job_combination_idUpSql() (*
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1515777805_rename_next_build_inputs_job_id_to_job_combination_id.up.sql", size: 665, mode: os.FileMode(420), modTime: time.Unix(1522942596, 0)}
+	info := bindataFileInfo{name: "1515777805_rename_next_build_inputs_job_id_to_job_combination_id.up.sql", size: 665, mode: os.FileMode(420), modTime: time.Unix(1529589072, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1516131253_rename_worker_task_caches_job_id_to_job_combination_idDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x90\xcd\x4a\xc5\x30\x10\x85\xf7\x79\x8a\x59\x5e\x9f\xa1\xab\xdc\xe4\xdc\x4b\xb0\x9d\x48\x3a\x0b\x5d\x85\xfe\x89\xb1\xd8\x40\x5b\x10\xdf\x5e\xea\x0f\x08\x2a\x64\x7b\x66\xf8\xe6\x7c\x73\xc6\xd5\x71\xa5\x14\x91\xae\x05\x81\x44\x9f\x6b\xd0\x6b\x5e\xe7\x69\x8d\x7b\xb7\xcd\x71\xe8\x86\xa7\x69\xa3\x00\xd6\x0d\xe8\x39\xf7\x71\xc8\x2f\x7d\x5a\xba\x3d\xe5\x25\xa6\x91\xc4\x7f\xa4\x69\x2c\xc1\xd8\xe0\xef\xc8\x78\x6e\x25\x68\xc7\xf2\xc7\x4a\xfc\x7d\x22\x3e\xce\xd3\x5b\x09\x5d\x5b\x5b\x00\xff\x02\xd2\xc5\x07\xb8\x2b\xd3\x2d\x1e\xe8\xf4\x39\xb8\xa1\x80\x0b\x02\xd8\xa0\x3d\xac\xb6\xd3\x91\x79\x26\x8b\x1a\x02\x32\xba\x35\xda\xe2\x47\x17\xc7\x16\xf7\x65\x1a\xdf\x3f\x14\xff\x7f\xb3\x4a\x29\xe3\x9b\xc6\x49\xa5\xde\x03\x00\x00\xff\xff\xaa\xe4\x85\xa3\x9b\x01\x00\x00")
+
+func _1516131253_rename_worker_task_caches_job_id_to_job_combination_idDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1516131253_rename_worker_task_caches_job_id_to_job_combination_idDownSql,
+		"1516131253_rename_worker_task_caches_job_id_to_job_combination_id.down.sql",
+	)
+}
+
+func _1516131253_rename_worker_task_caches_job_id_to_job_combination_idDownSql() (*asset, error) {
+	bytes, err := _1516131253_rename_worker_task_caches_job_id_to_job_combination_idDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1516131253_rename_worker_task_caches_job_id_to_job_combination_id.down.sql", size: 411, mode: os.FileMode(420), modTime: time.Unix(1529589072, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1516131253_rename_worker_task_caches_job_id_to_job_combination_idUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x90\xcf\x4a\xc4\x30\x10\xc6\xef\x79\x8a\x39\xae\xcf\xd0\x53\x36\xf9\x76\x09\xb6\x13\x49\xe7\xa0\xa7\xd0\x6d\x2b\xc6\x62\x03\x6d\x41\x7c\x7b\xb1\x22\xf8\x6f\x21\xb7\x81\xf9\xf8\xcd\xef\x9b\x23\xce\x8e\x2b\xa5\x88\x74\x2d\x08\x24\xfa\x58\x83\x5e\xf3\x32\x8d\x4b\xdc\xba\x75\x8a\x7d\xd7\x3f\x8d\x2b\x05\xb0\x6e\x40\xcf\xf9\x12\xd3\x40\xe2\xf7\xa9\xcf\x2f\x97\x34\x77\x5b\xca\x73\x4c\x43\x09\xc6\x06\x7f\x47\xc6\x73\x2b\x41\x3b\x96\x7f\x22\xf1\xf3\x44\x7c\x9c\xc6\xb7\x12\xa2\xb6\xb6\x00\xf8\xd3\x74\x87\xd3\xc9\x07\xb8\x33\xd3\x2d\x1e\xe8\xf0\x37\x74\x43\x01\x27\x04\xb0\x41\xfb\xbb\xed\x7a\xf8\xd8\x7b\x26\x8b\x1a\x02\x32\xba\x35\xda\xe2\x9b\xaf\x63\x8b\xfb\xeb\xf5\xbe\xfe\x29\xbe\xcc\xb8\x52\xca\xf8\xa6\x71\x52\xa9\xf7\x00\x00\x00\xff\xff\x17\x30\x80\x61\xb3\x01\x00\x00")
+
+func _1516131253_rename_worker_task_caches_job_id_to_job_combination_idUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1516131253_rename_worker_task_caches_job_id_to_job_combination_idUpSql,
+		"1516131253_rename_worker_task_caches_job_id_to_job_combination_id.up.sql",
+	)
+}
+
+func _1516131253_rename_worker_task_caches_job_id_to_job_combination_idUpSql() (*asset, error) {
+	bytes, err := _1516131253_rename_worker_task_caches_job_id_to_job_combination_idUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1516131253_rename_worker_task_caches_job_id_to_job_combination_id.up.sql", size: 435, mode: os.FileMode(420), modTime: time.Unix(1529589072, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1137,6 +1221,8 @@ var _bindata = map[string]func() (*asset, error){
 	"1515427859_create_resource_spaces.up.sql": _1515427859_create_resource_spacesUpSql,
 	"1515427936_create_job_combinations.down.sql": _1515427936_create_job_combinationsDownSql,
 	"1515427936_create_job_combinations.up.sql": _1515427936_create_job_combinationsUpSql,
+	"1515427950_remove_inputs_determined_from_jobs.down.sql": _1515427950_remove_inputs_determined_from_jobsDownSql,
+	"1515427950_remove_inputs_determined_from_jobs.up.sql": _1515427950_remove_inputs_determined_from_jobsUpSql,
 	"1515427989_create_job_combinations_resource_spaces.down.sql": _1515427989_create_job_combinations_resource_spacesDownSql,
 	"1515427989_create_job_combinations_resource_spaces.up.sql": _1515427989_create_job_combinations_resource_spacesUpSql,
 	"1515772083_rename_builds_job_id_to_job_combination_id.down.sql": _1515772083_rename_builds_job_id_to_job_combination_idDownSql,
@@ -1145,6 +1231,8 @@ var _bindata = map[string]func() (*asset, error){
 	"1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.up.sql": _1515774541_rename_independent_build_inputs_job_id_to_job_combination_idUpSql,
 	"1515777805_rename_next_build_inputs_job_id_to_job_combination_id.down.sql": _1515777805_rename_next_build_inputs_job_id_to_job_combination_idDownSql,
 	"1515777805_rename_next_build_inputs_job_id_to_job_combination_id.up.sql": _1515777805_rename_next_build_inputs_job_id_to_job_combination_idUpSql,
+	"1516131253_rename_worker_task_caches_job_id_to_job_combination_id.down.sql": _1516131253_rename_worker_task_caches_job_id_to_job_combination_idDownSql,
+	"1516131253_rename_worker_task_caches_job_id_to_job_combination_id.up.sql": _1516131253_rename_worker_task_caches_job_id_to_job_combination_idUpSql,
 	"1516643303_update_auth_providers.down.go": _1516643303_update_auth_providersDownGo,
 	"1516643303_update_auth_providers.up.go": _1516643303_update_auth_providersUpGo,
 	"1517330648_add_worker_resource_certs.down.sql": _1517330648_add_worker_resource_certsDownSql,
@@ -1227,6 +1315,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1515427859_create_resource_spaces.up.sql": &bintree{_1515427859_create_resource_spacesUpSql, map[string]*bintree{}},
 	"1515427936_create_job_combinations.down.sql": &bintree{_1515427936_create_job_combinationsDownSql, map[string]*bintree{}},
 	"1515427936_create_job_combinations.up.sql": &bintree{_1515427936_create_job_combinationsUpSql, map[string]*bintree{}},
+	"1515427950_remove_inputs_determined_from_jobs.down.sql": &bintree{_1515427950_remove_inputs_determined_from_jobsDownSql, map[string]*bintree{}},
+	"1515427950_remove_inputs_determined_from_jobs.up.sql": &bintree{_1515427950_remove_inputs_determined_from_jobsUpSql, map[string]*bintree{}},
 	"1515427989_create_job_combinations_resource_spaces.down.sql": &bintree{_1515427989_create_job_combinations_resource_spacesDownSql, map[string]*bintree{}},
 	"1515427989_create_job_combinations_resource_spaces.up.sql": &bintree{_1515427989_create_job_combinations_resource_spacesUpSql, map[string]*bintree{}},
 	"1515772083_rename_builds_job_id_to_job_combination_id.down.sql": &bintree{_1515772083_rename_builds_job_id_to_job_combination_idDownSql, map[string]*bintree{}},
@@ -1235,6 +1325,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1515774541_rename_independent_build_inputs_job_id_to_job_combination_id.up.sql": &bintree{_1515774541_rename_independent_build_inputs_job_id_to_job_combination_idUpSql, map[string]*bintree{}},
 	"1515777805_rename_next_build_inputs_job_id_to_job_combination_id.down.sql": &bintree{_1515777805_rename_next_build_inputs_job_id_to_job_combination_idDownSql, map[string]*bintree{}},
 	"1515777805_rename_next_build_inputs_job_id_to_job_combination_id.up.sql": &bintree{_1515777805_rename_next_build_inputs_job_id_to_job_combination_idUpSql, map[string]*bintree{}},
+	"1516131253_rename_worker_task_caches_job_id_to_job_combination_id.down.sql": &bintree{_1516131253_rename_worker_task_caches_job_id_to_job_combination_idDownSql, map[string]*bintree{}},
+	"1516131253_rename_worker_task_caches_job_id_to_job_combination_id.up.sql": &bintree{_1516131253_rename_worker_task_caches_job_id_to_job_combination_idUpSql, map[string]*bintree{}},
 	"1516643303_update_auth_providers.down.go": &bintree{_1516643303_update_auth_providersDownGo, map[string]*bintree{}},
 	"1516643303_update_auth_providers.up.go": &bintree{_1516643303_update_auth_providersUpGo, map[string]*bintree{}},
 	"1517330648_add_worker_resource_certs.down.sql": &bintree{_1517330648_add_worker_resource_certsDownSql, map[string]*bintree{}},

@@ -1550,10 +1550,12 @@ var _ = Describe("Team", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			_, err = workerTaskCacheFactory.FindOrCreate(job.ID(), "some-task", "some-path", defaultWorker.Name())
+			jobCombination := getJobCombination(job, map[string]string{"some-resource": "default"})
+
+			_, err = workerTaskCacheFactory.FindOrCreate(jobCombination.ID(), "some-task", "some-path", defaultWorker.Name())
 			Expect(err).ToNot(HaveOccurred())
 
-			_, found, err = workerTaskCacheFactory.Find(job.ID(), "some-task", "some-path", defaultWorker.Name())
+			_, found, err = workerTaskCacheFactory.Find(jobCombination.ID(), "some-task", "some-path", defaultWorker.Name())
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
@@ -1562,7 +1564,7 @@ var _ = Describe("Team", func() {
 			_, _, err = team.SavePipeline(pipelineName, config, pipeline.ConfigVersion(), db.PipelineNoChange)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, found, err = workerTaskCacheFactory.Find(job.ID(), "some-task", "some-path", defaultWorker.Name())
+			_, found, err = workerTaskCacheFactory.Find(jobCombination.ID(), "some-task", "some-path", defaultWorker.Name())
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeFalse())
 		})
@@ -1575,10 +1577,12 @@ var _ = Describe("Team", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			_, err = workerTaskCacheFactory.FindOrCreate(job.ID(), "some-task", "some-path", defaultWorker.Name())
+			jobCombination := getJobCombination(job, map[string]string{"some-resource": "default"})
+
+			_, err = workerTaskCacheFactory.FindOrCreate(jobCombination.ID(), "some-task", "some-path", defaultWorker.Name())
 			Expect(err).ToNot(HaveOccurred())
 
-			_, found, err = workerTaskCacheFactory.Find(job.ID(), "some-task", "some-path", defaultWorker.Name())
+			_, found, err = workerTaskCacheFactory.Find(jobCombination.ID(), "some-task", "some-path", defaultWorker.Name())
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
@@ -1597,7 +1601,7 @@ var _ = Describe("Team", func() {
 			_, _, err = team.SavePipeline(pipelineName, config, pipeline.ConfigVersion(), db.PipelineNoChange)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, found, err = workerTaskCacheFactory.Find(job.ID(), "some-task", "some-path", defaultWorker.Name())
+			_, found, err = workerTaskCacheFactory.Find(jobCombination.ID(), "some-task", "some-path", defaultWorker.Name())
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeFalse())
 		})

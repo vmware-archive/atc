@@ -14,6 +14,7 @@ import (
 var _ = Describe("Volume", func() {
 	var defaultCreatingContainer db.CreatingContainer
 	var defaultCreatedContainer db.CreatedContainer
+	var defaultJobCombination db.JobCombination
 
 	BeforeEach(func() {
 		expiries := db.ContainerOwnerExpiries{
@@ -30,6 +31,8 @@ var _ = Describe("Volume", func() {
 
 		defaultCreatedContainer, err = defaultCreatingContainer.Created()
 		Expect(err).ToNot(HaveOccurred())
+
+		defaultJobCombination = getJobCombination(defaultJob, map[string]string{})
 	})
 
 	Describe("creatingVolume.Failed", func() {
@@ -277,7 +280,7 @@ var _ = Describe("Volume", func() {
 				existingTaskCacheVolume, err = v.Created()
 				Expect(err).ToNot(HaveOccurred())
 
-				err = existingTaskCacheVolume.InitializeTaskCache(defaultJob.ID(), "some-step", "some-cache-path")
+				err = existingTaskCacheVolume.InitializeTaskCache(defaultJobCombination.ID(), "some-step", "some-cache-path")
 				Expect(err).ToNot(HaveOccurred())
 
 				v, err = volumeRepository.CreateContainerVolume(defaultTeam.ID(), defaultWorker.Name(), creatingContainer, "some-other-path")
@@ -288,7 +291,7 @@ var _ = Describe("Volume", func() {
 			})
 
 			It("sets current volume as worker task cache volume", func() {
-				uwtc, err := workerTaskCacheFactory.FindOrCreate(defaultJob.ID(), "some-step", "some-cache-path", defaultWorker.Name())
+				uwtc, err := workerTaskCacheFactory.FindOrCreate(defaultJobCombination.ID(), "some-step", "some-cache-path", defaultWorker.Name())
 				Expect(err).ToNot(HaveOccurred())
 
 				creatingVolume, createdVolume, err := volumeRepository.FindTaskCacheVolume(defaultTeam.ID(), uwtc)
@@ -297,7 +300,7 @@ var _ = Describe("Volume", func() {
 				Expect(createdVolume).ToNot(BeNil())
 				Expect(createdVolume.Handle()).To(Equal(existingTaskCacheVolume.Handle()))
 
-				err = volume.InitializeTaskCache(defaultJob.ID(), "some-step", "some-cache-path")
+				err = volume.InitializeTaskCache(defaultJobCombination.ID(), "some-step", "some-cache-path")
 				Expect(err).ToNot(HaveOccurred())
 
 				creatingVolume, createdVolume, err = volumeRepository.FindTaskCacheVolume(defaultTeam.ID(), uwtc)
@@ -465,7 +468,7 @@ var _ = Describe("Volume", func() {
 
 	Describe("Task cache volumes", func() {
 		It("returns volume type and task identifier", func() {
-			uwtc, err := workerTaskCacheFactory.FindOrCreate(defaultJob.ID(), "some-task", "some-path", defaultWorker.Name())
+			uwtc, err := workerTaskCacheFactory.FindOrCreate(defaultJobCombination.ID(), "some-task", "some-path", defaultWorker.Name())
 			Expect(err).ToNot(HaveOccurred())
 
 			creatingVolume, err := volumeRepository.CreateTaskCacheVolume(defaultTeam.ID(), uwtc)

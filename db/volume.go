@@ -214,7 +214,8 @@ func (volume *createdVolume) TaskIdentifier() (string, string, string, error) {
 
 	err := psql.Select("p.name, j.name, wtc.step_name").
 		From("worker_task_caches wtc").
-		LeftJoin("jobs j ON j.id = wtc.job_id").
+		LeftJoin("job_combinations c ON c.id = wtc.job_combination_id").
+		LeftJoin("jobs j ON j.id = c.job_id").
 		LeftJoin("pipelines p ON p.id = j.pipeline_id").
 		Where(sq.Eq{
 			"wtc.id": volume.workerTaskCacheID,
@@ -377,16 +378,16 @@ func (volume *createdVolume) InitializeResourceCache(resourceCache *UsedResource
 	return nil
 }
 
-func (volume *createdVolume) InitializeTaskCache(jobID int, stepName string, path string) error {
+func (volume *createdVolume) InitializeTaskCache(jobCombinationID int, stepName string, path string) error {
 	var usedWorkerTaskCache *UsedWorkerTaskCache
 
 	err := safeFindOrCreate(volume.conn, func(tx Tx) error {
 		var err error
 		usedWorkerTaskCache, err = WorkerTaskCache{
-			JobID:      jobID,
-			StepName:   stepName,
-			WorkerName: volume.WorkerName(),
-			Path:       path,
+			JobCombinationID: jobCombinationID,
+			StepName:         stepName,
+			WorkerName:       volume.WorkerName(),
+			Path:             path,
 		}.FindOrCreate(tx)
 		return err
 	})
