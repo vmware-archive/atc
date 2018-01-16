@@ -262,10 +262,10 @@ var _ = Describe("I'm a BuildStarter", func() {
 
 							Context("when creaing a build plan", func() {
 								BeforeEach(func() {
-									jobCombination.GetNextBuildInputsReturns(algorithm.InputMapping{}, true, nil)
+									jobCombination.GetNextBuildInputsReturns([]db.BuildInput{}, true, nil)
 									fakePipeline.CheckPausedReturns(false, nil)
 									createdBuild.ScheduleReturns(true, nil)
-									createdBuild.UseInputsReturns([]db.BuildInput{}, nil)
+									createdBuild.UseInputsReturns(nil)
 									fakeEngine.CreateBuildReturns(new(enginefakes.FakeBuild), nil)
 								})
 
@@ -362,11 +362,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 				BeforeEach(func() {
 					job.PausedReturns(false)
 					fakeUpdater.UpdateMaxInFlightReachedReturns(false, nil)
-					jobCombination.GetNextBuildInputsReturns(
-						algorithm.InputMapping{"some-input": algorithm.InputVersion{VersionID: 66, FirstOccurrence: true}},
-						true,
-						nil,
-					)
+					jobCombination.GetNextBuildInputsReturns([]db.BuildInput{{Name: "some-input"}}, true, nil)
 					fakePipeline.PausedReturns(false)
 				})
 
@@ -423,7 +419,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 
 						Context("when using inputs for build fails", func() {
 							BeforeEach(func() {
-								pendingBuild1.UseInputsReturns(nil, disaster)
+								pendingBuild1.UseInputsReturns(disaster)
 							})
 
 							It("returns the error", func() {
@@ -439,7 +435,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 
 						Context("when using inputs for build succeeds", func() {
 							BeforeEach(func() {
-								pendingBuild1.UseInputsReturns(nil, nil)
+								pendingBuild1.UseInputsReturns(nil)
 							})
 
 							Context("when creating the build plan fails", func() {

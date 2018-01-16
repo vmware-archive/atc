@@ -52,7 +52,7 @@ var _ = Describe("ResourceCacheCollector", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 
-				jobBuild, err = defaultJob.CreateBuild()
+				jobBuild, err = defaultJobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
 
 				jobCache, err = resourceCacheFactory.FindOrCreateResourceCache(
@@ -126,7 +126,7 @@ var _ = Describe("ResourceCacheCollector", func() {
 							RunWith(dbConn).QueryRow().Scan(&versionID)
 						Expect(err).NotTo(HaveOccurred())
 
-						Expect(defaultJob.SaveNextInputMapping(algorithm.InputMapping{
+						Expect(defaultJobCombination.SaveNextInputMapping(algorithm.InputMapping{
 							"whatever": algorithm.InputVersion{
 								VersionID: versionID,
 							},
@@ -166,7 +166,7 @@ var _ = Describe("ResourceCacheCollector", func() {
 						var secondJobCache *db.UsedResourceCache
 
 						BeforeEach(func() {
-							secondJobBuild, err = defaultJob.CreateBuild()
+							secondJobBuild, err = defaultJobCombination.CreateBuild()
 							Expect(err).ToNot(HaveOccurred())
 
 							secondJobCache, err = resourceCacheFactory.FindOrCreateResourceCache(
@@ -217,7 +217,11 @@ var _ = Describe("ResourceCacheCollector", func() {
 							Expect(err).NotTo(HaveOccurred())
 							Expect(found).To(BeTrue())
 
-							secondJobBuild, err = secondJob.CreateBuild()
+							combinations, err := secondJob.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+							Expect(err).ToNot(HaveOccurred())
+							secondJobCombination := combinations[0]
+
+							secondJobBuild, err = secondJobCombination.CreateBuild()
 							Expect(err).ToNot(HaveOccurred())
 
 							secondJobCache, err = resourceCacheFactory.FindOrCreateResourceCache(

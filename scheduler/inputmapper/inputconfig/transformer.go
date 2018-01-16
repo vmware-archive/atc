@@ -53,7 +53,6 @@ func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, jo
 			PinnedVersionID:  pinnedVersionID,
 			ResourceID:       versionsDB.ResourceIDs[input.Resource],
 			Passed:           jobs,
-			JobID:            jobCombination.JobID(),
 			JobCombinationID: jobCombination.ID(),
 		})
 	}
