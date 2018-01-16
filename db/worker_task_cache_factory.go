@@ -16,8 +16,8 @@ type UsedWorkerTaskCache struct {
 //go:generate counterfeiter . WorkerTaskCacheFactory
 
 type WorkerTaskCacheFactory interface {
-	Find(jobID int, stepName string, path string, workerName string) (*UsedWorkerTaskCache, bool, error)
-	FindOrCreate(jobID int, stepName string, path string, workerName string) (*UsedWorkerTaskCache, error)
+	Find(jobCombinationID int, stepName string, path string, workerName string) (*UsedWorkerTaskCache, bool, error)
+	FindOrCreate(jobCombinationID int, stepName string, path string, workerName string) (*UsedWorkerTaskCache, error)
 }
 
 type workerTaskCacheFactory struct {
@@ -30,15 +30,15 @@ func NewWorkerTaskCacheFactory(conn Conn) WorkerTaskCacheFactory {
 	}
 }
 
-func (f *workerTaskCacheFactory) Find(jobID int, stepName string, path string, workerName string) (*UsedWorkerTaskCache, bool, error) {
+func (f *workerTaskCacheFactory) Find(jobCombinationID int, stepName string, path string, workerName string) (*UsedWorkerTaskCache, bool, error) {
 	var id int
 	err := psql.Select("id").
 		From("worker_task_caches").
 		Where(sq.Eq{
-			"job_id":      jobID,
-			"step_name":   stepName,
-			"worker_name": workerName,
-			"path":        path,
+			"job_combination_id": jobCombinationID,
+			"step_name":          stepName,
+			"worker_name":        workerName,
+			"path":               path,
 		}).
 		RunWith(f.conn).
 		QueryRow().
@@ -57,12 +57,12 @@ func (f *workerTaskCacheFactory) Find(jobID int, stepName string, path string, w
 	}, true, nil
 }
 
-func (f *workerTaskCacheFactory) FindOrCreate(jobID int, stepName string, path string, workerName string) (*UsedWorkerTaskCache, error) {
+func (f *workerTaskCacheFactory) FindOrCreate(jobCombinationID int, stepName string, path string, workerName string) (*UsedWorkerTaskCache, error) {
 	workerTaskCache := WorkerTaskCache{
-		JobID:      jobID,
-		StepName:   stepName,
-		WorkerName: workerName,
-		Path:       path,
+		JobCombinationID: jobCombinationID,
+		StepName:         stepName,
+		WorkerName:       workerName,
+		Path:             path,
 	}
 
 	var usedWorkerTaskCache *UsedWorkerTaskCache
@@ -81,10 +81,10 @@ func (f *workerTaskCacheFactory) FindOrCreate(jobID int, stepName string, path s
 }
 
 type WorkerTaskCache struct {
-	JobID      int
-	StepName   string
-	WorkerName string
-	Path       string
+	JobCombinationID int
+	StepName         string
+	WorkerName       string
+	Path             string
 }
 
 func (wtc WorkerTaskCache) FindOrCreate(
@@ -94,10 +94,10 @@ func (wtc WorkerTaskCache) FindOrCreate(
 	err := psql.Select("id").
 		From("worker_task_caches").
 		Where(sq.Eq{
-			"job_id":      wtc.JobID,
-			"step_name":   wtc.StepName,
-			"worker_name": wtc.WorkerName,
-			"path":        wtc.Path,
+			"job_combination_id": wtc.JobCombinationID,
+			"step_name":          wtc.StepName,
+			"worker_name":        wtc.WorkerName,
+			"path":               wtc.Path,
 		}).
 		RunWith(tx).
 		QueryRow().
@@ -106,13 +106,13 @@ func (wtc WorkerTaskCache) FindOrCreate(
 		if err == sql.ErrNoRows {
 			err = psql.Insert("worker_task_caches").
 				Columns(
-					"job_id",
+					"job_combination_id",
 					"step_name",
 					"worker_name",
 					"path",
 				).
 				Values(
-					wtc.JobID,
+					wtc.JobCombinationID,
 					wtc.StepName,
 					wtc.WorkerName,
 					wtc.Path,
@@ -159,7 +159,7 @@ func removeUnusedWorkerTaskCaches(tx Tx, pipelineID int, jobConfigs []atc.JobCon
 		query = append(query, sq.And{sq.Eq{"j.name": jobName}, sq.NotEq{"wtc.step_name": stepNames}})
 	}
 
-	_, err := psql.Delete("worker_task_caches wtc USING jobs j").
+	_, err := psql.Delete("worker_task_caches wtc USING jobs j, job_combinations c").
 		Where(sq.Or{
 			query,
 			sq.Eq{
@@ -167,7 +167,8 @@ func removeUnusedWorkerTaskCaches(tx Tx, pipelineID int, jobConfigs []atc.JobCon
 				"j.active":      false,
 			},
 		}).
-		Where(sq.Expr("j.id = wtc.job_id")).
+		Where(sq.Expr("c.id = wtc.job_combination_id")).
+		Where(sq.Expr("c.job_id = j.id")).
 		RunWith(tx).
 		Exec()
 
