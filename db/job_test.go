@@ -259,8 +259,6 @@ var _ = Describe("Job", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(combination.ID()).To(Equal(jobCombination.ID()))
 			Expect(combination.JobID()).To(Equal(jobCombination.JobID()))
-			// FIXME
-			// Expect(combination.Combination()).To(Equal(jobCombination.Combination()))
 		})
 	})
 

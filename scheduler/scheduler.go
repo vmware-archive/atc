@@ -72,11 +72,15 @@ func (s *Scheduler) Schedule(
 ) (map[string]time.Duration, error) {
 	jobSchedulingTime := map[string]time.Duration{}
 
+	jobCombinationsMap := map[string][]db.JobCombination{}
+
 	for _, job := range jobs {
 		jobCombinations, err := job.SyncResourceSpaceCombinations(Combinations(job.Config().Spaces()))
 		if err != nil {
 			logger.Error("failed-to-sync-resource-space-combinations", err)
 		}
+
+		jobCombinationsMap[job.Name()] = jobCombinations
 
 		jStart := time.Now()
 
@@ -107,11 +111,13 @@ func (s *Scheduler) Schedule(
 			continue
 		}
 
-		err := s.BuildStarter.TryStartPendingBuildsForJob(logger, job, nil, resources, resourceTypes, nextPendingBuildsForJob)
-		jobSchedulingTime[job.Name()] = jobSchedulingTime[job.Name()] + time.Since(jStart)
+		for _, jobCombination := range jobCombinationsMap[job.Name()] {
+			err := s.BuildStarter.TryStartPendingBuildsForJob(logger, job, jobCombination, resources, resourceTypes, nextPendingBuildsForJob)
+			jobSchedulingTime[job.Name()] = jobSchedulingTime[job.Name()] + time.Since(jStart)
 
-		if err != nil {
-			return jobSchedulingTime, err
+			if err != nil {
+				return jobSchedulingTime, err
+			}
 		}
 	}
 
