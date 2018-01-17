@@ -193,8 +193,7 @@ var _ = Describe("Transformer", func() {
 			})
 		})
 
-		// FIXME
-		XContext("when an input has things that don't exist", func() {
+		Context("when an input has things that don't exist", func() {
 			It("at least doesn't panic", func() {
 				algorithmInputs, transformErr := transformer.TransformInputConfigs(
 					&algorithm.VersionsDB{},
