@@ -23,6 +23,13 @@ type transformer struct {
 func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, jobCombination db.JobCombination, inputs []atc.JobInput) (algorithm.InputConfigs, error) {
 	inputConfigs := algorithm.InputConfigs{}
 
+	var jobCombinationID int
+	if jobCombination == nil {
+		jobCombinationID = 0
+	} else {
+		jobCombinationID = jobCombination.ID()
+	}
+
 	for _, input := range inputs {
 		if input.Version == nil {
 			input.Version = &atc.VersionConfig{Latest: true}
@@ -53,7 +60,7 @@ func (i *transformer) TransformInputConfigs(versionsDB *algorithm.VersionsDB, jo
 			PinnedVersionID:  pinnedVersionID,
 			ResourceID:       versionsDB.ResourceIDs[input.Resource],
 			Passed:           jobs,
-			JobCombinationID: jobCombination.ID(),
+			JobCombinationID: jobCombinationID,
 		})
 	}
 
