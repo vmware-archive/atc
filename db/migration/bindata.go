@@ -245,12 +245,12 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"1510262030_initial_schema.down.sql": _1510262030_initial_schemaDownSql,
-	"1510262030_initial_schema.up.sql": _1510262030_initial_schemaUpSql,
+	"1510262030_initial_schema.down.sql":                               _1510262030_initial_schemaDownSql,
+	"1510262030_initial_schema.up.sql":                                 _1510262030_initial_schemaUpSql,
 	"1510670987_update_unique_constraint_for_resource_caches.down.sql": _1510670987_update_unique_constraint_for_resource_cachesDownSql,
-	"1510670987_update_unique_constraint_for_resource_caches.up.sql": _1510670987_update_unique_constraint_for_resource_cachesUpSql,
-	"1513895878_update_timestamp_with_timezone.down.sql": _1513895878_update_timestamp_with_timezoneDownSql,
-	"1513895878_update_timestamp_with_timezone.up.sql": _1513895878_update_timestamp_with_timezoneUpSql,
+	"1510670987_update_unique_constraint_for_resource_caches.up.sql":   _1510670987_update_unique_constraint_for_resource_cachesUpSql,
+	"1513895878_update_timestamp_with_timezone.down.sql":               _1513895878_update_timestamp_with_timezoneDownSql,
+	"1513895878_update_timestamp_with_timezone.up.sql":                 _1513895878_update_timestamp_with_timezoneUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -292,13 +292,14 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
+
 var _bintree = &bintree{nil, map[string]*bintree{
-	"1510262030_initial_schema.down.sql": &bintree{_1510262030_initial_schemaDownSql, map[string]*bintree{}},
-	"1510262030_initial_schema.up.sql": &bintree{_1510262030_initial_schemaUpSql, map[string]*bintree{}},
+	"1510262030_initial_schema.down.sql":                               &bintree{_1510262030_initial_schemaDownSql, map[string]*bintree{}},
+	"1510262030_initial_schema.up.sql":                                 &bintree{_1510262030_initial_schemaUpSql, map[string]*bintree{}},
 	"1510670987_update_unique_constraint_for_resource_caches.down.sql": &bintree{_1510670987_update_unique_constraint_for_resource_cachesDownSql, map[string]*bintree{}},
-	"1510670987_update_unique_constraint_for_resource_caches.up.sql": &bintree{_1510670987_update_unique_constraint_for_resource_cachesUpSql, map[string]*bintree{}},
-	"1513895878_update_timestamp_with_timezone.down.sql": &bintree{_1513895878_update_timestamp_with_timezoneDownSql, map[string]*bintree{}},
-	"1513895878_update_timestamp_with_timezone.up.sql": &bintree{_1513895878_update_timestamp_with_timezoneUpSql, map[string]*bintree{}},
+	"1510670987_update_unique_constraint_for_resource_caches.up.sql":   &bintree{_1510670987_update_unique_constraint_for_resource_cachesUpSql, map[string]*bintree{}},
+	"1513895878_update_timestamp_with_timezone.down.sql":               &bintree{_1513895878_update_timestamp_with_timezoneDownSql, map[string]*bintree{}},
+	"1513895878_update_timestamp_with_timezone.up.sql":                 &bintree{_1513895878_update_timestamp_with_timezoneUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
@@ -347,4 +348,3 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
-
