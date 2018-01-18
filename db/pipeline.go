@@ -14,6 +14,7 @@ import (
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/db/lock"
+	"github.com/lib/pq"
 )
 
 type ErrResourceNotFound struct {
@@ -1504,22 +1505,31 @@ func (p *pipeline) toggleVersionedResource(versionedResourceID int, enable bool)
 }
 
 func (p *pipeline) getLatestModifiedTime() (time.Time, error) {
-	var versionedResourceIds string
-
-	err := p.conn.QueryRow(`
-		SELECT string_agg(id::character varying, ',') as versioned_resource_ids
-		FROM (
-			SELECT r.pipeline_id, vr.id
-			FROM resources r
-			INNER JOIN versioned_resources vr ON r.id = vr.resource_id
-			WHERE r.pipeline_id = $1
-			ORDER BY vr.modified_time desc
-			LIMIT 10000
-		) x
-		GROUP BY pipeline_id
-	`, p.id).Scan(&versionedResourceIds)
-
+	var versionedResourceIds []int
 	var maxModifiedTime time.Time
+
+	rows, err := p.conn.Query(`
+		SELECT vr.id
+		FROM resources r
+		INNER JOIN versioned_resources vr ON r.id = vr.resource_id
+		WHERE r.pipeline_id = $1
+		ORDER BY vr.modified_time desc
+		LIMIT 10000
+	`, p.id)
+
+	if err != nil {
+		return maxModifiedTime, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var vrID int
+		err := rows.Scan(&vrID)
+		if err != nil {
+			return maxModifiedTime, err
+		}
+		versionedResourceIds = append(versionedResourceIds, vrID)
+	}
 
 	err = p.conn.QueryRow(`
 	SELECT
@@ -1532,19 +1542,19 @@ func (p *pipeline) getLatestModifiedTime() (time.Time, error) {
 		(
 			SELECT COALESCE(MAX(bo.modified_time), 'epoch') as bo_max
 			FROM build_outputs bo
-			WHERE bo.versioned_resource_id in (` + versionedResourceIds + `)
+			WHERE bo.versioned_resource_id in ($1)
 		) bo,
 		(
 			SELECT COALESCE(MAX(bi.modified_time), 'epoch') as bi_max
 			FROM build_inputs bi
-			WHERE bi.versioned_resource_id in (` + versionedResourceIds + `)
+			WHERE bi.versioned_resource_id in ($1)
 		) bi,
 		(
 			SELECT COALESCE(MAX(vr.modified_time), 'epoch') as vr_max
 			FROM versioned_resources vr
-			WHERE vr.id in (` + versionedResourceIds + `)
+			WHERE vr.id in ($1)
 		) vr
-	`).Scan(&maxModifiedTime)
+	`, pq.Array(versionedResourceIds)).Scan(&maxModifiedTime)
 
 	return maxModifiedTime, err
 }
