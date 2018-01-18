@@ -267,15 +267,15 @@ func (j *job) Builds(page Page) ([]Build, Pagination, error) {
 	} else if page.Since != 0 {
 		query = query.Where(sq.Lt{"b.id": page.Since}).OrderBy("b.id DESC").Limit(limit)
 	} else if page.Around != 0 {
-		selectBuildIds := sq.Select("id from builds").Where(sq.Eq{"job_id": j.id})
+		selectBuildIds := sq.Select("b.id from builds b").JoinClause("LEFT OUTER JOIN job_combinations c ON c.id = b.job_combination_id").Where(sq.Eq{"c.job_id": j.id})
 
-		fromQuery, fromArgs, err := selectBuildIds.Where(sq.GtOrEq{"id": page.Around}).OrderBy("id ASC").Limit(limit).ToSql()
+		fromQuery, fromArgs, err := selectBuildIds.Where(sq.GtOrEq{"b.id": page.Around}).OrderBy("b.id ASC").Limit(limit).ToSql()
 		if err != nil {
 			return nil, Pagination{}, err
 		}
 		args = append(args, fromArgs...)
 
-		sinceQuery, sinceArgs, err := selectBuildIds.Where(sq.Lt{"id": page.Around}).OrderBy("id DESC").Limit(limit).ToSql()
+		sinceQuery, sinceArgs, err := selectBuildIds.Where(sq.Lt{"b.id": page.Around}).OrderBy("b.id DESC").Limit(limit).ToSql()
 		if err != nil {
 			return nil, Pagination{}, err
 		}
