@@ -1540,19 +1540,19 @@ func (p *pipeline) getLatestModifiedTime() (time.Time, error) {
 		END
 	FROM
 		(
-			SELECT COALESCE(MAX(bo.modified_time), 'epoch') as bo_max
-			FROM build_outputs bo
-			WHERE bo.versioned_resource_id in ($1)
+			SELECT COALESCE(MAX(modified_time), 'epoch') as bo_max
+			FROM build_outputs
+			WHERE versioned_resource_id = ANY($1)
 		) bo,
 		(
-			SELECT COALESCE(MAX(bi.modified_time), 'epoch') as bi_max
-			FROM build_inputs bi
-			WHERE bi.versioned_resource_id in ($1)
+			SELECT COALESCE(MAX(modified_time), 'epoch') as bi_max
+			FROM build_inputs
+			WHERE versioned_resource_id = ANY($1)
 		) bi,
 		(
-			SELECT COALESCE(MAX(vr.modified_time), 'epoch') as vr_max
-			FROM versioned_resources vr
-			WHERE vr.id in ($1)
+			SELECT COALESCE(MAX(modified_time), 'epoch') as vr_max
+			FROM versioned_resources
+			WHERE id = ANY($1)
 		) vr
 	`, pq.Array(versionedResourceIds)).Scan(&maxModifiedTime)
 
