@@ -113,7 +113,6 @@ var _ = Describe("Builds API", func() {
 							"name": "1",
 							"team_name": "some-team",
 							"status": "started",
-							"url": "/builds/42",
 							"api_url": "/api/v1/builds/42",
 							"start_time": 1,
 							"end_time": 100,
@@ -292,7 +291,6 @@ var _ = Describe("Builds API", func() {
 						"job_name": "job1",
 						"pipeline_name": "pipeline1",
 						"team_name": "some-team",
-						"url": "/teams/some-team/pipelines/pipeline1/jobs/job1/builds/1",
 						"api_url": "/api/v1/builds/1",
 						"start_time": 1,
 						"end_time": 100,
@@ -625,6 +623,10 @@ var _ = Describe("Builds API", func() {
 					Expect(response.StatusCode).To(Equal(http.StatusOK))
 				})
 
+				It("returns Content-Type 'application/json'", func() {
+					Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
+				})
+
 				It("returns all builds", func() {
 					body, err := ioutil.ReadAll(response.Body)
 					Expect(err).NotTo(HaveOccurred())
@@ -637,7 +639,6 @@ var _ = Describe("Builds API", func() {
 							"pipeline_name": "pipeline2",
 							"team_name": "some-team",
 							"status": "started",
-							"url": "/teams/some-team/pipelines/pipeline2/jobs/job2/builds/2",
 							"api_url": "/api/v1/builds/4",
 							"start_time": 1,
 							"end_time": 100,
@@ -650,7 +651,6 @@ var _ = Describe("Builds API", func() {
 							"pipeline_name": "pipeline1",
 							"team_name": "some-team",
 							"status": "succeeded",
-							"url": "/teams/some-team/pipelines/pipeline1/jobs/job1/builds/1",
 							"api_url": "/api/v1/builds/3",
 							"start_time": 101,
 							"end_time": 200,
@@ -748,7 +748,6 @@ var _ = Describe("Builds API", func() {
 							"pipeline_name": "pipeline2",
 							"team_name": "some-team",
 							"status": "started",
-							"url": "/teams/some-team/pipelines/pipeline2/jobs/job2/builds/2",
 							"api_url": "/api/v1/builds/4",
 							"start_time": 1,
 							"end_time": 100,
@@ -761,7 +760,6 @@ var _ = Describe("Builds API", func() {
 							"pipeline_name": "pipeline1",
 							"team_name": "some-team",
 							"status": "succeeded",
-							"url": "/teams/some-team/pipelines/pipeline1/jobs/job1/builds/1",
 							"api_url": "/api/v1/builds/3",
 							"start_time": 101,
 							"end_time": 200,

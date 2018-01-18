@@ -203,17 +203,48 @@ func (j *job) Builds(page Page) ([]Build, Pagination, error) {
 
 	limit := uint64(page.Limit)
 
+	var args []interface{}
+
 	var reverse bool
-	if page.Since == 0 && page.Until == 0 {
-		query = query.OrderBy("b.id DESC").Limit(limit)
-	} else if page.Until != 0 {
+	if page.Until != 0 {
 		query = query.Where(sq.Gt{"b.id": page.Until}).OrderBy("b.id ASC").Limit(limit)
 		reverse = true
-	} else {
+	} else if page.From != 0 {
+		query = query.Where(sq.LtOrEq{"b.id": page.From}).OrderBy("b.id DESC").Limit(limit)
+	} else if page.To != 0 {
+		query = query.Where(sq.GtOrEq{"b.id": page.To}).OrderBy("b.id ASC").Limit(limit)
+		reverse = true
+	} else if page.Since != 0 {
 		query = query.Where(sq.Lt{"b.id": page.Since}).OrderBy("b.id DESC").Limit(limit)
+	} else if page.Around != 0 {
+		selectBuildIds := sq.Select("id from builds").Where(sq.Eq{"job_id": j.id})
+
+		fromQuery, fromArgs, err := selectBuildIds.Where(sq.GtOrEq{"id": page.Around}).OrderBy("id ASC").Limit(limit).ToSql()
+		if err != nil {
+			return nil, Pagination{}, err
+		}
+		args = append(args, fromArgs...)
+
+		sinceQuery, sinceArgs, err := selectBuildIds.Where(sq.Lt{"id": page.Around}).OrderBy("id DESC").Limit(limit).ToSql()
+		if err != nil {
+			return nil, Pagination{}, err
+		}
+
+		args = append(args, sinceArgs...)
+
+		query = query.Where("b.id IN ( (" + fromQuery + ") UNION (" + sinceQuery + ") )").OrderBy("b.id DESC")
+	} else {
+		query = query.OrderBy("b.id DESC").Limit(limit)
 	}
 
-	rows, err := query.RunWith(j.conn).Query()
+	queryString, qargs, err := query.ToSql()
+	if err != nil {
+		return nil, Pagination{}, err
+	}
+
+	args = append(qargs, args...)
+
+	rows, err := j.conn.Query(queryString, args...)
 	if err != nil {
 		return nil, Pagination{}, err
 	}
@@ -238,6 +269,33 @@ func (j *job) Builds(page Page) ([]Build, Pagination, error) {
 
 	if len(builds) == 0 {
 		return []Build{}, Pagination{}, nil
+	}
+
+	if page.Around != 0 && len(builds) > int(limit) {
+		buildsLeft := []Build{}
+		buildsRight := []Build{}
+
+		for i, b := range builds {
+			if b.ID() != page.Around {
+				buildsLeft = append(buildsLeft, b)
+			} else {
+				buildsLeft = append(buildsLeft, b)
+				buildsRight = builds[i+1:]
+				break
+			}
+		}
+
+		if len(buildsLeft) == len(buildsRight) {
+			half := float64(len(buildsRight)) / 2
+			builds = append(buildsLeft[int(half):], buildsRight[:int(half)]...)
+		} else if len(buildsLeft) < len(buildsRight) {
+			remainder := len(buildsRight) - len(buildsLeft)
+			builds = append(buildsLeft, buildsRight[:remainder]...)
+		} else if len(buildsLeft) > len(buildsRight) {
+			remainder := len(buildsLeft) - len(buildsRight)
+			builds = append(buildsLeft[len(buildsLeft)-remainder:], buildsRight...)
+		}
+
 	}
 
 	var maxID, minID int
