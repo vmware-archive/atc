@@ -1504,27 +1504,47 @@ func (p *pipeline) toggleVersionedResource(versionedResourceID int, enable bool)
 }
 
 func (p *pipeline) getLatestModifiedTime() (time.Time, error) {
-	var maxModifiedTime time.Time
+	var versionedResourceIds string
 
 	err := p.conn.QueryRow(`
+		SELECT string_agg(id::character varying, ',') as versioned_resource_ids
+		FROM (
+			SELECT r.pipeline_id, vr.id
+			FROM resources r
+			INNER JOIN versioned_resources vr ON r.id = vr.resource_id
+			WHERE r.pipeline_id = $1
+			ORDER BY vr.modified_time desc
+			LIMIT 10000
+		) x
+		GROUP BY pipeline_id
+	`, p.id).Scan(&versionedResourceIds)
+
+	var maxModifiedTime time.Time
+
+	err = p.conn.QueryRow(`
 	SELECT
 		CASE
 			WHEN bo_max > vr_max AND bo_max > bi_max THEN bo_max
 			WHEN bi_max > vr_max THEN bi_max
 			ELSE vr_max
 		END
-	FROM (
-		SELECT
-			COALESCE(MAX(bo.modified_time), 'epoch') as bo_max,
-			COALESCE(MAX(bi.modified_time), 'epoch') as bi_max,
-			COALESCE(MAX(vr.modified_time), 'epoch') as vr_max
-		FROM resources r
-		INNER JOIN versioned_resources vr ON r.id = vr.resource_id
-		LEFT OUTER JOIN build_inputs bi ON vr.id = bi.versioned_resource_id
-		LEFT OUTER JOIN build_outputs bo ON vr.id = bo.versioned_resource_id
-		WHERE r.pipeline_id = $1
-	) x
-	`, p.id).Scan(&maxModifiedTime)
+	FROM
+		(
+			SELECT COALESCE(MAX(bo.modified_time), 'epoch') as bo_max
+			FROM build_outputs bo
+			WHERE bo.versioned_resource_id in ($1)
+		) bo,
+		(
+			SELECT COALESCE(MAX(bi.modified_time), 'epoch') as bi_max
+			FROM build_inputs bi
+			WHERE bi.versioned_resource_id in ($1)
+		) bi,
+		(
+			SELECT COALESCE(MAX(vr.modified_time), 'epoch') as vr_max
+			FROM versioned_resources vr
+			WHERE vr.id in ($1)
+		) vr
+	`, versionedResourceIds).Scan(&maxModifiedTime)
 
 	return maxModifiedTime, err
 }
