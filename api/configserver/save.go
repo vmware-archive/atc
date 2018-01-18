@@ -124,12 +124,31 @@ func (s *Server) SaveConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, created, err := team.SavePipeline(pipelineName, config, version, pausedState)
+	pipeline, created, err := team.SavePipeline(pipelineName, config, version, pausedState)
 	if err != nil {
 		session.Error("failed-to-save-config", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "failed to save config: %s", err)
 		return
+	}
+
+	jobs, err := pipeline.Jobs()
+	if err != nil {
+		session.Error("failed-to-find-jobs", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "failed to find jobs: %s", err)
+		return
+	}
+
+	for _, job := range jobs {
+		resourceSpaceCombinations := job.ResourceSpaceCombinations(job.Config().Spaces())
+		_, err = job.SyncResourceSpaceCombinations(resourceSpaceCombinations)
+		if err != nil {
+			session.Error("failed-to-sync-resource-space-combinations", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "failed to sync resource space combinations: %s", err)
+			return
+		}
 	}
 
 	session.Info("saved")

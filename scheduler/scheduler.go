@@ -24,45 +24,6 @@ type Scanner interface {
 	Scan(lager.Logger, string) error
 }
 
-func Combinations(resourceSpaces map[string][]string) []map[string]string {
-	var resource, space string
-	var spaces []string
-
-	combinations := []map[string]string{}
-
-	if len(resourceSpaces) == 0 {
-		return []map[string]string{map[string]string{}}
-	}
-
-	if len(resourceSpaces) == 1 {
-		for resource, spaces = range resourceSpaces {
-			for _, space = range spaces {
-				combinations = append(combinations, map[string]string{resource: space})
-			}
-		}
-		return combinations
-	}
-
-	for resource, spaces = range resourceSpaces {
-		break
-	}
-	delete(resourceSpaces, resource)
-
-	for _, combination := range Combinations(resourceSpaces) {
-		for _, space = range spaces {
-			copy := map[string]string{}
-			for k, v := range combination {
-				copy[k] = v
-			}
-
-			copy[resource] = space
-			combinations = append(combinations, copy)
-		}
-	}
-
-	return combinations
-}
-
 func (s *Scheduler) Schedule(
 	logger lager.Logger,
 	versions *algorithm.VersionsDB,
@@ -75,7 +36,7 @@ func (s *Scheduler) Schedule(
 	jobCombinationsMap := map[string][]db.JobCombination{}
 
 	for _, job := range jobs {
-		jobCombinations, err := job.SyncResourceSpaceCombinations(Combinations(job.Config().Spaces()))
+		jobCombinations, err := job.SyncResourceSpaceCombinations(job.ResourceSpaceCombinations(job.Config().Spaces()))
 		if err != nil {
 			logger.Error("failed-to-sync-resource-space-combinations", err)
 		}

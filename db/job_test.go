@@ -255,7 +255,7 @@ var _ = Describe("Job", func() {
 
 	Describe("JobCombination", func() {
 		It("returns the job combination given its id", func() {
-			combination, err := job.JobCombination(jobCombination.ID())
+			combination, err := job.JobCombination()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(combination.ID()).To(Equal(jobCombination.ID()))
 			Expect(combination.JobID()).To(Equal(jobCombination.JobID()))
@@ -1182,6 +1182,105 @@ var _ = Describe("Job", func() {
 			Expect(newCombinationCount).To(Equal(oldCombinationCount + 1))
 
 			db.Rollback(tx)
+		})
+
+		It("Does not create new job_combinations when the same combinations already exist", func() {
+			combination := map[string]string{"some-resource": "some-space", "some-other-resource": "some-other-space"}
+
+			tx, err := dbConn.Begin()
+			Expect(err).NotTo(HaveOccurred())
+
+			marshaled, _ := json.Marshal(combination)
+			var oldJobCombinationId int
+			err = psql.Insert("job_combinations").
+				Columns("id", "job_id", "combination").
+				Values(job.ID(), job.ID(), marshaled).
+				Suffix("RETURNING id").
+				RunWith(tx).
+				QueryRow().
+				Scan(&oldJobCombinationId)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = tx.Commit()
+			Expect(err).NotTo(HaveOccurred())
+
+			db.Rollback(tx)
+
+			var oldCombinationCount, newCombinationCount int
+
+			tx, err = dbConn.Begin()
+			Expect(err).NotTo(HaveOccurred())
+
+			err = psql.Select("count(*)").
+				From("job_combinations").
+				RunWith(tx).QueryRow().Scan(&oldCombinationCount)
+			Expect(err).NotTo(HaveOccurred())
+
+			db.Rollback(tx)
+
+			jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{combination})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(jobCombinations).To(HaveLen(1))
+			Expect(jobCombinations[0].JobID()).To(Equal(job.ID()))
+			Expect(jobCombinations[0].Combination()).To(Equal(combination))
+
+			tx, err = dbConn.Begin()
+			Expect(err).NotTo(HaveOccurred())
+
+			err = psql.Select("count(*)").
+				From("job_combinations").
+				RunWith(tx).QueryRow().Scan(&newCombinationCount)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(newCombinationCount).To(Equal(oldCombinationCount))
+
+			db.Rollback(tx)
+		})
+	})
+
+	Describe("ResourceSpaceCombinations", func() {
+		var (
+			resourceSpaces map[string][]string
+			combinations   []map[string]string
+		)
+
+		JustBeforeEach(func() {
+			combinations = job.ResourceSpaceCombinations(resourceSpaces)
+		})
+
+		Context("when resource spaces are empty", func() {
+			BeforeEach(func() {
+				resourceSpaces = map[string][]string{}
+			})
+
+			It("returns an empty combination", func() {
+				Expect(combinations).To(Equal([]map[string]string{map[string]string{}}))
+			})
+		})
+
+		Context("when resource spaces contain exactly one resource", func() {
+			BeforeEach(func() {
+				resourceSpaces = map[string][]string{"some-resource": []string{"some-space", "another-space"}}
+			})
+
+			It("returns one combination", func() {
+				Expect(len(combinations)).To(Equal(2))
+				Expect(combinations).To(ContainElement(map[string]string{"some-resource": "some-space"}))
+				Expect(combinations).To(ContainElement(map[string]string{"some-resource": "another-space"}))
+			})
+		})
+
+		Context("when resource spaces contain multiple resources", func() {
+			BeforeEach(func() {
+				resourceSpaces = map[string][]string{"some-resource": []string{"some-space", "another-space"}, "foo": []string{"bar", "baz"}}
+			})
+
+			It("returns all combinations", func() {
+				Expect(len(combinations)).To(Equal(4))
+				Expect(combinations).To(ContainElement(map[string]string{"some-resource": "some-space", "foo": "bar"}))
+				Expect(combinations).To(ContainElement(map[string]string{"some-resource": "another-space", "foo": "bar"}))
+				Expect(combinations).To(ContainElement(map[string]string{"some-resource": "some-space", "foo": "baz"}))
+				Expect(combinations).To(ContainElement(map[string]string{"some-resource": "another-space", "foo": "baz"}))
+			})
 		})
 	})
 })

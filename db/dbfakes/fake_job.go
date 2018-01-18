@@ -119,12 +119,21 @@ type FakeJob struct {
 	unpauseReturnsOnCall map[int]struct {
 		result1 error
 	}
-	JobCombinationStub        func(id int) (db.JobCombination, error)
-	jobCombinationMutex       sync.RWMutex
-	jobCombinationArgsForCall []struct {
-		id int
+	ResourceSpaceCombinationsStub        func(map[string][]string) []map[string]string
+	resourceSpaceCombinationsMutex       sync.RWMutex
+	resourceSpaceCombinationsArgsForCall []struct {
+		arg1 map[string][]string
 	}
-	jobCombinationReturns struct {
+	resourceSpaceCombinationsReturns struct {
+		result1 []map[string]string
+	}
+	resourceSpaceCombinationsReturnsOnCall map[int]struct {
+		result1 []map[string]string
+	}
+	JobCombinationStub        func() (db.JobCombination, error)
+	jobCombinationMutex       sync.RWMutex
+	jobCombinationArgsForCall []struct{}
+	jobCombinationReturns     struct {
 		result1 db.JobCombination
 		result2 error
 	}
@@ -736,16 +745,62 @@ func (fake *FakeJob) UnpauseReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeJob) JobCombination(id int) (db.JobCombination, error) {
+func (fake *FakeJob) ResourceSpaceCombinations(arg1 map[string][]string) []map[string]string {
+	fake.resourceSpaceCombinationsMutex.Lock()
+	ret, specificReturn := fake.resourceSpaceCombinationsReturnsOnCall[len(fake.resourceSpaceCombinationsArgsForCall)]
+	fake.resourceSpaceCombinationsArgsForCall = append(fake.resourceSpaceCombinationsArgsForCall, struct {
+		arg1 map[string][]string
+	}{arg1})
+	fake.recordInvocation("ResourceSpaceCombinations", []interface{}{arg1})
+	fake.resourceSpaceCombinationsMutex.Unlock()
+	if fake.ResourceSpaceCombinationsStub != nil {
+		return fake.ResourceSpaceCombinationsStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.resourceSpaceCombinationsReturns.result1
+}
+
+func (fake *FakeJob) ResourceSpaceCombinationsCallCount() int {
+	fake.resourceSpaceCombinationsMutex.RLock()
+	defer fake.resourceSpaceCombinationsMutex.RUnlock()
+	return len(fake.resourceSpaceCombinationsArgsForCall)
+}
+
+func (fake *FakeJob) ResourceSpaceCombinationsArgsForCall(i int) map[string][]string {
+	fake.resourceSpaceCombinationsMutex.RLock()
+	defer fake.resourceSpaceCombinationsMutex.RUnlock()
+	return fake.resourceSpaceCombinationsArgsForCall[i].arg1
+}
+
+func (fake *FakeJob) ResourceSpaceCombinationsReturns(result1 []map[string]string) {
+	fake.ResourceSpaceCombinationsStub = nil
+	fake.resourceSpaceCombinationsReturns = struct {
+		result1 []map[string]string
+	}{result1}
+}
+
+func (fake *FakeJob) ResourceSpaceCombinationsReturnsOnCall(i int, result1 []map[string]string) {
+	fake.ResourceSpaceCombinationsStub = nil
+	if fake.resourceSpaceCombinationsReturnsOnCall == nil {
+		fake.resourceSpaceCombinationsReturnsOnCall = make(map[int]struct {
+			result1 []map[string]string
+		})
+	}
+	fake.resourceSpaceCombinationsReturnsOnCall[i] = struct {
+		result1 []map[string]string
+	}{result1}
+}
+
+func (fake *FakeJob) JobCombination() (db.JobCombination, error) {
 	fake.jobCombinationMutex.Lock()
 	ret, specificReturn := fake.jobCombinationReturnsOnCall[len(fake.jobCombinationArgsForCall)]
-	fake.jobCombinationArgsForCall = append(fake.jobCombinationArgsForCall, struct {
-		id int
-	}{id})
-	fake.recordInvocation("JobCombination", []interface{}{id})
+	fake.jobCombinationArgsForCall = append(fake.jobCombinationArgsForCall, struct{}{})
+	fake.recordInvocation("JobCombination", []interface{}{})
 	fake.jobCombinationMutex.Unlock()
 	if fake.JobCombinationStub != nil {
-		return fake.JobCombinationStub(id)
+		return fake.JobCombinationStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -757,12 +812,6 @@ func (fake *FakeJob) JobCombinationCallCount() int {
 	fake.jobCombinationMutex.RLock()
 	defer fake.jobCombinationMutex.RUnlock()
 	return len(fake.jobCombinationArgsForCall)
-}
-
-func (fake *FakeJob) JobCombinationArgsForCall(i int) int {
-	fake.jobCombinationMutex.RLock()
-	defer fake.jobCombinationMutex.RUnlock()
-	return fake.jobCombinationArgsForCall[i].id
 }
 
 func (fake *FakeJob) JobCombinationReturns(result1 db.JobCombination, result2 error) {
@@ -1278,6 +1327,8 @@ func (fake *FakeJob) Invocations() map[string][][]interface{} {
 	defer fake.pauseMutex.RUnlock()
 	fake.unpauseMutex.RLock()
 	defer fake.unpauseMutex.RUnlock()
+	fake.resourceSpaceCombinationsMutex.RLock()
+	defer fake.resourceSpaceCombinationsMutex.RUnlock()
 	fake.jobCombinationMutex.RLock()
 	defer fake.jobCombinationMutex.RUnlock()
 	fake.buildsMutex.RLock()

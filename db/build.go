@@ -570,7 +570,7 @@ func (b *build) Preparation() (BuildPreparation, bool, error) {
 
 	configInputs := job.Config().Inputs()
 
-	jobCombination, err := job.JobCombination(jobCombinationID)
+	jobCombination, err := job.JobCombination()
 	if err != nil {
 		return BuildPreparation{}, false, err
 	}

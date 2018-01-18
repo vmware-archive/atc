@@ -28,7 +28,8 @@ type Job interface {
 	Pause() error
 	Unpause() error
 
-	JobCombination(id int) (JobCombination, error)
+	ResourceSpaceCombinations(map[string][]string) []map[string]string
+	JobCombination() (JobCombination, error)
 	Builds(page Page) ([]Build, Pagination, error)
 	Build(name string) (Build, bool, error)
 	FinishedAndNextBuild() (Build, Build, error)
@@ -191,12 +192,52 @@ func (j *job) UpdateFirstLoggedBuildID(newFirstLoggedBuildID int) error {
 	return nil
 }
 
-func (j *job) JobCombination(id int) (JobCombination, error) {
+func (j *job) ResourceSpaceCombinations(resourceSpaces map[string][]string) []map[string]string {
+	var resource, space string
+	var spaces []string
+
+	combinations := []map[string]string{}
+
+	if len(resourceSpaces) == 0 {
+		return []map[string]string{map[string]string{}}
+	}
+
+	if len(resourceSpaces) == 1 {
+		for resource, spaces = range resourceSpaces {
+			for _, space = range spaces {
+				combinations = append(combinations, map[string]string{resource: space})
+			}
+		}
+		return combinations
+	}
+
+	for resource, spaces = range resourceSpaces {
+		break
+	}
+	delete(resourceSpaces, resource)
+
+	for _, combination := range j.ResourceSpaceCombinations(resourceSpaces) {
+		for _, space = range spaces {
+			copy := map[string]string{}
+			for k, v := range combination {
+				copy[k] = v
+			}
+
+			copy[resource] = space
+			combinations = append(combinations, copy)
+		}
+	}
+
+	return combinations
+}
+
+func (j *job) JobCombination() (JobCombination, error) {
 	var jobCombinationID, jobID int
 
 	err := psql.Select("id, job_id").
 		From("job_combinations").
-		Where(sq.Eq{"id": id}).
+		Where(sq.Eq{"job_id": j.id}).
+		OrderBy("id DESC").Limit(1).
 		RunWith(j.conn).QueryRow().
 		Scan(&jobCombinationID, &jobID)
 	if err != nil {
@@ -653,7 +694,8 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 			err = psql.Insert("job_combinations").
 				Columns("job_id", "combination").
 				Values(j.ID(), marshaled).
-				Suffix("ON CONFLICT (job_id, combination) DO NOTHING RETURNING id").
+				// FIXME: postgres requires an update to return id on conflict, but this may cause side effects
+				Suffix("ON CONFLICT (job_id, combination) DO UPDATE set combination=EXCLUDED.combination RETURNING id").
 				RunWith(tx).QueryRow().Scan(&jobCombinationID)
 			if err != nil {
 				return nil, err
