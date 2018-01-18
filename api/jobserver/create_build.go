@@ -51,7 +51,7 @@ func (s *Server) CreateJobBuild(pipeline db.Pipeline) http.Handler {
 			return
 		}
 
-		jobCombination, err := job.JobCombination(job.ID())
+		jobCombination, err := job.JobCombination()
 		if err != nil {
 			logger.Error("failed-to-get-job-combination", err)
 			w.WriteHeader(http.StatusInternalServerError)

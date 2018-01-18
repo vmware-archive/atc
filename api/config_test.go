@@ -23,12 +23,20 @@ import (
 
 var _ = Describe("Config API", func() {
 	var (
+		fakeJob          *dbfakes.FakeJob
 		pipelineConfig   atc.Config
 		requestGenerator *rata.RequestGenerator
 		fakeaccess       *accessorfakes.FakeAccess
 	)
 
 	BeforeEach(func() {
+		dbTeam.SavePipelineReturns(fakePipeline, false, nil)
+		fakeJob = new(dbfakes.FakeJob)
+		fakePipeline.JobsReturns([]db.Job{db.Job(fakeJob)}, nil)
+
+		fakeJob.ResourceSpaceCombinationsReturns([]map[string]string{{"some-resource": "default"}})
+		fakeJob.SyncResourceSpaceCombinationsReturns(nil, nil)
+
 		requestGenerator = rata.NewRequestGenerator(server.URL, atc.Routes)
 
 		fakeaccess = new(accessorfakes.FakeAccess)
@@ -491,6 +499,12 @@ var _ = Describe("Config API", func() {
 							Expect(savedConfig).To(Equal(pipelineConfig))
 							Expect(id).To(Equal(db.ConfigVersion(42)))
 							Expect(pipelineState).To(Equal(db.PipelineNoChange))
+
+							Expect(fakeJob.ResourceSpaceCombinationsCallCount()).To(Equal(1))
+							Expect(fakeJob.SyncResourceSpaceCombinationsCallCount()).To(Equal(1))
+
+							combinations := fakeJob.SyncResourceSpaceCombinationsArgsForCall(0)
+							Expect(combinations).To(Equal([]map[string]string{{"some-resource": "default"}}))
 						})
 
 						Context("and saving it fails", func() {
@@ -575,6 +589,12 @@ var _ = Describe("Config API", func() {
 							Expect(savedConfig).To(Equal(pipelineConfig))
 							Expect(id).To(Equal(db.ConfigVersion(42)))
 							Expect(pipelineState).To(Equal(db.PipelineNoChange))
+
+							Expect(fakeJob.ResourceSpaceCombinationsCallCount()).To(Equal(1))
+							Expect(fakeJob.SyncResourceSpaceCombinationsCallCount()).To(Equal(1))
+
+							combinations := fakeJob.SyncResourceSpaceCombinationsArgsForCall(0)
+							Expect(combinations).To(Equal([]map[string]string{{"some-resource": "default"}}))
 						})
 
 						It("does not give the DB a map of empty interfaces to empty interfaces", func() {
