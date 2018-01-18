@@ -28,7 +28,7 @@ func (s *Server) ListJobInputs(pipeline db.Pipeline) http.Handler {
 			return
 		}
 
-		jobCombination, err := job.JobCombination(job.ID())
+		jobCombination, err := job.JobCombination()
 		if err != nil {
 			logger.Error("failed-to-get-job-combination", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -37,7 +37,7 @@ func (s *Server) ListJobInputs(pipeline db.Pipeline) http.Handler {
 
 		scheduler := s.schedulerFactory.BuildScheduler(pipeline, s.externalURL, variables)
 
-		err = scheduler.SaveNextInputMapping(logger, job, nil)
+		err = scheduler.SaveNextInputMapping(logger, job, jobCombination)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
