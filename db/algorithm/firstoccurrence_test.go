@@ -16,13 +16,13 @@ var _ = Describe("Resolve", func() {
 	BeforeEach(func() {
 		versionsDB = &algorithm.VersionsDB{
 			ResourceVersions: []algorithm.ResourceVersion{
-				{VersionID: 1, ResourceID: 21, CheckOrder: 1},
-				{VersionID: 2, ResourceID: 21, CheckOrder: 2},
+				{VersionID: 1, ResourceSpaceID: 21, CheckOrder: 1},
+				{VersionID: 2, ResourceSpaceID: 21, CheckOrder: 2},
 			},
 			BuildOutputs:      []algorithm.BuildOutput{},
 			BuildInputs:       []algorithm.BuildInput{},
 			JobCombinationIDs: map[string]int{"j1": 11, "j2": 12},
-			ResourceIDs:       map[string]int{"r1": 21},
+			ResourceSpaceIDs:  map[string]int{"r1": 21},
 		}
 
 		inputConfigs = algorithm.InputConfigs{
@@ -30,7 +30,7 @@ var _ = Describe("Resolve", func() {
 				Name:             "some-input",
 				JobName:          "j1",
 				Passed:           algorithm.JobSet{},
-				ResourceID:       21,
+				ResourceSpaceID:  21,
 				JobCombinationID: 11,
 			},
 		}
@@ -46,19 +46,19 @@ var _ = Describe("Resolve", func() {
 		BeforeEach(func() {
 			versionsDB.BuildInputs = []algorithm.BuildInput{
 				{
-					ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceID: 21, CheckOrder: 2},
+					ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceSpaceID: 21, CheckOrder: 2},
 					BuildID:          31,
 					JobCombinationID: 11,
 					InputName:        "some-input",
 				},
 				{
-					ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceID: 21, CheckOrder: 2},
+					ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceSpaceID: 21, CheckOrder: 2},
 					BuildID:          31,
 					JobCombinationID: 11,
 					InputName:        "some-other-input",
 				},
 				{
-					ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceID: 21, CheckOrder: 2},
+					ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceSpaceID: 21, CheckOrder: 2},
 					BuildID:          32,
 					JobCombinationID: 12,
 					InputName:        "some-input",
@@ -77,7 +77,7 @@ var _ = Describe("Resolve", func() {
 		BeforeEach(func() {
 			versionsDB.BuildInputs = []algorithm.BuildInput{
 				{
-					ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceID: 21, CheckOrder: 2},
+					ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceSpaceID: 21, CheckOrder: 2},
 					BuildID:          31,
 					JobCombinationID: 11,
 					InputName:        "some-other-input",
@@ -96,7 +96,7 @@ var _ = Describe("Resolve", func() {
 		BeforeEach(func() {
 			versionsDB.BuildInputs = []algorithm.BuildInput{
 				{
-					ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceID: 21, CheckOrder: 2},
+					ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceSpaceID: 21, CheckOrder: 2},
 					BuildID:          32,
 					JobCombinationID: 12,
 					InputName:        "some-input",
@@ -115,7 +115,7 @@ var _ = Describe("Resolve", func() {
 		BeforeEach(func() {
 			versionsDB.BuildInputs = []algorithm.BuildInput{
 				{
-					ResourceVersion:  algorithm.ResourceVersion{VersionID: 1, ResourceID: 21, CheckOrder: 1},
+					ResourceVersion:  algorithm.ResourceVersion{VersionID: 1, ResourceSpaceID: 21, CheckOrder: 1},
 					BuildID:          31,
 					JobCombinationID: 11,
 					InputName:        "some-input",
@@ -134,7 +134,7 @@ var _ = Describe("Resolve", func() {
 		BeforeEach(func() {
 			versionsDB.BuildOutputs = []algorithm.BuildOutput{
 				{
-					ResourceVersion:  algorithm.ResourceVersion{VersionID: 1, ResourceID: 21, CheckOrder: 1},
+					ResourceVersion:  algorithm.ResourceVersion{VersionID: 1, ResourceSpaceID: 21, CheckOrder: 1},
 					BuildID:          31,
 					JobCombinationID: 11,
 				},

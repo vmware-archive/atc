@@ -984,10 +984,10 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 		BuildInputs:       []algorithm.BuildInput{},
 		ResourceVersions:  []algorithm.ResourceVersion{},
 		JobCombinationIDs: map[string]int{},
-		ResourceIDs:       map[string]int{},
+		ResourceSpaceIDs:  map[string]int{},
 	}
 
-	rows, err := psql.Select("vr.id, vr.check_order, r.id, o.build_id, b.job_combination_id").
+	rows, err := psql.Select("vr.id, vr.check_order, rs.id, o.build_id, b.job_combination_id").
 		From("build_outputs o, builds b, versioned_resources vr, resource_spaces rs, resources r").
 		Where(sq.Expr("vr.id = o.versioned_resource_id")).
 		Where(sq.Expr("b.id = o.build_id")).
@@ -1008,7 +1008,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 
 	for rows.Next() {
 		var output algorithm.BuildOutput
-		err = rows.Scan(&output.VersionID, &output.CheckOrder, &output.ResourceID, &output.BuildID, &output.JobCombinationID)
+		err = rows.Scan(&output.VersionID, &output.CheckOrder, &output.ResourceSpaceID, &output.BuildID, &output.JobCombinationID)
 		if err != nil {
 			return nil, err
 		}
@@ -1018,7 +1018,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 		db.BuildOutputs = append(db.BuildOutputs, output)
 	}
 
-	rows, err = psql.Select("vr.id, vr.check_order, r.id, i.build_id, i.name, b.job_combination_id, b.status = 'succeeded'").
+	rows, err = psql.Select("vr.id, vr.check_order, rs.id, i.build_id, i.name, b.job_combination_id, b.status = 'succeeded'").
 		From("build_inputs i, builds b, versioned_resources vr, resource_spaces rs, resources r").
 		Where(sq.Expr("vr.id = i.versioned_resource_id")).
 		Where(sq.Expr("b.id = i.build_id")).
@@ -1040,7 +1040,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 		var succeeded bool
 
 		var input algorithm.BuildInput
-		err = rows.Scan(&input.VersionID, &input.CheckOrder, &input.ResourceID, &input.BuildID, &input.InputName, &input.JobCombinationID, &succeeded)
+		err = rows.Scan(&input.VersionID, &input.CheckOrder, &input.ResourceSpaceID, &input.BuildID, &input.InputName, &input.JobCombinationID, &succeeded)
 		if err != nil {
 			return nil, err
 		}
@@ -1059,7 +1059,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 		}
 	}
 
-	rows, err = psql.Select("vr.id, vr.check_order, r.id").
+	rows, err = psql.Select("vr.id, vr.check_order, rs.id").
 		From("versioned_resources vr, resource_spaces rs, resources r").
 		Where(sq.Expr("rs.id = vr.resource_space_id")).
 		Where(sq.Expr("r.id = rs.resource_id")).
@@ -1077,7 +1077,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 
 	for rows.Next() {
 		var output algorithm.ResourceVersion
-		err = rows.Scan(&output.VersionID, &output.CheckOrder, &output.ResourceID)
+		err = rows.Scan(&output.VersionID, &output.CheckOrder, &output.ResourceSpaceID)
 		if err != nil {
 			return nil, err
 		}
@@ -1126,7 +1126,7 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 			return nil, err
 		}
 
-		db.ResourceIDs[name] = id
+		db.ResourceSpaceIDs[name] = id
 	}
 
 	p.versionsDB = db

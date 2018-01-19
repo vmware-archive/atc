@@ -1296,17 +1296,17 @@ var _ = Describe("Pipelines API", func() {
 					&algorithm.VersionsDB{
 						ResourceVersions: []algorithm.ResourceVersion{
 							{
-								VersionID:  73,
-								ResourceID: 127,
-								CheckOrder: 123,
+								VersionID:       73,
+								ResourceSpaceID: 127,
+								CheckOrder:      123,
 							},
 						},
 						BuildOutputs: []algorithm.BuildOutput{
 							{
 								ResourceVersion: algorithm.ResourceVersion{
-									VersionID:  73,
-									ResourceID: 127,
-									CheckOrder: 123,
+									VersionID:       73,
+									ResourceSpaceID: 127,
+									CheckOrder:      123,
 								},
 								BuildID:          66,
 								JobCombinationID: 13,
@@ -1315,9 +1315,9 @@ var _ = Describe("Pipelines API", func() {
 						BuildInputs: []algorithm.BuildInput{
 							{
 								ResourceVersion: algorithm.ResourceVersion{
-									VersionID:  66,
-									ResourceID: 77,
-									CheckOrder: 88,
+									VersionID:       66,
+									ResourceSpaceID: 77,
+									CheckOrder:      88,
 								},
 								BuildID:          66,
 								JobCombinationID: 13,
@@ -1327,7 +1327,7 @@ var _ = Describe("Pipelines API", func() {
 						JobCombinationIDs: map[string]int{
 							"bad-luck-job": 13,
 						},
-						ResourceIDs: map[string]int{
+						ResourceSpaceIDs: map[string]int{
 							"resource-127": 127,
 						},
 					},
@@ -1356,14 +1356,14 @@ var _ = Describe("Pipelines API", func() {
 				"ResourceVersions": [
 					{
 						"VersionID": 73,
-						"ResourceID": 127,
+						"ResourceSpaceID": 127,
 						"CheckOrder": 123
 			    }
 				],
 				"BuildOutputs": [
 					{
 						"VersionID": 73,
-						"ResourceID": 127,
+						"ResourceSpaceID": 127,
 						"BuildID": 66,
 						"JobCombinationID": 13,
 						"CheckOrder": 123
@@ -1372,7 +1372,7 @@ var _ = Describe("Pipelines API", func() {
 				"BuildInputs": [
 					{
 						"VersionID": 66,
-						"ResourceID": 77,
+						"ResourceSpaceID": 77,
 						"BuildID": 66,
 						"JobCombinationID": 13,
 						"CheckOrder": 88,
@@ -1382,7 +1382,7 @@ var _ = Describe("Pipelines API", func() {
 				"JobCombinationIDs": {
 						"bad-luck-job": 13
 				},
-				"ResourceIDs": {
+				"ResourceSpaceIDs": {
 					"resource-127": 127
 				}
 				}`))

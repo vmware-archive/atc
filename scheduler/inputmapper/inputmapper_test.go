@@ -45,19 +45,19 @@ var _ = Describe("Inputmapper", func() {
 		BeforeEach(func() {
 			versionsDB = &algorithm.VersionsDB{
 				JobCombinationIDs: map[string]int{"some-job": 1, "upstream": 2},
-				ResourceIDs:       map[string]int{"a": 11, "b": 12, "no-versions": 13},
+				ResourceSpaceIDs:  map[string]int{"a": 11, "b": 12, "no-versions": 13},
 				ResourceVersions: []algorithm.ResourceVersion{
-					{VersionID: 1, ResourceID: 11, CheckOrder: 1},
-					{VersionID: 2, ResourceID: 12, CheckOrder: 1},
+					{VersionID: 1, ResourceSpaceID: 11, CheckOrder: 1},
+					{VersionID: 2, ResourceSpaceID: 12, CheckOrder: 1},
 				},
 				BuildOutputs: []algorithm.BuildOutput{
 					{
-						ResourceVersion:  algorithm.ResourceVersion{VersionID: 1, ResourceID: 11, CheckOrder: 1},
+						ResourceVersion:  algorithm.ResourceVersion{VersionID: 1, ResourceSpaceID: 11, CheckOrder: 1},
 						BuildID:          98,
 						JobCombinationID: 2,
 					},
 					{
-						ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceID: 12, CheckOrder: 1},
+						ResourceVersion:  algorithm.ResourceVersion{VersionID: 2, ResourceSpaceID: 12, CheckOrder: 1},
 						BuildID:          99,
 						JobCombinationID: 2,
 					},
@@ -122,13 +122,13 @@ var _ = Describe("Inputmapper", func() {
 					fakeTransformer.TransformInputConfigsReturns(algorithm.InputConfigs{
 						{
 							Name:             "alias",
-							ResourceID:       11,
+							ResourceSpaceID:  11,
 							Passed:           algorithm.JobSet{},
 							JobCombinationID: 1,
 						},
 						{
 							Name:             "b",
-							ResourceID:       12,
+							ResourceSpaceID:  12,
 							Passed:           algorithm.JobSet{},
 							JobCombinationID: 1,
 						},
@@ -215,13 +215,13 @@ var _ = Describe("Inputmapper", func() {
 				fakeTransformer.TransformInputConfigsReturns(algorithm.InputConfigs{
 					{
 						Name:             "a",
-						ResourceID:       11,
+						ResourceSpaceID:  11,
 						Passed:           algorithm.JobSet{2: struct{}{}},
 						JobCombinationID: 1,
 					},
 					{
 						Name:             "b",
-						ResourceID:       12,
+						ResourceSpaceID:  12,
 						Passed:           algorithm.JobSet{2: struct{}{}},
 						JobCombinationID: 1,
 					},
@@ -280,13 +280,13 @@ var _ = Describe("Inputmapper", func() {
 				fakeTransformer.TransformInputConfigsReturns(algorithm.InputConfigs{
 					{
 						Name:             "a",
-						ResourceID:       11,
+						ResourceSpaceID:  11,
 						Passed:           algorithm.JobSet{},
 						JobCombinationID: 1,
 					},
 					{
 						Name:             "no-versions",
-						ResourceID:       13,
+						ResourceSpaceID:  13,
 						Passed:           algorithm.JobSet{},
 						JobCombinationID: 1,
 					},
@@ -329,7 +329,7 @@ var _ = Describe("Inputmapper", func() {
 				fakeTransformer.TransformInputConfigsReturns(algorithm.InputConfigs{
 					{
 						Name:             "b",
-						ResourceID:       12,
+						ResourceSpaceID:  12,
 						Passed:           algorithm.JobSet{},
 						JobCombinationID: 1,
 					},

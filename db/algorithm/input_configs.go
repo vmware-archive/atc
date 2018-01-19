@@ -8,7 +8,6 @@ type InputConfig struct {
 	Passed           JobSet
 	UseEveryVersion  bool
 	PinnedVersionID  int
-	ResourceID       int
 	JobCombinationID int
 	ResourceSpaceID  int
 }
@@ -22,15 +21,15 @@ func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
 
 		if len(inputConfig.Passed) == 0 {
 			if inputConfig.UseEveryVersion {
-				versionCandidates = db.AllVersionsOfResource(inputConfig.ResourceID)
+				versionCandidates = db.AllVersionsOfResource(inputConfig.ResourceSpaceID)
 			} else {
 				var versionCandidate VersionCandidate
 				var found bool
 
 				if inputConfig.PinnedVersionID != 0 {
-					versionCandidate, found = db.FindVersionOfResource(inputConfig.ResourceID, inputConfig.PinnedVersionID)
+					versionCandidate, found = db.FindVersionOfResource(inputConfig.ResourceSpaceID, inputConfig.PinnedVersionID)
 				} else {
-					versionCandidate, found = db.LatestVersionOfResource(inputConfig.ResourceID)
+					versionCandidate, found = db.LatestVersionOfResource(inputConfig.ResourceSpaceID)
 				}
 
 				if found {
@@ -45,7 +44,7 @@ func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
 			jobs = jobs.Union(inputConfig.Passed)
 
 			versionCandidates = db.VersionsOfResourcePassedJobs(
-				inputConfig.ResourceID,
+				inputConfig.ResourceSpaceID,
 				inputConfig.Passed,
 			)
 
@@ -57,7 +56,7 @@ func (configs InputConfigs) Resolve(db *VersionsDB) (InputMapping, bool) {
 		existingBuildResolver := &ExistingBuildResolver{
 			BuildInputs:      db.BuildInputs,
 			JobCombinationID: inputConfig.JobCombinationID,
-			ResourceID:       inputConfig.ResourceID,
+			ResourceSpaceID:  inputConfig.ResourceSpaceID,
 		}
 
 		inputCandidates = append(inputCandidates, InputVersionCandidates{
