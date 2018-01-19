@@ -58,9 +58,9 @@ var (
 		StepName: "some-step-name",
 		Attempt:  "1.2.3",
 
-		PipelineID:       123,
-		JobCombinationID: 456,
-		BuildID:          789,
+		PipelineID: 123,
+		JobID:      456,
+		BuildID:    789,
 
 		PipelineName: "some-pipeline",
 		JobName:      "some-job",

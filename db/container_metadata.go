@@ -11,9 +11,9 @@ type ContainerMetadata struct {
 	WorkingDirectory string
 	User             string
 
-	PipelineID       int
-	JobCombinationID int
-	BuildID          int
+	PipelineID int
+	JobID      int
+	BuildID    int
 
 	PipelineName string
 	JobName      string
@@ -71,8 +71,8 @@ func (metadata ContainerMetadata) SQLMap() map[string]interface{} {
 		m["meta_pipeline_id"] = metadata.PipelineID
 	}
 
-	if metadata.JobCombinationID != 0 {
-		m["meta_job_id"] = metadata.JobCombinationID
+	if metadata.JobID != 0 {
+		m["meta_job_id"] = metadata.JobID
 	}
 
 	if metadata.BuildID != 0 {
@@ -116,7 +116,7 @@ func (metadata *ContainerMetadata) ScanTargets() []interface{} {
 		&metadata.WorkingDirectory,
 		&metadata.User,
 		&metadata.PipelineID,
-		&metadata.JobCombinationID,
+		&metadata.JobID,
 		&metadata.BuildID,
 		&metadata.PipelineName,
 		&metadata.JobName,
