@@ -14,9 +14,9 @@ func Container(container db.Container) atc.Container {
 
 		Type: string(meta.Type),
 
-		PipelineID:       meta.PipelineID,
-		JobCombinationID: meta.JobCombinationID,
-		BuildID:          meta.BuildID,
+		PipelineID: meta.PipelineID,
+		JobID:      meta.JobID,
+		BuildID:    meta.BuildID,
 
 		PipelineName: meta.PipelineName,
 		JobName:      meta.JobName,

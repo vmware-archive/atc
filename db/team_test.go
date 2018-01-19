@@ -252,7 +252,7 @@ var _ = Describe("Team", func() {
 			diffPipelineID.PipelineID = fullMetadata.PipelineID + 1
 
 			diffJobID := fullMetadata
-			diffJobID.JobCombinationID = fullMetadata.JobCombinationID + 1
+			diffJobID.JobID = fullMetadata.JobID + 1
 
 			diffBuildID := fullMetadata
 			diffBuildID.BuildID = fullMetadata.BuildID + 1
