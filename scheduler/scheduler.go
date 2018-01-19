@@ -73,7 +73,7 @@ func (s *Scheduler) Schedule(
 		}
 
 		for _, jobCombination := range jobCombinationsMap[job.Name()] {
-			err := s.BuildStarter.TryStartPendingBuildsForJob(logger, job, jobCombination, resources, resourceTypes, nextPendingBuildsForJob)
+			err := s.BuildStarter.TryStartPendingBuildsForJobCombination(logger, job, jobCombination, resources, resourceTypes, nextPendingBuildsForJob)
 			jobSchedulingTime[job.Name()] = jobSchedulingTime[job.Name()] + time.Since(jStart)
 
 			if err != nil {
@@ -144,7 +144,7 @@ func (s *Scheduler) TriggerImmediately(
 			return
 		}
 
-		err = s.BuildStarter.TryStartPendingBuildsForJob(logger, job, jobCombination, resources, resourceTypes, nextPendingBuilds)
+		err = s.BuildStarter.TryStartPendingBuildsForJobCombination(logger, job, jobCombination, resources, resourceTypes, nextPendingBuilds)
 		if err != nil {
 			logger.Error("failed-to-start-next-pending-build-for-job", err, lager.Data{"job-name": job.Name()})
 			return
