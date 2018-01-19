@@ -1463,8 +1463,9 @@ var _ = Describe("Jobs API", func() {
 						})
 
 						It("determined the inputs with the correct job config", func() {
-							_, recievedJob, _ := fakeScheduler.SaveNextInputMappingArgsForCall(0)
-							Expect(recievedJob.Name()).To(Equal(fakeJob.Name()))
+							_, receivedJob, receivedJobCombination := fakeScheduler.SaveNextInputMappingArgsForCall(0)
+							Expect(receivedJob.Name()).To(Equal(fakeJob.Name()))
+							Expect(receivedJobCombination.ID()).To(Equal(fakeJobCombination.ID()))
 						})
 
 						It("returns the inputs", func() {
