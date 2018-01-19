@@ -84,16 +84,16 @@ var _ = Describe("Runner", func() {
 			BuildOutputs: []algorithm.BuildOutput{
 				{
 					ResourceVersion: algorithm.ResourceVersion{
-						VersionID:  1,
-						ResourceID: 2,
+						VersionID:       1,
+						ResourceSpaceID: 2,
 					},
 					BuildID:          3,
 					JobCombinationID: 4,
 				},
 				{
 					ResourceVersion: algorithm.ResourceVersion{
-						VersionID:  1,
-						ResourceID: 2,
+						VersionID:       1,
+						ResourceSpaceID: 2,
 					},
 					BuildID:          7,
 					JobCombinationID: 8,

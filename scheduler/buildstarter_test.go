@@ -195,17 +195,17 @@ var _ = Describe("I'm a BuildStarter", func() {
 							fakePipeline.LoadVersionsDBReturns(&algorithm.VersionsDB{
 								ResourceVersions: []algorithm.ResourceVersion{
 									{
-										VersionID:  73,
-										ResourceID: 127,
-										CheckOrder: 123,
+										VersionID:       73,
+										ResourceSpaceID: 127,
+										CheckOrder:      123,
 									},
 								},
 								BuildOutputs: []algorithm.BuildOutput{
 									{
 										ResourceVersion: algorithm.ResourceVersion{
-											VersionID:  73,
-											ResourceID: 127,
-											CheckOrder: 123,
+											VersionID:       73,
+											ResourceSpaceID: 127,
+											CheckOrder:      123,
 										},
 										BuildID:          66,
 										JobCombinationID: 13,
@@ -214,9 +214,9 @@ var _ = Describe("I'm a BuildStarter", func() {
 								BuildInputs: []algorithm.BuildInput{
 									{
 										ResourceVersion: algorithm.ResourceVersion{
-											VersionID:  66,
-											ResourceID: 77,
-											CheckOrder: 88,
+											VersionID:       66,
+											ResourceSpaceID: 77,
+											CheckOrder:      88,
 										},
 										BuildID:          66,
 										JobCombinationID: 13,
@@ -226,7 +226,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 								JobCombinationIDs: map[string]int{
 									"bad-luck-job": 13,
 								},
-								ResourceIDs: map[string]int{
+								ResourceSpaceIDs: map[string]int{
 									"resource-127": 127,
 								},
 							}, nil)

@@ -97,28 +97,28 @@ func (example Example) Run() {
 			jobCombinationIDs[name] = id
 		}
 
-		for name, id := range db.ResourceIDs {
+		for name, id := range db.ResourceSpaceIDs {
 			resourceIDs[name] = id
 		}
 
 		for _, v := range db.ResourceVersions {
-			importedName := fmt.Sprintf("imported-r%dv%d", v.ResourceID, v.VersionID)
+			importedName := fmt.Sprintf("imported-r%dv%d", v.ResourceSpaceID, v.VersionID)
 			versionIDs[importedName] = v.VersionID
 		}
 	} else {
 		for _, row := range example.DB.Resources {
 			version := algorithm.ResourceVersion{
-				VersionID:  versionIDs.ID(row.Version),
-				ResourceID: resourceIDs.ID(row.Resource),
-				CheckOrder: row.CheckOrder,
+				VersionID:       versionIDs.ID(row.Version),
+				ResourceSpaceID: resourceIDs.ID(row.Resource),
+				CheckOrder:      row.CheckOrder,
 			}
 			db.ResourceVersions = append(db.ResourceVersions, version)
 		}
 		for _, row := range example.DB.BuildInputs {
 			version := algorithm.ResourceVersion{
-				VersionID:  versionIDs.ID(row.Version),
-				ResourceID: resourceIDs.ID(row.Resource),
-				CheckOrder: row.CheckOrder,
+				VersionID:       versionIDs.ID(row.Version),
+				ResourceSpaceID: resourceIDs.ID(row.Resource),
+				CheckOrder:      row.CheckOrder,
 			}
 			db.BuildInputs = append(db.BuildInputs, algorithm.BuildInput{
 				ResourceVersion:  version,
@@ -128,9 +128,9 @@ func (example Example) Run() {
 		}
 		for _, row := range example.DB.BuildOutputs {
 			version := algorithm.ResourceVersion{
-				VersionID:  versionIDs.ID(row.Version),
-				ResourceID: resourceIDs.ID(row.Resource),
-				CheckOrder: row.CheckOrder,
+				VersionID:       versionIDs.ID(row.Version),
+				ResourceSpaceID: resourceIDs.ID(row.Resource),
+				CheckOrder:      row.CheckOrder,
 			}
 			db.BuildOutputs = append(db.BuildOutputs, algorithm.BuildOutput{
 				ResourceVersion:  version,
@@ -155,7 +155,7 @@ func (example Example) Run() {
 		inputConfigs[i] = algorithm.InputConfig{
 			Name:             input.Name,
 			Passed:           passed,
-			ResourceID:       resourceIDs.ID(input.Resource),
+			ResourceSpaceID:  resourceIDs.ID(input.Resource),
 			UseEveryVersion:  input.Version.Every,
 			PinnedVersionID:  versionID,
 			JobCombinationID: jobCombinationIDs.ID(CurrentJobName),
