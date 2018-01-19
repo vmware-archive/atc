@@ -28,7 +28,7 @@ const (
 	BuildStatusErrored   BuildStatus = "errored"
 )
 
-var buildsQuery = psql.Select("b.id, b.name, c.id, t.id, b.status, b.manually_triggered, b.scheduled, b.engine, b.engine_metadata, b.public_plan, b.start_time, b.end_time, b.reap_time, j.name, b.pipeline_id, p.name, t.name, b.nonce").
+var buildsQuery = psql.Select("b.id, b.name, c.id, j.id, t.id, b.status, b.manually_triggered, b.scheduled, b.engine, b.engine_metadata, b.public_plan, b.start_time, b.end_time, b.reap_time, j.name, b.pipeline_id, p.name, t.name, b.nonce").
 	From("builds b").
 	JoinClause("LEFT OUTER JOIN job_combinations c ON b.job_combination_id = c.id").
 	JoinClause("LEFT OUTER JOIN jobs j ON c.job_id = j.id").
@@ -41,6 +41,7 @@ type Build interface {
 	ID() int
 	Name() string
 	JobCombinationID() int
+	JobID() int
 	JobName() string
 	PipelineID() int
 	PipelineName() string
@@ -101,6 +102,7 @@ type build struct {
 	pipelineID       int
 	pipelineName     string
 	jobCombinationID int
+	jobID            int
 	jobName          string
 
 	isManuallyTriggered bool
@@ -122,6 +124,7 @@ var ErrBuildDisappeared = errors.New("build-disappeared-from-db")
 func (b *build) ID() int                      { return b.id }
 func (b *build) Name() string                 { return b.name }
 func (b *build) JobCombinationID() int        { return b.jobCombinationID }
+func (b *build) JobID() int                   { return b.jobID }
 func (b *build) JobName() string              { return b.jobName }
 func (b *build) PipelineID() int              { return b.pipelineID }
 func (b *build) PipelineName() string         { return b.pipelineName }
@@ -976,7 +979,7 @@ func buildEventSeq(buildid int) string {
 
 func scanBuild(b *build, row scannable, encryptionStrategy encryption.Strategy) error {
 	var (
-		jobCombinationID, pipelineID                              sql.NullInt64
+		jobCombinationID, jobID, pipelineID                       sql.NullInt64
 		engine, engineMetadata, jobName, pipelineName, publicPlan sql.NullString
 		startTime, endTime, reapTime                              pq.NullTime
 		nonce                                                     sql.NullString
@@ -984,13 +987,14 @@ func scanBuild(b *build, row scannable, encryptionStrategy encryption.Strategy) 
 		status string
 	)
 
-	err := row.Scan(&b.id, &b.name, &jobCombinationID, &b.teamID, &status, &b.isManuallyTriggered, &b.scheduled, &engine, &engineMetadata, &publicPlan, &startTime, &endTime, &reapTime, &jobName, &pipelineID, &pipelineName, &b.teamName, &nonce)
+	err := row.Scan(&b.id, &b.name, &jobCombinationID, &jobID, &b.teamID, &status, &b.isManuallyTriggered, &b.scheduled, &engine, &engineMetadata, &publicPlan, &startTime, &endTime, &reapTime, &jobName, &pipelineID, &pipelineName, &b.teamName, &nonce)
 	if err != nil {
 		return err
 	}
 
 	b.status = BuildStatus(status)
 	b.jobName = jobName.String
+	b.jobID = int(jobID.Int64)
 	b.jobCombinationID = int(jobCombinationID.Int64)
 	b.pipelineName = pipelineName.String
 	b.pipelineID = int(pipelineID.Int64)

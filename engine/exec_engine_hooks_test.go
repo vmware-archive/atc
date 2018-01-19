@@ -21,13 +21,13 @@ var _ = Describe("Exec Engine With Hooks", func() {
 
 		execEngine engine.Engine
 
-		build                    *dbfakes.FakeBuild
-		expectedTeamID           = 1111
-		expectedPipelineID       = 2222
-		expectedJobCombinationID = 3333
-		expectedBuildID          = 4444
-		expectedMetadata         engine.StepMetadata
-		logger                   *lagertest.TestLogger
+		build              *dbfakes.FakeBuild
+		expectedTeamID     = 1111
+		expectedPipelineID = 2222
+		expectedJobID      = 3333
+		expectedBuildID    = 4444
+		expectedMetadata   engine.StepMetadata
+		logger             *lagertest.TestLogger
 
 		fakeDelegate *enginefakes.FakeBuildDelegate
 	)
@@ -51,7 +51,7 @@ var _ = Describe("Exec Engine With Hooks", func() {
 		build.IDReturns(expectedBuildID)
 		build.NameReturns("42")
 		build.JobNameReturns("some-job")
-		build.JobCombinationIDReturns(expectedJobCombinationID)
+		build.JobIDReturns(expectedJobID)
 		build.PipelineNameReturns("some-pipeline")
 		build.PipelineIDReturns(expectedPipelineID)
 		build.TeamNameReturns("some-team")
@@ -177,14 +177,14 @@ var _ = Describe("Exec Engine With Hooks", func() {
 					Expect(plan).To(Equal(inputPlan))
 					Expect(stepMetadata).To(Equal(expectedMetadata))
 					Expect(containerMetadata).To(Equal(db.ContainerMetadata{
-						PipelineID:       expectedPipelineID,
-						PipelineName:     "some-pipeline",
-						JobCombinationID: expectedJobCombinationID,
-						JobName:          "some-job",
-						BuildID:          expectedBuildID,
-						BuildName:        "42",
-						StepName:         "some-input",
-						Type:             db.ContainerTypeGet,
+						PipelineID:   expectedPipelineID,
+						PipelineName: "some-pipeline",
+						JobID:        expectedJobID,
+						JobName:      "some-job",
+						BuildID:      expectedBuildID,
+						BuildName:    "42",
+						StepName:     "some-input",
+						Type:         db.ContainerTypeGet,
 					}))
 				})
 
@@ -195,14 +195,14 @@ var _ = Describe("Exec Engine With Hooks", func() {
 					Expect(dbBuild).To(Equal(build))
 					Expect(plan).To(Equal(completionTaskPlan))
 					Expect(containerMetadata).To(Equal(db.ContainerMetadata{
-						PipelineID:       expectedPipelineID,
-						PipelineName:     "some-pipeline",
-						JobCombinationID: expectedJobCombinationID,
-						JobName:          "some-job",
-						BuildID:          expectedBuildID,
-						BuildName:        "42",
-						StepName:         "some-completion-task",
-						Type:             db.ContainerTypeTask,
+						PipelineID:   expectedPipelineID,
+						PipelineName: "some-pipeline",
+						JobID:        expectedJobID,
+						JobName:      "some-job",
+						BuildID:      expectedBuildID,
+						BuildName:    "42",
+						StepName:     "some-completion-task",
+						Type:         db.ContainerTypeTask,
 					}))
 				})
 
@@ -213,14 +213,14 @@ var _ = Describe("Exec Engine With Hooks", func() {
 					Expect(dbBuild).To(Equal(build))
 					Expect(plan).To(Equal(failureTaskPlan))
 					Expect(containerMetadata).To(Equal(db.ContainerMetadata{
-						PipelineID:       expectedPipelineID,
-						PipelineName:     "some-pipeline",
-						JobCombinationID: expectedJobCombinationID,
-						JobName:          "some-job",
-						BuildID:          expectedBuildID,
-						BuildName:        "42",
-						StepName:         "some-failure-task",
-						Type:             db.ContainerTypeTask,
+						PipelineID:   expectedPipelineID,
+						PipelineName: "some-pipeline",
+						JobID:        expectedJobID,
+						JobName:      "some-job",
+						BuildID:      expectedBuildID,
+						BuildName:    "42",
+						StepName:     "some-failure-task",
+						Type:         db.ContainerTypeTask,
 					}))
 				})
 
@@ -231,14 +231,14 @@ var _ = Describe("Exec Engine With Hooks", func() {
 					Expect(dbBuild).To(Equal(build))
 					Expect(plan).To(Equal(successTaskPlan))
 					Expect(containerMetadata).To(Equal(db.ContainerMetadata{
-						PipelineID:       expectedPipelineID,
-						PipelineName:     "some-pipeline",
-						JobCombinationID: expectedJobCombinationID,
-						JobName:          "some-job",
-						BuildID:          expectedBuildID,
-						BuildName:        "42",
-						StepName:         "some-success-task",
-						Type:             db.ContainerTypeTask,
+						PipelineID:   expectedPipelineID,
+						PipelineName: "some-pipeline",
+						JobID:        expectedJobID,
+						JobName:      "some-job",
+						BuildID:      expectedBuildID,
+						BuildName:    "42",
+						StepName:     "some-success-task",
+						Type:         db.ContainerTypeTask,
 					}))
 				})
 
@@ -249,14 +249,14 @@ var _ = Describe("Exec Engine With Hooks", func() {
 					Expect(dbBuild).To(Equal(build))
 					Expect(plan).To(Equal(nextTaskPlan))
 					Expect(containerMetadata).To(Equal(db.ContainerMetadata{
-						PipelineID:       expectedPipelineID,
-						PipelineName:     "some-pipeline",
-						JobCombinationID: expectedJobCombinationID,
-						JobName:          "some-job",
-						BuildID:          expectedBuildID,
-						BuildName:        "42",
-						StepName:         "some-next-task",
-						Type:             db.ContainerTypeTask,
+						PipelineID:   expectedPipelineID,
+						PipelineName: "some-pipeline",
+						JobID:        expectedJobID,
+						JobName:      "some-job",
+						BuildID:      expectedBuildID,
+						BuildName:    "42",
+						StepName:     "some-next-task",
+						Type:         db.ContainerTypeTask,
 					}))
 				})
 			})
