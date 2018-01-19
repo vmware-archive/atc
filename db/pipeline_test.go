@@ -974,7 +974,7 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(versions.ResourceVersions).To(BeEmpty())
 			Expect(versions.BuildOutputs).To(BeEmpty())
-			Expect(versions.ResourceIDs).To(Equal(map[string]int{
+			Expect(versions.ResourceSpaceIDs).To(Equal(map[string]int{
 				resource.Name():            resource.ID(),
 				otherResource.Name():       otherResource.ID(),
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
@@ -1023,12 +1023,12 @@ var _ = Describe("Pipeline", func() {
 			versions, err = dbPipeline.LoadVersionsDB()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(versions.ResourceVersions).To(ConsistOf([]algorithm.ResourceVersion{
-				{VersionID: savedVR1.ID, ResourceID: resource.ID(), CheckOrder: savedVR1.CheckOrder},
-				{VersionID: savedVR2.ID, ResourceID: resource.ID(), CheckOrder: savedVR2.CheckOrder},
+				{VersionID: savedVR1.ID, ResourceSpaceID: resource.ID(), CheckOrder: savedVR1.CheckOrder},
+				{VersionID: savedVR2.ID, ResourceSpaceID: resource.ID(), CheckOrder: savedVR2.CheckOrder},
 			}))
 
 			Expect(versions.BuildOutputs).To(BeEmpty())
-			Expect(versions.ResourceIDs).To(Equal(map[string]int{
+			Expect(versions.ResourceSpaceIDs).To(Equal(map[string]int{
 				resource.Name():            resource.ID(),
 				otherResource.Name():       otherResource.ID(),
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
@@ -1062,12 +1062,12 @@ var _ = Describe("Pipeline", func() {
 			versions, err = dbPipeline.LoadVersionsDB()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(versions.ResourceVersions).To(ConsistOf([]algorithm.ResourceVersion{
-				{VersionID: savedVR1.ID, ResourceID: resource.ID(), CheckOrder: savedVR1.CheckOrder},
-				{VersionID: savedVR2.ID, ResourceID: resource.ID(), CheckOrder: savedVR2.CheckOrder},
+				{VersionID: savedVR1.ID, ResourceSpaceID: resource.ID(), CheckOrder: savedVR1.CheckOrder},
+				{VersionID: savedVR2.ID, ResourceSpaceID: resource.ID(), CheckOrder: savedVR2.CheckOrder},
 			}))
 
 			Expect(versions.BuildOutputs).To(BeEmpty())
-			Expect(versions.ResourceIDs).To(Equal(map[string]int{
+			Expect(versions.ResourceSpaceIDs).To(Equal(map[string]int{
 				resource.Name():            resource.ID(),
 				otherResource.Name():       otherResource.ID(),
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
@@ -1099,23 +1099,23 @@ var _ = Describe("Pipeline", func() {
 			versions, err = dbPipeline.LoadVersionsDB()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(versions.ResourceVersions).To(ConsistOf([]algorithm.ResourceVersion{
-				{VersionID: savedVR1.ID, ResourceID: resource.ID(), CheckOrder: savedVR1.CheckOrder},
-				{VersionID: savedVR2.ID, ResourceID: resource.ID(), CheckOrder: savedVR2.CheckOrder},
+				{VersionID: savedVR1.ID, ResourceSpaceID: resource.ID(), CheckOrder: savedVR1.CheckOrder},
+				{VersionID: savedVR2.ID, ResourceSpaceID: resource.ID(), CheckOrder: savedVR2.CheckOrder},
 			}))
 
 			Expect(versions.BuildOutputs).To(ConsistOf([]algorithm.BuildOutput{
 				{
 					ResourceVersion: algorithm.ResourceVersion{
-						VersionID:  savedVR1.ID,
-						ResourceID: resource.ID(),
-						CheckOrder: savedVR1.CheckOrder,
+						VersionID:       savedVR1.ID,
+						ResourceSpaceID: resource.ID(),
+						CheckOrder:      savedVR1.CheckOrder,
 					},
 					JobCombinationID: aJobCombination.ID(),
 					BuildID:          build1DB.ID(),
 				},
 			}))
 
-			Expect(versions.ResourceIDs).To(Equal(map[string]int{
+			Expect(versions.ResourceSpaceIDs).To(Equal(map[string]int{
 				resource.Name():            resource.ID(),
 				otherResource.Name():       otherResource.ID(),
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
@@ -1144,23 +1144,23 @@ var _ = Describe("Pipeline", func() {
 			versions, err = dbPipeline.LoadVersionsDB()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(versions.ResourceVersions).To(ConsistOf([]algorithm.ResourceVersion{
-				{VersionID: savedVR1.ID, ResourceID: resource.ID(), CheckOrder: savedVR1.CheckOrder},
-				{VersionID: savedVR2.ID, ResourceID: resource.ID(), CheckOrder: savedVR2.CheckOrder},
+				{VersionID: savedVR1.ID, ResourceSpaceID: resource.ID(), CheckOrder: savedVR1.CheckOrder},
+				{VersionID: savedVR2.ID, ResourceSpaceID: resource.ID(), CheckOrder: savedVR2.CheckOrder},
 			}))
 
 			Expect(versions.BuildOutputs).To(ConsistOf([]algorithm.BuildOutput{
 				{
 					ResourceVersion: algorithm.ResourceVersion{
-						VersionID:  savedVR1.ID,
-						ResourceID: resource.ID(),
-						CheckOrder: savedVR1.CheckOrder,
+						VersionID:       savedVR1.ID,
+						ResourceSpaceID: resource.ID(),
+						CheckOrder:      savedVR1.CheckOrder,
 					},
 					JobCombinationID: aJobCombination.ID(),
 					BuildID:          build1DB.ID(),
 				},
 			}))
 
-			Expect(versions.ResourceIDs).To(Equal(map[string]int{
+			Expect(versions.ResourceSpaceIDs).To(Equal(map[string]int{
 				resource.Name():            resource.ID(),
 				otherResource.Name():       otherResource.ID(),
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
@@ -1196,23 +1196,23 @@ var _ = Describe("Pipeline", func() {
 			versions, err = dbPipeline.LoadVersionsDB()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(versions.ResourceVersions).To(ConsistOf([]algorithm.ResourceVersion{
-				{VersionID: savedVR1.ID, ResourceID: resource.ID(), CheckOrder: savedVR1.CheckOrder},
-				{VersionID: savedVR2.ID, ResourceID: resource.ID(), CheckOrder: savedVR2.CheckOrder},
+				{VersionID: savedVR1.ID, ResourceSpaceID: resource.ID(), CheckOrder: savedVR1.CheckOrder},
+				{VersionID: savedVR2.ID, ResourceSpaceID: resource.ID(), CheckOrder: savedVR2.CheckOrder},
 			}))
 
 			Expect(versions.BuildOutputs).To(ConsistOf([]algorithm.BuildOutput{
 				{
 					ResourceVersion: algorithm.ResourceVersion{
-						VersionID:  savedVR1.ID,
-						ResourceID: resource.ID(),
-						CheckOrder: savedVR1.CheckOrder,
+						VersionID:       savedVR1.ID,
+						ResourceSpaceID: resource.ID(),
+						CheckOrder:      savedVR1.CheckOrder,
 					},
 					JobCombinationID: aJobCombination.ID(),
 					BuildID:          build1DB.ID(),
 				},
 			}))
 
-			Expect(versions.ResourceIDs).To(Equal(map[string]int{
+			Expect(versions.ResourceSpaceIDs).To(Equal(map[string]int{
 				resource.Name():            resource.ID(),
 				otherResource.Name():       otherResource.ID(),
 				reallyOtherResource.Name(): reallyOtherResource.ID(),
@@ -1254,9 +1254,9 @@ var _ = Describe("Pipeline", func() {
 			Expect(versions.BuildInputs).To(ConsistOf([]algorithm.BuildInput{
 				{
 					ResourceVersion: algorithm.ResourceVersion{
-						VersionID:  savedVR1.ID,
-						ResourceID: resource.ID(),
-						CheckOrder: savedVR1.CheckOrder,
+						VersionID:       savedVR1.ID,
+						ResourceSpaceID: resource.ID(),
+						CheckOrder:      savedVR1.CheckOrder,
 					},
 					JobCombinationID: aJobCombination.ID(),
 					BuildID:          build1DB.ID(),
@@ -1708,9 +1708,9 @@ var _ = Describe("Pipeline", func() {
 				By("omitting it from the list of resource versions")
 				Expect(versions.ResourceVersions).To(ConsistOf(
 					algorithm.ResourceVersion{
-						VersionID:  enabledVersion.ID,
-						ResourceID: resource.ID(),
-						CheckOrder: enabledVersion.CheckOrder,
+						VersionID:       enabledVersion.ID,
+						ResourceSpaceID: resource.ID(),
+						CheckOrder:      enabledVersion.CheckOrder,
 					},
 				))
 
@@ -1718,9 +1718,9 @@ var _ = Describe("Pipeline", func() {
 				Expect(versions.BuildOutputs).To(ConsistOf(
 					algorithm.BuildOutput{
 						ResourceVersion: algorithm.ResourceVersion{
-							VersionID:  enabledVersion.ID,
-							ResourceID: resource.ID(),
-							CheckOrder: enabledVersion.CheckOrder,
+							VersionID:       enabledVersion.ID,
+							ResourceSpaceID: resource.ID(),
+							CheckOrder:      enabledVersion.CheckOrder,
 						},
 						JobCombinationID: aJobCombination.ID(),
 						BuildID:          build1.ID(),
@@ -1731,9 +1731,9 @@ var _ = Describe("Pipeline", func() {
 				Expect(versions.BuildInputs).To(ConsistOf(
 					algorithm.BuildInput{
 						ResourceVersion: algorithm.ResourceVersion{
-							VersionID:  enabledVersion.ID,
-							ResourceID: resource.ID(),
-							CheckOrder: enabledVersion.CheckOrder,
+							VersionID:       enabledVersion.ID,
+							ResourceSpaceID: resource.ID(),
+							CheckOrder:      enabledVersion.CheckOrder,
 						},
 						JobCombinationID: aJobCombination.ID(),
 						BuildID:          build1.ID(),
@@ -2387,7 +2387,7 @@ var _ = Describe("Pipeline", func() {
 	})
 
 	Describe("GetBuildsWithVersionAsInput", func() {
-		var savedVersionedResourceID int
+		var savedVersionedResourceSpaceID int
 		var expectedBuilds []db.Build
 
 		BeforeEach(func() {
@@ -2469,24 +2469,24 @@ var _ = Describe("Pipeline", func() {
 			Expect(secondVersionedResources).To(HaveLen(1))
 			Expect(secondVersionedResources[0].ID).To(Equal(versionedResources[0].ID))
 
-			savedVersionedResourceID = versionedResources[0].ID
+			savedVersionedResourceSpaceID = versionedResources[0].ID
 		})
 
 		It("returns the builds for which the provided version id was an input", func() {
-			builds, err := pipeline.GetBuildsWithVersionAsInput(savedVersionedResourceID)
+			builds, err := pipeline.GetBuildsWithVersionAsInput(savedVersionedResourceSpaceID)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(builds).To(ConsistOf(expectedBuilds))
 		})
 
 		It("returns an empty slice of builds when the provided version id doesn't exist", func() {
-			builds, err := pipeline.GetBuildsWithVersionAsInput(savedVersionedResourceID + 100)
+			builds, err := pipeline.GetBuildsWithVersionAsInput(savedVersionedResourceSpaceID + 100)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(builds).To(Equal([]db.Build{}))
 		})
 	})
 
 	Describe("GetBuildsWithVersionAsOutput", func() {
-		var savedVersionedResourceID int
+		var savedVersionedResourceSpaceID int
 		var expectedBuilds []db.Build
 
 		BeforeEach(func() {
@@ -2561,17 +2561,17 @@ var _ = Describe("Pipeline", func() {
 			Expect(secondVersionedResources).To(HaveLen(1))
 			Expect(secondVersionedResources[0].ID).To(Equal(versionedResources[0].ID))
 
-			savedVersionedResourceID = versionedResources[0].ID
+			savedVersionedResourceSpaceID = versionedResources[0].ID
 		})
 
 		It("returns the builds for which the provided version id was an output", func() {
-			builds, err := pipeline.GetBuildsWithVersionAsOutput(savedVersionedResourceID)
+			builds, err := pipeline.GetBuildsWithVersionAsOutput(savedVersionedResourceSpaceID)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(builds).To(ConsistOf(expectedBuilds))
 		})
 
 		It("returns an empty slice of builds when the provided version id doesn't exist", func() {
-			builds, err := pipeline.GetBuildsWithVersionAsOutput(savedVersionedResourceID + 100)
+			builds, err := pipeline.GetBuildsWithVersionAsOutput(savedVersionedResourceSpaceID + 100)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(builds).To(Equal([]db.Build{}))
 		})

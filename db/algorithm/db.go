@@ -5,13 +5,13 @@ type VersionsDB struct {
 	BuildOutputs      []BuildOutput
 	BuildInputs       []BuildInput
 	JobCombinationIDs map[string]int
-	ResourceIDs       map[string]int
+	ResourceSpaceIDs  map[string]int
 }
 
 type ResourceVersion struct {
-	VersionID  int
-	ResourceID int
-	CheckOrder int
+	VersionID       int
+	ResourceSpaceID int
+	CheckOrder      int
 }
 
 type BuildOutput struct {
@@ -38,10 +38,10 @@ func (db VersionsDB) IsVersionFirstOccurrence(versionID int, jobCombinationID in
 	return true
 }
 
-func (db VersionsDB) AllVersionsOfResource(resourceID int) VersionCandidates {
+func (db VersionsDB) AllVersionsOfResource(resourceSpaceID int) VersionCandidates {
 	candidates := VersionCandidates{}
 	for _, output := range db.ResourceVersions {
-		if output.ResourceID == resourceID {
+		if output.ResourceSpaceID == resourceSpaceID {
 			candidates.Add(VersionCandidate{
 				VersionID:  output.VersionID,
 				CheckOrder: output.CheckOrder,
@@ -52,12 +52,12 @@ func (db VersionsDB) AllVersionsOfResource(resourceID int) VersionCandidates {
 	return candidates
 }
 
-func (db VersionsDB) LatestVersionOfResource(resourceID int) (VersionCandidate, bool) {
+func (db VersionsDB) LatestVersionOfResource(resourceSpaceID int) (VersionCandidate, bool) {
 	var candidate VersionCandidate
 	var found bool
 
 	for _, v := range db.ResourceVersions {
-		if v.ResourceID == resourceID && v.CheckOrder > candidate.CheckOrder {
+		if v.ResourceSpaceID == resourceSpaceID && v.CheckOrder > candidate.CheckOrder {
 			candidate = VersionCandidate{
 				VersionID:  v.VersionID,
 				CheckOrder: v.CheckOrder,
@@ -70,12 +70,12 @@ func (db VersionsDB) LatestVersionOfResource(resourceID int) (VersionCandidate, 
 	return candidate, found
 }
 
-func (db VersionsDB) FindVersionOfResource(resourceID int, versionID int) (VersionCandidate, bool) {
+func (db VersionsDB) FindVersionOfResource(resourceSpaceID int, versionID int) (VersionCandidate, bool) {
 	var candidate VersionCandidate
 	var found bool
 
 	for _, v := range db.ResourceVersions {
-		if v.ResourceID == resourceID && v.VersionID == versionID {
+		if v.ResourceSpaceID == resourceSpaceID && v.VersionID == versionID {
 			candidate = VersionCandidate{
 				VersionID:  v.VersionID,
 				CheckOrder: v.CheckOrder,
@@ -88,7 +88,7 @@ func (db VersionsDB) FindVersionOfResource(resourceID int, versionID int) (Versi
 	return candidate, found
 }
 
-func (db VersionsDB) VersionsOfResourcePassedJobs(resourceID int, passed JobSet) VersionCandidates {
+func (db VersionsDB) VersionsOfResourcePassedJobs(resourceSpaceID int, passed JobSet) VersionCandidates {
 	candidates := VersionCandidates{}
 
 	firstTick := true
@@ -96,7 +96,7 @@ func (db VersionsDB) VersionsOfResourcePassedJobs(resourceID int, passed JobSet)
 		versions := VersionCandidates{}
 
 		for _, output := range db.BuildOutputs {
-			if output.ResourceID == resourceID && output.JobCombinationID == jobCombinationID {
+			if output.ResourceSpaceID == resourceSpaceID && output.JobCombinationID == jobCombinationID {
 				versions.Add(VersionCandidate{
 					VersionID:        output.VersionID,
 					CheckOrder:       output.CheckOrder,
