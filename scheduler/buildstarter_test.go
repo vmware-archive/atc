@@ -50,7 +50,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 		disaster = errors.New("bad thing")
 	})
 
-	Describe("TryStartPendingBuildsForJob", func() {
+	Describe("TryStartPendingBuildsForJobCombination", func() {
 		var tryStartErr error
 		var createdBuild *dbfakes.FakeBuild
 		var job *dbfakes.FakeJob
@@ -86,7 +86,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 			})
 
 			JustBeforeEach(func() {
-				tryStartErr = buildStarter.TryStartPendingBuildsForJob(
+				tryStartErr = buildStarter.TryStartPendingBuildsForJobCombination(
 					lagertest.NewTestLogger("test"),
 					job,
 					jobCombination,
@@ -301,7 +301,7 @@ var _ = Describe("I'm a BuildStarter", func() {
 			})
 
 			JustBeforeEach(func() {
-				tryStartErr = buildStarter.TryStartPendingBuildsForJob(
+				tryStartErr = buildStarter.TryStartPendingBuildsForJobCombination(
 					lagertest.NewTestLogger("test"),
 					job,
 					jobCombination,

@@ -12,7 +12,7 @@ import (
 //go:generate counterfeiter . BuildStarter
 
 type BuildStarter interface {
-	TryStartPendingBuildsForJob(
+	TryStartPendingBuildsForJobCombination(
 		logger lager.Logger,
 		job db.Job,
 		jobCombination db.JobCombination,
@@ -55,7 +55,7 @@ type buildStarter struct {
 	inputMapper        inputmapper.InputMapper
 }
 
-func (s *buildStarter) TryStartPendingBuildsForJob(
+func (s *buildStarter) TryStartPendingBuildsForJobCombination(
 	logger lager.Logger,
 	job db.Job,
 	jobCombination db.JobCombination,
