@@ -19,9 +19,8 @@ var _ = Describe("BuildFactory", func() {
 		team, err = teamFactory.CreateTeam(atc.Team{Name: "some-team"})
 		Expect(err).ToNot(HaveOccurred())
 
-		defaultJobCombinations, err := defaultJob.SyncResourceSpaceCombinations([]map[string]string{map[string]string{"some-resource": "default"}})
+		defaultJobCombination, err = defaultJob.JobCombination()
 		Expect(err).NotTo(HaveOccurred())
-		defaultJobCombination = defaultJobCombinations[0]
 	})
 
 	Describe("Build", func() {
@@ -110,9 +109,8 @@ var _ = Describe("BuildFactory", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				jobCombinations, err := j.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+				jobCombination, err := j.JobCombination()
 				Expect(err).NotTo(HaveOccurred())
-				jobCombination := jobCombinations[0]
 
 				pb1, err := jobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
@@ -211,9 +209,8 @@ var _ = Describe("BuildFactory", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			jobCombinations, err := privateJob.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+			jobCombination, err := privateJob.JobCombination()
 			Expect(err).NotTo(HaveOccurred())
-			jobCombination := jobCombinations[0]
 
 			_, err = jobCombination.CreateBuild()
 			Expect(err).NotTo(HaveOccurred())
@@ -227,9 +224,8 @@ var _ = Describe("BuildFactory", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			jobCombinations, err = publicJob.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+			jobCombination, err = publicJob.JobCombination()
 			Expect(err).NotTo(HaveOccurred())
-			jobCombination = jobCombinations[0]
 
 			publicBuild, err = jobCombination.CreateBuild()
 			Expect(err).NotTo(HaveOccurred())
@@ -262,9 +258,8 @@ var _ = Describe("BuildFactory", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+			jobCombination, err := job.JobCombination()
 			Expect(err).NotTo(HaveOccurred())
-			jobCombination := jobCombinations[0]
 
 			build1DB, err = team.CreateOneOffBuild()
 			Expect(err).NotTo(HaveOccurred())
