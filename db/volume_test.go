@@ -32,7 +32,8 @@ var _ = Describe("Volume", func() {
 		defaultCreatedContainer, err = defaultCreatingContainer.Created()
 		Expect(err).ToNot(HaveOccurred())
 
-		defaultJobCombination = getJobCombination(defaultJob, map[string]string{})
+		defaultJobCombination, err = defaultJob.JobCombination()
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Describe("creatingVolume.Failed", func() {

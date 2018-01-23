@@ -92,10 +92,8 @@ var _ = Describe("Job Combination", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(found).To(BeTrue())
 
-		jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{map[string]string{"some-resource": "default"}})
+		jobCombination, err = job.JobCombination()
 		Expect(err).ToNot(HaveOccurred())
-
-		jobCombination = jobCombinations[0]
 	})
 
 	Describe("CreateBuild", func() {

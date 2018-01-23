@@ -346,7 +346,8 @@ var _ = Describe("Build", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			jobCombination = getJobCombination(job, map[string]string{"some-resource": "default"})
+			jobCombination, err = job.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("saves the build's input", func() {
@@ -415,8 +416,8 @@ var _ = Describe("Build", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			combination := map[string]string{"some-implicit-resource": "default", "some-explicit-resource": "default"}
-			jobCombination = getJobCombination(job, combination)
+			jobCombination, err = job.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("can get a build's output", func() {
@@ -552,8 +553,8 @@ var _ = Describe("Build", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			combination := map[string]string{"some-resource": "default", "some-other-resource": "default"}
-			jobCombination = getJobCombination(job, combination)
+			jobCombination, err = job.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns build inputs and outputs", func() {
@@ -630,8 +631,8 @@ var _ = Describe("Build", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				combination := map[string]string{}
-				jobCombination = getJobCombination(job, combination)
+				jobCombination, err = job.JobCombination()
+				Expect(err).ToNot(HaveOccurred())
 
 				build, err = jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
@@ -742,7 +743,8 @@ var _ = Describe("Build", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				jobCombination = getJobCombination(job, map[string]string{})
+				jobCombination, err = job.JobCombination()
+				Expect(err).ToNot(HaveOccurred())
 
 				build, err = jobCombination.CreateBuild()
 				Expect(err).NotTo(HaveOccurred())
@@ -948,8 +950,8 @@ var _ = Describe("Build", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(found).To(BeTrue())
 
-					combination := map[string]string{"input1": "default", "input2": "default", "input3": "default", "input4": "default", "input5": "default", "input6": "default"}
-					jobCombination = getJobCombination(job, combination)
+					jobCombination, err = job.JobCombination()
+					Expect(err).ToNot(HaveOccurred())
 
 					build, err = jobCombination.CreateBuild()
 					Expect(err).NotTo(HaveOccurred())
@@ -1014,8 +1016,8 @@ var _ = Describe("Build", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				combination := map[string]string{}
-				jobCombination = getJobCombination(job, combination)
+				jobCombination, err = job.JobCombination()
+				Expect(err).ToNot(HaveOccurred())
 
 				build, err = jobCombination.CreateBuild()
 				Expect(err).ToNot(HaveOccurred())
@@ -1103,8 +1105,8 @@ var _ = Describe("Build", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			combination := map[string]string{"some-resource": "default", "some-other-resource": "default", "weird": "default"}
-			jobCombination := getJobCombination(job, combination)
+			jobCombination, err := job.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
 
 			build, err = jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
@@ -1225,10 +1227,4 @@ func envelope(ev atc.Event) event.Envelope {
 		Version: ev.Version(),
 		Data:    &data,
 	}
-}
-
-func getJobCombination(job db.Job, combination map[string]string) (jobCombination db.JobCombination) {
-	jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{combination})
-	Expect(err).ToNot(HaveOccurred())
-	return jobCombinations[0]
 }

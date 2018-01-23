@@ -279,8 +279,8 @@ var _ = Describe("Team", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			combination := map[string]string{"some-resource": "default"}
-			jobCombination := getJobCombination(job, combination)
+			jobCombination, err := job.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
 
 			build, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
@@ -496,8 +496,8 @@ var _ = Describe("Team", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			combination := map[string]string{"some-resource": "default"}
-			jobCombination := getJobCombination(job, combination)
+			jobCombination, err := job.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
 
 			build, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
@@ -1003,8 +1003,8 @@ var _ = Describe("Team", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				combination := map[string]string{}
-				jobCombination := getJobCombination(job, combination)
+				jobCombination, err := job.JobCombination()
+				Expect(err).ToNot(HaveOccurred())
 
 				for i := 3; i < 5; i++ {
 					build, err := jobCombination.CreateBuild()
@@ -1550,7 +1550,8 @@ var _ = Describe("Team", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			jobCombination := getJobCombination(job, map[string]string{"some-resource": "default"})
+			jobCombination, err := job.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
 
 			_, err = workerTaskCacheFactory.FindOrCreate(jobCombination.ID(), "some-task", "some-path", defaultWorker.Name())
 			Expect(err).ToNot(HaveOccurred())
@@ -1577,7 +1578,8 @@ var _ = Describe("Team", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			jobCombination := getJobCombination(job, map[string]string{"some-resource": "default"})
+			jobCombination, err := job.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
 
 			_, err = workerTaskCacheFactory.FindOrCreate(jobCombination.ID(), "some-task", "some-path", defaultWorker.Name())
 			Expect(err).ToNot(HaveOccurred())
@@ -1938,6 +1940,20 @@ var _ = Describe("Team", func() {
 
 			otherReturnedGroups = otherPipeline.Groups()
 			Expect(otherReturnedGroups).To(Equal(updatedConfig.Groups))
+		})
+
+		It("Syncs resource space combinations for all jobs", func() {
+			teamPipeline, _, err := team.SavePipeline("steve", config, 0, db.PipelineUnpaused)
+			Expect(err).ToNot(HaveOccurred())
+
+			job, found, err := teamPipeline.Job("some-job")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeTrue())
+
+			jobCombination, err := job.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(jobCombination.JobID()).To(Equal(job.ID()))
+			Expect(jobCombination.Combination()).To(Equal(map[string]string{"some-resource": "default"}))
 		})
 
 		Context("when there are multiple teams", func() {

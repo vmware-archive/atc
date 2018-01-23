@@ -832,6 +832,7 @@ func (p *pipeline) Jobs() (Jobs, error) {
 	}
 
 	jobs, err := scanJobs(p.conn, p.lockFactory, rows)
+
 	return jobs, err
 }
 
@@ -1528,4 +1529,34 @@ func (p *pipeline) getBuildsFrom(view string) (map[string]Build, error) {
 	}
 
 	return nextBuilds, nil
+}
+
+func (p *pipeline) syncAllJobsResourceSpaceCombinations(tx Tx) error {
+	rows, err := jobsQuery.
+		Where(sq.Eq{
+			"pipeline_id": p.id,
+			"active":      true,
+		}).
+		OrderBy("j.id ASC").
+		RunWith(tx).
+		Query()
+	if err != nil {
+		return err
+	}
+
+	jobs, err := scanJobs(p.conn, p.lockFactory, rows)
+	if err != nil {
+		return err
+	}
+
+	for _, j := range jobs {
+		resourceSpaceCombinations := j.ResourceSpaceCombinations(j.Config().Spaces())
+
+		_, err = j.(*job).syncResourceSpaceCombinations(tx, resourceSpaceCombinations)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -216,18 +216,27 @@ func (j *job) ResourceSpaceCombinations(resourceSpaces map[string][]string) []ma
 
 func (j *job) JobCombination() (JobCombination, error) {
 	var jobCombinationID, jobID int
+	var marshaled sql.NullString
+	var combination map[string]string
 
-	err := psql.Select("id, job_id").
+	err := psql.Select("id, job_id, combination").
 		From("job_combinations").
 		Where(sq.Eq{"job_id": j.id}).
 		OrderBy("id DESC").Limit(1).
 		RunWith(j.conn).QueryRow().
-		Scan(&jobCombinationID, &jobID)
+		Scan(&jobCombinationID, &jobID, &marshaled)
 	if err != nil {
 		return nil, err
 	}
 
-	jc := &jobCombination{conn: j.conn, lockFactory: j.lockFactory, id: jobCombinationID, jobID: jobID, pipelineID: j.pipelineID, teamID: j.teamID}
+	if marshaled.Valid {
+		err = json.Unmarshal([]byte(marshaled.String), &combination)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	jc := &jobCombination{conn: j.conn, lockFactory: j.lockFactory, id: jobCombinationID, jobID: jobID, pipelineID: j.pipelineID, teamID: j.teamID, combination: combination}
 	return jc, nil
 }
 
@@ -477,6 +486,27 @@ func (j *job) GetPendingBuilds() ([]Build, error) {
 	return builds, nil
 }
 
+func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([]JobCombination, error) {
+	tx, err := j.conn.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	defer Rollback(tx)
+
+	jobCombinations, err := j.syncResourceSpaceCombinations(tx, combinations)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return jobCombinations, nil
+}
+
 func (j *job) updateSerialGroups(serialGroups []string) error {
 	tx, err := j.conn.Begin()
 	if err != nil {
@@ -588,14 +618,7 @@ func scanJobs(conn Conn, lockFactory lock.LockFactory, rows *sql.Rows) (Jobs, er
 	return jobs, nil
 }
 
-func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([]JobCombination, error) {
-	tx, err := j.conn.Begin()
-	if err != nil {
-		return nil, err
-	}
-
-	defer Rollback(tx)
-
+func (j *job) syncResourceSpaceCombinations(tx Tx, combinations []map[string]string) ([]JobCombination, error) {
 	jobCombinations := []JobCombination{}
 
 	for _, c := range combinations {
@@ -613,7 +636,7 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 
 		if needsMigration {
 			err = psql.Update("job_combinations").
-				Set("combination", marshaled).
+				Set("combination", string(marshaled)).
 				Where(sq.Eq{"job_id": j.ID()}).
 				Suffix("RETURNING id").
 				RunWith(tx).QueryRow().Scan(&jobCombinationID)
@@ -621,12 +644,21 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 				return nil, err
 			}
 		} else {
-			err = psql.Insert("job_combinations").
+			_, err = psql.Insert("job_combinations").
 				Columns("job_id", "combination").
-				Values(j.ID(), marshaled).
-				// FIXME: postgres requires an update to return id on conflict, but this may cause side effects
-				Suffix("ON CONFLICT (job_id, combination) DO UPDATE set combination=EXCLUDED.combination RETURNING id").
-				RunWith(tx).QueryRow().Scan(&jobCombinationID)
+				Values(j.ID(), string(marshaled)).
+				Suffix("ON CONFLICT (job_id, combination) DO NOTHING").
+				RunWith(tx).Exec()
+			if err != nil {
+				return nil, err
+			}
+
+			err = psql.Select("id").
+				From("job_combinations").
+				Where(sq.Eq{
+					"job_id":      j.ID(),
+					"combination": string(marshaled),
+				}).RunWith(tx).QueryRow().Scan(&jobCombinationID)
 			if err != nil {
 				return nil, err
 			}
@@ -661,11 +693,6 @@ func (j *job) SyncResourceSpaceCombinations(combinations []map[string]string) ([
 		jobCombination := &jobCombination{conn: j.conn, lockFactory: j.lockFactory, id: jobCombinationID, jobID: j.id, combination: c, pipelineID: j.PipelineID(), teamID: j.TeamID()}
 
 		jobCombinations = append(jobCombinations, jobCombination)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
 	}
 
 	return jobCombinations, nil

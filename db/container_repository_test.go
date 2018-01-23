@@ -16,9 +16,9 @@ var _ = Describe("ContainerRepository", func() {
 	var defaultJobCombination db.JobCombination
 
 	BeforeEach(func() {
-		combination := map[string]string{"some-resource": "default"}
-		defaultJobCombination = getJobCombination(defaultJob, combination)
-
+		var err error
+		defaultJobCombination, err = defaultJob.JobCombination()
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Describe("FindOrphanedContainers", func() {

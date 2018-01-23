@@ -217,9 +217,8 @@ var _ = Describe("ResourceCacheCollector", func() {
 							Expect(err).NotTo(HaveOccurred())
 							Expect(found).To(BeTrue())
 
-							combinations, err := secondJob.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+							secondJobCombination, err := secondJob.JobCombination()
 							Expect(err).ToNot(HaveOccurred())
-							secondJobCombination := combinations[0]
 
 							secondJobBuild, err = secondJobCombination.CreateBuild()
 							Expect(err).ToNot(HaveOccurred())

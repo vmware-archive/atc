@@ -102,9 +102,8 @@ var _ = BeforeEach(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(found).To(BeTrue())
 
-	combinations, err := defaultJob.SyncResourceSpaceCombinations([]map[string]string{map[string]string{}})
+	defaultJobCombination, err = defaultJob.JobCombination()
 	Expect(err).ToNot(HaveOccurred())
-	defaultJobCombination = combinations[0]
 
 	usedResource, found, err = defaultPipeline.Resource("some-resource")
 	Expect(err).NotTo(HaveOccurred())
