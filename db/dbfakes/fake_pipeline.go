@@ -514,6 +514,18 @@ type FakePipeline struct {
 		result1 db.Build
 		result2 error
 	}
+	SaveSpacesStub        func(db.Resource, []string) error
+	saveSpacesMutex       sync.RWMutex
+	saveSpacesArgsForCall []struct {
+		arg1 db.Resource
+		arg2 []string
+	}
+	saveSpacesReturns struct {
+		result1 error
+	}
+	saveSpacesReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -2491,6 +2503,60 @@ func (fake *FakePipeline) CreateOneOffBuildReturnsOnCall(i int, result1 db.Build
 	}{result1, result2}
 }
 
+func (fake *FakePipeline) SaveSpaces(arg1 db.Resource, arg2 []string) error {
+	var arg2Copy []string
+	if arg2 != nil {
+		arg2Copy = make([]string, len(arg2))
+		copy(arg2Copy, arg2)
+	}
+	fake.saveSpacesMutex.Lock()
+	ret, specificReturn := fake.saveSpacesReturnsOnCall[len(fake.saveSpacesArgsForCall)]
+	fake.saveSpacesArgsForCall = append(fake.saveSpacesArgsForCall, struct {
+		arg1 db.Resource
+		arg2 []string
+	}{arg1, arg2Copy})
+	fake.recordInvocation("SaveSpaces", []interface{}{arg1, arg2Copy})
+	fake.saveSpacesMutex.Unlock()
+	if fake.SaveSpacesStub != nil {
+		return fake.SaveSpacesStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.saveSpacesReturns.result1
+}
+
+func (fake *FakePipeline) SaveSpacesCallCount() int {
+	fake.saveSpacesMutex.RLock()
+	defer fake.saveSpacesMutex.RUnlock()
+	return len(fake.saveSpacesArgsForCall)
+}
+
+func (fake *FakePipeline) SaveSpacesArgsForCall(i int) (db.Resource, []string) {
+	fake.saveSpacesMutex.RLock()
+	defer fake.saveSpacesMutex.RUnlock()
+	return fake.saveSpacesArgsForCall[i].arg1, fake.saveSpacesArgsForCall[i].arg2
+}
+
+func (fake *FakePipeline) SaveSpacesReturns(result1 error) {
+	fake.SaveSpacesStub = nil
+	fake.saveSpacesReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakePipeline) SaveSpacesReturnsOnCall(i int, result1 error) {
+	fake.SaveSpacesStub = nil
+	if fake.saveSpacesReturnsOnCall == nil {
+		fake.saveSpacesReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.saveSpacesReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakePipeline) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -2578,6 +2644,8 @@ func (fake *FakePipeline) Invocations() map[string][][]interface{} {
 	defer fake.renameMutex.RUnlock()
 	fake.createOneOffBuildMutex.RLock()
 	defer fake.createOneOffBuildMutex.RUnlock()
+	fake.saveSpacesMutex.RLock()
+	defer fake.saveSpacesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
