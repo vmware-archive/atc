@@ -6,9 +6,6 @@
 // db/migration/migrations/1510670987_update_unique_constraint_for_resource_caches.up.sql
 // db/migration/migrations/1513895878_update_timestamp_with_timezone.down.sql
 // db/migration/migrations/1513895878_update_timestamp_with_timezone.up.sql
-// db/migration/migrations/1516643303_update_auth_providers.down.go
-// db/migration/migrations/1516643303_update_auth_providers.up.go
-// db/migration/migrations/migrations.go
 // DO NOT EDIT!
 
 package migration
@@ -91,7 +88,7 @@ func _1510262030_initial_schemaDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510262030_initial_schema.down.sql", size: 993, mode: os.FileMode(420), modTime: time.Unix(1510934988, 0)}
+	info := bindataFileInfo{name: "1510262030_initial_schema.down.sql", size: 993, mode: os.FileMode(420), modTime: time.Unix(1511496778, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -111,7 +108,7 @@ func _1510262030_initial_schemaUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510262030_initial_schema.up.sql", size: 38922, mode: os.FileMode(420), modTime: time.Unix(1510934988, 0)}
+	info := bindataFileInfo{name: "1510262030_initial_schema.up.sql", size: 38922, mode: os.FileMode(420), modTime: time.Unix(1513910475, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -131,7 +128,7 @@ func _1510670987_update_unique_constraint_for_resource_cachesDownSql() (*asset, 
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.down.sql", size: 249, mode: os.FileMode(420), modTime: time.Unix(1510934988, 0)}
+	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.down.sql", size: 249, mode: os.FileMode(420), modTime: time.Unix(1511496778, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -151,7 +148,7 @@ func _1510670987_update_unique_constraint_for_resource_cachesUpSql() (*asset, er
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.up.sql", size: 271, mode: os.FileMode(420), modTime: time.Unix(1510934988, 0)}
+	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.up.sql", size: 271, mode: os.FileMode(420), modTime: time.Unix(1513895572, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -171,7 +168,7 @@ func _1513895878_update_timestamp_with_timezoneDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1513895878_update_timestamp_with_timezone.down.sql", size: 1413, mode: os.FileMode(420), modTime: time.Unix(1515428830, 0)}
+	info := bindataFileInfo{name: "1513895878_update_timestamp_with_timezone.down.sql", size: 1413, mode: os.FileMode(420), modTime: time.Unix(1515276975, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -191,67 +188,7 @@ func _1513895878_update_timestamp_with_timezoneUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1513895878_update_timestamp_with_timezone.up.sql", size: 1404, mode: os.FileMode(420), modTime: time.Unix(1515428830, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var __1516643303_update_auth_providersDownGo = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x2a\x48\x4c\xce\x4e\x4c\x4f\x55\xc8\xcd\x4c\x2f\x4a\x2c\xc9\xcc\xcf\x2b\xe6\xe2\x4a\x2b\xcd\x4b\x56\xd0\x28\x4e\xcd\x49\x53\xd0\x42\x88\x6b\x2a\xb8\xe4\x97\xe7\xc5\x1b\x9a\x1a\x9a\x99\x99\x18\x1b\x1b\x18\x6b\x68\x2a\xa4\x16\x15\xe5\x17\x29\x54\x73\x71\x71\x16\xa5\x96\x94\x16\xe5\x29\xe4\x65\xe6\x70\xd5\x72\x01\x02\x00\x00\xff\xff\x2f\xa6\x7b\xa2\x55\x00\x00\x00")
-
-func _1516643303_update_auth_providersDownGoBytes() ([]byte, error) {
-	return bindataRead(
-		__1516643303_update_auth_providersDownGo,
-		"1516643303_update_auth_providers.down.go",
-	)
-}
-
-func _1516643303_update_auth_providersDownGo() (*asset, error) {
-	bytes, err := _1516643303_update_auth_providersDownGoBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "1516643303_update_auth_providers.down.go", size: 85, mode: os.FileMode(420), modTime: time.Unix(1516655072, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var __1516643303_update_auth_providersUpGo = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x2a\x48\x4c\xce\x4e\x4c\x4f\x55\xc8\xcd\x4c\x2f\x4a\x2c\xc9\xcc\xcf\x2b\xe6\xe2\x4a\x2b\xcd\x4b\x56\xd0\x28\x4e\xcd\x49\x53\xd0\x42\x88\x6b\x2a\x84\x16\xc4\x1b\x9a\x1a\x9a\x99\x99\x18\x1b\x1b\x18\x6b\x68\x2a\xa4\x16\x15\xe5\x17\x29\x54\x73\x71\x16\xa5\x96\x94\x16\xe5\x29\xe4\x65\xe6\x70\xd5\x72\x01\x02\x00\x00\xff\xff\x98\xaa\x0d\xbb\x52\x00\x00\x00")
-
-func _1516643303_update_auth_providersUpGoBytes() ([]byte, error) {
-	return bindataRead(
-		__1516643303_update_auth_providersUpGo,
-		"1516643303_update_auth_providers.up.go",
-	)
-}
-
-func _1516643303_update_auth_providersUpGo() (*asset, error) {
-	bytes, err := _1516643303_update_auth_providersUpGoBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "1516643303_update_auth_providers.up.go", size: 82, mode: os.FileMode(420), modTime: time.Unix(1516655085, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _migrationsGo = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\xb1\x4e\xc3\x30\x10\x86\xe7\xdc\x53\x1c\x19\x50\x5c\x21\x87\x19\xa9\x4b\x61\x61\x68\x91\x40\x62\x41\x0c\x8e\x73\x49\x2d\x1c\x27\x3d\x5f\x84\xa2\x2a\xef\x8e\x1c\x4a\xdb\x81\xf5\x4e\xdf\xff\xfd\x77\x83\xb1\x5f\xa6\x25\xec\x5c\xcb\x46\x5c\x1f\x22\x80\xeb\x86\x9e\x05\x0b\xc8\xf2\xda\x88\xa9\x4c\xa4\x32\x1e\x7c\x0e\x59\xce\xd4\x78\xb2\x92\x03\x64\x79\xeb\x64\x3f\x56\xda\xf6\x5d\x69\xfb\x60\xfb\x91\x23\x95\x46\x6c\x59\x57\x25\x05\xcb\xd3\x90\xf2\x72\x50\x00\xcd\x18\x2c\xee\xe8\x7b\x7b\xb6\x14\x75\x85\xab\x78\xf0\xfa\x69\x73\x87\x14\xf1\x02\xe8\x37\x61\x23\xd4\x4e\x0a\x57\x97\x56\x78\x84\x8c\x49\x46\x0e\x78\x7b\x99\x1e\xeb\x2a\xd1\x33\xcc\x00\x32\x0d\xd7\x67\x60\x14\x1e\xad\x24\xee\xe4\x81\xec\x1f\x49\x22\x97\x76\x45\x24\xdf\x5c\x1b\x15\xbe\x8e\xa1\x08\xa6\xa3\x14\xe5\x42\xab\x90\x98\x7b\xc6\x23\xa4\x2a\x11\x1f\xd6\x78\x7a\x87\x7e\x37\x7e\xa4\x97\x66\xc9\x50\x7a\x4b\xb2\xef\xeb\xcd\xb4\x33\x1d\x2d\x01\x4a\x3f\x1a\xef\x8b\xe0\xbc\x5a\x58\xf9\x65\xe3\xc7\xfd\xa7\x7e\x0e\x42\xdc\x18\x4b\x45\xda\xb9\x06\xd3\xfa\x66\x8d\xc1\xf9\xd4\xfd\xef\x68\x26\xd1\xc5\xe2\x57\x90\xcd\x70\x7e\x46\x70\x1e\x66\xf8\x09\x00\x00\xff\xff\x67\x41\x27\x54\xc6\x01\x00\x00")
-
-func migrationsGoBytes() ([]byte, error) {
-	return bindataRead(
-		_migrationsGo,
-		"migrations.go",
-	)
-}
-
-func migrationsGo() (*asset, error) {
-	bytes, err := migrationsGoBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "migrations.go", size: 454, mode: os.FileMode(420), modTime: time.Unix(1516656966, 0)}
+	info := bindataFileInfo{name: "1513895878_update_timestamp_with_timezone.up.sql", size: 1404, mode: os.FileMode(420), modTime: time.Unix(1515276847, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -314,9 +251,6 @@ var _bindata = map[string]func() (*asset, error){
 	"1510670987_update_unique_constraint_for_resource_caches.up.sql":   _1510670987_update_unique_constraint_for_resource_cachesUpSql,
 	"1513895878_update_timestamp_with_timezone.down.sql":               _1513895878_update_timestamp_with_timezoneDownSql,
 	"1513895878_update_timestamp_with_timezone.up.sql":                 _1513895878_update_timestamp_with_timezoneUpSql,
-	"1516643303_update_auth_providers.down.go":                         _1516643303_update_auth_providersDownGo,
-	"1516643303_update_auth_providers.up.go":                           _1516643303_update_auth_providersUpGo,
-	"migrations.go":                                                    migrationsGo,
 }
 
 // AssetDir returns the file names below a certain
@@ -366,9 +300,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1510670987_update_unique_constraint_for_resource_caches.up.sql":   &bintree{_1510670987_update_unique_constraint_for_resource_cachesUpSql, map[string]*bintree{}},
 	"1513895878_update_timestamp_with_timezone.down.sql":               &bintree{_1513895878_update_timestamp_with_timezoneDownSql, map[string]*bintree{}},
 	"1513895878_update_timestamp_with_timezone.up.sql":                 &bintree{_1513895878_update_timestamp_with_timezoneUpSql, map[string]*bintree{}},
-	"1516643303_update_auth_providers.down.go":                         &bintree{_1516643303_update_auth_providersDownGo, map[string]*bintree{}},
-	"1516643303_update_auth_providers.up.go":                           &bintree{_1516643303_update_auth_providersUpGo, map[string]*bintree{}},
-	"migrations.go":                                                    &bintree{migrationsGo, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
