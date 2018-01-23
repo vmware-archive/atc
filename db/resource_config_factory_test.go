@@ -20,8 +20,8 @@ var _ = Describe("ResourceConfigFactory", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(found).To(BeTrue())
 
-		combination := map[string]string{"some-resource": "default"}
-		jobCombination := getJobCombination(job, combination)
+		jobCombination, err := job.JobCombination()
+		Expect(err).NotTo(HaveOccurred())
 
 		build, err = jobCombination.CreateBuild()
 		Expect(err).NotTo(HaveOccurred())

@@ -24,7 +24,8 @@ var _ = Describe("VolumeFactory", func() {
 		build, err = defaultTeam.CreateOneOffBuild()
 		Expect(err).ToNot(HaveOccurred())
 
-		defaultJobCombination = getJobCombination(defaultJob, map[string]string{})
+		defaultJobCombination, err = defaultJob.JobCombination()
+		Expect(err).ToNot(HaveOccurred())
 
 		usedResourceCache, err = resourceCacheFactory.FindOrCreateResourceCache(
 			logger,

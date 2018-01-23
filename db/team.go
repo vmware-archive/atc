@@ -586,6 +586,11 @@ func (t *team) SavePipeline(
 		return nil, false, err
 	}
 
+	err = pipeline.syncAllJobsResourceSpaceCombinations(tx)
+	if err != nil {
+		return nil, false, err
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return nil, false, err

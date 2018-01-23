@@ -19,8 +19,9 @@ var _ = Describe("ResourceCacheLifecycle", func() {
 	var resourceCacheLifecycle db.ResourceCacheLifecycle
 
 	BeforeEach(func() {
-		combination := map[string]string{"some-resource": "default"}
-		defaultJobCombination = getJobCombination(defaultJob, combination)
+		var err error
+		defaultJobCombination, err = defaultJob.JobCombination()
+		Expect(err).ToNot(HaveOccurred())
 
 		resourceCacheLifecycle = db.NewResourceCacheLifecycle(dbConn)
 	})
