@@ -31,6 +31,7 @@ type Job interface {
 
 	ResourceSpaceCombinations(map[string][]string) []map[string]string
 	JobCombination() (JobCombination, error)
+	JobCombinations() ([]JobCombination, error)
 	Builds(page Page) ([]Build, Pagination, error)
 	Build(name string) (Build, bool, error)
 	FinishedAndNextBuild() (Build, Build, error)
@@ -238,6 +239,43 @@ func (j *job) JobCombination() (JobCombination, error) {
 
 	jc := &jobCombination{conn: j.conn, lockFactory: j.lockFactory, id: jobCombinationID, jobID: jobID, pipelineID: j.pipelineID, teamID: j.teamID, combination: combination}
 	return jc, nil
+}
+
+func (j *job) JobCombinations() ([]JobCombination, error) {
+	var jobCombinationID, jobID int
+	var marshaled sql.NullString
+	var combination map[string]string
+
+	rows, err := psql.Select("id, job_id, combination").
+		From("job_combinations").
+		Where(sq.Eq{"job_id": j.id}).
+		RunWith(j.conn).Query()
+	if err != nil {
+		return nil, err
+	}
+
+	defer Close(rows)
+
+	jobCombinations := []JobCombination{}
+
+	for rows.Next() {
+		err := rows.Scan(&jobCombinationID, &jobID, &marshaled)
+		if err != nil {
+			return nil, err
+		}
+
+		if marshaled.Valid {
+			err = json.Unmarshal([]byte(marshaled.String), &combination)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		jc := &jobCombination{conn: j.conn, lockFactory: j.lockFactory, id: jobCombinationID, jobID: jobID, pipelineID: j.pipelineID, teamID: j.teamID, combination: combination}
+		jobCombinations = append(jobCombinations, jc)
+	}
+
+	return jobCombinations, nil
 }
 
 func (j *job) Builds(page Page) ([]Build, Pagination, error) {

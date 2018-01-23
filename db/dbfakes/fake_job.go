@@ -150,6 +150,17 @@ type FakeJob struct {
 		result1 db.JobCombination
 		result2 error
 	}
+	JobCombinationsStub        func() ([]db.JobCombination, error)
+	jobCombinationsMutex       sync.RWMutex
+	jobCombinationsArgsForCall []struct{}
+	jobCombinationsReturns     struct {
+		result1 []db.JobCombination
+		result2 error
+	}
+	jobCombinationsReturnsOnCall map[int]struct {
+		result1 []db.JobCombination
+		result2 error
+	}
 	BuildsStub        func(page db.Page) ([]db.Build, db.Pagination, error)
 	buildsMutex       sync.RWMutex
 	buildsArgsForCall []struct {
@@ -885,6 +896,49 @@ func (fake *FakeJob) JobCombinationReturnsOnCall(i int, result1 db.JobCombinatio
 	}{result1, result2}
 }
 
+func (fake *FakeJob) JobCombinations() ([]db.JobCombination, error) {
+	fake.jobCombinationsMutex.Lock()
+	ret, specificReturn := fake.jobCombinationsReturnsOnCall[len(fake.jobCombinationsArgsForCall)]
+	fake.jobCombinationsArgsForCall = append(fake.jobCombinationsArgsForCall, struct{}{})
+	fake.recordInvocation("JobCombinations", []interface{}{})
+	fake.jobCombinationsMutex.Unlock()
+	if fake.JobCombinationsStub != nil {
+		return fake.JobCombinationsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.jobCombinationsReturns.result1, fake.jobCombinationsReturns.result2
+}
+
+func (fake *FakeJob) JobCombinationsCallCount() int {
+	fake.jobCombinationsMutex.RLock()
+	defer fake.jobCombinationsMutex.RUnlock()
+	return len(fake.jobCombinationsArgsForCall)
+}
+
+func (fake *FakeJob) JobCombinationsReturns(result1 []db.JobCombination, result2 error) {
+	fake.JobCombinationsStub = nil
+	fake.jobCombinationsReturns = struct {
+		result1 []db.JobCombination
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeJob) JobCombinationsReturnsOnCall(i int, result1 []db.JobCombination, result2 error) {
+	fake.JobCombinationsStub = nil
+	if fake.jobCombinationsReturnsOnCall == nil {
+		fake.jobCombinationsReturnsOnCall = make(map[int]struct {
+			result1 []db.JobCombination
+			result2 error
+		})
+	}
+	fake.jobCombinationsReturnsOnCall[i] = struct {
+		result1 []db.JobCombination
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeJob) Builds(page db.Page) ([]db.Build, db.Pagination, error) {
 	fake.buildsMutex.Lock()
 	ret, specificReturn := fake.buildsReturnsOnCall[len(fake.buildsArgsForCall)]
@@ -1382,6 +1436,8 @@ func (fake *FakeJob) Invocations() map[string][][]interface{} {
 	defer fake.resourceSpaceCombinationsMutex.RUnlock()
 	fake.jobCombinationMutex.RLock()
 	defer fake.jobCombinationMutex.RUnlock()
+	fake.jobCombinationsMutex.RLock()
+	defer fake.jobCombinationsMutex.RUnlock()
 	fake.buildsMutex.RLock()
 	defer fake.buildsMutex.RUnlock()
 	fake.buildMutex.RLock()

@@ -105,6 +105,8 @@ type Pipeline interface {
 	Rename(string) error
 
 	CreateOneOffBuild() (Build, error)
+
+	SaveSpaces(Resource, []string) error
 }
 
 type pipeline struct {
@@ -1556,6 +1558,31 @@ func (p *pipeline) syncAllJobsResourceSpaceCombinations(tx Tx) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (p *pipeline) SaveSpaces(resource Resource, spaces []string) error {
+	tx, err := p.conn.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	for _, space := range spaces {
+		_, err = psql.Insert("resource_spaces").
+			Columns("resource_id", "name").
+			Values(resource.ID(), space).
+			Suffix("ON CONFLICT (resource_id, name) DO NOTHING").
+			RunWith(tx).
+			Exec()
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
 	}
 
 	return nil
