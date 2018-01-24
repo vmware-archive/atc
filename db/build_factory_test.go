@@ -12,15 +12,11 @@ import (
 
 var _ = Describe("BuildFactory", func() {
 	var team db.Team
-	var defaultJobCombination db.JobCombination
 
 	BeforeEach(func() {
 		var err error
 		team, err = teamFactory.CreateTeam(atc.Team{Name: "some-team"})
 		Expect(err).ToNot(HaveOccurred())
-
-		defaultJobCombination, err = defaultJob.JobCombination()
-		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Describe("Build", func() {

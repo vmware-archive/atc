@@ -29,8 +29,6 @@ var _ = Describe("Config API", func() {
 	)
 
 	BeforeEach(func() {
-		dbTeam.SavePipelineReturns(fakePipeline, false, nil)
-
 		requestGenerator = rata.NewRequestGenerator(server.URL, atc.Routes)
 
 		fakeaccess = new(accessorfakes.FakeAccess)

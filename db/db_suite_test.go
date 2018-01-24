@@ -49,6 +49,7 @@ var (
 	defaultResource           db.Resource
 	defaultPipeline           db.Pipeline
 	defaultJob                db.Job
+	defaultJobCombination     db.JobCombination
 	logger                    *lagertest.TestLogger
 	lockFactory               lock.LockFactory
 
@@ -173,6 +174,9 @@ var _ = BeforeEach(func() {
 	defaultJob, found, err = defaultPipeline.Job("some-job")
 	Expect(err).NotTo(HaveOccurred())
 	Expect(found).To(BeTrue())
+
+	defaultJobCombination, err = defaultJob.JobCombination()
+	Expect(err).NotTo(HaveOccurred())
 
 	logger = lagertest.NewTestLogger("test")
 })

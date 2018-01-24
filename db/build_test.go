@@ -1098,7 +1098,7 @@ var _ = Describe("Build", func() {
 
 			var err error
 
-			pipeline, _, err = team.SavePipeline("some-pipeline", pipelineConfig, db.ConfigVersion(1), db.PipelineUnpaused)
+			pipeline, _, err := team.SavePipeline("some-pipeline", pipelineConfig, db.ConfigVersion(1), db.PipelineUnpaused)
 			Expect(err).ToNot(HaveOccurred())
 
 			job, found, err := pipeline.Job("some-job")

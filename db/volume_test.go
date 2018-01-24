@@ -14,7 +14,6 @@ import (
 var _ = Describe("Volume", func() {
 	var defaultCreatingContainer db.CreatingContainer
 	var defaultCreatedContainer db.CreatedContainer
-	var defaultJobCombination db.JobCombination
 
 	BeforeEach(func() {
 		expiries := db.ContainerOwnerExpiries{
@@ -30,9 +29,6 @@ var _ = Describe("Volume", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		defaultCreatedContainer, err = defaultCreatingContainer.Created()
-		Expect(err).ToNot(HaveOccurred())
-
-		defaultJobCombination, err = defaultJob.JobCombination()
 		Expect(err).ToNot(HaveOccurred())
 	})
 
