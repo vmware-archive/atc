@@ -49,9 +49,9 @@ var _ = Describe("Scheduler", func() {
 			fakeJobs               []db.Job
 			fakeJob                *dbfakes.FakeJob
 			fakeJob2               *dbfakes.FakeJob
-			fakeJobCombinations    []db.JobCombination
 			fakeJobCombination     *dbfakes.FakeJobCombination
-			fakeJobCombination2    *dbfakes.FakeJobCombination
+			fakeJob2Combination    *dbfakes.FakeJobCombination
+			fakeJobCombinations    []db.JobCombination
 			fakeResource           *dbfakes.FakeResource
 			nextPendingBuilds      []db.Build
 			nextPendingBuildsJob1  []db.Build
@@ -100,7 +100,7 @@ var _ = Describe("Scheduler", func() {
 		Context("when the job has no inputs", func() {
 			BeforeEach(func() {
 				fakeJobCombination = new(dbfakes.FakeJobCombination)
-				fakeJobCombination2 = new(dbfakes.FakeJobCombination)
+				fakeJob2Combination = new(dbfakes.FakeJobCombination)
 
 				fakeJob = new(dbfakes.FakeJob)
 				fakeJob.NameReturns("some-job-1")
@@ -108,7 +108,7 @@ var _ = Describe("Scheduler", func() {
 
 				fakeJob2 = new(dbfakes.FakeJob)
 				fakeJob2.NameReturns("some-job-2")
-				fakeJob2.SyncResourceSpaceCombinationsReturns([]db.JobCombination{fakeJobCombination2}, nil)
+				fakeJob2.SyncResourceSpaceCombinationsReturns([]db.JobCombination{fakeJob2Combination}, nil)
 
 				fakeJobs = []db.Job{fakeJob, fakeJob2}
 			})
@@ -130,13 +130,15 @@ var _ = Describe("Scheduler", func() {
 
 				It("saved the next input mapping for the right job and versions", func() {
 					Expect(fakeInputMapper.SaveNextInputMappingCallCount()).To(Equal(2))
-					_, actualVersionsDB, actualJob, _ := fakeInputMapper.SaveNextInputMappingArgsForCall(0)
+					_, actualVersionsDB, actualJob, actualJobCombination := fakeInputMapper.SaveNextInputMappingArgsForCall(0)
 					Expect(actualVersionsDB).To(Equal(versionsDB))
 					Expect(actualJob.Name()).To(Equal(fakeJob.Name()))
+					Expect(actualJobCombination.ID()).To(Equal(fakeJobCombination.ID()))
 
-					_, actualVersionsDB, actualJob, _ = fakeInputMapper.SaveNextInputMappingArgsForCall(1)
+					_, actualVersionsDB, actualJob, actualJobCombination = fakeInputMapper.SaveNextInputMappingArgsForCall(1)
 					Expect(actualVersionsDB).To(Equal(versionsDB))
 					Expect(actualJob.Name()).To(Equal(fakeJob2.Name()))
+					Expect(actualJobCombination.ID()).To(Equal(fakeJob2Combination.ID()))
 				})
 
 				Context("when starting pending builds for job fails", func() {
@@ -171,7 +173,7 @@ var _ = Describe("Scheduler", func() {
 					It("didn't create a pending build", func() {
 						//TODO: create a positive test case for this
 						Expect(fakeJobCombination.EnsurePendingBuildExistsCallCount()).To(BeZero())
-						Expect(fakeJobCombination2.EnsurePendingBuildExistsCallCount()).To(BeZero())
+						Expect(fakeJob2Combination.EnsurePendingBuildExistsCallCount()).To(BeZero())
 					})
 				})
 			})
@@ -192,8 +194,8 @@ var _ = Describe("Scheduler", func() {
 				fakeBuildStarter.TryStartPendingBuildsForJobCombinationReturns(nil)
 
 				fakeJobCombination = new(dbfakes.FakeJobCombination)
-				fakeJobCombination2 = new(dbfakes.FakeJobCombination)
-				fakeJobCombinations = []db.JobCombination{fakeJobCombination, fakeJobCombination2}
+				fakeJob2Combination = new(dbfakes.FakeJobCombination)
+				fakeJobCombinations = []db.JobCombination{fakeJobCombination, fakeJob2Combination}
 				fakeJob.SyncResourceSpaceCombinationsReturns(fakeJobCombinations, nil)
 			})
 
@@ -215,7 +217,7 @@ var _ = Describe("Scheduler", func() {
 
 					_, actualJob, actualJobCombination, actualResources, actualResourceTypes, actualPendingBuilds = fakeBuildStarter.TryStartPendingBuildsForJobCombinationArgsForCall(1)
 					Expect(actualJob.Name()).To(Equal(fakeJob.Name()))
-					Expect(actualJobCombination.ID()).To(Equal(fakeJobCombination2.ID()))
+					Expect(actualJobCombination.ID()).To(Equal(fakeJob2Combination.ID()))
 					Expect(actualResources).To(Equal(db.Resources{fakeResource}))
 					Expect(actualResourceTypes).To(Equal(versionedResourceTypes))
 					Expect(actualPendingBuilds).To(Equal(nextPendingBuilds))
@@ -285,7 +287,6 @@ var _ = Describe("Scheduler", func() {
 			fakeJob            *dbfakes.FakeJob
 			fakeJobCombination *dbfakes.FakeJobCombination
 			fakeResource       *dbfakes.FakeResource
-			triggeredBuild     db.Build
 			triggerErr         error
 			nextPendingBuilds  []db.Build
 		)
@@ -303,7 +304,7 @@ var _ = Describe("Scheduler", func() {
 
 		JustBeforeEach(func() {
 			var waiter Waiter
-			triggeredBuild, waiter, triggerErr = scheduler.TriggerImmediately(
+			_, waiter, triggerErr = scheduler.TriggerImmediately(
 				lagertest.NewTestLogger("test"),
 				fakeJob,
 				fakeJobCombination,
@@ -381,12 +382,15 @@ var _ = Describe("Scheduler", func() {
 	Describe("SaveNextInputMapping", func() {
 		var saveErr error
 		var fakeJob *dbfakes.FakeJob
+		var fakeJobCombination *dbfakes.FakeJobCombination
 
 		JustBeforeEach(func() {
 			fakeJob = new(dbfakes.FakeJob)
 			fakeJob.NameReturns("some-job")
 
-			saveErr = scheduler.SaveNextInputMapping(lagertest.NewTestLogger("test"), fakeJob, nil)
+			fakeJobCombination = new(dbfakes.FakeJobCombination)
+
+			saveErr = scheduler.SaveNextInputMapping(lagertest.NewTestLogger("test"), fakeJob, fakeJobCombination)
 		})
 
 		Context("when loading the versions DB fails", func() {
@@ -418,9 +422,10 @@ var _ = Describe("Scheduler", func() {
 
 				It("saved the next input mapping for the right job and versions", func() {
 					Expect(fakeInputMapper.SaveNextInputMappingCallCount()).To(Equal(1))
-					_, actualVersionsDB, actualJob, _ := fakeInputMapper.SaveNextInputMappingArgsForCall(0)
+					_, actualVersionsDB, actualJob, actualJobCombination := fakeInputMapper.SaveNextInputMappingArgsForCall(0)
 					Expect(actualVersionsDB).To(Equal(versionsDB))
 					Expect(actualJob.Name()).To(Equal(fakeJob.Name()))
+					Expect(actualJobCombination.ID()).To(Equal(fakeJobCombination.ID()))
 				})
 			})
 

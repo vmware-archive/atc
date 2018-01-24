@@ -1387,8 +1387,6 @@ var _ = Describe("Jobs API", func() {
 				Context("when it contains the requested job", func() {
 					var fakeScheduler *schedulerfakes.FakeBuildScheduler
 					BeforeEach(func() {
-						fakeJobCombination = new(dbfakes.FakeJobCombination)
-
 						fakeJob = new(dbfakes.FakeJob)
 						fakeJob.NameReturns("some-job")
 						fakeJob.ConfigReturns(atc.JobConfig{
@@ -1409,8 +1407,10 @@ var _ = Describe("Jobs API", func() {
 								},
 							},
 						})
-						fakeJob.JobCombinationReturns(fakeJobCombination, nil)
 						fakePipeline.JobReturns(fakeJob, true, nil)
+
+						fakeJobCombination = new(dbfakes.FakeJobCombination)
+						fakeJob.JobCombinationReturns(fakeJobCombination, nil)
 
 						fakeScheduler = new(schedulerfakes.FakeBuildScheduler)
 						fakeSchedulerFactory.BuildSchedulerReturns(fakeScheduler)

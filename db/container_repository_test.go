@@ -13,14 +13,6 @@ import (
 )
 
 var _ = Describe("ContainerRepository", func() {
-	var defaultJobCombination db.JobCombination
-
-	BeforeEach(func() {
-		var err error
-		defaultJobCombination, err = defaultJob.JobCombination()
-		Expect(err).ToNot(HaveOccurred())
-	})
-
 	Describe("FindOrphanedContainers", func() {
 		Describe("check containers", func() {
 			var (
