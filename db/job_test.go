@@ -1037,31 +1037,6 @@ var _ = Describe("Job", func() {
 			Expect(jobCombinations[0].Combination()).To(Equal(combination))
 		})
 
-		It("Updates a job_combination when its combination is null", func() {
-			tx, err := dbConn.Begin()
-			Expect(err).NotTo(HaveOccurred())
-
-			_, err = psql.Insert("job_combinations").
-				Columns("job_id").
-				Values(job.ID()).
-				RunWith(tx).
-				Exec()
-			Expect(err).NotTo(HaveOccurred())
-
-			err = tx.Commit()
-			Expect(err).NotTo(HaveOccurred())
-
-			db.Rollback(tx)
-
-			combination := map[string]string{"some-resource": "some-space", "some-other-resource": "some-other-space"}
-
-			jobCombinations, err := job.SyncResourceSpaceCombinations([]map[string]string{combination})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(jobCombinations).To(HaveLen(1))
-			Expect(jobCombinations[0].JobID()).To(Equal(job.ID()))
-			Expect(jobCombinations[0].Combination()).To(Equal(combination))
-		})
-
 		It("Create new job_combinations when combinations have changed", func() {
 			combination1 := map[string]string{"some-resource": "some-space", "some-other-resource": "some-other-space"}
 			combination2 := map[string]string{"some-resource": "some-space", "some-other-resource": "some-another-space"}
