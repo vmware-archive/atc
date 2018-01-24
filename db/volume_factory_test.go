@@ -13,18 +13,14 @@ import (
 
 var _ = Describe("VolumeFactory", func() {
 	var (
-		team2                 db.Team
-		usedResourceCache     *db.UsedResourceCache
-		build                 db.Build
-		defaultJobCombination db.JobCombination
+		team2             db.Team
+		usedResourceCache *db.UsedResourceCache
+		build             db.Build
 	)
 
 	BeforeEach(func() {
 		var err error
 		build, err = defaultTeam.CreateOneOffBuild()
-		Expect(err).ToNot(HaveOccurred())
-
-		defaultJobCombination, err = defaultJob.JobCombination()
 		Expect(err).ToNot(HaveOccurred())
 
 		usedResourceCache, err = resourceCacheFactory.FindOrCreateResourceCache(

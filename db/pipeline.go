@@ -1571,21 +1571,18 @@ func (p *pipeline) SaveSpaces(resource Resource, spaces []string) error {
 		return err
 	}
 
-	defer tx.Rollback()
+	defer Rollback(tx)
 
 	for _, space := range spaces {
 		_, err = psql.Insert("resource_spaces").
 			Columns("resource_id", "name").
 			Values(resource.ID(), space).
 			Suffix("ON CONFLICT (resource_id, name) DO NOTHING").
-			RunWith(tx).
-			Exec()
+			RunWith(tx).Exec()
+		if err != nil {
+			return err
+		}
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit()
 }

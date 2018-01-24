@@ -15,14 +15,9 @@ import (
 )
 
 var _ = Describe("ResourceCacheLifecycle", func() {
-	var defaultJobCombination db.JobCombination
 	var resourceCacheLifecycle db.ResourceCacheLifecycle
 
 	BeforeEach(func() {
-		var err error
-		defaultJobCombination, err = defaultJob.JobCombination()
-		Expect(err).ToNot(HaveOccurred())
-
 		resourceCacheLifecycle = db.NewResourceCacheLifecycle(dbConn)
 	})
 

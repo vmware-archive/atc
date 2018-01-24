@@ -1813,10 +1813,6 @@ var _ = Describe("Pipeline", func() {
 	Describe("GetPendingBuilds/GetAllPendingBuilds", func() {
 		Context("when a build is created", func() {
 			BeforeEach(func() {
-				job, found, err := pipeline.Job("job-name")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeTrue())
-
 				jobCombination, err := job.JobCombination()
 				Expect(err).ToNot(HaveOccurred())
 
