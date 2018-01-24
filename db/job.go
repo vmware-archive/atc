@@ -737,39 +737,23 @@ func (j *job) syncResourceSpaceCombinations(tx Tx, combinations []map[string]str
 			return nil, err
 		}
 
-		needsMigration, err := findInvalidJobCombination(tx, j.ID())
+		_, err = psql.Insert("job_combinations").
+			Columns("job_id", "combination").
+			Values(j.ID(), string(marshaled)).
+			Suffix("ON CONFLICT (job_id, combination) DO NOTHING").
+			RunWith(tx).Exec()
 		if err != nil {
 			return nil, err
 		}
 
-		if needsMigration {
-			err = psql.Update("job_combinations").
-				Set("combination", string(marshaled)).
-				Where(sq.Eq{"job_id": j.ID()}).
-				Suffix("RETURNING id").
-				RunWith(tx).QueryRow().Scan(&jobCombinationID)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			_, err = psql.Insert("job_combinations").
-				Columns("job_id", "combination").
-				Values(j.ID(), string(marshaled)).
-				Suffix("ON CONFLICT (job_id, combination) DO NOTHING").
-				RunWith(tx).Exec()
-			if err != nil {
-				return nil, err
-			}
-
-			err = psql.Select("id").
-				From("job_combinations").
-				Where(sq.Eq{
-					"job_id":      j.ID(),
-					"combination": string(marshaled),
-				}).RunWith(tx).QueryRow().Scan(&jobCombinationID)
-			if err != nil {
-				return nil, err
-			}
+		err = psql.Select("id").
+			From("job_combinations").
+			Where(sq.Eq{
+				"job_id":      j.ID(),
+				"combination": string(marshaled),
+			}).RunWith(tx).QueryRow().Scan(&jobCombinationID)
+		if err != nil {
+			return nil, err
 		}
 
 		for resource, space := range c {
@@ -804,27 +788,4 @@ func (j *job) syncResourceSpaceCombinations(tx Tx, combinations []map[string]str
 	}
 
 	return jobCombinations, nil
-}
-
-func findInvalidJobCombination(tx Tx, jobID int) (bool, error) {
-	var combination sql.NullString
-	combinationsPresent := false
-
-	rows, err := psql.Select("combination").
-		From("job_combinations").
-		Where(sq.Eq{"job_id": jobID}).
-		Limit(1).RunWith(tx).Query()
-	if err != nil {
-		return false, err
-	}
-
-	for rows.Next() {
-		combinationsPresent = true
-		err = rows.Scan(&combination)
-		if err != nil {
-			return false, err
-		}
-	}
-
-	return combinationsPresent && !combination.Valid, nil
 }
