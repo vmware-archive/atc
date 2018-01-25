@@ -3,6 +3,7 @@ package migration
 import (
 	"database/sql"
 	"fmt"
+	"io"
 	"sort"
 	"time"
 
@@ -40,7 +41,7 @@ func (self *OpenHelper) CurrentVersion() (int, error) {
 		return -1, err
 	}
 
-	defer db.Close()
+	defer close(db)
 
 	return NewMigrator(db, self.lockFactory, self.strategy).CurrentVersion()
 }
@@ -51,7 +52,7 @@ func (self *OpenHelper) SupportedVersion() (int, error) {
 		return -1, err
 	}
 
-	defer db.Close()
+	defer close(db)
 
 	return NewMigrator(db, self.lockFactory, self.strategy).SupportedVersion()
 }
@@ -90,13 +91,9 @@ func (self *OpenHelper) MigrateToVersion(version int) error {
 		return err
 	}
 
-	defer db.Close()
+	defer close(db)
 
-	if err := NewMigrator(db, self.lockFactory, self.strategy).Migrate(version); err != nil {
-		return err
-	}
-
-	return nil
+	return NewMigrator(db, self.lockFactory, self.strategy).Migrate(version)
 }
 
 type Migrator interface {
@@ -147,7 +144,7 @@ func (self *migrator) CurrentVersion() (int, error) {
 	}
 
 	if lock != nil {
-		defer lock.Release()
+		defer release(lock)
 	}
 
 	version, _, err := m.Version()
@@ -166,7 +163,7 @@ func (self *migrator) Migrate(version int) error {
 	}
 
 	if lock != nil {
-		defer lock.Release()
+		defer release(lock)
 	}
 
 	if err = m.Migrate(uint(version)); err != nil {
@@ -186,7 +183,7 @@ func (self *migrator) Up() error {
 	}
 
 	if lock != nil {
-		defer lock.Release()
+		defer release(lock)
 	}
 
 	if err = m.Up(); err != nil {
@@ -211,6 +208,9 @@ func (self *migrator) open() (*migrate.Migrate, error) {
 			return Asset(name)
 		}),
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	d, err := postgres.WithInstance(self.db, &postgres.Config{})
 	if err != nil {
@@ -258,7 +258,7 @@ func (self *migrator) openWithLock() (*migrate.Migrate, lock.Lock, error) {
 	m, err := self.open()
 
 	if err != nil && newLock != nil {
-		newLock.Release()
+		_ = newLock.Release()
 		return nil, nil, err
 	}
 
@@ -326,4 +326,12 @@ func (m filenames) Latest() string {
 	sort.Sort(filenames(matches))
 
 	return matches[len(matches)-1]
+}
+
+func release(l lock.Lock) {
+	_ = l.Release()
+}
+
+func close(c io.Closer) {
+	_ = c.Close()
 }

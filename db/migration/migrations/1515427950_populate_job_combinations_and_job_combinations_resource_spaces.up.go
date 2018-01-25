@@ -32,6 +32,7 @@ type job struct {
 	id               int
 	config           jobConfig
 	inputsDetermined bool
+	pipeline_id      int
 }
 
 func collectPlans(plan planConfig) planSequence {
@@ -153,7 +154,7 @@ func (self *migrations) Up_1515427942() error {
 		_ = tx.Rollback()
 	}()
 
-	rows, err := tx.Query("SELECT id, config, inputs_determined, nonce FROM jobs WHERE active='true'")
+	rows, err := tx.Query("SELECT id, config, inputs_determined, nonce, pipeline_id FROM jobs WHERE active='true'")
 	if err != nil {
 		return err
 	}
@@ -166,7 +167,7 @@ func (self *migrations) Up_1515427942() error {
 	for rows.Next() {
 		job := job{}
 
-		err = rows.Scan(&job.id, &configBlob, &job.inputsDetermined, &nonce)
+		err = rows.Scan(&job.id, &configBlob, &job.inputsDetermined, &nonce, &job.pipeline_id)
 		if err != nil {
 			return err
 		}
@@ -207,6 +208,29 @@ func (self *migrations) Up_1515427942() error {
 			`, job.id, job.id, marshaled, job.inputsDetermined)
 			if err != nil {
 				return err
+			}
+
+			var resourceSpaceID int
+
+			for resource, space := range combination {
+				err = tx.QueryRow(`
+					SELECT rs.id FROM resources r, resource_spaces rs
+					WHERE r.id = rs.resource_id
+					AND r.pipeline_id=$1
+					AND r.name=$2
+					AND rs.name=$3
+				`, job.pipeline_id, resource, space).Scan(&resourceSpaceID)
+				if err != nil {
+					return err
+				}
+
+				_, err = tx.Exec(`
+					INSERT INTO job_combinations_resource_spaces(job_combination_id, resource_space_id)
+					VALUES ($1, $2)
+				`, job.id, resourceSpaceID)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
