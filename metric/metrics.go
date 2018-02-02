@@ -350,8 +350,39 @@ func (event BuildFinished) Emit(logger lager.Logger) {
 	)
 }
 
+type SlowQuery struct {
+	AvgTime      time.Duration
+	Calls        int
+	TotalTime    time.Duration
+	Rows         int
+	HitPercent   float64
+	SqlStatement string
+}
+
+func (event SlowQuery) Emit(logger lager.Logger) {
+	emit(
+		logger.Session("slow-queries"),
+		Event{
+			Name:  "slow queries",
+			Value: ms(event.AvgTime),
+			State: EventStateOK,
+			Attributes: map[string]string{
+				"calls":          strconv.Itoa(event.Calls),
+				"total_time_sec": strconv.FormatFloat(sec(event.TotalTime), 'f', -1, 64),
+				"rows":           strconv.Itoa(event.Rows),
+				"hit_percent":    strconv.FormatFloat(event.HitPercent, 'f', -1, 64),
+				"sql_statement":  event.SqlStatement,
+			},
+		},
+	)
+}
+
 func ms(duration time.Duration) float64 {
 	return float64(duration) / 1000000
+}
+
+func sec(duration time.Duration) float64 {
+	return float64(duration) / 1000000000
 }
 
 type HTTPResponseTime struct {
