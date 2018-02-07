@@ -1213,6 +1213,56 @@ var _ = Describe("ValidateConfig", func() {
 					Expect(errorMessages[0]).To(ContainSubstring("jobs.some-other-job.plan[0].get.some-resource.passed references a job ('some-empty-job') which doesn't interact with the resource ('some-resource')"))
 				})
 			})
+
+			Context("when a job's input's passed constraint references the job", func() {
+				BeforeEach(func() {
+					job.Plan = append(job.Plan, PlanConfig{
+						Get:    "some-resource",
+						Passed: []string{job.Name},
+					})
+
+					config.Jobs = append(config.Jobs, job)
+				})
+
+				It("returns an error", func() {
+					Expect(errorMessages).To(HaveLen(1))
+					Expect(errorMessages[0]).To(ContainSubstring("Cycle detected between passed constraints"))
+				})
+			})
+
+			Context("when a job's input's passed constraint references the job", func() {
+				BeforeEach(func() {
+					config.Jobs = append(
+						config.Jobs,
+						JobConfig{
+							Name: "cycle-a",
+							Plan: []PlanConfig{{
+								Get:    "some-resource",
+								Passed: []string{"cycle-c"},
+							}},
+						},
+						JobConfig{
+							Name: "cycle-b",
+							Plan: []PlanConfig{{
+								Get:    "some-resource",
+								Passed: []string{"cycle-a"},
+							}},
+						},
+						JobConfig{
+							Name: "cycle-c",
+							Plan: []PlanConfig{{
+								Get:    "some-resource",
+								Passed: []string{"cycle-b"},
+							}},
+						},
+					)
+				})
+
+				It("returns an error", func() {
+					Expect(errorMessages).To(HaveLen(1))
+					Expect(errorMessages[0]).To(ContainSubstring("Cycle detected between passed constraints"))
+				})
+			})
 		})
 
 		Context("when two jobs have the same name", func() {
