@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -13,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/dbfakes"
 	"github.com/concourse/atc/radar/radarfakes"
@@ -23,6 +23,8 @@ var _ = Describe("Resources API", func() {
 	var (
 		fakePipeline *dbfakes.FakePipeline
 		resource1    *dbfakes.FakeResource
+		resource2    *dbfakes.FakeResource
+		resource3    *dbfakes.FakeResource
 	)
 
 	BeforeEach(func() {
@@ -52,7 +54,7 @@ var _ = Describe("Resources API", func() {
 				resource1.TypeReturns("type-1")
 				resource1.LastCheckedReturns(time.Unix(1513364881, 0))
 
-				resource2 := new(dbfakes.FakeResource)
+				resource2 = new(dbfakes.FakeResource)
 				resource2.IDReturns(2)
 				resource2.CheckErrorReturns(errors.New("sup"))
 				resource2.FailingToCheckReturns(true)
@@ -61,39 +63,19 @@ var _ = Describe("Resources API", func() {
 				resource2.NameReturns("resource-2")
 				resource2.TypeReturns("type-2")
 
-				resource3 := new(dbfakes.FakeResource)
+				resource3 = new(dbfakes.FakeResource)
 				resource3.IDReturns(3)
 				resource3.CheckErrorReturns(nil)
 				resource3.PausedReturns(true)
 				resource3.PipelineNameReturns("a-pipeline")
 				resource3.NameReturns("resource-3")
 				resource3.TypeReturns("type-3")
-
-				fakePipeline.ResourcesReturns([]db.Resource{
-					resource1, resource2, resource3,
-				}, nil)
-
-				fakePipeline.GroupsReturns([]atc.GroupConfig{
-					{
-						Name:      "group-1",
-						Resources: []string{"resource-1"},
-					},
-					{
-						Name:      "group-2",
-						Resources: []string{"resource-1", "resource-2"},
-					},
-				})
 			})
 
 			Context("when not authorized", func() {
-				BeforeEach(func() {
-					jwtValidator.IsAuthenticatedReturns(false)
-					userContextReader.GetTeamReturns("", false, false)
-				})
-
 				Context("and the pipeline is private", func() {
 					BeforeEach(func() {
-						fakePipeline.PublicReturns(false)
+						fakeAccessor.TeamPipelineResourcesReturns(nil, accessor.ErrNotAuthorized)
 					})
 
 					It("returns 401", func() {
@@ -103,7 +85,11 @@ var _ = Describe("Resources API", func() {
 
 				Context("and the pipeline is public", func() {
 					BeforeEach(func() {
-						fakePipeline.PublicReturns(true)
+						resource1.CheckErrorReturns(nil)
+						resource2.CheckErrorReturns(nil)
+						resource3.CheckErrorReturns(nil)
+
+						fakeAccessor.TeamPipelineResourcesReturns([]db.Resource{resource1, resource2, resource3}, nil)
 					})
 
 					It("returns 200 OK", func() {
@@ -120,7 +106,6 @@ var _ = Describe("Resources API", func() {
 						"pipeline_name": "a-pipeline",
 						"team_name": "a-team",
 						"type": "type-1",
-						"groups": ["group-1", "group-2"],
 						"paused": true,
 						"last_checked": 1513364881
 					},
@@ -129,7 +114,6 @@ var _ = Describe("Resources API", func() {
 						"pipeline_name": "a-pipeline",
 						"team_name": "a-team",
 						"type": "type-2",
-						"groups": ["group-2"],
 						"failing_to_check": true
 					},
 					{
@@ -137,7 +121,6 @@ var _ = Describe("Resources API", func() {
 						"pipeline_name": "a-pipeline",
 						"team_name": "a-team",
 						"type": "type-3",
-						"groups": [],
 						"paused": true
 					}
 				]`))
@@ -147,8 +130,8 @@ var _ = Describe("Resources API", func() {
 
 			Context("when authorized", func() {
 				BeforeEach(func() {
-					jwtValidator.IsAuthenticatedReturns(true)
-					userContextReader.GetTeamReturns("a-team", true, true)
+					resource2.CheckErrorReturns(errors.New("sup"))
+					fakeAccessor.TeamPipelineResourcesReturns([]db.Resource{resource1, resource2, resource3}, nil)
 				})
 
 				It("returns 200 OK", func() {
@@ -165,7 +148,6 @@ var _ = Describe("Resources API", func() {
 							"pipeline_name": "a-pipeline",
 							"team_name": "a-team",
 							"type": "type-1",
-							"groups": ["group-1", "group-2"],
 							"paused": true,
 							"last_checked": 1513364881
 						},
@@ -174,7 +156,6 @@ var _ = Describe("Resources API", func() {
 							"pipeline_name": "a-pipeline",
 							"team_name": "a-team",
 							"type": "type-2",
-							"groups": ["group-2"],
 							"failing_to_check": true,
 							"check_error": "sup"
 						},
@@ -183,7 +164,6 @@ var _ = Describe("Resources API", func() {
 							"pipeline_name": "a-pipeline",
 							"team_name": "a-team",
 							"type": "type-3",
-							"groups": [],
 							"paused": true
 						}
 					]`))
@@ -192,17 +172,17 @@ var _ = Describe("Resources API", func() {
 				Context("when getting the resource config fails", func() {
 					Context("when the resources are not found", func() {
 						BeforeEach(func() {
-							fakePipeline.ResourcesReturns(nil, nil)
+							fakeAccessor.TeamPipelineResourcesReturns(nil, accessor.ErrNotFound)
 						})
 
-						It("returns 200", func() {
-							Expect(response.StatusCode).To(Equal(http.StatusOK))
+						It("returns 404", func() {
+							Expect(response.StatusCode).To(Equal(http.StatusNotFound))
 						})
 					})
 
 					Context("with an unknown error", func() {
 						BeforeEach(func() {
-							fakePipeline.ResourcesReturns(nil, errors.New("oh no!"))
+							fakeAccessor.TeamPipelineResourcesReturns(nil, errors.New("error"))
 						})
 
 						It("returns 500", func() {
@@ -216,89 +196,81 @@ var _ = Describe("Resources API", func() {
 
 	Describe("GET /api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name", func() {
 		var response *http.Response
-		var resourceName string
-		BeforeEach(func() {
-			resourceName = "some-resource"
-		})
 
 		JustBeforeEach(func() {
 			var err error
 
-			request, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/teams/a-team/pipelines/a-pipeline/resources/%s", server.URL, resourceName), nil)
-			Expect(err).NotTo(HaveOccurred())
-
-			response, err = client.Do(request)
+			response, err = client.Get(server.URL + "/api/v1/teams/a-team/pipelines/a-pipeline/resources/some-resource")
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("when not authorized", func() {
-			BeforeEach(func() {
-				jwtValidator.IsAuthenticatedReturns(false)
-				userContextReader.GetTeamReturns("", false, false)
-			})
-
 			Context("and the pipeline is private", func() {
 				BeforeEach(func() {
-					fakePipeline.PublicReturns(false)
+					fakeAccessor.TeamPipelineResourceReturns(nil, accessor.ErrNotAuthorized)
 				})
 
 				It("returns 401", func() {
 					Expect(response.StatusCode).To(Equal(http.StatusUnauthorized))
 				})
 			})
+		})
 
-			Context("and the pipeline is public", func() {
-				BeforeEach(func() {
-					fakePipeline.PublicReturns(true)
-					resourceName = "resource-1"
+		Context("when the pipeline is public", func() {
+			BeforeEach(func() {
+				resource1 := new(dbfakes.FakeResource)
+				resource1.CheckErrorReturns(nil)
+				resource1.PipelineNameReturns("a-pipeline")
+				resource1.NameReturns("resource-1")
+				resource1.FailingToCheckReturns(true)
+				resource1.TypeReturns("type-1")
+				resource1.LastCheckedReturns(time.Unix(1513364881, 0))
 
-					resource1 := new(dbfakes.FakeResource)
-					resource1.CheckErrorReturns(errors.New("sup"))
-					resource1.PipelineNameReturns("a-pipeline")
-					resource1.NameReturns("resource-1")
-					resource1.FailingToCheckReturns(true)
-					resource1.TypeReturns("type-1")
-					resource1.LastCheckedReturns(time.Unix(1513364881, 0))
+				fakeAccessor.TeamPipelineResourceReturns(resource1, nil)
+			})
 
-					fakePipeline.ResourceReturns(resource1, true, nil)
-				})
+			It("returns 200 OK", func() {
+				Expect(response.StatusCode).To(Equal(http.StatusOK))
+			})
 
-				It("returns 200 OK", func() {
-					Expect(response.StatusCode).To(Equal(http.StatusOK))
-				})
+			It("returns the resource json without the check error", func() {
+				body, err := ioutil.ReadAll(response.Body)
+				Expect(err).NotTo(HaveOccurred())
 
-				It("returns the resource json without the check error", func() {
-					body, err := ioutil.ReadAll(response.Body)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(body).To(MatchJSON(`
+				Expect(body).To(MatchJSON(`
 					{
 						"name": "resource-1",
 						"pipeline_name": "a-pipeline",
 						"team_name": "a-team",
 						"type": "type-1",
-						"groups": [],
 						"last_checked": 1513364881,
 						"failing_to_check": true
 					}`))
-				})
 			})
 		})
 
 		Context("when authorized", func() {
+
 			BeforeEach(func() {
-				jwtValidator.IsAuthenticatedReturns(true)
-				userContextReader.GetTeamReturns("a-team", true, true)
+				resource1 := new(dbfakes.FakeResource)
+				resource1.NameReturns("resource-1")
+
+				fakeAccessor.TeamPipelineResourceReturns(resource1, nil)
 			})
 
 			It("looks it up in the database", func() {
-				Expect(fakePipeline.ResourceCallCount()).To(Equal(1))
-				Expect(fakePipeline.ResourceArgsForCall(0)).To(Equal("some-resource"))
+				Expect(fakeAccessor.TeamPipelineResourceCallCount()).To(Equal(1))
+
+				access, teamName, pipelineName, resourceName := fakeAccessor.TeamPipelineResourceArgsForCall(0)
+				Expect(teamName).To(Equal("a-team"))
+				Expect(pipelineName).To(Equal("a-pipeline"))
+				Expect(resourceName).To(Equal("some-resource"))
+				Expect(access).To(Equal(accessor.Read))
 			})
 
 			Context("when the resource cannot be found in the database", func() {
 				BeforeEach(func() {
-					resourceName = "resource-in-config-but-not-db"
+					fakeAccessor.TeamPipelineResourceReturns(nil, accessor.ErrNotFound)
 				})
 
 				It("returns a 404", func() {
@@ -308,7 +280,7 @@ var _ = Describe("Resources API", func() {
 
 			Context("when the call to the db returns an error", func() {
 				BeforeEach(func() {
-					fakePipeline.ResourceReturns(nil, false, errors.New("Oh no!"))
+					fakeAccessor.TeamPipelineResourceReturns(nil, errors.New("error"))
 				})
 
 				It("returns a 500 error", func() {
@@ -327,17 +299,7 @@ var _ = Describe("Resources API", func() {
 					resource1.TypeReturns("type-1")
 					resource1.LastCheckedReturns(time.Unix(1513364881, 0))
 
-					fakePipeline.ResourceReturns(resource1, true, nil)
-					fakePipeline.GroupsReturns([]atc.GroupConfig{
-						{
-							Name:      "group-1",
-							Resources: []string{"resource-1"},
-						},
-						{
-							Name:      "group-2",
-							Resources: []string{"resource-1", "resource-2"},
-						},
-					})
+					fakeAccessor.TeamPipelineResourceReturns(resource1, nil)
 				})
 
 				It("returns 200 ok", func() {
@@ -354,7 +316,6 @@ var _ = Describe("Resources API", func() {
 								"pipeline_name": "a-pipeline",
 								"team_name": "a-team",
 								"type": "type-1",
-								"groups": ["group-1", "group-2"],
 								"last_checked": 1513364881,
 								"paused": true,
 								"failing_to_check": true,
@@ -374,8 +335,6 @@ var _ = Describe("Resources API", func() {
 		BeforeEach(func() {
 			fakeResource = new(dbfakes.FakeResource)
 			fakeResource.NameReturns("resource-name")
-
-			fakePipeline.ResourceReturns(fakeResource, true, nil)
 		})
 
 		JustBeforeEach(func() {
@@ -390,13 +349,7 @@ var _ = Describe("Resources API", func() {
 
 		Context("when authorized", func() {
 			BeforeEach(func() {
-				jwtValidator.IsAuthenticatedReturns(true)
-				userContextReader.GetTeamReturns("a-team", true, true)
-			})
-
-			It("injects the proper pipelineDB", func() {
-				pipelineName := dbTeam.PipelineArgsForCall(0)
-				Expect(pipelineName).To(Equal("a-pipeline"))
+				fakeAccessor.TeamPipelineResourceReturns(fakeResource, nil)
 			})
 
 			Context("when pausing the resource succeeds", func() {
@@ -411,7 +364,7 @@ var _ = Describe("Resources API", func() {
 
 			Context("when resource can not be found", func() {
 				BeforeEach(func() {
-					fakePipeline.ResourceReturns(nil, false, nil)
+					fakeAccessor.TeamPipelineResourceReturns(nil, accessor.ErrNotFound)
 				})
 
 				It("returns 404", func() {
@@ -432,7 +385,7 @@ var _ = Describe("Resources API", func() {
 
 		Context("when not authenticated", func() {
 			BeforeEach(func() {
-				jwtValidator.IsAuthenticatedReturns(false)
+				fakeAccessor.TeamPipelineResourceReturns(nil, accessor.ErrNotAuthorized)
 			})
 
 			It("returns Unauthorized", func() {
@@ -450,8 +403,6 @@ var _ = Describe("Resources API", func() {
 		BeforeEach(func() {
 			fakeResource = new(dbfakes.FakeResource)
 			fakeResource.NameReturns("resource-name")
-
-			fakePipeline.ResourceReturns(fakeResource, true, nil)
 		})
 
 		JustBeforeEach(func() {
@@ -466,13 +417,7 @@ var _ = Describe("Resources API", func() {
 
 		Context("when authorized", func() {
 			BeforeEach(func() {
-				jwtValidator.IsAuthenticatedReturns(true)
-				userContextReader.GetTeamReturns("a-team", true, true)
-			})
-
-			It("injects the proper pipelineDB", func() {
-				pipelineName := dbTeam.PipelineArgsForCall(0)
-				Expect(pipelineName).To(Equal("a-pipeline"))
+				fakeAccessor.TeamPipelineResourceReturns(fakeResource, nil)
 			})
 
 			Context("when unpausing the resource succeeds", func() {
@@ -487,7 +432,7 @@ var _ = Describe("Resources API", func() {
 
 			Context("when resource can not be found", func() {
 				BeforeEach(func() {
-					fakePipeline.ResourceReturns(nil, false, nil)
+					fakeAccessor.TeamPipelineResourceReturns(nil, accessor.ErrNotFound)
 				})
 
 				It("returns 404", func() {
@@ -508,7 +453,7 @@ var _ = Describe("Resources API", func() {
 
 		Context("when not authenticated", func() {
 			BeforeEach(func() {
-				jwtValidator.IsAuthenticatedReturns(false)
+				fakeAccessor.TeamPipelineResourceReturns(nil, accessor.ErrNotAuthorized)
 			})
 
 			It("returns Unauthorized", func() {
@@ -517,7 +462,7 @@ var _ = Describe("Resources API", func() {
 		})
 	})
 
-	Describe("GET /api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/check", func() {
+	Describe("POST /api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/check", func() {
 		var fakeScanner *radarfakes.FakeScanner
 		var checkRequestBody atc.CheckRequestBody
 		var response *http.Response
@@ -543,13 +488,15 @@ var _ = Describe("Resources API", func() {
 
 		Context("when authorized", func() {
 			BeforeEach(func() {
-				jwtValidator.IsAuthenticatedReturns(true)
-				userContextReader.GetTeamReturns("a-team", true, true)
+				fakeAccessor.TeamPipelineReturns(fakePipeline, nil)
 			})
 
-			It("injects the proper pipelineDB", func() {
-				pipelineName := dbTeam.PipelineArgsForCall(0)
+			It("requests the correct pipeline", func() {
+				Expect(fakeAccessor.TeamPipelineCallCount()).To(Equal(1))
+				access, teamName, pipelineName := fakeAccessor.TeamPipelineArgsForCall(0)
+				Expect(teamName).To(Equal("a-team"))
 				Expect(pipelineName).To(Equal("a-pipeline"))
+				Expect(access).To(Equal(accessor.Write))
 			})
 
 			It("tries to scan with no version specified", func() {
@@ -676,10 +623,10 @@ var _ = Describe("Resources API", func() {
 
 		Context("when not authenticated", func() {
 			BeforeEach(func() {
-				jwtValidator.IsAuthenticatedReturns(false)
+				fakeAccessor.TeamPipelineReturns(nil, accessor.ErrNotAuthorized)
 			})
 
-			It("returns Unauthorized", func() {
+			It("returns 401", func() {
 				Expect(response.StatusCode).To(Equal(http.StatusUnauthorized))
 			})
 		})
@@ -717,11 +664,21 @@ var _ = Describe("Resources API", func() {
 
 		Context("when authorized", func() {
 			BeforeEach(func() {
+				fakeAccessor.TeamPipelineReturns(fakePipeline, nil)
 				fakeResource.WebhookTokenReturns("fake-token")
 				fakePipeline.ResourceReturns(fakeResource, true, nil)
 			})
 
-			It("injects the proper pipelineDB", func() {
+			It("requests pipeline with propers args", func() {
+				Expect(fakeAccessor.TeamPipelineCallCount()).To(Equal(1))
+				access, teamName, pipelineName := fakeAccessor.TeamPipelineArgsForCall(0)
+				Expect(access).To(Equal(accessor.Skip))
+				Expect(teamName).To(Equal("a-team"))
+				Expect(pipelineName).To(Equal("a-pipeline"))
+			})
+
+			It("requests resources with propers args", func() {
+				Expect(fakePipeline.ResourceCallCount()).To(Equal(1))
 				resourceName := fakePipeline.ResourceArgsForCall(0)
 				Expect(resourceName).To(Equal("resource-name"))
 			})

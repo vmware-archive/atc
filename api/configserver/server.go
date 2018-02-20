@@ -2,20 +2,20 @@ package configserver
 
 import (
 	"code.cloudfoundry.org/lager"
-	"github.com/concourse/atc/db"
+	"github.com/concourse/atc/api/accessor"
 )
 
 type Server struct {
-	logger      lager.Logger
-	teamFactory db.TeamFactory
+	logger          lager.Logger
+	accessorFactory accessor.AccessorFactory
 }
 
 func NewServer(
 	logger lager.Logger,
-	teamFactory db.TeamFactory,
+	accessorFactory accessor.AccessorFactory,
 ) *Server {
 	return &Server{
-		logger:      logger,
-		teamFactory: teamFactory,
+		logger:          logger,
+		accessorFactory: accessorFactory,
 	}
 }

@@ -4,13 +4,30 @@ import (
 	"fmt"
 	"net/http"
 
-	"code.cloudfoundry.org/lager"
-
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/api/jobserver"
 	"github.com/concourse/atc/db"
 )
 
-func badgeForPipeline(pipeline db.Pipeline, logger lager.Logger) (*jobserver.Badge, error) {
+func (s *Server) PipelineBadge(w http.ResponseWriter, r *http.Request) {
+	logger := s.logger.Session("pipeline-badge")
+	teamName := r.FormValue(":team_name")
+	pipelineName := r.FormValue(":pipeline_name")
+
+	acc, err := s.accessorFactory.CreateAccessor(r.Context())
+	if err != nil {
+		logger.Error("failed-to-get-user", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
+
+	jobs, err := acc.TeamPipelineJobs(accessor.Write, teamName, pipelineName)
+	if err != nil {
+		logger.Error("failed-to-get-jobs", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
+
 	var build db.Build
 
 	jobStatusPrecedence := map[db.BuildStatus]int{
@@ -20,17 +37,12 @@ func badgeForPipeline(pipeline db.Pipeline, logger lager.Logger) (*jobserver.Bad
 		db.BuildStatusSucceeded: 4,
 	}
 
-	jobs, err := pipeline.Jobs()
-	if err != nil {
-		logger.Error("could-not-get-jobs", err)
-		return nil, err
-	}
-
 	for _, job := range jobs {
 		b, _, err := job.FinishedAndNextBuild()
 		if err != nil {
 			logger.Error("could-not-get-finished-and-next-build", err)
-			return nil, err
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		if b == nil {
@@ -42,25 +54,12 @@ func badgeForPipeline(pipeline db.Pipeline, logger lager.Logger) (*jobserver.Bad
 		}
 	}
 
-	return jobserver.BadgeForBuild(build), nil
-}
+	w.Header().Set("Content-type", "image/svg+xml")
 
-func (s *Server) PipelineBadge(pipeline db.Pipeline) http.Handler {
-	logger := s.logger.Session("pipeline-badge")
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-type", "image/svg+xml")
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Expires", "0")
 
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		w.Header().Set("Expires", "0")
+	w.WriteHeader(http.StatusOK)
 
-		w.WriteHeader(http.StatusOK)
-
-		badge, err := badgeForPipeline(pipeline, logger)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		fmt.Fprint(w, badge)
-	})
+	fmt.Fprint(w, jobserver.BadgeForBuild(build))
 }

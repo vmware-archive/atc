@@ -2,6 +2,7 @@ package jobserver
 
 import (
 	"code.cloudfoundry.org/lager"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/api/auth"
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
@@ -21,6 +22,7 @@ type Server struct {
 	externalURL      string
 	rejector         auth.Rejector
 	variablesFactory creds.VariablesFactory
+	accessorFactory  accessor.AccessorFactory
 }
 
 func NewServer(
@@ -28,6 +30,7 @@ func NewServer(
 	schedulerFactory SchedulerFactory,
 	externalURL string,
 	variablesFactory creds.VariablesFactory,
+	accessorFactory accessor.AccessorFactory,
 ) *Server {
 	return &Server{
 		logger:           logger,
@@ -35,5 +38,6 @@ func NewServer(
 		externalURL:      externalURL,
 		rejector:         auth.UnauthorizedRejector{},
 		variablesFactory: variablesFactory,
+		accessorFactory:  accessorFactory,
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"text/template"
 
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/db"
 )
 
@@ -97,37 +98,40 @@ type badgeTemplateConfig struct {
 	FillColor       string
 }
 
-func (s *Server) JobBadge(pipeline db.Pipeline) http.Handler {
+func (s *Server) JobBadge(w http.ResponseWriter, r *http.Request) {
 	logger := s.logger.Session("job-badge")
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		jobName := r.FormValue(":job_name")
 
-		job, found, err := pipeline.Job(jobName)
-		if err != nil {
-			logger.Error("error-finding-job", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	teamName := r.FormValue(":team_name")
+	pipelineName := r.FormValue(":pipeline_name")
+	jobName := r.FormValue(":job_name")
 
-		if !found {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
+	acc, err := s.accessorFactory.CreateAccessor(r.Context())
+	if err != nil {
+		logger.Error("failed-to-get-user", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
 
-		build, _, err := job.FinishedAndNextBuild()
-		if err != nil {
-			logger.Error("could-not-get-job-finished-and-next-build", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	job, err := acc.TeamPipelineJob(accessor.Read, teamName, pipelineName, jobName)
+	if err != nil {
+		logger.Error("failed-to-get-job", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
 
-		w.Header().Set("Content-type", "image/svg+xml")
+	build, _, err := job.FinishedAndNextBuild()
+	if err != nil {
+		logger.Error("could-not-get-job-finished-and-next-build", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		w.Header().Set("Expires", "0")
+	w.Header().Set("Content-type", "image/svg+xml")
 
-		w.WriteHeader(http.StatusOK)
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Expires", "0")
 
-		fmt.Fprint(w, BadgeForBuild(build))
-	})
+	w.WriteHeader(http.StatusOK)
+
+	fmt.Fprint(w, BadgeForBuild(build))
 }

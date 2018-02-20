@@ -250,17 +250,6 @@ type FakeWorker struct {
 		result2 bool
 		result3 error
 	}
-	EnsureCertsVolumeExistsStub        func(logger lager.Logger) error
-	ensureCertsVolumeExistsMutex       sync.RWMutex
-	ensureCertsVolumeExistsArgsForCall []struct {
-		logger lager.Logger
-	}
-	ensureCertsVolumeExistsReturns struct {
-		result1 error
-	}
-	ensureCertsVolumeExistsReturnsOnCall map[int]struct {
-		result1 error
-	}
 	GardenClientStub        func() garden.Client
 	gardenClientMutex       sync.RWMutex
 	gardenClientArgsForCall []struct{}
@@ -1155,54 +1144,6 @@ func (fake *FakeWorker) CertsVolumeReturnsOnCall(i int, result1 worker.Volume, r
 	}{result1, result2, result3}
 }
 
-func (fake *FakeWorker) EnsureCertsVolumeExists(logger lager.Logger) error {
-	fake.ensureCertsVolumeExistsMutex.Lock()
-	ret, specificReturn := fake.ensureCertsVolumeExistsReturnsOnCall[len(fake.ensureCertsVolumeExistsArgsForCall)]
-	fake.ensureCertsVolumeExistsArgsForCall = append(fake.ensureCertsVolumeExistsArgsForCall, struct {
-		logger lager.Logger
-	}{logger})
-	fake.recordInvocation("EnsureCertsVolumeExists", []interface{}{logger})
-	fake.ensureCertsVolumeExistsMutex.Unlock()
-	if fake.EnsureCertsVolumeExistsStub != nil {
-		return fake.EnsureCertsVolumeExistsStub(logger)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.ensureCertsVolumeExistsReturns.result1
-}
-
-func (fake *FakeWorker) EnsureCertsVolumeExistsCallCount() int {
-	fake.ensureCertsVolumeExistsMutex.RLock()
-	defer fake.ensureCertsVolumeExistsMutex.RUnlock()
-	return len(fake.ensureCertsVolumeExistsArgsForCall)
-}
-
-func (fake *FakeWorker) EnsureCertsVolumeExistsArgsForCall(i int) lager.Logger {
-	fake.ensureCertsVolumeExistsMutex.RLock()
-	defer fake.ensureCertsVolumeExistsMutex.RUnlock()
-	return fake.ensureCertsVolumeExistsArgsForCall[i].logger
-}
-
-func (fake *FakeWorker) EnsureCertsVolumeExistsReturns(result1 error) {
-	fake.EnsureCertsVolumeExistsStub = nil
-	fake.ensureCertsVolumeExistsReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeWorker) EnsureCertsVolumeExistsReturnsOnCall(i int, result1 error) {
-	fake.EnsureCertsVolumeExistsStub = nil
-	if fake.ensureCertsVolumeExistsReturnsOnCall == nil {
-		fake.ensureCertsVolumeExistsReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.ensureCertsVolumeExistsReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeWorker) GardenClient() garden.Client {
 	fake.gardenClientMutex.Lock()
 	ret, specificReturn := fake.gardenClientReturnsOnCall[len(fake.gardenClientArgsForCall)]
@@ -1322,8 +1263,6 @@ func (fake *FakeWorker) Invocations() map[string][][]interface{} {
 	defer fake.findVolumeForTaskCacheMutex.RUnlock()
 	fake.certsVolumeMutex.RLock()
 	defer fake.certsVolumeMutex.RUnlock()
-	fake.ensureCertsVolumeExistsMutex.RLock()
-	defer fake.ensureCertsVolumeExistsMutex.RUnlock()
 	fake.gardenClientMutex.RLock()
 	defer fake.gardenClientMutex.RUnlock()
 	fake.baggageclaimClientMutex.RLock()

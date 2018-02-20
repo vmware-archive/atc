@@ -10,6 +10,7 @@ import (
 	"net/textproto"
 
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/dbfakes"
 	"github.com/onsi/gomega/gbytes"
@@ -160,7 +161,7 @@ var _ = Describe("Config API", func() {
 								Resources: []string{"some-resource"},
 							},
 						})
-						fakeTeam.PipelineReturns(fakePipeline, true, nil)
+						fakeAccessor.TeamPipelineReturns(fakePipeline, nil)
 					})
 
 					Context("when the jobs are found", func() {
@@ -307,9 +308,9 @@ var _ = Describe("Config API", func() {
 					})
 				})
 
-				Context("when the pipeline is not found", func() {
+				Context("when the team/pipeline is not found", func() {
 					BeforeEach(func() {
-						fakeTeam.PipelineReturns(nil, false, nil)
+						fakeAccessor.TeamPipelineReturns(nil, accessor.ErrNotFound)
 					})
 
 					It("returns 404", func() {
@@ -317,9 +318,9 @@ var _ = Describe("Config API", func() {
 					})
 				})
 
-				Context("when finding the pipeline fails", func() {
+				Context("when finding the team/pipeline fails", func() {
 					BeforeEach(func() {
-						fakeTeam.PipelineReturns(nil, false, errors.New("failed"))
+						fakeAccessor.TeamPipelineReturns(nil, errors.New("error"))
 					})
 
 					It("returns 500", func() {
@@ -327,31 +328,11 @@ var _ = Describe("Config API", func() {
 					})
 				})
 			})
-
-			Context("when the team is not found", func() {
-				BeforeEach(func() {
-					dbTeamFactory.FindTeamReturns(nil, false, nil)
-				})
-
-				It("returns 404", func() {
-					Expect(response.StatusCode).To(Equal(http.StatusNotFound))
-				})
-			})
-
-			Context("when finding the team fails", func() {
-				BeforeEach(func() {
-					dbTeamFactory.FindTeamReturns(nil, false, errors.New("failed"))
-				})
-
-				It("returns 500", func() {
-					Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
-				})
-			})
 		})
 
 		Context("when not authorized", func() {
 			BeforeEach(func() {
-				jwtValidator.IsAuthenticatedReturns(false)
+				fakeAccessor.TeamPipelineReturns(nil, accessor.ErrNotAuthorized)
 			})
 
 			It("returns 401", func() {
@@ -1078,7 +1059,7 @@ jobs:
 
 		Context("when not authenticated", func() {
 			BeforeEach(func() {
-				jwtValidator.IsAuthenticatedReturns(false)
+				fakeAccessor.TeamReturns(nil, accessor.ErrNotAuthorized)
 			})
 
 			It("returns 401", func() {

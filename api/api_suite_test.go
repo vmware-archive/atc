@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/concourse/atc/api"
+	"github.com/concourse/atc/api/accessor/accessorfakes"
 	"github.com/concourse/atc/api/auth"
 	"github.com/concourse/atc/creds/credsfakes"
 	"github.com/concourse/atc/db"
@@ -41,6 +42,7 @@ var (
 	fakeWorkerProvider      *workerfakes.FakeWorkerProvider
 	fakeVolumeFactory       *dbfakes.FakeVolumeFactory
 	fakeContainerRepository *dbfakes.FakeContainerRepository
+	fakeAccessorFactory     *accessorfakes.FakeAccessorFactory
 	dbTeamFactory           *dbfakes.FakeTeamFactory
 	dbPipelineFactory       *dbfakes.FakePipelineFactory
 	fakePipeline            *dbfakes.FakePipeline
@@ -48,6 +50,7 @@ var (
 	dbWorkerLifecycle       *dbfakes.FakeWorkerLifecycle
 	build                   *dbfakes.FakeBuild
 	dbBuildFactory          *dbfakes.FakeBuildFactory
+	fakeAccessor            *accessorfakes.FakeAccessor
 	dbTeam                  *dbfakes.FakeTeam
 	fakeSchedulerFactory    *jobserverfakes.FakeSchedulerFactory
 	fakeScannerFactory      *resourceserverfakes.FakeScannerFactory
@@ -88,6 +91,7 @@ func (f *fakeEventHandlerFactory) Construct(
 }
 
 var _ = BeforeEach(func() {
+	fakeAccessorFactory = new(accessorfakes.FakeAccessorFactory)
 	dbTeamFactory = new(dbfakes.FakeTeamFactory)
 	dbPipelineFactory = new(dbfakes.FakePipelineFactory)
 	dbBuildFactory = new(dbfakes.FakeBuildFactory)
@@ -103,6 +107,11 @@ var _ = BeforeEach(func() {
 
 	fakePipeline = new(dbfakes.FakePipeline)
 	dbTeam.PipelineReturns(fakePipeline, true, nil)
+
+	fakeAccessor = new(accessorfakes.FakeAccessor)
+	fakeAccessor.TeamReturns(dbTeam, nil)
+	fakeAccessor.TeamPipelineReturns(fakePipeline, nil)
+	fakeAccessorFactory.CreateAccessorReturns(fakeAccessor, nil)
 
 	dbWorkerFactory = new(dbfakes.FakeWorkerFactory)
 	dbWorkerLifecycle = new(dbfakes.FakeWorkerLifecycle)
@@ -166,6 +175,7 @@ var _ = BeforeEach(func() {
 
 		oAuthBaseURL,
 
+		fakeAccessorFactory,
 		dbTeamFactory,
 		dbPipelineFactory,
 		dbWorkerFactory,

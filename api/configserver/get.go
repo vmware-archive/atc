@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"code.cloudfoundry.org/lager"
-
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/tedsuo/rata"
 )
 
@@ -16,29 +15,17 @@ func (s *Server) GetConfig(w http.ResponseWriter, r *http.Request) {
 	pipelineName := rata.Param(r, "pipeline_name")
 	teamName := rata.Param(r, "team_name")
 
-	team, found, err := s.teamFactory.FindTeam(teamName)
+	acc, err := s.accessorFactory.CreateAccessor(r.Context())
 	if err != nil {
-		logger.Error("failed-to-find-team", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		logger.Error("failed-to-get-user", err)
+		w.WriteHeader(accessor.HttpStatus(err))
 		return
 	}
 
-	if !found {
-		logger.Debug("team-not-found", lager.Data{"team": teamName})
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	pipeline, found, err := team.Pipeline(pipelineName)
+	pipeline, err := acc.TeamPipeline(accessor.Read, teamName, pipelineName)
 	if err != nil {
-		logger.Error("failed-to-find-pipeline", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if !found {
-		logger.Debug("pipeline-not-found", lager.Data{"pipeline": pipelineName})
-		w.WriteHeader(http.StatusNotFound)
+		logger.Error("failed-to-get-pipeline", err)
+		w.WriteHeader(accessor.HttpStatus(err))
 		return
 	}
 

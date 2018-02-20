@@ -22,13 +22,13 @@ func (i IntMetric) String() string {
 
 func (s *Server) RegisterWorker(w http.ResponseWriter, r *http.Request) {
 	logger := s.logger.Session("register-worker")
-	var registration atc.Worker
 
 	if !auth.IsSystem(r) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
+	var registration atc.Worker
 	err := json.NewDecoder(r.Body).Decode(&registration)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

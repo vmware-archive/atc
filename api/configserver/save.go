@@ -14,6 +14,7 @@ import (
 
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/db"
 	"github.com/mitchellh/mapstructure"
 	"github.com/tedsuo/rata"
@@ -50,14 +51,31 @@ type SaveConfigResponse struct {
 }
 
 func (s *Server) SaveConfig(w http.ResponseWriter, r *http.Request) {
-	session := s.logger.Session("set-config")
+	logger := s.logger.Session("set-config")
+
+	pipelineName := rata.Param(r, "pipeline_name")
+	teamName := rata.Param(r, "team_name")
+
+	acc, err := s.accessorFactory.CreateAccessor(r.Context())
+	if err != nil {
+		logger.Error("failed-to-get-user", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
+
+	team, err := acc.Team(accessor.Write, teamName)
+	if err != nil {
+		logger.Error("failed-to-get-team", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
 
 	var version db.ConfigVersion
 	if configVersionStr := r.Header.Get(atc.ConfigVersionHeader); len(configVersionStr) != 0 {
 		_, err := fmt.Sscanf(configVersionStr, "%d", &version)
 		if err != nil {
-			session.Error("malformed-config-version", err)
-			s.handleBadRequest(w, []string{fmt.Sprintf("config version is malformed: %s", err)}, session)
+			logger.Error("malformed-config-version", err)
+			s.handleBadRequest(w, []string{fmt.Sprintf("config version is malformed: %s", err)}, logger)
 			return
 		}
 	}
@@ -68,30 +86,30 @@ func (s *Server) SaveConfig(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 		return
 	case ErrMalformedRequestPayload:
-		session.Error("malformed-request-payload", err, lager.Data{
+		logger.Error("malformed-request-payload", err, lager.Data{
 			"content-type": r.Header.Get("Content-Type"),
 		})
 
-		s.handleBadRequest(w, []string{"malformed config"}, session)
+		s.handleBadRequest(w, []string{"malformed config"}, logger)
 		return
 	case ErrFailedToConstructDecoder:
-		session.Error("failed-to-construct-decoder", err)
+		logger.Error("failed-to-construct-decoder", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	case ErrCouldNotDecode:
-		session.Error("could-not-decode", err)
-		s.handleBadRequest(w, []string{"failed to decode config"}, session)
+		logger.Error("could-not-decode", err)
+		s.handleBadRequest(w, []string{"failed to decode config"}, logger)
 		return
 	case ErrInvalidPausedValue:
-		session.Error("invalid-paused-value", err)
-		s.handleBadRequest(w, []string{"invalid paused value"}, session)
+		logger.Error("invalid-paused-value", err)
+		s.handleBadRequest(w, []string{"invalid paused value"}, logger)
 		return
 	default:
 		if err != nil {
 			if eke, ok := err.(ExtraKeysError); ok {
-				s.handleBadRequest(w, []string{eke.Error()}, session)
+				s.handleBadRequest(w, []string{eke.Error()}, logger)
 			} else {
-				session.Error("unexpected-error", err)
+				logger.Error("unexpected-error", err)
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 
@@ -101,38 +119,22 @@ func (s *Server) SaveConfig(w http.ResponseWriter, r *http.Request) {
 
 	warnings, errorMessages := config.Validate()
 	if len(errorMessages) > 0 {
-		session.Error("ignoring-invalid-config", err)
-		s.handleBadRequest(w, errorMessages, session)
+		logger.Error("ignoring-invalid-config", err)
+		s.handleBadRequest(w, errorMessages, logger)
 		return
 	}
 
-	session.Info("saving")
-
-	pipelineName := rata.Param(r, "pipeline_name")
-	teamName := rata.Param(r, "team_name")
-
-	team, found, err := s.teamFactory.FindTeam(teamName)
-	if err != nil {
-		session.Error("failed-to-find-team", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if !found {
-		session.Debug("team-not-found")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	logger.Info("saving")
 
 	_, created, err := team.SavePipeline(pipelineName, config, version, pausedState)
 	if err != nil {
-		session.Error("failed-to-save-config", err)
+		logger.Error("failed-to-save-config", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "failed to save config: %s", err)
 		return
 	}
 
-	session.Info("saved")
+	logger.Info("saved")
 
 	if created {
 		w.WriteHeader(http.StatusCreated)
@@ -140,20 +142,20 @@ func (s *Server) SaveConfig(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 
-	s.writeSaveConfigResponse(w, SaveConfigResponse{Warnings: warnings}, session)
+	s.writeSaveConfigResponse(w, SaveConfigResponse{Warnings: warnings}, logger)
 }
 
-func (s *Server) handleBadRequest(w http.ResponseWriter, errorMessages []string, session lager.Logger) {
+func (s *Server) handleBadRequest(w http.ResponseWriter, errorMessages []string, logger lager.Logger) {
 	w.WriteHeader(http.StatusBadRequest)
 	s.writeSaveConfigResponse(w, SaveConfigResponse{
 		Errors: errorMessages,
-	}, session)
+	}, logger)
 }
 
-func (s *Server) writeSaveConfigResponse(w http.ResponseWriter, saveConfigResponse SaveConfigResponse, session lager.Logger) {
+func (s *Server) writeSaveConfigResponse(w http.ResponseWriter, saveConfigResponse SaveConfigResponse, logger lager.Logger) {
 	responseJSON, err := json.Marshal(saveConfigResponse)
 	if err != nil {
-		session.Error("failed-to-marshal-validation-response", err)
+		logger.Error("failed-to-marshal-validation-response", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "failed to generate error response: %s", err)
 		return
@@ -161,7 +163,7 @@ func (s *Server) writeSaveConfigResponse(w http.ResponseWriter, saveConfigRespon
 
 	_, err = w.Write(responseJSON)
 	if err != nil {
-		session.Error("failed-to-write-validation-response", err)
+		logger.Error("failed-to-write-validation-response", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -4,35 +4,39 @@ import (
 	"net/http"
 
 	"code.cloudfoundry.org/lager"
-	"github.com/concourse/atc/db"
-	"github.com/tedsuo/rata"
+	"github.com/concourse/atc/api/accessor"
 )
 
-func (s *Server) PauseResource(dbPipeline db.Pipeline) http.Handler {
-	logger := s.logger.Session("pause-resource")
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resourceName := rata.Param(r, "resource_name")
+func (s *Server) PauseResource(w http.ResponseWriter, r *http.Request) {
 
-		dbResource, found, err := dbPipeline.Resource(resourceName)
-		if err != nil {
-			logger.Error("failed-to-get-resource", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	teamName := r.FormValue(":team_name")
+	pipelineName := r.FormValue(":pipeline_name")
+	resourceName := r.FormValue(":resource_name")
 
-		if !found {
-			logger.Debug("resource-not-found", lager.Data{"resource": resourceName})
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-		err = dbResource.Pause()
-		if err != nil {
-			logger.Error("failed-to-pause-resource", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
+	logger := s.logger.Session("pause-resource", lager.Data{
+		"resource": resourceName,
 	})
+
+	acc, err := s.accessorFactory.CreateAccessor(r.Context())
+	if err != nil {
+		logger.Error("failed-to-get-user", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
+
+	resource, err := acc.TeamPipelineResource(accessor.Write, teamName, pipelineName, resourceName)
+	if err != nil {
+		logger.Error("failed-to-get-resource", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
+
+	err = resource.Pause()
+	if err != nil {
+		logger.Error("failed-to-pause-resource", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

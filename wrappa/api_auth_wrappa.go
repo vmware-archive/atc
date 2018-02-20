@@ -43,10 +43,7 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 
 		switch name {
 		// unauthenticated / delegating to handler
-		case atc.DownloadCLI,
-			atc.CheckResourceWebHook,
-			atc.GetInfo,
-			atc.ListTeams,
+		case
 			atc.ListAllPipelines,
 			atc.ListPipelines,
 			atc.ListBuilds,
@@ -55,8 +52,60 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 			atc.LegacyGetUser,
 			atc.MainJobBadge:
 
+		// !!!!!!!!!!!!!! REFACTORED !!!!!!!!!!!!!!!!!!!!!
+		case
+			atc.DestroyTeam,
+			atc.SetTeam,
+			atc.ListTeams,
+			atc.GetInfo,
+			atc.DownloadCLI,
+			atc.CheckResourceWebHook,
+			atc.CheckResource,
+			atc.UnpauseResource,
+			atc.PauseResource,
+			atc.GetResource,
+			atc.ListResources,
+			atc.CreatePipelineBuild,
+			atc.GetVersionsDB,
+			atc.OrderPipelines,
+			atc.RenamePipeline,
+			atc.HidePipeline,
+			atc.ExposePipeline,
+			atc.UnpausePipeline,
+			atc.PausePipeline,
+			atc.DeletePipeline,
+			atc.PipelineBadge,
+			atc.GetPipeline,
+			atc.JobBadge,
+			atc.UnpauseJob,
+			atc.PauseJob,
+			atc.ListJobInputs,
+			atc.ListJobBuilds,
+			atc.GetJob,
+			atc.ListJobs,
+			atc.GetJobBuild,
+			atc.CreateJobBuild,
+			atc.GetConfig,
+			atc.SaveConfig:
+
+		// authorized (requested team matches resource team)
+		case
+			atc.DisableResourceVersion,
+			atc.EnableResourceVersion:
+			newHandler = auth.CheckAuthorizationHandler(handler, rejector)
+
 		// pipeline is public or authorized
-		case atc.GetBuild,
+		case
+			atc.ListBuildsWithVersionAsInput,
+			atc.ListBuildsWithVersionAsOutput,
+			atc.GetResourceCausality,
+			atc.GetResourceVersion,
+			atc.ListResourceVersions:
+			newHandler = wrappa.checkPipelineAccessHandlerFactory.HandlerFor(handler, rejector)
+
+		// pipeline is public or authorized
+		case
+			atc.GetBuild,
 			atc.BuildResources,
 			atc.GetBuildPlan:
 			newHandler = wrappa.checkBuildReadAccessHandlerFactory.AnyJobHandler(handler, rejector)
@@ -76,25 +125,9 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 			atc.RetireWorker:
 			newHandler = wrappa.checkWorkerTeamAccessHandlerFactory.HandlerFor(handler, rejector)
 
-		// pipeline is public or authorized
-		case atc.GetPipeline,
-			atc.GetJobBuild,
-			atc.PipelineBadge,
-			atc.JobBadge,
-			atc.ListJobs,
-			atc.GetJob,
-			atc.ListJobBuilds,
-			atc.GetResource,
-			atc.ListBuildsWithVersionAsInput,
-			atc.ListBuildsWithVersionAsOutput,
-			atc.GetResourceCausality,
-			atc.GetResourceVersion,
-			atc.ListResources,
-			atc.ListResourceVersions:
-			newHandler = wrappa.checkPipelineAccessHandlerFactory.HandlerFor(handler, rejector)
-
 		// authenticated
-		case atc.CreateBuild,
+		case
+			atc.CreateBuild,
 			atc.CreatePipe,
 			atc.GetContainer,
 			atc.HijackContainer,
@@ -104,9 +137,7 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 			atc.RegisterWorker,
 			atc.HeartbeatWorker,
 			atc.DeleteWorker,
-			atc.SetTeam,
 			atc.RenameTeam,
-			atc.DestroyTeam,
 			atc.WritePipe,
 			atc.ListVolumes:
 			newHandler = auth.CheckAuthenticationHandler(handler, rejector)
@@ -114,29 +145,6 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 		case atc.GetLogLevel,
 			atc.SetLogLevel:
 			newHandler = auth.CheckAdminHandler(handler, rejector)
-
-		// authorized (requested team matches resource team)
-		case atc.CheckResource,
-			atc.CreateJobBuild,
-			atc.CreatePipelineBuild,
-			atc.DeletePipeline,
-			atc.DisableResourceVersion,
-			atc.EnableResourceVersion,
-			atc.GetConfig,
-			atc.GetVersionsDB,
-			atc.ListJobInputs,
-			atc.OrderPipelines,
-			atc.PauseJob,
-			atc.PausePipeline,
-			atc.PauseResource,
-			atc.RenamePipeline,
-			atc.UnpauseJob,
-			atc.UnpausePipeline,
-			atc.UnpauseResource,
-			atc.ExposePipeline,
-			atc.HidePipeline,
-			atc.SaveConfig:
-			newHandler = auth.CheckAuthorizationHandler(handler, rejector)
 
 		// think about it!
 		default:

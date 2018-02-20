@@ -5,48 +5,61 @@ import (
 	"net/http"
 
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/api/present"
-	"github.com/concourse/atc/db"
 )
 
-func (s *Server) ListJobs(pipeline db.Pipeline) http.Handler {
+func (s *Server) ListJobs(w http.ResponseWriter, r *http.Request) {
 	logger := s.logger.Session("list-jobs")
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var jobs []atc.Job
+	teamName := r.FormValue(":team_name")
+	pipelineName := r.FormValue(":pipeline_name")
 
-		include := r.FormValue("include")
-		dashboard, groups, err := pipeline.Dashboard(include)
+	acc, err := s.accessorFactory.CreateAccessor(r.Context())
+	if err != nil {
+		logger.Error("failed-to-get-user", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
 
-		if err != nil {
-			logger.Error("failed-to-get-dashboard", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	pipeline, err := acc.TeamPipeline(accessor.Read, teamName, pipelineName)
+	if err != nil {
+		logger.Error("failed-to-get-pipeline", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
 
-		teamName := r.FormValue(":team_name")
+	var jobs []atc.Job
 
-		for _, job := range dashboard {
-			jobs = append(
-				jobs,
-				present.Job(
-					teamName,
-					job.Job,
-					groups,
-					job.FinishedBuild,
-					job.NextBuild,
-					job.TransitionBuild,
-				),
-			)
-		}
+	include := r.FormValue("include")
+	dashboard, groups, err := pipeline.Dashboard(include)
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+	if err != nil {
+		logger.Error("failed-to-get-dashboard", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-		err = json.NewEncoder(w).Encode(jobs)
-		if err != nil {
-			logger.Error("failed-to-encode-jobs", err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-	})
+	for _, job := range dashboard {
+		jobs = append(
+			jobs,
+			present.Job(
+				teamName,
+				job.Job,
+				groups,
+				job.FinishedBuild,
+				job.NextBuild,
+				job.TransitionBuild,
+			),
+		)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	err = json.NewEncoder(w).Encode(jobs)
+	if err != nil {
+		logger.Error("failed-to-encode-jobs", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

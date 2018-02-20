@@ -28,11 +28,7 @@ func IsAuthenticated(r *http.Request) bool {
 func IsAuthorized(r *http.Request) bool {
 	authTeam, authTeamFound := GetTeam(r)
 
-	if authTeamFound && authTeam.IsAuthorized(r.URL.Query().Get(":team_name")) {
-		return true
-	}
-
-	return false
+	return (authTeamFound && authTeam.IsAuthorized(r.URL.Query().Get(":team_name")))
 }
 
 func getJWT(r *http.Request, publicKey *rsa.PublicKey) (token *jwt.Token, err error) {

@@ -4,46 +4,37 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/api/present"
-	"github.com/concourse/atc/db"
 )
 
-func (s *Server) GetJobBuild(pipeline db.Pipeline) http.Handler {
+func (s *Server) GetJobBuild(w http.ResponseWriter, r *http.Request) {
 	logger := s.logger.Session("get-job-build")
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		jobName := r.FormValue(":job_name")
-		buildName := r.FormValue(":build_name")
 
-		job, found, err := pipeline.Job(jobName)
-		if err != nil {
-			logger.Error("failed-to-get-job", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	teamName := r.FormValue(":team_name")
+	pipelineName := r.FormValue(":pipeline_name")
+	jobName := r.FormValue(":job_name")
+	buildName := r.FormValue(":build_name")
 
-		if !found {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
+	acc, err := s.accessorFactory.CreateAccessor(r.Context())
+	if err != nil {
+		logger.Error("failed-to-get-user", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
 
-		build, found, err := job.Build(buildName)
-		if err != nil {
-			logger.Error("failed-to-get-job-build", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	build, err := acc.TeamPipelineJobBuild(accessor.Read, teamName, pipelineName, jobName, buildName)
+	if err != nil {
+		logger.Error("failed-to-get-pipeline", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
 
-		if !found {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
+	w.WriteHeader(http.StatusOK)
 
-		w.WriteHeader(http.StatusOK)
-
-		err = json.NewEncoder(w).Encode(present.Build(build))
-		if err != nil {
-			logger.Error("failed-to-encode-build", err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-	})
+	err = json.NewEncoder(w).Encode(present.Build(build))
+	if err != nil {
+		logger.Error("failed-to-encode-build", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

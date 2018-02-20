@@ -9,6 +9,7 @@ import (
 	"github.com/tedsuo/rata"
 
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/api/buildserver"
 	"github.com/concourse/atc/api/cliserver"
 	"github.com/concourse/atc/api/configserver"
@@ -41,6 +42,7 @@ func NewHandler(
 
 	oAuthBaseURL string,
 
+	accessorFactory accessor.AccessorFactory,
 	dbTeamFactory db.TeamFactory,
 	dbPipelineFactory db.PipelineFactory,
 	dbWorkerFactory db.WorkerFactory,
@@ -82,24 +84,57 @@ func NewHandler(
 	teamHandlerFactory := NewTeamScopedHandlerFactory(logger, dbTeamFactory)
 
 	buildServer := buildserver.NewServer(logger, externalURL, engine, workerClient, dbTeamFactory, dbBuildFactory, eventHandlerFactory, drain)
-	jobServer := jobserver.NewServer(logger, schedulerFactory, externalURL, variablesFactory)
-	resourceServer := resourceserver.NewServer(logger, scannerFactory)
+	jobServer := jobserver.NewServer(logger, schedulerFactory, externalURL, variablesFactory, accessorFactory)
+	resourceServer := resourceserver.NewServer(logger, scannerFactory, accessorFactory)
 	versionServer := versionserver.NewServer(logger, externalURL)
 	pipeServer := pipes.NewServer(logger, peerURL, externalURL, dbTeamFactory)
-	pipelineServer := pipelineserver.NewServer(logger, dbTeamFactory, dbPipelineFactory, engine)
-	configServer := configserver.NewServer(logger, dbTeamFactory)
+	pipelineServer := pipelineserver.NewServer(logger, accessorFactory, engine)
+	configServer := configserver.NewServer(logger, accessorFactory)
 	workerServer := workerserver.NewServer(logger, dbTeamFactory, dbWorkerFactory, workerProvider)
 	logLevelServer := loglevelserver.NewServer(logger, sink)
 	cliServer := cliserver.NewServer(logger, absCLIDownloadsDir)
 	containerServer := containerserver.NewServer(logger, workerClient, variablesFactory, interceptTimeoutFactory)
 	volumesServer := volumeserver.NewServer(logger, volumeFactory)
-	teamServer := teamserver.NewServer(logger, dbTeamFactory)
+	teamServer := teamserver.NewServer(logger, dbTeamFactory, accessorFactory)
 	infoServer := infoserver.NewServer(logger, version, workerVersion)
 	legacyServer := legacyserver.NewServer(logger)
 
 	handlers := map[string]http.Handler{
-		atc.GetConfig:  http.HandlerFunc(configServer.GetConfig),
-		atc.SaveConfig: http.HandlerFunc(configServer.SaveConfig),
+		atc.GetConfig:            http.HandlerFunc(configServer.GetConfig),
+		atc.SaveConfig:           http.HandlerFunc(configServer.SaveConfig),
+		atc.CreateJobBuild:       http.HandlerFunc(jobServer.CreateJobBuild),
+		atc.GetJobBuild:          http.HandlerFunc(jobServer.GetJobBuild),
+		atc.ListJobs:             http.HandlerFunc(jobServer.ListJobs),
+		atc.GetJob:               http.HandlerFunc(jobServer.GetJob),
+		atc.ListJobBuilds:        http.HandlerFunc(jobServer.ListJobBuilds),
+		atc.ListJobInputs:        http.HandlerFunc(jobServer.ListJobInputs),
+		atc.PauseJob:             http.HandlerFunc(jobServer.PauseJob),
+		atc.UnpauseJob:           http.HandlerFunc(jobServer.UnpauseJob),
+		atc.JobBadge:             http.HandlerFunc(jobServer.JobBadge),
+		atc.GetPipeline:          http.HandlerFunc(pipelineServer.GetPipeline),
+		atc.ListAllPipelines:     http.HandlerFunc(pipelineServer.ListAllPipelines),
+		atc.ListPipelines:        http.HandlerFunc(pipelineServer.ListPipelines),
+		atc.PipelineBadge:        http.HandlerFunc(pipelineServer.PipelineBadge),
+		atc.DeletePipeline:       http.HandlerFunc(pipelineServer.DeletePipeline),
+		atc.PausePipeline:        http.HandlerFunc(pipelineServer.PausePipeline),
+		atc.UnpausePipeline:      http.HandlerFunc(pipelineServer.UnpausePipeline),
+		atc.ExposePipeline:       http.HandlerFunc(pipelineServer.ExposePipeline),
+		atc.HidePipeline:         http.HandlerFunc(pipelineServer.HidePipeline),
+		atc.RenamePipeline:       http.HandlerFunc(pipelineServer.RenamePipeline),
+		atc.OrderPipelines:       http.HandlerFunc(pipelineServer.OrderPipelines),
+		atc.GetVersionsDB:        http.HandlerFunc(pipelineServer.GetVersionsDB),
+		atc.CreatePipelineBuild:  http.HandlerFunc(pipelineServer.CreateBuild),
+		atc.ListResources:        http.HandlerFunc(resourceServer.ListResources),
+		atc.GetResource:          http.HandlerFunc(resourceServer.GetResource),
+		atc.PauseResource:        http.HandlerFunc(resourceServer.PauseResource),
+		atc.UnpauseResource:      http.HandlerFunc(resourceServer.UnpauseResource),
+		atc.CheckResource:        http.HandlerFunc(resourceServer.CheckResource),
+		atc.CheckResourceWebHook: http.HandlerFunc(resourceServer.CheckResourceWebHook),
+		atc.DownloadCLI:          http.HandlerFunc(cliServer.Download),
+		atc.GetInfo:              http.HandlerFunc(infoServer.Info),
+		atc.ListTeams:            http.HandlerFunc(teamServer.ListTeams),
+		atc.SetTeam:              http.HandlerFunc(teamServer.SetTeam),
+		atc.DestroyTeam:          http.HandlerFunc(teamServer.DestroyTeam),
 
 		atc.ListBuilds:          http.HandlerFunc(buildServer.ListBuilds),
 		atc.CreateBuild:         teamHandlerFactory.HandlerFor(buildServer.CreateBuild),
@@ -110,37 +145,7 @@ func NewHandler(
 		atc.GetBuildPreparation: buildHandlerFactory.HandlerFor(buildServer.GetBuildPreparation),
 		atc.BuildEvents:         buildHandlerFactory.HandlerFor(buildServer.BuildEvents),
 
-		atc.ListJobs:       pipelineHandlerFactory.HandlerFor(jobServer.ListJobs),
-		atc.GetJob:         pipelineHandlerFactory.HandlerFor(jobServer.GetJob),
-		atc.ListJobBuilds:  pipelineHandlerFactory.HandlerFor(jobServer.ListJobBuilds),
-		atc.ListJobInputs:  pipelineHandlerFactory.HandlerFor(jobServer.ListJobInputs),
-		atc.GetJobBuild:    pipelineHandlerFactory.HandlerFor(jobServer.GetJobBuild),
-		atc.CreateJobBuild: pipelineHandlerFactory.HandlerFor(jobServer.CreateJobBuild),
-		atc.PauseJob:       pipelineHandlerFactory.HandlerFor(jobServer.PauseJob),
-		atc.UnpauseJob:     pipelineHandlerFactory.HandlerFor(jobServer.UnpauseJob),
-		atc.JobBadge:       pipelineHandlerFactory.HandlerFor(jobServer.JobBadge),
-		atc.MainJobBadge:   mainredirect.Handler{atc.Routes, atc.JobBadge},
-
-		atc.ListAllPipelines:    http.HandlerFunc(pipelineServer.ListAllPipelines),
-		atc.ListPipelines:       http.HandlerFunc(pipelineServer.ListPipelines),
-		atc.GetPipeline:         pipelineHandlerFactory.HandlerFor(pipelineServer.GetPipeline),
-		atc.DeletePipeline:      pipelineHandlerFactory.HandlerFor(pipelineServer.DeletePipeline),
-		atc.OrderPipelines:      http.HandlerFunc(pipelineServer.OrderPipelines),
-		atc.PausePipeline:       pipelineHandlerFactory.HandlerFor(pipelineServer.PausePipeline),
-		atc.UnpausePipeline:     pipelineHandlerFactory.HandlerFor(pipelineServer.UnpausePipeline),
-		atc.ExposePipeline:      pipelineHandlerFactory.HandlerFor(pipelineServer.ExposePipeline),
-		atc.HidePipeline:        pipelineHandlerFactory.HandlerFor(pipelineServer.HidePipeline),
-		atc.GetVersionsDB:       pipelineHandlerFactory.HandlerFor(pipelineServer.GetVersionsDB),
-		atc.RenamePipeline:      pipelineHandlerFactory.HandlerFor(pipelineServer.RenamePipeline),
-		atc.CreatePipelineBuild: pipelineHandlerFactory.HandlerFor(pipelineServer.CreateBuild),
-		atc.PipelineBadge:       pipelineHandlerFactory.HandlerFor(pipelineServer.PipelineBadge),
-
-		atc.ListResources:        pipelineHandlerFactory.HandlerFor(resourceServer.ListResources),
-		atc.GetResource:          pipelineHandlerFactory.HandlerFor(resourceServer.GetResource),
-		atc.PauseResource:        pipelineHandlerFactory.HandlerFor(resourceServer.PauseResource),
-		atc.UnpauseResource:      pipelineHandlerFactory.HandlerFor(resourceServer.UnpauseResource),
-		atc.CheckResource:        pipelineHandlerFactory.HandlerFor(resourceServer.CheckResource),
-		atc.CheckResourceWebHook: pipelineHandlerFactory.HandlerFor(resourceServer.CheckResourceWebHook),
+		atc.MainJobBadge: mainredirect.Handler{atc.Routes, atc.JobBadge},
 
 		atc.ListResourceVersions:          pipelineHandlerFactory.HandlerFor(versionServer.ListResourceVersions),
 		atc.GetResourceVersion:            pipelineHandlerFactory.HandlerFor(versionServer.GetResourceVersion),
@@ -165,9 +170,6 @@ func NewHandler(
 		atc.SetLogLevel: http.HandlerFunc(logLevelServer.SetMinLevel),
 		atc.GetLogLevel: http.HandlerFunc(logLevelServer.GetMinLevel),
 
-		atc.DownloadCLI: http.HandlerFunc(cliServer.Download),
-		atc.GetInfo:     http.HandlerFunc(infoServer.Info),
-
 		atc.ListContainers:  teamHandlerFactory.HandlerFor(containerServer.ListContainers),
 		atc.GetContainer:    teamHandlerFactory.HandlerFor(containerServer.GetContainer),
 		atc.HijackContainer: teamHandlerFactory.HandlerFor(containerServer.HijackContainer),
@@ -178,10 +180,7 @@ func NewHandler(
 		atc.LegacyGetAuthToken:    http.HandlerFunc(legacyServer.GetAuthToken),
 		atc.LegacyGetUser:         http.HandlerFunc(legacyServer.GetUser),
 
-		atc.ListTeams:   http.HandlerFunc(teamServer.ListTeams),
-		atc.SetTeam:     http.HandlerFunc(teamServer.SetTeam),
-		atc.RenameTeam:  http.HandlerFunc(teamServer.RenameTeam),
-		atc.DestroyTeam: http.HandlerFunc(teamServer.DestroyTeam),
+		atc.RenameTeam: http.HandlerFunc(teamServer.RenameTeam),
 	}
 
 	return rata.NewRouter(atc.Routes, wrapper.Wrap(handlers))

@@ -1,6 +1,8 @@
 package auth
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type checkAuthorizationHandler struct {
 	handler  http.Handler

@@ -3,33 +3,35 @@ package jobserver
 import (
 	"net/http"
 
-	"github.com/concourse/atc/db"
-	"github.com/tedsuo/rata"
+	"github.com/concourse/atc/api/accessor"
 )
 
-func (s *Server) PauseJob(pipeline db.Pipeline) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger := s.logger.Session("pause-job")
-		jobName := rata.Param(r, "job_name")
+func (s *Server) PauseJob(w http.ResponseWriter, r *http.Request) {
+	logger := s.logger.Session("pause-job")
 
-		job, found, err := pipeline.Job(jobName)
-		if err != nil {
-			logger.Error("failed-to-get-job", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	teamName := r.FormValue(":team_name")
+	pipelineName := r.FormValue(":pipeline_name")
+	jobName := r.FormValue(":job_name")
 
-		if !found {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
+	acc, err := s.accessorFactory.CreateAccessor(r.Context())
+	if err != nil {
+		logger.Error("failed-to-get-user", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
 
-		err = job.Pause()
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	job, err := acc.TeamPipelineJob(accessor.Write, teamName, pipelineName, jobName)
+	if err != nil {
+		logger.Error("failed-to-get-job", err)
+		w.WriteHeader(accessor.HttpStatus(err))
+		return
+	}
 
-		w.WriteHeader(http.StatusOK)
-	})
+	err = job.Pause()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
