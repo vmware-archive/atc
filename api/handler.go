@@ -9,6 +9,7 @@ import (
 	"github.com/tedsuo/rata"
 
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/api/buildserver"
 	"github.com/concourse/atc/api/cliserver"
 	"github.com/concourse/atc/api/configserver"
@@ -41,6 +42,7 @@ func NewHandler(
 
 	oAuthBaseURL string,
 
+	accessorFactory accessor.AccessorFactory,
 	dbTeamFactory db.TeamFactory,
 	dbPipelineFactory db.PipelineFactory,
 	dbWorkerFactory db.WorkerFactory,
@@ -87,13 +89,13 @@ func NewHandler(
 	versionServer := versionserver.NewServer(logger, externalURL)
 	pipeServer := pipes.NewServer(logger, peerURL, externalURL, dbTeamFactory)
 	pipelineServer := pipelineserver.NewServer(logger, dbTeamFactory, dbPipelineFactory, engine)
-	configServer := configserver.NewServer(logger, dbTeamFactory)
+	configServer := configserver.NewServer(logger, dbTeamFactory, accessorFactory)
 	workerServer := workerserver.NewServer(logger, dbTeamFactory, dbWorkerFactory, workerProvider)
 	logLevelServer := loglevelserver.NewServer(logger, sink)
 	cliServer := cliserver.NewServer(logger, absCLIDownloadsDir)
 	containerServer := containerserver.NewServer(logger, workerClient, variablesFactory, interceptTimeoutFactory)
 	volumesServer := volumeserver.NewServer(logger, volumeFactory)
-	teamServer := teamserver.NewServer(logger, dbTeamFactory)
+	teamServer := teamserver.NewServer(logger, dbTeamFactory, accessorFactory)
 	infoServer := infoserver.NewServer(logger, version, workerVersion)
 	legacyServer := legacyserver.NewServer(logger)
 

@@ -14,6 +14,7 @@ import (
 
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/db"
 	"github.com/mitchellh/mapstructure"
 	"github.com/tedsuo/rata"
@@ -108,26 +109,14 @@ func (s *Server) SaveConfig(w http.ResponseWriter, r *http.Request) {
 
 	session.Info("saving")
 
-	pipelineName := rata.Param(r, "pipeline_name")
 	teamName := rata.Param(r, "team_name")
+	pipelineName := rata.Param(r, "pipeline_name")
 
-	team, found, err := s.teamFactory.FindTeam(teamName)
-	if err != nil {
-		session.Error("failed-to-find-team", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if !found {
-		session.Debug("team-not-found")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	_, created, err := team.SavePipeline(pipelineName, config, version, pausedState)
+	acc := s.accessorFactory.Create(r)
+	_, created, err := acc.PutTeamPipeline(teamName, pipelineName, accessor.PipelineConfig{config, version, pausedState})
 	if err != nil {
 		session.Error("failed-to-save-config", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(accessor.HttpStatus(err))
 		fmt.Fprintf(w, "failed to save config: %s", err)
 		return
 	}

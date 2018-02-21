@@ -19,6 +19,7 @@ import (
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/api"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/api/auth"
 	"github.com/concourse/atc/api/buildserver"
 	"github.com/concourse/atc/api/containerserver"
@@ -468,11 +469,14 @@ func (cmd *ATCCommand) constructMembers(
 		return nil, err
 	}
 
+	accessorFactory := accessor.NewAccessorFactory(dbConn, lockFactory, &signingKey.PublicKey, logger)
+
 	drain := make(chan struct{})
 
 	apiHandler, err := cmd.constructAPIHandler(
 		logger,
 		reconfigurableSink,
+		accessorFactory,
 		teamFactory,
 		dbPipelineFactory,
 		dbWorkerFactory,
@@ -1104,6 +1108,7 @@ func (cmd *ATCCommand) constructHTTPHandler(
 func (cmd *ATCCommand) constructAPIHandler(
 	logger lager.Logger,
 	reconfigurableSink *lager.ReconfigurableSink,
+	accessorFactory accessor.AccessorFactory,
 	teamFactory db.TeamFactory,
 	dbPipelineFactory db.PipelineFactory,
 	dbWorkerFactory db.WorkerFactory,
@@ -1145,6 +1150,7 @@ func (cmd *ATCCommand) constructAPIHandler(
 
 		cmd.oauthBaseURL(),
 
+		accessorFactory,
 		teamFactory,
 		dbPipelineFactory,
 		dbWorkerFactory,
