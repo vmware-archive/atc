@@ -95,7 +95,7 @@ func (s *buildStarter) tryStartNextPendingBuild(
 		return false, nil
 	}
 
-	if nextPendingBuild.IsManuallyTriggered() {
+	if nextPendingBuild.IsManuallyTriggered() && !nextPendingBuild.IsRebuild() {
 		jobBuildInputs := job.Config().Inputs()
 		for _, input := range jobBuildInputs {
 			scanLog := logger.Session("scan", lager.Data{
@@ -127,7 +127,17 @@ func (s *buildStarter) tryStartNextPendingBuild(
 		resourceTypes = dbResourceTypes.Deserialize()
 	}
 
-	buildInputs, found, err := job.GetNextBuildInputs()
+	var (
+		buildInputs []db.BuildInput
+		found       bool
+	)
+
+	if nextPendingBuild.IsRebuild() {
+		buildInputs, _, err = nextPendingBuild.Resources()
+	} else {
+		buildInputs, found, err = job.GetNextBuildInputs()
+	}
+
 	if err != nil {
 		logger.Error("failed-to-get-next-build-inputs", err)
 		return false, err
@@ -160,9 +170,11 @@ func (s *buildStarter) tryStartNextPendingBuild(
 		return false, nil
 	}
 
-	err = nextPendingBuild.UseInputs(buildInputs)
-	if err != nil {
-		return false, err
+	if !nextPendingBuild.IsRebuild() {
+		err = nextPendingBuild.UseInputs(buildInputs)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	resourceConfigs := atc.ResourceConfigs{}
