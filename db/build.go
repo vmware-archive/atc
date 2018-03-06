@@ -28,7 +28,7 @@ const (
 	BuildStatusErrored   BuildStatus = "errored"
 )
 
-var buildsQuery = psql.Select("b.id, b.name, b.job_id, b.team_id, b.status, b.manually_triggered, b.scheduled, b.engine, b.engine_metadata, b.public_plan, b.start_time, b.end_time, b.reap_time, j.name, b.pipeline_id, p.name, t.name, b.nonce").
+var buildsQuery = psql.Select("b.id, b.name, b.job_id, b.team_id, b.status, b.manually_triggered, b.scheduled, b.engine, b.engine_metadata, b.public_plan, b.start_time, b.end_time, b.reap_time, j.name, b.pipeline_id, p.name, t.name, b.nonce, b.rebuild").
 	From("builds b").
 	JoinClause("LEFT OUTER JOIN jobs j ON b.job_id = j.id").
 	JoinClause("LEFT OUTER JOIN pipelines p ON b.pipeline_id = p.id").
@@ -53,6 +53,7 @@ type Build interface {
 	EndTime() time.Time
 	ReapTime() time.Time
 	IsManuallyTriggered() bool
+	IsRebuild() bool
 	IsScheduled() bool
 
 	IsRunning() bool
@@ -103,6 +104,7 @@ type build struct {
 	jobName      string
 
 	isManuallyTriggered bool
+	isRebuild           bool
 
 	engine         string
 	engineMetadata string
@@ -127,6 +129,7 @@ func (b *build) PipelineName() string         { return b.pipelineName }
 func (b *build) TeamID() int                  { return b.teamID }
 func (b *build) TeamName() string             { return b.teamName }
 func (b *build) IsManuallyTriggered() bool    { return b.isManuallyTriggered }
+func (b *build) IsRebuild() bool              { return b.isRebuild }
 func (b *build) Engine() string               { return b.engine }
 func (b *build) EngineMetadata() string       { return b.engineMetadata }
 func (b *build) PublicPlan() *json.RawMessage { return b.publicPlan }
@@ -749,7 +752,16 @@ func (b *build) UseInputs(inputs []BuildInput) error {
 
 	defer Rollback(tx)
 
-	_, err = psql.Delete("build_inputs").
+	err = b.useInputsTx(tx, inputs)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (b *build) useInputsTx(tx Tx, inputs []BuildInput) error {
+	_, err := psql.Delete("build_inputs").
 		Where(sq.Eq{"build_id": b.id}).
 		RunWith(tx).
 		Exec()
@@ -775,7 +787,7 @@ func (b *build) UseInputs(inputs []BuildInput) error {
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 func (b *build) Resources() ([]BuildInput, []BuildOutput, error) {
@@ -970,7 +982,7 @@ func scanBuild(b *build, row scannable, encryptionStrategy encryption.Strategy) 
 		status string
 	)
 
-	err := row.Scan(&b.id, &b.name, &jobID, &b.teamID, &status, &b.isManuallyTriggered, &b.scheduled, &engine, &engineMetadata, &publicPlan, &startTime, &endTime, &reapTime, &jobName, &pipelineID, &pipelineName, &b.teamName, &nonce)
+	err := row.Scan(&b.id, &b.name, &jobID, &b.teamID, &status, &b.isManuallyTriggered, &b.scheduled, &engine, &engineMetadata, &publicPlan, &startTime, &endTime, &reapTime, &jobName, &pipelineID, &pipelineName, &b.teamName, &nonce, &b.isRebuild)
 	if err != nil {
 		return err
 	}

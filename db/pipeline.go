@@ -278,8 +278,8 @@ func (p *pipeline) CreateJobBuild(jobName string) (Build, error) {
 
 	var buildID int
 	err = psql.Insert("builds").
-		Columns("name", "job_id", "team_id", "status", "manually_triggered").
-		Values(buildName, jobID, p.teamID, "pending", true).
+		Columns("name", "job_id", "team_id", "status", "manually_triggered", "rebuild").
+		Values(buildName, jobID, p.teamID, "pending", true, false).
 		Suffix("RETURNING id").
 		RunWith(tx).
 		QueryRow().
