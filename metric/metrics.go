@@ -352,15 +352,9 @@ func (event BuildFinished) Emit(logger lager.Logger) {
 }
 
 type SlowQuery struct {
-<<<<<<< HEAD
 	AvgTime      float64
 	Calls        int
 	TotalTime    float64
-=======
-	AvgTime      time.Duration
-	Calls        int
-	TotalTime    time.Duration
->>>>>>> 7a2382a8888ea3de791f6711e98b68f99c9d150f
 	Rows         int
 	HitPercent   float64
 	SqlStatement string
@@ -371,19 +365,11 @@ func (event SlowQuery) Emit(logger lager.Logger) {
 		logger.Session("slow-queries"),
 		Event{
 			Name:  "slow queries",
-<<<<<<< HEAD
 			Value: event.AvgTime,
 			State: EventStateOK,
 			Attributes: map[string]string{
 				"calls":          strconv.Itoa(event.Calls),
 				"total_time_sec": strconv.FormatFloat(event.TotalTime, 'f', -1, 64),
-=======
-			Value: ms(event.AvgTime),
-			State: EventStateOK,
-			Attributes: map[string]string{
-				"calls":          strconv.Itoa(event.Calls),
-				"total_time_sec": strconv.FormatFloat(sec(event.TotalTime), 'f', -1, 64),
->>>>>>> 7a2382a8888ea3de791f6711e98b68f99c9d150f
 				"rows":           strconv.Itoa(event.Rows),
 				"hit_percent":    strconv.FormatFloat(event.HitPercent, 'f', -1, 64),
 				"sql_statement":  event.SqlStatement,

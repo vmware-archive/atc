@@ -39,7 +39,6 @@ func PeriodicallyEmit(logger lager.Logger, interval time.Duration) {
 			}
 		}
 
-		logger.Info("woooot*****")
 		slowQueries, err := collectSlowQueries(logger)
 		if err != nil {
 			for _, slowQuery := range slowQueries {
