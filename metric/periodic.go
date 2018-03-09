@@ -39,6 +39,17 @@ func PeriodicallyEmit(logger lager.Logger, interval time.Duration) {
 			}
 		}
 
+		logger.Info("woooot*****")
+		slowQueries, err := collectSlowQueries(logger)
+		if err != nil {
+			for _, slowQuery := range slowQueries {
+				logger.Info("slow-query", lager.Data{"SlowQuery": slowQuery})
+				slowQuery.Emit(logger)
+			}
+		} else {
+			logger.Error("slow-query-issue", err)
+		}
+
 		emit(
 			logger.Session("containers-deleted"),
 			Event{

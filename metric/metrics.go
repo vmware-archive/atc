@@ -1,6 +1,7 @@
 package metric
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -351,9 +352,9 @@ func (event BuildFinished) Emit(logger lager.Logger) {
 }
 
 type SlowQuery struct {
-	AvgTime      time.Duration
+	AvgTime      float64
 	Calls        int
-	TotalTime    time.Duration
+	TotalTime    float64
 	Rows         int
 	HitPercent   float64
 	SqlStatement string
@@ -364,11 +365,11 @@ func (event SlowQuery) Emit(logger lager.Logger) {
 		logger.Session("slow-queries"),
 		Event{
 			Name:  "slow queries",
-			Value: ms(event.AvgTime),
+			Value: event.AvgTime,
 			State: EventStateOK,
 			Attributes: map[string]string{
 				"calls":          strconv.Itoa(event.Calls),
-				"total_time_sec": strconv.FormatFloat(sec(event.TotalTime), 'f', -1, 64),
+				"total_time_sec": strconv.FormatFloat(event.TotalTime, 'f', -1, 64),
 				"rows":           strconv.Itoa(event.Rows),
 				"hit_percent":    strconv.FormatFloat(event.HitPercent, 'f', -1, 64),
 				"sql_statement":  event.SqlStatement,
@@ -416,4 +417,55 @@ func (event HTTPResponseTime) Emit(logger lager.Logger) {
 			},
 		},
 	)
+}
+
+func collectSlowQueries(logger lager.Logger) ([]SlowQuery, error) {
+	if len(Databases) < 1 {
+		err := errors.New("No database available")
+		logger.Error("slow-query-no-database-found", err)
+		return nil, err
+	}
+	dbConn := Databases[0]
+
+	slowQueries := []SlowQuery{}
+
+	results, err := dbConn.Query(
+		`SELECT
+		total_time / calls as avg_time,
+		calls,
+		total_time,
+		rows,
+		100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0) AS hit_percent,
+	  regexp_replace(query, '[\s\t\n]+', ' ', 'g') as sanitized_sql
+		FROM pg_stat_statements
+		WHERE query NOT LIKE '%EXPLAIN%'
+		AND query NOT LIKE '%INDEX%'
+		AND query NOT LIKE '%pg_stat_statements%'
+		AND calls > 1
+		ORDER BY avg_time DESC LIMIT 5
+	`)
+	if err != nil || results == nil {
+		logger.Error("slow-query-collection-failed", err)
+		return nil, err
+	}
+
+	defer db.Close(results)
+
+	for results.Next() {
+		var slowQuery SlowQuery
+		err = results.Scan(
+			&slowQuery.AvgTime,
+			&slowQuery.Calls,
+			&slowQuery.TotalTime,
+			&slowQuery.Rows,
+			&slowQuery.HitPercent,
+			&slowQuery.SqlStatement,
+		)
+		if err != nil {
+			logger.Error("slow-query-scanrow-failed", err)
+		} else {
+			slowQueries = append(slowQueries, slowQuery)
+		}
+	}
+	return slowQueries, nil
 }
