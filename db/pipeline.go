@@ -14,6 +14,7 @@ import (
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/db/algorithm"
 	"github.com/concourse/atc/db/lock"
+	"github.com/lib/pq"
 )
 
 type ErrResourceNotFound struct {
@@ -1514,9 +1515,33 @@ func (p *pipeline) toggleVersionedResource(versionedResourceID int, enable bool)
 }
 
 func (p *pipeline) getLatestModifiedTime() (time.Time, error) {
+	var versionedResourceIds []int
 	var maxModifiedTime time.Time
 
-	err := p.conn.QueryRow(`
+	rows, err := p.conn.Query(`
+		SELECT vr.id
+		FROM resources r
+		INNER JOIN versioned_resources vr ON r.id = vr.resource_id
+		WHERE r.pipeline_id = $1
+		ORDER BY vr.modified_time desc
+		LIMIT 10000
+	`, p.id)
+
+	if err != nil {
+		return maxModifiedTime, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var vrID int
+		err := rows.Scan(&vrID)
+		if err != nil {
+			return maxModifiedTime, err
+		}
+		versionedResourceIds = append(versionedResourceIds, vrID)
+	}
+
+	err = p.conn.QueryRow(`
 	SELECT
 		CASE
 			WHEN bo_max > vr_max AND bo_max > bi_max THEN bo_max
@@ -1525,26 +1550,21 @@ func (p *pipeline) getLatestModifiedTime() (time.Time, error) {
 		END
 	FROM
 		(
-			SELECT COALESCE(MAX(bo.modified_time), 'epoch') as bo_max
-			FROM build_outputs bo
-			LEFT OUTER JOIN versioned_resources v ON v.id = bo.versioned_resource_id
-			LEFT OUTER JOIN resources r ON r.id = v.resource_id
-			WHERE r.pipeline_id = $1
+			SELECT COALESCE(MAX(modified_time), 'epoch') as bo_max
+			FROM build_outputs
+			WHERE versioned_resource_id = ANY($1)
 		) bo,
 		(
-			SELECT COALESCE(MAX(bi.modified_time), 'epoch') as bi_max
-			FROM build_inputs bi
-			LEFT OUTER JOIN versioned_resources v ON v.id = bi.versioned_resource_id
-			LEFT OUTER JOIN resources r ON r.id = v.resource_id
-			WHERE r.pipeline_id = $1
+			SELECT COALESCE(MAX(modified_time), 'epoch') as bi_max
+			FROM build_inputs
+			WHERE versioned_resource_id = ANY($1)
 		) bi,
 		(
-			SELECT COALESCE(MAX(vr.modified_time), 'epoch') as vr_max
-			FROM versioned_resources vr
-			LEFT OUTER JOIN resources r ON r.id = vr.resource_id
-			WHERE r.pipeline_id = $1
+			SELECT COALESCE(MAX(modified_time), 'epoch') as vr_max
+			FROM versioned_resources
+			WHERE id = ANY($1)
 		) vr
-	`, p.id).Scan(&maxModifiedTime)
+	`, pq.Array(versionedResourceIds)).Scan(&maxModifiedTime)
 
 	return maxModifiedTime, err
 }
