@@ -11,29 +11,43 @@ import (
 )
 
 type Kubernetes struct {
-	Clientset       *kubernetes.Clientset
-	TeamName        string
-	PipelineName    string
-	NamespacePrefix string
-	logger          lager.Logger
+	Clientset        *kubernetes.Clientset
+	TeamName         string
+	PipelineName     string
+	NamespacePrefix  string
+	DefaultNamespace string
+	SecretsName      string
+	logger           lager.Logger
 }
 
 func (k Kubernetes) Get(varDef template.VariableDefinition) (interface{}, bool, error) {
 	var namespace = k.NamespacePrefix + k.TeamName
-	var pipelineSecretName = k.PipelineName + "." + varDef.Name
-	var secretName = varDef.Name
+
+	if k.DefaultNamespace != "" {
+		namespace = k.DefaultNamespace
+	}
+	var pipelineCredentialName = k.PipelineName + "." + varDef.Name
+	var credentialName = varDef.Name
 
 	secret, found, err := k.findSecret(namespace, pipelineSecretName)
 
 	if !found && err == nil {
-		secret, found, err = k.findSecret(namespace, secretName)
+		secret, found, err = k.findSecret(namespace, credentialName)
+	}
+
+	if !found && err == nil && k.SecretsName != "" {
+		secret, foundCollective, err = k.findSecret(namespace, k.SecretsName)
+	}
+
+	if !found && !foundCollective && err == nil && k.SecretsName != "" {
+		secret, foundCollective, err = k.findSecret(namespace, k.SecretsName+"-"+k.PipelineName)
 	}
 
 	if err != nil {
 		k.logger.Error("k8s-secret-error", err, lager.Data{
 			"namespace":          namespace,
 			"pipelineSecretName": pipelineSecretName,
-			"secretName":         secretName,
+			"credentialName":     credentialName,
 		})
 		return nil, false, err
 	}
@@ -42,10 +56,15 @@ func (k Kubernetes) Get(varDef template.VariableDefinition) (interface{}, bool, 
 		return k.getValueFromSecret(secret)
 	}
 
+	if foundCollective {
+		return k.getCredentialValueFromCollectiveSecret(credentialName, secret)
+	}
+
 	k.logger.Info("k8s-secret-not-found", lager.Data{
 		"namespace":          namespace,
 		"pipelineSecretName": pipelineSecretName,
-		"secretName":         secretName,
+		"credentialName":     credentialName,
+		"secretsName":        k.SecretsName,
 	})
 	return nil, false, nil
 }
@@ -77,6 +96,20 @@ func (k Kubernetes) findSecret(namespace, name string) (*v1.Secret, bool, error)
 	} else {
 		return secret, true, err
 	}
+}
+
+func (k Kubernetes) getCredentialValueFromCollectiveSecret(credName string, secret *v1.Secret) (interface{}, bool, error) {
+	val, found := secret.Data[credName]
+	if found {
+		return string(val), true, nil
+	}
+
+	evenLessTyped := map[interface{}]interface{}{}
+	for k, v := range secret.Data {
+		evenLessTyped[k] = string(v)
+	}
+
+	return evenLessTyped, true, nil
 }
 
 func (k Kubernetes) List() ([]template.VariableDefinition, error) {
