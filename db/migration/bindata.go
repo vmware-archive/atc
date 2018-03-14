@@ -16,6 +16,8 @@
 // db/migration/migrations/1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.up.sql
 // db/migration/migrations/1520796340_drop_explicit_from_build_outputs.down.sql
 // db/migration/migrations/1520796340_drop_explicit_from_build_outputs.up.sql
+// db/migration/migrations/1520950708_add_tracked_by_to_builds.down.sql
+// db/migration/migrations/1520950708_add_tracked_by_to_builds.up.sql
 // DO NOT EDIT!
 
 package migration
@@ -98,7 +100,7 @@ func _1510262030_initial_schemaDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510262030_initial_schema.down.sql", size: 993, mode: os.FileMode(420), modTime: time.Unix(1513694640, 0)}
+	info := bindataFileInfo{name: "1510262030_initial_schema.down.sql", size: 993, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -118,7 +120,7 @@ func _1510262030_initial_schemaUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510262030_initial_schema.up.sql", size: 38922, mode: os.FileMode(420), modTime: time.Unix(1513694640, 0)}
+	info := bindataFileInfo{name: "1510262030_initial_schema.up.sql", size: 38922, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -138,7 +140,7 @@ func _1510670987_update_unique_constraint_for_resource_cachesDownSql() (*asset, 
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.down.sql", size: 249, mode: os.FileMode(420), modTime: time.Unix(1513694640, 0)}
+	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.down.sql", size: 249, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -158,7 +160,7 @@ func _1510670987_update_unique_constraint_for_resource_cachesUpSql() (*asset, er
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.up.sql", size: 271, mode: os.FileMode(420), modTime: time.Unix(1513694640, 0)}
+	info := bindataFileInfo{name: "1510670987_update_unique_constraint_for_resource_caches.up.sql", size: 271, mode: os.FileMode(420), modTime: time.Unix(1511809401, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -178,7 +180,7 @@ func _1513895878_update_timestamp_with_timezoneDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1513895878_update_timestamp_with_timezone.down.sql", size: 1413, mode: os.FileMode(420), modTime: time.Unix(1516032719, 0)}
+	info := bindataFileInfo{name: "1513895878_update_timestamp_with_timezone.down.sql", size: 1413, mode: os.FileMode(420), modTime: time.Unix(1515438619, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -198,7 +200,7 @@ func _1513895878_update_timestamp_with_timezoneUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1513895878_update_timestamp_with_timezone.up.sql", size: 1404, mode: os.FileMode(420), modTime: time.Unix(1516032719, 0)}
+	info := bindataFileInfo{name: "1513895878_update_timestamp_with_timezone.up.sql", size: 1404, mode: os.FileMode(420), modTime: time.Unix(1515438619, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -218,7 +220,7 @@ func _1516643303_update_auth_providersDownGo() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1516643303_update_auth_providers.down.go", size: 2099, mode: os.FileMode(420), modTime: time.Unix(1517842779, 0)}
+	info := bindataFileInfo{name: "1516643303_update_auth_providers.down.go", size: 2099, mode: os.FileMode(420), modTime: time.Unix(1517584703, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -238,7 +240,7 @@ func _1516643303_update_auth_providersUpGo() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1516643303_update_auth_providers.up.go", size: 2048, mode: os.FileMode(420), modTime: time.Unix(1517842779, 0)}
+	info := bindataFileInfo{name: "1516643303_update_auth_providers.up.go", size: 2048, mode: os.FileMode(420), modTime: time.Unix(1517584703, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -258,7 +260,7 @@ func _1517330648_add_worker_resource_certsDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1517330648_add_worker_resource_certs.down.sql", size: 681, mode: os.FileMode(420), modTime: time.Unix(1517842779, 0)}
+	info := bindataFileInfo{name: "1517330648_add_worker_resource_certs.down.sql", size: 681, mode: os.FileMode(420), modTime: time.Unix(1520607366, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -278,7 +280,7 @@ func _1517330648_add_worker_resource_certsUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1517330648_add_worker_resource_certs.up.sql", size: 1149, mode: os.FileMode(420), modTime: time.Unix(1517842779, 0)}
+	info := bindataFileInfo{name: "1517330648_add_worker_resource_certs.up.sql", size: 1149, mode: os.FileMode(420), modTime: time.Unix(1517584703, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -298,7 +300,7 @@ func _1517585875_add_name_index_to_buildsDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1517585875_add_name_index_to_builds.down.sql", size: 41, mode: os.FileMode(420), modTime: time.Unix(1517842779, 0)}
+	info := bindataFileInfo{name: "1517585875_add_name_index_to_builds.down.sql", size: 41, mode: os.FileMode(420), modTime: time.Unix(1520607366, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -318,7 +320,7 @@ func _1517585875_add_name_index_to_buildsUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1517585875_add_name_index_to_builds.up.sql", size: 72, mode: os.FileMode(420), modTime: time.Unix(1517842779, 0)}
+	info := bindataFileInfo{name: "1517585875_add_name_index_to_builds.up.sql", size: 72, mode: os.FileMode(420), modTime: time.Unix(1520607366, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -338,7 +340,7 @@ func _1520369727_drop_constraint_cannot_invalidate_during_initialization_from_vo
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.down.sql", size: 602, mode: os.FileMode(420), modTime: time.Unix(1520459092, 0)}
+	info := bindataFileInfo{name: "1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.down.sql", size: 602, mode: os.FileMode(420), modTime: time.Unix(1520607366, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -358,7 +360,7 @@ func _1520369727_drop_constraint_cannot_invalidate_during_initialization_from_vo
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.up.sql", size: 100, mode: os.FileMode(420), modTime: time.Unix(1520459092, 0)}
+	info := bindataFileInfo{name: "1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.up.sql", size: 100, mode: os.FileMode(420), modTime: time.Unix(1520607366, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -378,7 +380,7 @@ func _1520796340_drop_explicit_from_build_outputsDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1520796340_drop_explicit_from_build_outputs.down.sql", size: 76, mode: os.FileMode(420), modTime: time.Unix(1520796424, 0)}
+	info := bindataFileInfo{name: "1520796340_drop_explicit_from_build_outputs.down.sql", size: 76, mode: os.FileMode(420), modTime: time.Unix(1520869938, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -398,7 +400,47 @@ func _1520796340_drop_explicit_from_build_outputsUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1520796340_drop_explicit_from_build_outputs.up.sql", size: 121, mode: os.FileMode(420), modTime: time.Unix(1520796434, 0)}
+	info := bindataFileInfo{name: "1520796340_drop_explicit_from_build_outputs.up.sql", size: 121, mode: os.FileMode(420), modTime: time.Unix(1520869938, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1520950708_add_tracked_by_to_buildsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xec\x97\x5d\x6f\x9b\x30\x14\x86\xef\xf9\x15\x47\xb9\x29\x48\x15\x52\x6f\x9b\xb5\x12\x0d\x6e\xcb\x44\xa0\x73\xc8\xba\x6e\x9a\x2c\x13\x7b\x99\x33\x30\x08\x1c\x29\xfd\xf7\x13\x5f\xe3\x23\x21\x6d\xb7\x5c\xec\xa2\xbd\xaa\x7d\xde\x73\x7c\x80\xf7\x39\x56\x6e\xd0\x9d\xe3\x4d\x35\x00\xcb\x0d\x10\x86\xc0\xba\x71\x11\x4c\xc2\xad\x88\x58\x3e\x01\x1b\xfb\x0f\x30\xf3\xdd\xe5\xdc\x83\x89\xca\xe8\xea\x17\x67\x24\x7c\x9e\x4c\x35\x0d\xaa\xe0\xdc\x0a\x10\x76\x2c\xd7\xf9\x8a\x6c\xf8\xec\xa0\x47\x50\x19\x95\xb9\x50\x22\x91\xa4\x2a\x43\x52\x9e\x91\x4d\x12\x4e\xc7\x73\x24\xdf\xa9\xd7\xab\x23\xaa\x78\xae\xc8\x2a\x89\xd3\x88\xab\xa2\xa3\x41\xa6\x06\x30\xc3\xc8\x0a\xd0\xdb\x93\xc1\x5a\x68\x00\xf0\xe8\x04\xf7\x8d\xb4\x14\x10\xd1\xd3\x80\x5e\xa8\x9a\xbf\x05\x72\xd1\x2c\x80\x98\xee\xf4\x90\x5c\x98\x82\x19\x85\xa4\xc9\xeb\x2a\x01\x6e\xb1\x3f\x07\xbd\x3a\x14\x42\x72\xd1\x8f\x02\x7c\xf4\x1d\x0f\x36\x49\x98\xc3\x06\x7c\x0f\x74\x7d\x63\x0a\x06\x57\x85\xd4\xdc\x24\x21\x11\xcc\x30\x8c\x5e\xd2\xe3\x3d\xc2\x08\xca\x93\x73\x45\xd5\x36\x87\x0f\xd7\x60\xb9\x2e\xe8\x16\xc6\xd6\xd3\xb7\xb3\x94\x4b\x26\xe4\xfa\xec\xf2\xb2\x6a\xa9\x52\x9d\xc3\x59\xae\x68\xa6\x38\x1b\x04\xbe\x0f\xea\xdf\x61\x7f\xf9\x00\x37\x4f\x9d\x16\x3a\xf1\x52\x5b\xbf\x80\xd0\x14\xec\xbc\x8e\x85\xa6\xa4\x31\x6f\x57\xf5\xa1\xed\x7a\xf5\x93\xb3\x6d\xc4\x59\x4f\x92\x29\xa2\x44\x37\x8d\x4b\xb6\xb7\xb3\x16\x72\x6f\x4d\x62\xae\x28\xa3\x8a\xb6\x81\x3f\x9f\xb8\xdd\xaa\xba\x6f\xd7\x19\xa7\xe9\xa0\xbc\xe2\x34\xee\x69\x62\x2a\xb7\x34\x8a\x9e\x89\xca\xc4\x7a\xcd\xb3\x6e\x3d\x21\x15\xcf\x56\x3c\x55\x22\x8c\x3a\x35\x64\x22\x57\x9d\x65\xba\x0d\x23\xb1\x22\x69\x44\x65\x67\x53\xa4\x3c\x2a\x1a\x6f\xde\x66\xdf\x18\x5a\xd7\x0e\xa3\x46\x8c\x2a\x8b\x44\x66\x13\x2a\x8c\x62\xb6\x16\x29\x6d\xec\xf9\x60\x5b\x81\x35\x6d\xa9\x58\x7a\xce\xa7\x25\x02\xc7\xb3\xd1\x97\x97\x80\x28\x8a\xfa\xde\x8b\xd8\x2c\x17\x8e\x77\x07\xa1\xca\x38\x07\x5d\x30\xa3\x38\x0d\xa3\x5b\x8c\x16\xf7\xa7\x26\xf8\xc0\xb0\xf8\x27\x6a\x85\xfc\x3f\xa8\xbd\x02\xcb\x7b\x7a\x87\xf6\x1d\xda\x57\x40\x7b\x80\x81\x1a\xd4\x43\x74\xbc\x0d\xce\x83\x97\xf1\x31\x20\x47\x6f\xfc\x2e\x96\x75\x24\xe4\x3f\x92\x8c\x93\x36\x65\x0c\xcb\xd6\xb7\xe7\x03\xd8\x06\xd7\x6c\x4c\x77\x87\x58\x3d\x02\xab\x8b\x6e\x83\x7d\x62\xdb\x03\xe1\x0a\x36\xe6\x3e\xb1\xbd\xcc\x97\xe6\x61\x7e\xa0\x68\x7e\x7c\x14\x0c\x6e\xf0\xbc\xfe\xdf\x00\xcb\xb3\x4f\x7b\xbd\xff\xed\xa8\xb0\x9d\x45\xe0\x78\xb3\xa0\x7c\xb6\x06\x4c\xe3\x7d\x82\x34\x4f\x7e\xba\x09\xd2\x1a\x6d\x94\x9b\xca\x5f\xad\xbb\xc6\x84\x03\xd3\x35\x66\xd3\x47\xf5\x31\xdd\x81\xb3\x00\x6f\xe9\xba\x8d\xf7\x4e\xe7\x3c\xf0\x71\x51\x4f\x30\xb8\x1e\xef\x38\xa6\xbb\xba\x5b\x1f\xdb\x08\x97\xde\x6c\x3e\x62\xe9\xb6\x57\xcf\xc9\xd1\xd1\x54\x4f\xcb\xf1\xd1\xf5\xb6\x99\x79\xe4\x47\xcf\xcc\x9f\xcf\x9d\x60\xaa\xfd\x0e\x00\x00\xff\xff\x77\x30\x54\xbc\x6a\x0d\x00\x00")
+
+func _1520950708_add_tracked_by_to_buildsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1520950708_add_tracked_by_to_buildsDownSql,
+		"1520950708_add_tracked_by_to_builds.down.sql",
+	)
+}
+
+func _1520950708_add_tracked_by_to_buildsDownSql() (*asset, error) {
+	bytes, err := _1520950708_add_tracked_by_to_buildsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1520950708_add_tracked_by_to_builds.down.sql", size: 3434, mode: os.FileMode(420), modTime: time.Unix(1521038930, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1520950708_add_tracked_by_to_buildsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xec\x97\xdf\x6f\x9b\x30\x10\xc7\xdf\xf9\x2b\xee\xad\x20\x55\x48\x7d\x6d\xd6\x4a\x6e\x70\x5b\x26\x02\x9d\x43\xd6\x75\xd3\x64\x99\xd8\xcb\x9c\x81\x41\xe0\x48\xe9\x7f\x3f\x41\x60\x10\x02\xe9\x8f\x75\xd2\x1e\xda\xa7\x9a\xfb\xde\xf9\x80\xef\xe7\x4c\xae\xf0\x8d\xeb\x4f\x0c\x00\xe4\x85\x98\x40\x88\xae\x3c\x0c\xd1\x46\xc6\xbc\x00\xe4\x38\x30\x0d\xbc\xc5\xcc\x07\x9d\xb3\xe5\x2f\xc1\x69\xf4\x08\x5a\x6c\xf5\xc4\x30\x00\x1c\x12\xdc\xc1\x0c\x85\x98\xb8\xc8\x73\xbf\x62\x07\x3e\xbb\xf8\xbe\x94\xaa\x42\x6a\x99\x2a\xba\xab\x43\x33\x91\xd3\x75\x1a\x4d\xc6\x73\x94\xd8\xea\xe7\xab\x63\xa6\x45\xa1\xe9\x32\x4d\xb2\x58\xe8\xb2\xab\x5e\xa6\x01\x30\x25\x18\x85\xf8\xe5\xc9\x80\xe6\x06\x00\xdc\xbb\xe1\x6d\x23\xad\x04\x54\xee\x69\xc0\x2c\x55\xcd\xdf\x1c\x7b\x78\x1a\x42\xc2\xb6\x66\x44\xcf\x6c\xc9\xad\x52\xd2\xe4\x75\x95\x00\xd7\x24\x98\x81\x59\x3f\xe1\x88\x9e\xed\x47\x01\x3e\x06\xae\x0f\xeb\x34\x2a\x60\x0d\x81\x0f\xa6\xb9\xb6\x25\x87\x8b\x52\x6a\xaf\xd3\x88\x4a\x6e\x59\xd6\x5e\xd2\xfd\x2d\x26\x18\xaa\x9d\x0b\xcd\xf4\xa6\x80\x0f\x97\x80\x3c\x0f\x4c\x44\x08\x7a\xf8\x76\x92\x09\xc5\xa5\x5a\x9d\x9c\x9f\xef\x5a\xda\xa9\x4e\xe1\xa4\xd0\x2c\xd7\x82\xf7\x02\xdf\x7b\xf5\x6f\x48\xb0\xb8\x83\xab\x87\x4e\x0b\x9d\x78\xa5\xad\x1f\x40\x64\x4b\x7e\x5a\xc7\x22\x5b\xb1\x44\xb4\xab\x7a\xd3\x76\xbd\xfc\x29\xf8\x26\x16\x7c\x4f\x92\x6b\xaa\x65\x37\x4d\x28\x7e\x70\x65\x25\xd5\xc1\x9a\x26\x42\x33\xce\x34\x6b\x03\x7f\x5e\x71\x7b\x69\xd7\x7d\xbb\xce\x05\xcb\x7a\xe5\xb5\x60\xc9\x9e\x26\x61\x6a\xc3\xe2\xf8\x91\xea\x5c\xae\x56\x22\xef\xd6\x93\x4a\x8b\x7c\x29\x32\x2d\xa3\xb8\x53\x43\xa5\x6a\xd9\x59\x66\x9b\x28\x96\x4b\x9a\xc5\x4c\x75\x2e\xca\x4c\xc4\x65\xe3\xdd\xbd\x5a\xcc\x8c\x01\xb3\x18\x5d\x8b\x8c\x9a\x33\xde\xd9\x26\xb6\x9b\x50\x69\x1e\xbb\xb5\x4d\x65\x6d\x3f\x00\x07\x85\x68\xd2\x92\xb2\xf0\xdd\x4f\x0b\x0c\xae\xef\xe0\x2f\x4f\x41\x52\x16\x0d\xfc\x27\x51\x5a\xcc\x5d\xff\x06\x22\x9d\x0b\x01\xa6\xe4\x56\xb9\x1b\xc1\xd7\x04\xcf\x6f\xdf\x9a\xea\x81\x01\xf2\x57\x24\x4b\xf5\x7f\x90\x7c\x01\xc8\x7f\x78\x07\xf9\x1d\xe4\x57\x82\x3c\xc0\x45\x0d\xef\x10\x31\x2f\x03\x76\xf0\xd0\x3e\x06\xe9\xe8\x97\x41\x17\xd5\x3a\x12\x89\x1f\x69\x2e\x68\x9b\x32\x86\x6a\xeb\xe5\xd3\x1e\x80\xbd\xe3\x38\x61\xdb\x21\x7e\x8f\x00\xec\xe1\xeb\xf0\x90\xe2\x76\x43\xb8\x80\xb5\x7d\x48\xf1\x5e\xe6\x53\x33\xb2\x18\x28\x5a\x1c\x1f\x0f\xbd\x93\xbe\xa8\xff\xb7\x00\xf9\xce\xdb\x7e\x06\xbc\x76\x7c\x38\xee\x3c\x74\xfd\x69\x58\xdd\x5b\x03\xab\xf5\x3e\x55\x9a\x3b\xff\xb7\x53\xa5\x35\xdf\x28\x4b\x3b\xcf\xb5\x8e\x1b\x13\xf6\x8c\xd8\x18\xd0\x1c\xd5\x27\x6c\x0b\xee\x1c\xfc\x85\xe7\x35\x7e\x7c\x3b\x37\x42\x40\xca\x7a\x92\xc3\xe5\x78\xc7\x09\xdb\xd6\xdd\x06\xc4\xc1\xa4\xf2\x6b\xf3\x62\x2b\x07\x3e\x7b\x76\x8e\x8e\xab\x7a\x82\x8e\x8f\xb3\x97\xcd\xd1\x23\x3f\x98\xa6\xc1\x6c\xe6\x86\x13\xe3\x77\x00\x00\x00\xff\xff\xf6\x69\x3b\x00\xa6\x0d\x00\x00")
+
+func _1520950708_add_tracked_by_to_buildsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1520950708_add_tracked_by_to_buildsUpSql,
+		"1520950708_add_tracked_by_to_builds.up.sql",
+	)
+}
+
+func _1520950708_add_tracked_by_to_buildsUpSql() (*asset, error) {
+	bytes, err := _1520950708_add_tracked_by_to_buildsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1520950708_add_tracked_by_to_builds.up.sql", size: 3494, mode: os.FileMode(420), modTime: time.Unix(1521038905, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -471,6 +513,8 @@ var _bindata = map[string]func() (*asset, error){
 	"1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.up.sql": _1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumesUpSql,
 	"1520796340_drop_explicit_from_build_outputs.down.sql": _1520796340_drop_explicit_from_build_outputsDownSql,
 	"1520796340_drop_explicit_from_build_outputs.up.sql": _1520796340_drop_explicit_from_build_outputsUpSql,
+	"1520950708_add_tracked_by_to_builds.down.sql": _1520950708_add_tracked_by_to_buildsDownSql,
+	"1520950708_add_tracked_by_to_builds.up.sql": _1520950708_add_tracked_by_to_buildsUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -529,6 +573,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.up.sql": &bintree{_1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumesUpSql, map[string]*bintree{}},
 	"1520796340_drop_explicit_from_build_outputs.down.sql": &bintree{_1520796340_drop_explicit_from_build_outputsDownSql, map[string]*bintree{}},
 	"1520796340_drop_explicit_from_build_outputs.up.sql": &bintree{_1520796340_drop_explicit_from_build_outputsUpSql, map[string]*bintree{}},
+	"1520950708_add_tracked_by_to_builds.down.sql": &bintree{_1520950708_add_tracked_by_to_buildsDownSql, map[string]*bintree{}},
+	"1520950708_add_tracked_by_to_builds.up.sql": &bintree{_1520950708_add_tracked_by_to_buildsUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
