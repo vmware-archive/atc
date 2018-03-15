@@ -18,6 +18,7 @@ import (
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/api"
+	"github.com/concourse/atc/api/accessor"
 	"github.com/concourse/atc/api/auth"
 	"github.com/concourse/atc/api/buildserver"
 	"github.com/concourse/atc/api/containerserver"
@@ -93,8 +94,7 @@ type ATCCommand struct {
 	ExternalURL flag.URL `long:"external-url" default:"http://127.0.0.1:8080" description:"URL used to reach any ATC from the outside world."`
 	PeerURL     flag.URL `long:"peer-url"     default:"http://127.0.0.1:8080" description:"URL used to reach this ATC from other ATCs in the cluster."`
 
-	Authentication atc.AuthFlags `group:"Authentication"`
-	ProviderAuth   provider.AuthConfigs
+	ProviderAuth provider.AuthConfigs
 
 	AuthDuration time.Duration `long:"auth-duration" default:"24h" description:"Length of time for which tokens are valid. Afterwards, users will have to log back in."`
 	OAuthBaseURL flag.URL      `long:"oauth-base-url" description:"URL used as the base of OAuth redirect URIs. If not specified, the external URL is used."`
@@ -389,7 +389,6 @@ func (cmd *ATCCommand) constructMembers(
 	}
 
 	bus := dbConn.Bus()
-
 	teamFactory := db.NewTeamFactory(dbConn, lockFactory)
 	dbBuildFactory := db.NewBuildFactory(dbConn, lockFactory)
 	dbVolumeFactory := db.NewVolumeFactory(dbConn)
@@ -469,6 +468,20 @@ func (cmd *ATCCommand) constructMembers(
 
 	drain := make(chan struct{})
 
+	authHandler, err := skymarshal.NewHandler(&skymarshal.Config{
+		cmd.ExternalURL.String(),
+		cmd.oauthBaseURL(),
+		signingKey,
+		cmd.AuthDuration,
+		cmd.isTLSEnabled(),
+		teamFactory,
+		logger,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
 	apiHandler, err := cmd.constructAPIHandler(
 		logger,
 		reconfigurableSink,
@@ -492,19 +505,8 @@ func (cmd *ATCCommand) constructMembers(
 		return nil, err
 	}
 
-	authHandler, err := skymarshal.NewHandler(&skymarshal.Config{
-		cmd.ExternalURL.String(),
-		cmd.oauthBaseURL(),
-		signingKey,
-		cmd.AuthDuration,
-		cmd.isTLSEnabled(),
-		teamFactory,
-		logger,
-	})
-
-	if err != nil {
-		return nil, err
-	}
+	accessFactory := accessor.NewAccessFactory(&signingKey.PublicKey)
+	apiHandler = accessor.NewHandler(apiHandler, accessFactory)
 
 	webHandler, err := web.NewHandler(logger)
 	if err != nil {
@@ -999,19 +1001,6 @@ func (cmd *ATCCommand) configureAuthForDefaultTeam(teamFactory db.TeamFactory) e
 		return errors.New("default team not found")
 	}
 
-	// var basicAuth *atc.BasicAuth
-	// if cmd.Authentication.BasicAuth.IsConfigured() {
-	// 	basicAuth = &atc.BasicAuth{
-	// 		BasicAuthUsername: cmd.Authentication.BasicAuth.Username,
-	// 		BasicAuthPassword: cmd.Authentication.BasicAuth.Password,
-	// 	}
-	// }
-
-	// err = team.UpdateBasicAuth(basicAuth)
-	// if err != nil {
-	// 	return err
-	// }
-
 	providers := provider.GetProviders()
 	teamAuth := make(map[string]*json.RawMessage)
 
@@ -1129,8 +1118,6 @@ func (cmd *ATCCommand) constructAPIHandler(
 	apiWrapper := wrappa.MultiWrappa{
 		wrappa.NewAPIMetricsWrappa(logger),
 		wrappa.NewAPIAuthWrappa(
-			auth.JWTValidator{PublicKey: &signingKey.PublicKey},
-			auth.JWTReader{PublicKey: &signingKey.PublicKey},
 			checkPipelineAccessHandlerFactory,
 			checkBuildReadAccessHandlerFactory,
 			checkBuildWriteAccessHandlerFactory,
