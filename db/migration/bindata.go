@@ -18,6 +18,8 @@
 // db/migration/migrations/1520796340_drop_explicit_from_build_outputs.up.sql
 // db/migration/migrations/1520950708_add_tracked_by_to_builds.down.sql
 // db/migration/migrations/1520950708_add_tracked_by_to_builds.up.sql
+// db/migration/migrations/1521209088_drop_pipes.down.sql
+// db/migration/migrations/1521209088_drop_pipes.up.sql
 // DO NOT EDIT!
 
 package migration
@@ -120,7 +122,7 @@ func _1510262030_initial_schemaUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1510262030_initial_schema.up.sql", size: 38922, mode: os.FileMode(420), modTime: time.Unix(1513694640, 0)}
+	info := bindataFileInfo{name: "1510262030_initial_schema.up.sql", size: 38922, mode: os.FileMode(420), modTime: time.Unix(1521209170, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -445,6 +447,46 @@ func _1520950708_add_tracked_by_to_buildsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var __1521209088_drop_pipesDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x90\xcd\x6a\xc4\x20\x14\x85\xf7\x3e\xc5\x59\xa6\xd0\x37\xc8\xca\xd1\x3b\x41\x6a\xae\xc5\x38\xd0\xac\x42\x4b\x6c\x91\xfe\x10\x32\x16\xda\xb7\x2f\x89\xa6\x0f\x30\xee\xf4\xdc\x73\xce\xe7\x3d\x51\x67\xb8\x15\x80\xf2\x24\x03\x21\xc8\x93\x25\x2c\x69\x89\x57\x34\x02\xfb\x49\x33\x72\xfc\xc9\x60\x17\xc0\x17\x6b\xef\xeb\xfb\xf7\xfa\xb1\x0b\xc7\x3d\xc7\xe7\xcf\x29\xcd\x48\x5f\x39\xbe\xc5\xf5\x7f\x5e\x00\x77\xad\x10\x80\xb4\x81\x7c\xad\x70\x6c\xc7\xd2\x53\xdd\x52\x6b\x28\xc7\x43\xf0\xd2\x70\x28\xd2\xb4\xbc\xc7\x5f\x3c\x7a\xd3\x4b\x3f\xe2\x81\x46\x34\x69\x2e\x59\x95\xd7\xb0\xa6\xa7\x3a\x7c\xf4\x3b\xae\x1f\xb8\x0c\x86\x3b\xbc\xe4\x35\x46\x34\x55\xbd\x95\xa4\xda\xa7\xd7\x8d\xe8\xec\x3c\x99\x8e\x0b\xd1\x11\x0c\x4f\x67\xf2\xc4\x8a\x86\x7d\x15\xd7\x8d\x75\x83\xd1\x64\x29\x10\x94\x1c\x94\xd4\xd4\x0a\xe5\xfa\xde\x84\x56\xfc\x05\x00\x00\xff\xff\xe1\x16\xa9\xa2\x7c\x01\x00\x00")
+
+func _1521209088_drop_pipesDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1521209088_drop_pipesDownSql,
+		"1521209088_drop_pipes.down.sql",
+	)
+}
+
+func _1521209088_drop_pipesDownSql() (*asset, error) {
+	bytes, err := _1521209088_drop_pipesDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1521209088_drop_pipes.down.sql", size: 380, mode: os.FileMode(420), modTime: time.Unix(1521209173, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1521209088_drop_pipesUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\x28\xc8\x2c\x48\x2d\xb6\xe6\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\x02\x04\x00\x00\xff\xff\x14\x0f\x42\xfd\x23\x00\x00\x00")
+
+func _1521209088_drop_pipesUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1521209088_drop_pipesUpSql,
+		"1521209088_drop_pipes.up.sql",
+	)
+}
+
+func _1521209088_drop_pipesUpSql() (*asset, error) {
+	bytes, err := _1521209088_drop_pipesUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1521209088_drop_pipes.up.sql", size: 35, mode: os.FileMode(420), modTime: time.Unix(1521209109, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -515,6 +557,8 @@ var _bindata = map[string]func() (*asset, error){
 	"1520796340_drop_explicit_from_build_outputs.up.sql": _1520796340_drop_explicit_from_build_outputsUpSql,
 	"1520950708_add_tracked_by_to_builds.down.sql": _1520950708_add_tracked_by_to_buildsDownSql,
 	"1520950708_add_tracked_by_to_builds.up.sql": _1520950708_add_tracked_by_to_buildsUpSql,
+	"1521209088_drop_pipes.down.sql": _1521209088_drop_pipesDownSql,
+	"1521209088_drop_pipes.up.sql": _1521209088_drop_pipesUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -575,6 +619,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1520796340_drop_explicit_from_build_outputs.up.sql": &bintree{_1520796340_drop_explicit_from_build_outputsUpSql, map[string]*bintree{}},
 	"1520950708_add_tracked_by_to_builds.down.sql": &bintree{_1520950708_add_tracked_by_to_buildsDownSql, map[string]*bintree{}},
 	"1520950708_add_tracked_by_to_builds.up.sql": &bintree{_1520950708_add_tracked_by_to_buildsUpSql, map[string]*bintree{}},
+	"1521209088_drop_pipes.down.sql": &bintree{_1521209088_drop_pipesDownSql, map[string]*bintree{}},
+	"1521209088_drop_pipes.up.sql": &bintree{_1521209088_drop_pipesUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
