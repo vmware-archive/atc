@@ -11,6 +11,7 @@ import (
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/resource"
+	"github.com/concourse/atc/runtime"
 	"github.com/concourse/atc/worker"
 )
 
@@ -153,7 +154,7 @@ func (factory *gardenFactory) Task(
 
 		delegate,
 
-		factory.workerClient,
+		&runtime.GardenOrchestrator{WorkerPool: factory.workerClient},
 		build.TeamID(),
 		build.ID(),
 		build.JobID(),

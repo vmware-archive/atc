@@ -11,12 +11,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"code.cloudfoundry.org/garden"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagerctx"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
+	"github.com/concourse/atc/runtime"
 	"github.com/concourse/atc/worker"
 )
 
@@ -60,7 +60,7 @@ type TaskDelegate interface {
 
 	Initializing(lager.Logger, atc.TaskConfig)
 	Starting(lager.Logger, atc.TaskConfig)
-	Finished(lager.Logger, ExitStatus)
+	Finished(lager.Logger, runtime.ExitStatus)
 }
 
 // TaskStep executes a TaskConfig, whose inputs will be fetched from the
@@ -77,7 +77,7 @@ type TaskStep struct {
 
 	delegate TaskDelegate
 
-	workerPool        worker.Client
+	orchestrator      runtime.Orchestrator
 	teamID            int
 	buildID           int
 	jobID             int
@@ -89,7 +89,7 @@ type TaskStep struct {
 
 	variables creds.Variables
 
-	exitStatus ExitStatus
+	exitStatus runtime.ExitStatus
 }
 
 func NewTaskStep(
@@ -101,7 +101,7 @@ func NewTaskStep(
 	artifactsRoot string,
 	imageArtifactName string,
 	delegate TaskDelegate,
-	workerPool worker.Client,
+	orchestrator runtime.Orchestrator,
 	teamID int,
 	buildID int,
 	jobID int,
@@ -120,7 +120,7 @@ func NewTaskStep(
 		artifactsRoot:     artifactsRoot,
 		imageArtifactName: imageArtifactName,
 		delegate:          delegate,
-		workerPool:        workerPool,
+		orchestrator:      orchestrator,
 		teamID:            teamID,
 		buildID:           buildID,
 		jobID:             jobID,
@@ -164,119 +164,43 @@ func (action *TaskStep) Run(ctx context.Context, state RunState) error {
 		return err
 	}
 
-	container, err := action.workerPool.FindOrCreateContainer(
+	exited, mounts, err := action.orchestrator.RunTask(
 		ctx,
-		logger,
 		action.delegate,
 		db.NewBuildStepContainerOwner(action.buildID, action.planID),
 		action.containerMetadata,
 		containerSpec,
 		action.resourceTypes,
+		runtime.IOConfig{
+			Stdout: action.delegate.Stdout(),
+			Stderr: action.delegate.Stderr(),
+		},
+		config,
 	)
 	if err != nil {
 		return err
 	}
 
-	exitStatusProp, err := container.Property(taskExitStatusPropertyName)
-	if err == nil {
-		logger.Info("already-exited", lager.Data{"status": exitStatusProp})
-
-		_, err = fmt.Sscanf(exitStatusProp, "%d", &action.exitStatus)
-		if err != nil {
-			return err
-		}
-
-		err = action.registerOutputs(logger, repository, config, container)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	// for backwards compatibility with containers
-	// that had their task process name set as property
-	var processID string
-	processID, err = container.Property(taskProcessPropertyName)
-	if err != nil {
-		processID = taskProcessID
-	}
-
-	processIO := garden.ProcessIO{
-		Stdout: action.delegate.Stdout(),
-		Stderr: action.delegate.Stderr(),
-	}
-
-	process, err := container.Attach(processID, processIO)
-	if err == nil {
-		logger.Info("already-running")
-	} else {
-		logger.Info("spawning")
-
-		action.delegate.Starting(logger, config)
-
-		process, err = container.Run(garden.ProcessSpec{
-			ID: taskProcessID,
-
-			Path: config.Run.Path,
-			Args: config.Run.Args,
-
-			Dir: path.Join(action.artifactsRoot, config.Run.Dir),
-
-			// Guardian sets the default TTY window size to width: 80, height: 24,
-			// which creates ANSI control sequences that do not work with other window sizes
-			TTY: &garden.TTYSpec{WindowSize: &garden.WindowSize{Columns: 500, Rows: 500}},
-		}, processIO)
-	}
-	if err != nil {
-		return err
-	}
-
-	logger.Info("attached")
-
-	exited := make(chan struct{})
-	var processStatus int
-	var processErr error
-
-	go func() {
-		processStatus, processErr = process.Wait()
-		close(exited)
-	}()
-
 	select {
 	case <-ctx.Done():
-		err = action.registerOutputs(logger, repository, config, container)
+		err = action.registerOutputs(logger, repository, config, mounts)
 		if err != nil {
 			return err
 		}
-
-		err = container.Stop(false)
-		if err != nil {
-			logger.Error("stopping-container", err)
-		}
-
-		<-exited
 
 		return ctx.Err()
-
-	case <-exited:
-		if processErr != nil {
-			return processErr
+	case result := <-exited:
+		if result.Err != nil {
+			return result.Err
 		}
 
-		err = action.registerOutputs(logger, repository, config, container)
+		err = action.registerOutputs(logger, repository, config, mounts)
 		if err != nil {
 			return err
 		}
 
-		action.exitStatus = ExitStatus(processStatus)
-
+		action.exitStatus = runtime.ExitStatus(result.ExitStatus)
 		action.delegate.Finished(logger, action.exitStatus)
-
-		err = container.SetProperty(taskExitStatusPropertyName, fmt.Sprintf("%d", processStatus))
-		if err != nil {
-			return err
-		}
 
 		return nil
 	}
@@ -372,9 +296,7 @@ func (action *TaskStep) containerSpec(logger lager.Logger, repository *worker.Ar
 	return containerSpec, nil
 }
 
-func (action *TaskStep) registerOutputs(logger lager.Logger, repository *worker.ArtifactRepository, config atc.TaskConfig, container worker.Container) error {
-	volumeMounts := container.VolumeMounts()
-
+func (action *TaskStep) registerOutputs(logger lager.Logger, repository *worker.ArtifactRepository, config atc.TaskConfig, volumeMounts []worker.VolumeMount) error {
 	logger.Debug("registering-outputs", lager.Data{"outputs": config.Outputs})
 
 	for _, output := range config.Outputs {

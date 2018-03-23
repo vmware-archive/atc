@@ -10,6 +10,7 @@ import (
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/event"
 	"github.com/concourse/atc/exec"
+	"github.com/concourse/atc/runtime"
 )
 
 type taskDelegate struct {
@@ -56,7 +57,7 @@ func (d *taskDelegate) Starting(logger lager.Logger, taskConfig atc.TaskConfig) 
 	logger.Debug("starting")
 }
 
-func (d *taskDelegate) Finished(logger lager.Logger, exitStatus exec.ExitStatus) {
+func (d *taskDelegate) Finished(logger lager.Logger, exitStatus runtime.ExitStatus) {
 	err := d.build.SaveEvent(event.FinishTask{
 		ExitStatus: int(exitStatus),
 		Time:       time.Now().Unix(),

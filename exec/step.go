@@ -47,10 +47,6 @@ type RunState interface {
 	SendPlanOutput(atc.PlanID, OutputHandler) error
 }
 
-// ExitStatus is the resulting exit code from the process that the step ran.
-// Typically if the ExitStatus result is 0, the Success result is true.
-type ExitStatus int
-
 // VersionInfo is the version and metadata of a resource that was fetched or
 // produced. It is used by Put and Get.
 type VersionInfo struct {

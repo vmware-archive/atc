@@ -13,6 +13,7 @@ import (
 	"github.com/concourse/atc/exec/execfakes"
 	"github.com/concourse/atc/resource"
 	"github.com/concourse/atc/resource/resourcefakes"
+	"github.com/concourse/atc/runtime"
 	"github.com/concourse/atc/worker"
 	"github.com/concourse/atc/worker/workerfakes"
 	. "github.com/onsi/ginkgo"
@@ -244,7 +245,7 @@ var _ = Describe("PutStep", func() {
 			It("finishes via the delegate", func() {
 				Expect(fakeDelegate.FinishedCallCount()).To(Equal(1))
 				_, status, info := fakeDelegate.FinishedArgsForCall(0)
-				Expect(status).To(Equal(exec.ExitStatus(0)))
+				Expect(status).To(Equal(runtime.ExitStatus(0)))
 				Expect(info.Version).To(Equal(atc.Version{"some": "version"}))
 				Expect(info.Metadata).To(Equal([]atc.MetadataField{{"some", "metadata"}}))
 			})
@@ -281,7 +282,7 @@ var _ = Describe("PutStep", func() {
 				It("finishes the step via the delegate", func() {
 					Expect(fakeDelegate.FinishedCallCount()).To(Equal(1))
 					_, status, info := fakeDelegate.FinishedArgsForCall(0)
-					Expect(status).To(Equal(exec.ExitStatus(42)))
+					Expect(status).To(Equal(runtime.ExitStatus(42)))
 					Expect(info).To(BeZero())
 				})
 

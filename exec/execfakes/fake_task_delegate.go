@@ -9,6 +9,7 @@ import (
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/exec"
+	"github.com/concourse/atc/runtime"
 )
 
 type FakeTaskDelegate struct {
@@ -59,11 +60,11 @@ type FakeTaskDelegate struct {
 		arg1 lager.Logger
 		arg2 atc.TaskConfig
 	}
-	FinishedStub        func(lager.Logger, exec.ExitStatus)
+	FinishedStub        func(lager.Logger, runtime.ExitStatus)
 	finishedMutex       sync.RWMutex
 	finishedArgsForCall []struct {
 		arg1 lager.Logger
-		arg2 exec.ExitStatus
+		arg2 runtime.ExitStatus
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -272,11 +273,11 @@ func (fake *FakeTaskDelegate) StartingArgsForCall(i int) (lager.Logger, atc.Task
 	return fake.startingArgsForCall[i].arg1, fake.startingArgsForCall[i].arg2
 }
 
-func (fake *FakeTaskDelegate) Finished(arg1 lager.Logger, arg2 exec.ExitStatus) {
+func (fake *FakeTaskDelegate) Finished(arg1 lager.Logger, arg2 runtime.ExitStatus) {
 	fake.finishedMutex.Lock()
 	fake.finishedArgsForCall = append(fake.finishedArgsForCall, struct {
 		arg1 lager.Logger
-		arg2 exec.ExitStatus
+		arg2 runtime.ExitStatus
 	}{arg1, arg2})
 	fake.recordInvocation("Finished", []interface{}{arg1, arg2})
 	fake.finishedMutex.Unlock()
@@ -291,7 +292,7 @@ func (fake *FakeTaskDelegate) FinishedCallCount() int {
 	return len(fake.finishedArgsForCall)
 }
 
-func (fake *FakeTaskDelegate) FinishedArgsForCall(i int) (lager.Logger, exec.ExitStatus) {
+func (fake *FakeTaskDelegate) FinishedArgsForCall(i int) (lager.Logger, runtime.ExitStatus) {
 	fake.finishedMutex.RLock()
 	defer fake.finishedMutex.RUnlock()
 	return fake.finishedArgsForCall[i].arg1, fake.finishedArgsForCall[i].arg2

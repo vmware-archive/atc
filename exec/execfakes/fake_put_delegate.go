@@ -8,6 +8,7 @@ import (
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/exec"
+	"github.com/concourse/atc/runtime"
 )
 
 type FakePutDelegate struct {
@@ -46,11 +47,11 @@ type FakePutDelegate struct {
 		arg1 lager.Logger
 		arg2 string
 	}
-	FinishedStub        func(lager.Logger, exec.ExitStatus, exec.VersionInfo)
+	FinishedStub        func(lager.Logger, runtime.ExitStatus, exec.VersionInfo)
 	finishedMutex       sync.RWMutex
 	finishedArgsForCall []struct {
 		arg1 lager.Logger
-		arg2 exec.ExitStatus
+		arg2 runtime.ExitStatus
 		arg3 exec.VersionInfo
 	}
 	invocations      map[string][][]interface{}
@@ -210,11 +211,11 @@ func (fake *FakePutDelegate) ErroredArgsForCall(i int) (lager.Logger, string) {
 	return fake.erroredArgsForCall[i].arg1, fake.erroredArgsForCall[i].arg2
 }
 
-func (fake *FakePutDelegate) Finished(arg1 lager.Logger, arg2 exec.ExitStatus, arg3 exec.VersionInfo) {
+func (fake *FakePutDelegate) Finished(arg1 lager.Logger, arg2 runtime.ExitStatus, arg3 exec.VersionInfo) {
 	fake.finishedMutex.Lock()
 	fake.finishedArgsForCall = append(fake.finishedArgsForCall, struct {
 		arg1 lager.Logger
-		arg2 exec.ExitStatus
+		arg2 runtime.ExitStatus
 		arg3 exec.VersionInfo
 	}{arg1, arg2, arg3})
 	fake.recordInvocation("Finished", []interface{}{arg1, arg2, arg3})
@@ -230,7 +231,7 @@ func (fake *FakePutDelegate) FinishedCallCount() int {
 	return len(fake.finishedArgsForCall)
 }
 
-func (fake *FakePutDelegate) FinishedArgsForCall(i int) (lager.Logger, exec.ExitStatus, exec.VersionInfo) {
+func (fake *FakePutDelegate) FinishedArgsForCall(i int) (lager.Logger, runtime.ExitStatus, exec.VersionInfo) {
 	fake.finishedMutex.RLock()
 	defer fake.finishedMutex.RUnlock()
 	return fake.finishedArgsForCall[i].arg1, fake.finishedArgsForCall[i].arg2, fake.finishedArgsForCall[i].arg3

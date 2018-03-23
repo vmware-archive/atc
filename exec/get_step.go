@@ -12,6 +12,7 @@ import (
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/resource"
+	"github.com/concourse/atc/runtime"
 	"github.com/concourse/atc/worker"
 )
 
@@ -20,7 +21,7 @@ import (
 type GetDelegate interface {
 	BuildStepDelegate
 
-	Finished(lager.Logger, ExitStatus, VersionInfo)
+	Finished(lager.Logger, runtime.ExitStatus, VersionInfo)
 }
 
 // GetStep will fetch a version of a resource on a worker that supports the
@@ -181,7 +182,7 @@ func (step *GetStep) Run(ctx context.Context, state RunState) error {
 		logger.Error("failed-to-fetch-resource", err)
 
 		if err, ok := err.(resource.ErrResourceScriptFailed); ok {
-			step.delegate.Finished(logger, ExitStatus(err.ExitStatus), VersionInfo{})
+			step.delegate.Finished(logger, runtime.ExitStatus(err.ExitStatus), VersionInfo{})
 			return nil
 		}
 

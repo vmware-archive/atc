@@ -9,6 +9,7 @@ import (
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/resource"
+	"github.com/concourse/atc/runtime"
 	"github.com/concourse/atc/worker"
 )
 
@@ -17,7 +18,7 @@ import (
 type PutDelegate interface {
 	BuildStepDelegate
 
-	Finished(lager.Logger, ExitStatus, VersionInfo)
+	Finished(lager.Logger, runtime.ExitStatus, VersionInfo)
 }
 
 // PutStep produces a resource version using preconfigured params and any data
@@ -145,7 +146,7 @@ func (step *PutStep) Run(ctx context.Context, state RunState) error {
 		logger.Error("failed-to-put-resource", err)
 
 		if err, ok := err.(resource.ErrResourceScriptFailed); ok {
-			step.delegate.Finished(logger, ExitStatus(err.ExitStatus), VersionInfo{})
+			step.delegate.Finished(logger, runtime.ExitStatus(err.ExitStatus), VersionInfo{})
 			return nil
 		}
 
