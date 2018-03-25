@@ -8,22 +8,10 @@ import (
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
-	"github.com/concourse/atc/resource"
 	"github.com/concourse/atc/worker"
 )
 
-//go:generate counterfeiter . Resource
-
 type Resource interface {
-	Get(context.Context, worker.Volume, IOConfig, atc.Source, atc.Params, atc.Version) (resource.VersionedSource, error)
-	Put(context.Context, IOConfig, atc.Source, atc.Params) (resource.VersionedSource, error)
-	Check(atc.Source, atc.Version) ([]atc.Version, error)
-}
-
-//go:generate counterfeiter . Task
-
-type Task interface {
-	Run(context.Context, IOConfig, atc.TaskConfig) (chan TaskResult, []worker.VolumeMount, error)
 }
 
 // ExitStatus is the resulting exit code from the process that ran.
@@ -56,7 +44,9 @@ type Orchestrator interface {
 		IOConfig,
 		atc.TaskConfig,
 	) (chan TaskResult, []worker.VolumeMount, error)
-	// Resource(atc.Source, atc.Params) Resource
+	// GetResource(context.Context, atc.ResourceConfig, worker.Volume, IOConfig, atc.Source, atc.Params, atc.Version) (resource.VersionedSource, error)
+	// PutResource(context.Context, atc.ResourceConfig, IOConfig, atc.Source, atc.Params) (resource.VersionedSource, error)
+	// CheckResource(context.Context, atc.ResourceConfig, atc.Source, atc.Version) ([]atc.Version, error)
 }
 
 type IOConfig struct {

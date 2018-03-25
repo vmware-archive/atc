@@ -8,6 +8,7 @@ import (
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/event"
 	"github.com/concourse/atc/exec"
+	"github.com/concourse/atc/runtime"
 )
 
 type getDelegate struct {
@@ -28,7 +29,7 @@ func NewGetDelegate(build db.Build, planID atc.PlanID, clock clock.Clock) exec.G
 	}
 }
 
-func (d *getDelegate) Finished(logger lager.Logger, exitStatus exec.ExitStatus, info exec.VersionInfo) {
+func (d *getDelegate) Finished(logger lager.Logger, exitStatus runtime.ExitStatus, info exec.VersionInfo) {
 	err := d.build.SaveEvent(event.FinishGet{
 		Origin:          d.eventOrigin,
 		ExitStatus:      int(exitStatus),

@@ -35,18 +35,6 @@ type FakeOrchestrator struct {
 		result2 []worker.VolumeMount
 		result3 error
 	}
-	ResourceStub        func(atc.Source, atc.Params) runtime.Resource
-	resourceMutex       sync.RWMutex
-	resourceArgsForCall []struct {
-		arg1 atc.Source
-		arg2 atc.Params
-	}
-	resourceReturns struct {
-		result1 runtime.Resource
-	}
-	resourceReturnsOnCall map[int]struct {
-		result1 runtime.Resource
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -112,62 +100,11 @@ func (fake *FakeOrchestrator) RunTaskReturnsOnCall(i int, result1 chan runtime.T
 	}{result1, result2, result3}
 }
 
-func (fake *FakeOrchestrator) Resource(arg1 atc.Source, arg2 atc.Params) runtime.Resource {
-	fake.resourceMutex.Lock()
-	ret, specificReturn := fake.resourceReturnsOnCall[len(fake.resourceArgsForCall)]
-	fake.resourceArgsForCall = append(fake.resourceArgsForCall, struct {
-		arg1 atc.Source
-		arg2 atc.Params
-	}{arg1, arg2})
-	fake.recordInvocation("Resource", []interface{}{arg1, arg2})
-	fake.resourceMutex.Unlock()
-	if fake.ResourceStub != nil {
-		return fake.ResourceStub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.resourceReturns.result1
-}
-
-func (fake *FakeOrchestrator) ResourceCallCount() int {
-	fake.resourceMutex.RLock()
-	defer fake.resourceMutex.RUnlock()
-	return len(fake.resourceArgsForCall)
-}
-
-func (fake *FakeOrchestrator) ResourceArgsForCall(i int) (atc.Source, atc.Params) {
-	fake.resourceMutex.RLock()
-	defer fake.resourceMutex.RUnlock()
-	return fake.resourceArgsForCall[i].arg1, fake.resourceArgsForCall[i].arg2
-}
-
-func (fake *FakeOrchestrator) ResourceReturns(result1 runtime.Resource) {
-	fake.ResourceStub = nil
-	fake.resourceReturns = struct {
-		result1 runtime.Resource
-	}{result1}
-}
-
-func (fake *FakeOrchestrator) ResourceReturnsOnCall(i int, result1 runtime.Resource) {
-	fake.ResourceStub = nil
-	if fake.resourceReturnsOnCall == nil {
-		fake.resourceReturnsOnCall = make(map[int]struct {
-			result1 runtime.Resource
-		})
-	}
-	fake.resourceReturnsOnCall[i] = struct {
-		result1 runtime.Resource
-	}{result1}
-}
-
 func (fake *FakeOrchestrator) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.runTaskMutex.RLock()
 	defer fake.runTaskMutex.RUnlock()
-	fake.resourceMutex.RLock()
-	defer fake.resourceMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

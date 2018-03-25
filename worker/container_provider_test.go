@@ -824,6 +824,7 @@ var _ = Describe("ContainerProvider", func() {
 
 		Context("when the gardenClient returns garden.ContainerNotFoundError", func() {
 			BeforeEach(func() {
+				fakeDBTeam.FindCreatedContainerByHandleReturns(fakeCreatedContainer, true, nil)
 				fakeGardenClient.LookupReturns(nil, garden.ContainerNotFoundError{Handle: "some-handle"})
 			})
 
@@ -837,6 +838,8 @@ var _ = Describe("ContainerProvider", func() {
 			var expectedErr error
 
 			BeforeEach(func() {
+				fakeDBTeam.FindCreatedContainerByHandleReturns(fakeCreatedContainer, true, nil)
+				fakeDBVolumeFactory.FindVolumesForContainerReturns(nil, nil)
 				expectedErr = fmt.Errorf("container not found")
 				fakeGardenClient.LookupReturns(nil, expectedErr)
 			})

@@ -167,7 +167,7 @@ func (t *gardenTask) VolumeMounts() []worker.VolumeMount {
 	return t.container.VolumeMounts()
 }
 
-func (s *GardenOrchestrator) Resource(
+func (s *GardenOrchestrator) resource(
 	ctx context.Context,
 	config atc.ResourceConfig,
 	params atc.Params,
@@ -177,7 +177,7 @@ func (s *GardenOrchestrator) Resource(
 	metadata db.ContainerMetadata,
 	containerSpec worker.ContainerSpec,
 	resourceTypes creds.VersionedResourceTypes,
-) Resource {
+) resource.Resource {
 	resourceFactory := resource.NewResourceFactory(s.WorkerPool)
 
 	// mountPath := resource.ResourcesDir("get")
@@ -196,7 +196,7 @@ func (s *GardenOrchestrator) Resource(
 	// }
 
 	logger := lagerctx.FromContext(ctx)
-	_, err := resourceFactory.NewResource(
+	resource, err := resourceFactory.NewResource(
 		ctx,
 		logger,
 		owner,
@@ -217,5 +217,5 @@ func (s *GardenOrchestrator) Resource(
 	// 	}
 	// }
 
-	return &noopResource{}
+	return resource
 }
