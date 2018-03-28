@@ -37,6 +37,7 @@ import (
 	"github.com/concourse/atc/pipelines"
 	"github.com/concourse/atc/radar"
 	"github.com/concourse/atc/resource"
+	"github.com/concourse/atc/runtime"
 	"github.com/concourse/atc/scheduler"
 	"github.com/concourse/atc/worker"
 	"github.com/concourse/atc/worker/image"
@@ -53,6 +54,8 @@ import (
 	"github.com/tedsuo/ifrit/http_server"
 	"github.com/tedsuo/ifrit/sigmon"
 	"github.com/xoebus/zest"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/concourse/skymarshal/provider"
 
@@ -124,6 +127,8 @@ type ATCCommand struct {
 	Developer struct {
 		Noop bool `short:"n" long:"noop"              description:"Don't actually do any automatic scheduling or checking."`
 	} `group:"Developer Options"`
+
+	KubeConfig flag.File `long:"kubeconfig" description:"absolute path to the kubeconfig file"`
 
 	Worker struct {
 		GardenURL       flag.URL          `long:"garden-url"       description:"A Garden API endpoint to register as a worker."`
@@ -426,15 +431,22 @@ func (cmd *ATCCommand) constructMembers(
 		workerVersion,
 		cmd.BaggageclaimResponseHeaderTimeout,
 	)
-
 	workerClient := cmd.constructWorkerPool(
 		logger,
 		workerProvider,
 	)
 
+	orchestrator := cmd.constructOrchestrator(
+		logger,
+		workerClient,
+		dbVolumeFactory,
+		teamFactory,
+		lockFactory,
+	)
+
 	resourceFetcher := resourceFetcherFactory.FetcherFor(workerClient)
 	resourceFactory := resource.NewResourceFactory(workerClient)
-	engine := cmd.constructEngine(workerClient, resourceFetcher, resourceFactory, dbResourceCacheFactory, variablesFactory)
+	engine := cmd.constructEngine(orchestrator, resourceFetcher, resourceFactory, dbResourceCacheFactory, variablesFactory)
 
 	radarSchedulerFactory := pipelines.NewRadarSchedulerFactory(
 		resourceFactory,
@@ -955,6 +967,38 @@ func (cmd *ATCCommand) constructLockConn(driverName string) (*sql.DB, error) {
 	return dbConn, nil
 }
 
+func (cmd *ATCCommand) constructOrchestrator(
+	logger lager.Logger,
+	workerClient worker.Client,
+	dbVolumeFactory db.VolumeFactory,
+	dbTeamFactory db.TeamFactory,
+	lockFactory lock.LockFactory,
+) runtime.Orchestrator {
+
+	if cmd.KubeConfig.Path() != "" {
+		config, err := clientcmd.BuildConfigFromFlags("", cmd.KubeConfig.Path())
+		if err != nil {
+			panic(err.Error())
+		}
+
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		return runtime.NewK8sOrchestrator(
+			clientset,
+			"default",
+			dbVolumeFactory,
+			dbTeamFactory,
+			lockFactory,
+			clock.NewClock(),
+		)
+	}
+
+	return &runtime.GardenOrchestrator{WorkerPool: workerClient}
+}
+
 func (cmd *ATCCommand) constructWorkerPool(
 	logger lager.Logger,
 	workerProvider worker.WorkerProvider,
@@ -1037,14 +1081,15 @@ func (cmd *ATCCommand) configureAuthForDefaultTeam(teamFactory db.TeamFactory) e
 }
 
 func (cmd *ATCCommand) constructEngine(
-	workerClient worker.Client,
+	orchestrator runtime.Orchestrator,
 	resourceFetcher resource.Fetcher,
 	resourceFactory resource.ResourceFactory,
 	dbResourceCacheFactory db.ResourceCacheFactory,
 	variablesFactory creds.VariablesFactory,
 ) engine.Engine {
-	gardenFactory := exec.NewGardenFactory(
-		workerClient,
+
+	factory := exec.NewFactory(
+		orchestrator,
 		resourceFetcher,
 		resourceFactory,
 		dbResourceCacheFactory,
@@ -1052,7 +1097,7 @@ func (cmd *ATCCommand) constructEngine(
 	)
 
 	execV2Engine := engine.NewExecEngine(
-		gardenFactory,
+		factory,
 		engine.NewBuildDelegateFactory(),
 		cmd.ExternalURL.String(),
 	)
