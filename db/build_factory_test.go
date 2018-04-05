@@ -209,11 +209,15 @@ var _ = Describe("BuildFactory", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build2, err = privateJob.CreateBuild()
+			jobCombination, err := privateJob.JobCombination()
+			Expect(err).NotTo(HaveOccurred())
+
+			build2, err = jobCombination.CreateBuild()
 			Expect(err).NotTo(HaveOccurred())
 
 			publicPipeline, _, err := team.SavePipeline("public-pipeline", config, db.ConfigVersion(1), db.PipelineUnpaused)
 			Expect(err).NotTo(HaveOccurred())
+
 			err = publicPipeline.Expose()
 			Expect(err).NotTo(HaveOccurred())
 
@@ -221,7 +225,10 @@ var _ = Describe("BuildFactory", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build3, err = publicJob.CreateBuild()
+			jobCombination, err = publicJob.JobCombination()
+			Expect(err).NotTo(HaveOccurred())
+
+			build3, err = jobCombination.CreateBuild()
 			Expect(err).NotTo(HaveOccurred())
 
 			otherTeam, err := teamFactory.CreateTeam(atc.Team{Name: "some-other-team"})

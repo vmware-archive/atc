@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const preMigrationVersion = 1515427942
-const postMigrationVersion = 1515427950
+const preMigrationVersion = 1522945544
+const postMigrationVersion = 1522945622
 
 type jobCombination struct {
 	id               int
@@ -153,9 +153,9 @@ var _ = Describe("Populate job combinations", func() {
 			Expect(jobCombinationsResourceSpaces[0].jobCombinationID).To(Equal(2))
 			Expect(jobCombinationsResourceSpaces[1].jobCombinationID).To(Equal(3))
 			Expect(jobCombinationsResourceSpaces[2].jobCombinationID).To(Equal(3))
-			Expect(jobCombinationsResourceSpaces[0].resourceSpaceID).To(Equal(1))
-			Expect(jobCombinationsResourceSpaces[1].resourceSpaceID).To(Equal(2))
-			Expect(jobCombinationsResourceSpaces[2].resourceSpaceID).To(Equal(1))
+			Expect([]int{jobCombinationsResourceSpaces[0].resourceSpaceID,
+				jobCombinationsResourceSpaces[1].resourceSpaceID,
+				jobCombinationsResourceSpaces[2].resourceSpaceID}).To(ConsistOf(1, 2, 1))
 		})
 	})
 })

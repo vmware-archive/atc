@@ -68,17 +68,17 @@ func (j *jobFactory) VisibleJobs(teamNames []string) (Dashboard, error) {
 		jobIDs = append(jobIDs, job.ID())
 	}
 
-	nextBuilds, err := j.getBuildsFrom("next_builds_per_job", jobIDs)
+	nextBuilds, err := j.getBuildsFrom("next_builds_per_job_combination", jobIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	finishedBuilds, err := j.getBuildsFrom("latest_completed_builds_per_job", jobIDs)
+	finishedBuilds, err := j.getBuildsFrom("latest_completed_builds_per_job_combination", jobIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	transitionBuilds, err := j.getBuildsFrom("transition_builds_per_job", jobIDs)
+	transitionBuilds, err := j.getBuildsFrom("transition_builds_per_job_combination", jobIDs)
 	if err != nil {
 		return nil, err
 	}

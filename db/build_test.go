@@ -442,58 +442,6 @@ var _ = Describe("Build", func() {
 				},
 			}
 
-			err = build.SaveOutput(versionedResource, true)
-			Expect(err).ToNot(HaveOccurred())
-
-			err = build.SaveOutput(db.VersionedResource{
-				Resource: "some-implicit-resource",
-				Type:     "some-type",
-				Version: db.ResourceVersion{
-					"some": "version",
-				},
-				Metadata: []db.ResourceMetadataField{
-					{
-						Name:  "meta1",
-						Value: "data1",
-					},
-					{
-						Name:  "meta2",
-						Value: "data2",
-					},
-				},
-			}, false)
-			Expect(err).ToNot(HaveOccurred())
-
-			actualBuildOutput, err := build.GetVersionedResources()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(actualBuildOutput)).To(Equal(1))
-			Expect(actualBuildOutput[0].VersionedResource).To(Equal(versionedResource))
-		})
-	})
-
-	Context("when a one off build", func() {
-		It("can not get a build's output", func() {
-			build, err := team.CreateOneOffBuild()
-			Expect(err).ToNot(HaveOccurred())
-
-			versionedResource := db.VersionedResource{
-				Resource: "some-explicit-resource",
-				Type:     "some-type",
-				Version: db.ResourceVersion{
-					"some": "version",
-				},
-				Metadata: []db.ResourceMetadataField{
-					{
-						Name:  "meta1",
-						Value: "data1",
-					},
-					{
-						Name:  "meta2",
-						Value: "data2",
-					},
-				},
-			}
-
 			err = build.SaveOutput(versionedResource)
 			Expect(err).ToNot(HaveOccurred())
 

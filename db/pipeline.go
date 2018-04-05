@@ -1055,9 +1055,9 @@ func (p *pipeline) LoadVersionsDB() (*algorithm.VersionsDB, error) {
 		if succeeded {
 			// implicit output
 			db.BuildOutputs = append(db.BuildOutputs, algorithm.BuildOutput{
-				ResourceVersion: input.ResourceVersion,
-				JobID:           input.JobID,
-				BuildID:         input.BuildID,
+				ResourceVersion:  input.ResourceVersion,
+				JobCombinationID: input.JobCombinationID,
+				BuildID:          input.BuildID,
 			})
 		}
 	}

@@ -36,7 +36,8 @@ BEGIN;
       b.interceptible,
       b.nonce,
       b.public_plan,
-      b.pipeline_id
+      b.pipeline_id,
+      b.tracked_by
      FROM (builds b
        JOIN latest_build_ids_per_job_combination l ON ((l.build_id = b.id)))
     WITH NO DATA;
@@ -66,7 +67,8 @@ BEGIN;
       b.interceptible,
       b.nonce,
       b.public_plan,
-      b.pipeline_id
+      b.pipeline_id,
+      b.tracked_by
      FROM (builds b
        JOIN latest_build_ids_per_job_combination l ON ((l.build_id = b.id)))
     WITH NO DATA;
@@ -98,7 +100,8 @@ BEGIN;
       b.interceptible,
       b.nonce,
       b.public_plan,
-      b.pipeline_id
+      b.pipeline_id,
+      b.tracked_by
      FROM (builds b
        LEFT JOIN builds_before_transition ON ((b.job_combination_id = builds_before_transition.job_combination_id)))
     WHERE (((builds_before_transition.max IS NULL) AND (b.status <> ALL (ARRAY['pending'::build_status, 'started'::build_status]))) OR (b.id > builds_before_transition.max))

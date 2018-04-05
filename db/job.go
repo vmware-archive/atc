@@ -145,6 +145,55 @@ func (j *job) FinishedAndNextBuild() (Build, Build, error) {
 
 	return finished, next, nil
 }
+func (j *job) finishedBuild() (Build, error) {
+	var finished Build
+
+	row := buildsQuery.
+		Where(sq.Eq{
+			"j.name":        j.name,
+			"j.pipeline_id": j.pipelineID,
+		}).
+		Where(sq.Expr("b.status NOT IN ('pending', 'started')")).
+		OrderBy("b.id DESC").
+		Limit(1).
+		RunWith(j.conn).
+		QueryRow()
+
+	finishedBuild := &build{conn: j.conn, lockFactory: j.lockFactory}
+	err := scanBuild(finishedBuild, row, j.conn.EncryptionStrategy())
+	if err == nil {
+		finished = finishedBuild
+	} else if err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	return finished, nil
+}
+
+func (j *job) nextBuild() (Build, error) {
+	var next Build
+
+	row := buildsQuery.
+		Where(sq.Eq{
+			"j.name":        j.name,
+			"j.pipeline_id": j.pipelineID,
+			"b.status":      []BuildStatus{BuildStatusPending, BuildStatusStarted},
+		}).
+		OrderBy("b.id ASC").
+		Limit(1).
+		RunWith(j.conn).
+		QueryRow()
+
+	nextBuild := &build{conn: j.conn, lockFactory: j.lockFactory}
+	err := scanBuild(nextBuild, row, j.conn.EncryptionStrategy())
+	if err == nil {
+		next = nextBuild
+	} else if err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	return next, nil
+}
 
 func (j *job) UpdateFirstLoggedBuildID(newFirstLoggedBuildID int) error {
 	if j.firstLoggedBuildID > newFirstLoggedBuildID {

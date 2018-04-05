@@ -1105,9 +1105,9 @@ var _ = Describe("Pipeline", func() {
 
 			explicitOutput := algorithm.BuildOutput{
 				ResourceVersion: algorithm.ResourceVersion{
-					VersionID:  savedVR1.ID,
-					ResourceID: resource.ID(),
-					CheckOrder: savedVR1.CheckOrder,
+					VersionID:       savedVR1.ID,
+					ResourceSpaceID: resource.ID(),
+					CheckOrder:      savedVR1.CheckOrder,
 				},
 				JobCombinationID: aJobCombination.ID(),
 				BuildID:          build1DB.ID(),
@@ -1269,12 +1269,12 @@ var _ = Describe("Pipeline", func() {
 			By("including implicit outputs of successful builds")
 			implicitOutput := algorithm.BuildOutput{
 				ResourceVersion: algorithm.ResourceVersion{
-					VersionID:  savedVR1.ID,
-					ResourceID: resource.ID(),
-					CheckOrder: savedVR1.CheckOrder,
+					VersionID:       savedVR1.ID,
+					ResourceSpaceID: resource.ID(),
+					CheckOrder:      savedVR1.CheckOrder,
 				},
-				JobID:   aJob.ID(),
-				BuildID: build1DB.ID(),
+				JobCombinationID: aJob.ID(),
+				BuildID:          build1DB.ID(),
 			}
 
 			Expect(versions.BuildOutputs).To(ConsistOf([]algorithm.BuildOutput{
@@ -1483,7 +1483,7 @@ var _ = Describe("Pipeline", func() {
 				})
 				Expect(err).ToNot(HaveOccurred())
 
-				err = build.SaveOutput(beforeVR.VersionedResource, false)
+				err = build.SaveOutput(beforeVR.VersionedResource)
 				Expect(err).ToNot(HaveOccurred())
 
 				versions, _, found, err := dbPipeline.GetResourceVersions(resource.Name(), db.Page{Limit: 10})
@@ -1713,9 +1713,9 @@ var _ = Describe("Pipeline", func() {
 						CheckOrder:      enabledVersion.CheckOrder,
 					},
 					algorithm.ResourceVersion{
-						VersionID:  otherEnabledVersion.ID,
-						ResourceID: resource.ID(),
-						CheckOrder: otherEnabledVersion.CheckOrder,
+						VersionID:       otherEnabledVersion.ID,
+						ResourceSpaceID: resource.ID(),
+						CheckOrder:      otherEnabledVersion.CheckOrder,
 					},
 				))
 
@@ -1724,12 +1724,12 @@ var _ = Describe("Pipeline", func() {
 					// explicit output
 					algorithm.BuildOutput{
 						ResourceVersion: algorithm.ResourceVersion{
-							VersionID:  otherEnabledVersion.ID,
-							ResourceID: resource.ID(),
-							CheckOrder: otherEnabledVersion.CheckOrder,
+							VersionID:       otherEnabledVersion.ID,
+							ResourceSpaceID: resource.ID(),
+							CheckOrder:      otherEnabledVersion.CheckOrder,
 						},
-						JobID:   aJob.ID(),
-						BuildID: build1.ID(),
+						JobCombinationID: aJob.ID(),
+						BuildID:          build1.ID(),
 					},
 					// implicit output
 					algorithm.BuildOutput{
@@ -2483,11 +2483,14 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			build, err := job.CreateBuild()
+			jobCombination, err := job.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
+
+			build, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 			expectedBuilds = append(expectedBuilds, build)
 
-			secondBuild, err := job.CreateBuild()
+			secondBuild, err := jobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 			expectedBuilds = append(expectedBuilds, secondBuild)
 
@@ -2495,7 +2498,10 @@ var _ = Describe("Pipeline", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			thirdBuild, err := someOtherJob.CreateBuild()
+			someOtherJobCombination, err := someOtherJob.JobCombination()
+			Expect(err).ToNot(HaveOccurred())
+
+			thirdBuild, err := someOtherJobCombination.CreateBuild()
 			Expect(err).ToNot(HaveOccurred())
 			expectedBuilds = append(expectedBuilds, thirdBuild)
 		})
