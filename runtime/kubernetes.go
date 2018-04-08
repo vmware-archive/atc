@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"path"
+	"strings"
 
 	"code.cloudfoundry.org/clock"
 	"code.cloudfoundry.org/lager"
@@ -15,11 +16,14 @@ import (
 	"github.com/concourse/atc/worker"
 
 	batchv1 "k8s.io/api/batch/v1"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 )
+
+const TaskContainerName = "task"
 
 func NewK8sOrchestrator(
 	client *kubernetes.Clientset,
@@ -39,6 +43,7 @@ func NewK8sOrchestrator(
 			LockFactory:     lockFactory,
 			Clock:           clock,
 		},
+		volumeFactory: dbVolumeFactory,
 	}
 }
 
@@ -46,6 +51,7 @@ type k8sOrchestrator struct {
 	client            *kubernetes.Clientset
 	namespace         string
 	containerProvider *worker.DbContainerProvider
+	volumeFactory     db.VolumeFactory
 }
 
 func (o *k8sOrchestrator) RunTask(
@@ -96,7 +102,6 @@ func (o *k8sOrchestrator) RunTask(
 
 	//watch pod events relating to job
 	err = o.trackJobProgress(ctx, job, ioConfig, result)
-
 	if err != nil {
 		logger.Error("failed-to-track-job-in-k8s", err)
 		return nil, nil, err
@@ -112,6 +117,7 @@ func (o *k8sOrchestrator) trackJobProgress(
 	result chan TaskResult,
 ) error {
 	logger := lagerctx.FromContext(ctx)
+
 	//watch pod events relating to job
 	selector, err := metav1.LabelSelectorAsSelector(job.Spec.Selector)
 	if err != nil {
@@ -122,7 +128,7 @@ func (o *k8sOrchestrator) trackJobProgress(
 	if err != nil {
 		return err
 	}
-
+	// filter for modification events, which includes events about the underlying container
 	modifyEvent := watch.Filter(podEvents, func(e watch.Event) (watch.Event, bool) {
 		return e, e.Type == watch.Modified
 	})
@@ -173,6 +179,29 @@ func (o *k8sOrchestrator) jobForTask(
 	spec worker.ContainerSpec,
 	creatingContainer db.CreatingContainer,
 ) *batchv1.Job {
+	workDir := path.Join(spec.Dir, config.Run.Dir)
+	volumes := []v1.Volume{}
+	mounts := []v1.VolumeMount{}
+
+	for name, outputPath := range spec.Outputs {
+		volume := v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				EmptyDir: &v1.EmptyDirVolumeSource{},
+			},
+		}
+		volumes = append(volumes, volume)
+		mount := v1.VolumeMount{
+			Name:      name,
+			MountPath: outputPath,
+		}
+		mounts = append(mounts, mount)
+	}
+	//
+	// for _, input := range spec.Inputs {
+	// 	// source := input.Source()
+	// }
+
 	var one int32 = 1
 	job := &batchv1.Job{
 		Spec: batchv1.JobSpec{
@@ -181,14 +210,25 @@ func (o *k8sOrchestrator) jobForTask(
 			BackoffLimit: &one,
 			Template: v1.PodTemplateSpec{
 				Spec: v1.PodSpec{
+					Volumes:       volumes,
 					RestartPolicy: v1.RestartPolicyNever,
 					Containers: []v1.Container{
 						v1.Container{
-							Name:       "task",
-							Image:      config.RootfsURI,
-							Command:    []string{config.Run.Path},
-							Args:       config.Run.Args,
-							WorkingDir: path.Join(spec.Dir, config.Run.Dir),
+							Name:         TaskContainerName,
+							Image:        config.RootfsURI,
+							Command:      []string{config.Run.Path},
+							Args:         config.Run.Args,
+							WorkingDir:   workDir,
+							VolumeMounts: mounts,
+						},
+						v1.Container{
+							Name:  "sidecar",
+							Image: "ubuntu",
+							// Command:      []string{"sleep"},
+							// Args:         []string{"10000"},
+							VolumeMounts: mounts,
+							TTY:          true,
+							Stdin:        true,
 						},
 					},
 				},
@@ -200,15 +240,43 @@ func (o *k8sOrchestrator) jobForTask(
 }
 
 func (o k8sOrchestrator) streamLogs(podName string, opts *v1.PodLogOptions, stdout io.Writer) (io.ReadCloser, error) {
-	// TODO: deal with case when there are no logs to stream :
-	// failed to open log file "/var/log/pods/3abdb0a3-32bd-11e8-a0f6-080027a5a1ce/task_0.log":
-	// open /var/log/pods/3abdb0a3-32bd-11e8-a0f6-080027a5a1ce/task_0.log: no such file or directory
 	logs, err := o.client.Core().Pods(o.namespace).GetLogs(podName, opts).Stream()
 	if err != nil {
+		errMessage := err.Error()
+		if strings.HasPrefix(errMessage, "failed to open log file") {
+			// TODO: find a better way to deal with case when there are no logs to stream
+			return nil, nil
+		}
 		return nil, err
 	}
 	io.Copy(stdout, logs)
 	return logs, nil
+}
+
+func (o *k8sOrchestrator) containerStatus(name string, podStatus v1.PodStatus) *v1.ContainerStatus {
+	for _, containerStatus := range podStatus.ContainerStatuses {
+		if containerStatus.Name == name {
+			return &containerStatus
+		}
+	}
+	return nil
+}
+
+func (o *k8sOrchestrator) attachToContainer(name string, pod v1.Pod) {
+	req := o.client.RESTClient().Post().
+		Resource("pods").
+		Name(pod.Name).
+		Namespace(pod.Namespace).
+		SubResource("attach")
+
+	req.VersionedParams(&v1.PodAttachOptions{
+		Container: name,
+		// Stdin:     p.Stdin,
+		// Stdout:    p.Out != nil,
+		// Stderr:    p.Err != nil,
+		// TTY:       t.Raw,
+	}, scheme.ParameterCodec)
+
 }
 
 func (o *k8sOrchestrator) handlePodUpdate(logger lager.Logger, pod *v1.Pod, ioConfig IOConfig) (io.ReadCloser, *TaskResult, error) {
@@ -218,11 +286,14 @@ func (o *k8sOrchestrator) handlePodUpdate(logger lager.Logger, pod *v1.Pod, ioCo
 		err        error
 	)
 
-	if len(pod.Status.ContainerStatuses) > 0 {
-		state := pod.Status.ContainerStatuses[0].State
-		if pod.Status.ContainerStatuses[0].Ready {
+	taskContainerStatus := o.containerStatus(TaskContainerName, pod.Status)
+
+	if taskContainerStatus != nil {
+		state := taskContainerStatus.State
+		if taskContainerStatus.Ready {
 			opts := &v1.PodLogOptions{
-				Follow: true,
+				Follow:    true,
+				Container: TaskContainerName,
 			}
 
 			logStream, err = o.streamLogs(pod.Name, opts, ioConfig.Stdout)
@@ -234,7 +305,9 @@ func (o *k8sOrchestrator) handlePodUpdate(logger lager.Logger, pod *v1.Pod, ioCo
 
 		if state.Terminated != nil {
 			termination := *state.Terminated
-			opts := &v1.PodLogOptions{}
+			opts := &v1.PodLogOptions{
+				Container: TaskContainerName,
+			}
 
 			logStream, err = o.streamLogs(pod.Name, opts, ioConfig.Stdout)
 			if err != nil {

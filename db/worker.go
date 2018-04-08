@@ -40,6 +40,7 @@ type Worker interface {
 	ActiveContainers() int
 	ResourceTypes() []atc.WorkerResourceType
 	Platform() string
+	Type() string
 	Tags() []string
 	TeamID() int
 	TeamName() string
@@ -68,6 +69,7 @@ type worker struct {
 	activeContainers int
 	resourceTypes    []atc.WorkerResourceType
 	platform         string
+	workerType       string
 	tags             []string
 	teamID           int
 	teamName         string
@@ -88,6 +90,7 @@ func (worker *worker) NoProxy() string                         { return worker.n
 func (worker *worker) ActiveContainers() int                   { return worker.activeContainers }
 func (worker *worker) ResourceTypes() []atc.WorkerResourceType { return worker.resourceTypes }
 func (worker *worker) Platform() string                        { return worker.platform }
+func (worker *worker) Type() string                            { return worker.workerType }
 func (worker *worker) Tags() []string                          { return worker.tags }
 func (worker *worker) TeamID() int                             { return worker.teamID }
 func (worker *worker) TeamName() string                        { return worker.teamName }

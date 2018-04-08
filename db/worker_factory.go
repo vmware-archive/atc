@@ -44,6 +44,7 @@ var workersQuery = psql.Select(`
 		w.active_containers,
 		w.resource_types,
 		w.platform,
+		w.type,
 		w.tags,
 		t.name,
 		w.team_id,
@@ -127,6 +128,7 @@ func scanWorker(worker *worker, row scannable) error {
 		noProxy       sql.NullString
 		resourceTypes []byte
 		platform      sql.NullString
+		workerType    sql.NullString
 		tags          []byte
 		teamName      sql.NullString
 		teamID        sql.NullInt64
@@ -147,6 +149,7 @@ func scanWorker(worker *worker, row scannable) error {
 		&worker.activeContainers,
 		&resourceTypes,
 		&platform,
+		&workerType,
 		&tags,
 		&teamName,
 		&teamID,
@@ -205,6 +208,10 @@ func scanWorker(worker *worker, row scannable) error {
 
 	if platform.Valid {
 		worker.platform = platform.String
+	}
+
+	if workerType.Valid {
+		worker.workerType = workerType.String
 	}
 
 	err = json.Unmarshal(resourceTypes, &worker.resourceTypes)
@@ -362,6 +369,7 @@ func saveWorker(tx Tx, atcWorker atc.Worker, teamID *int, ttl time.Duration, con
 					"resource_types",
 					"tags",
 					"platform",
+					"type",
 					"baggageclaim_url",
 					"certs_path",
 					"http_proxy_url",
@@ -380,6 +388,7 @@ func saveWorker(tx Tx, atcWorker atc.Worker, teamID *int, ttl time.Duration, con
 					resourceTypes,
 					tags,
 					atcWorker.Platform,
+					atcWorker.Type,
 					atcWorker.BaggageclaimURL,
 					atcWorker.CertsPath,
 					atcWorker.HTTPProxyURL,
@@ -412,6 +421,7 @@ func saveWorker(tx Tx, atcWorker atc.Worker, teamID *int, ttl time.Duration, con
 			Set("resource_types", resourceTypes).
 			Set("tags", tags).
 			Set("platform", atcWorker.Platform).
+			Set("type", atcWorker.Type).
 			Set("baggageclaim_url", atcWorker.BaggageclaimURL).
 			Set("certs_path", atcWorker.CertsPath).
 			Set("http_proxy_url", atcWorker.HTTPProxyURL).
@@ -449,6 +459,7 @@ func saveWorker(tx Tx, atcWorker atc.Worker, teamID *int, ttl time.Duration, con
 		activeContainers: atcWorker.ActiveContainers,
 		resourceTypes:    atcWorker.ResourceTypes,
 		platform:         atcWorker.Platform,
+		workerType:       atcWorker.Type,
 		tags:             atcWorker.Tags,
 		teamName:         atcWorker.Team,
 		teamID:           workerTeamID,

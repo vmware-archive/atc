@@ -28,6 +28,7 @@ func Worker(workerInfo db.Worker) atc.Worker {
 		ActiveContainers: workerInfo.ActiveContainers(),
 		ResourceTypes:    workerInfo.ResourceTypes(),
 		Platform:         workerInfo.Platform(),
+		Type:             workerInfo.Type(),
 		Tags:             workerInfo.Tags(),
 		Name:             workerInfo.Name(),
 		Team:             workerInfo.TeamName(),
