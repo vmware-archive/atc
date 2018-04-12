@@ -10,6 +10,19 @@ import (
 	"github.com/concourse/atc/worker"
 )
 
+type resourceOrchestrator interface {
+	GetResource(
+		lager.Logger,
+		context.Context,
+		worker.Worker,
+		worker.ContainerSpec,
+		ResourceInstance,
+		Session,
+		creds.VersionedResourceTypes,
+		worker.ImageFetchingDelegate,
+	) (VersionedSource, worker.Volume, error)
+}
+
 type resourceInstanceFetchSource struct {
 	logger                 lager.Logger
 	resourceInstance       ResourceInstance
@@ -21,6 +34,7 @@ type resourceInstanceFetchSource struct {
 	metadata               Metadata
 	imageFetchingDelegate  worker.ImageFetchingDelegate
 	dbResourceCacheFactory db.ResourceCacheFactory
+	orchestrator           resourceOrchestrator
 }
 
 func NewResourceInstanceFetchSource(
@@ -34,6 +48,7 @@ func NewResourceInstanceFetchSource(
 	metadata Metadata,
 	imageFetchingDelegate worker.ImageFetchingDelegate,
 	dbResourceCacheFactory db.ResourceCacheFactory,
+	orchestrator resourceOrchestrator,
 ) FetchSource {
 	return &resourceInstanceFetchSource{
 		logger:                 logger,
@@ -46,6 +61,7 @@ func NewResourceInstanceFetchSource(
 		metadata:               metadata,
 		imageFetchingDelegate:  imageFetchingDelegate,
 		dbResourceCacheFactory: dbResourceCacheFactory,
+		orchestrator:           orchestrator,
 	}
 }
 
@@ -110,42 +126,18 @@ func (s *resourceInstanceFetchSource) Create(ctx context.Context) (VersionedSour
 		},
 	}
 
-	resourceFactory := NewResourceFactory(s.worker)
-	resource, err := resourceFactory.NewResource(
+	versionedSource, volume, err := s.orchestrator.GetResource(
+		sLog,
 		ctx,
-		s.logger,
-		s.resourceInstance.ContainerOwner(),
-		s.session.Metadata,
+		s.worker,
 		containerSpec,
+		s.resourceInstance,
+		s.session,
 		s.resourceTypes,
 		s.imageFetchingDelegate,
 	)
 	if err != nil {
-		sLog.Error("failed-to-construct-resource", err)
-		return nil, err
-	}
-
-	var volume worker.Volume
-	for _, mount := range resource.Container().VolumeMounts() {
-		if mount.MountPath == mountPath {
-			volume = mount.Volume
-			break
-		}
-	}
-
-	versionedSource, err = resource.Get(
-		ctx,
-		volume,
-		IOConfig{
-			Stdout: s.imageFetchingDelegate.Stdout(),
-			Stderr: s.imageFetchingDelegate.Stderr(),
-		},
-		s.resourceInstance.Source(),
-		s.resourceInstance.Params(),
-		s.resourceInstance.Version(),
-	)
-	if err != nil {
-		sLog.Error("failed-to-fetch-resource", err)
+		sLog.Error("failed-to-get-resource", err)
 		return nil, err
 	}
 

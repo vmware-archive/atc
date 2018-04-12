@@ -49,7 +49,8 @@ type GetStep struct {
 
 	resourceTypes creds.VersionedResourceTypes
 
-	succeeded bool
+	orchestrator runtime.Orchestrator
+	succeeded    bool
 }
 
 func NewGetStep(
@@ -64,6 +65,8 @@ func NewGetStep(
 	tags atc.Tags,
 
 	delegate GetDelegate,
+
+	orchestrator runtime.Orchestrator,
 
 	resourceFetcher resource.Fetcher,
 	teamID int,
@@ -86,7 +89,8 @@ func NewGetStep(
 		versionSource: versionSource,
 		tags:          tags,
 
-		delegate: delegate,
+		delegate:     delegate,
+		orchestrator: orchestrator,
 
 		resourceFetcher:        resourceFetcher,
 		teamID:                 teamID,
@@ -177,6 +181,7 @@ func (step *GetStep) Run(ctx context.Context, state RunState) error {
 		resourceInstance,
 		step.stepMetadata,
 		step.delegate,
+		step.orchestrator,
 	)
 	if err != nil {
 		logger.Error("failed-to-fetch-resource", err)

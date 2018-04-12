@@ -408,12 +408,20 @@ func (cmd *ATCCommand) constructMembers(
 	dbResourceConfigCheckSessionFactory := db.NewResourceConfigCheckSessionFactory(dbConn, lockFactory)
 	dbWorkerBaseResourceTypeFactory := db.NewWorkerBaseResourceTypeFactory(dbConn)
 	dbWorkerTaskCacheFactory := db.NewWorkerTaskCacheFactory(dbConn)
-	resourceFetcherFactory := resource.NewFetcherFactory(lockFactory, clock.NewClock(), dbResourceCacheFactory)
 
+	orchestrator := cmd.constructOrchestrator(
+		logger,
+		dbVolumeFactory,
+		teamFactory,
+		lockFactory,
+	)
+
+	resourceFetcherFactory := resource.NewFetcherFactory(lockFactory, clock.NewClock(), dbResourceCacheFactory, orchestrator)
 	imageResourceFetcherFactory := image.NewImageResourceFetcherFactory(
 		resourceFetcherFactory,
 		dbResourceCacheFactory,
 		dbResourceConfigFactory,
+		orchestrator,
 		clock.NewClock(),
 	)
 
@@ -436,13 +444,7 @@ func (cmd *ATCCommand) constructMembers(
 		workerProvider,
 	)
 
-	orchestrator := cmd.constructOrchestrator(
-		logger,
-		workerClient,
-		dbVolumeFactory,
-		teamFactory,
-		lockFactory,
-	)
+	orchestrator.SetWorkerPool(workerClient)
 
 	resourceFetcher := resourceFetcherFactory.FetcherFor(workerClient)
 	resourceFactory := resource.NewResourceFactory(workerClient)
@@ -969,7 +971,6 @@ func (cmd *ATCCommand) constructLockConn(driverName string) (*sql.DB, error) {
 
 func (cmd *ATCCommand) constructOrchestrator(
 	logger lager.Logger,
-	workerClient worker.Client,
 	dbVolumeFactory db.VolumeFactory,
 	dbTeamFactory db.TeamFactory,
 	lockFactory lock.LockFactory,
@@ -988,6 +989,7 @@ func (cmd *ATCCommand) constructOrchestrator(
 
 		return runtime.NewK8sOrchestrator(
 			clientset,
+			config,
 			"default",
 			dbVolumeFactory,
 			dbTeamFactory,
@@ -996,7 +998,7 @@ func (cmd *ATCCommand) constructOrchestrator(
 		)
 	}
 
-	return &runtime.GardenOrchestrator{WorkerPool: workerClient}
+	return &runtime.GardenOrchestrator{}
 }
 
 func (cmd *ATCCommand) constructWorkerPool(

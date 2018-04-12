@@ -51,6 +51,7 @@ type Worker interface {
 
 	Description() string
 	Name() string
+	Type() string
 	ResourceTypes() []atc.WorkerResourceType
 	Tags() atc.Tags
 	Uptime() time.Duration
@@ -64,6 +65,8 @@ type Worker interface {
 
 	GardenClient() garden.Client
 	BaggageclaimClient() baggageclaim.Client
+	BaggageclaimURL() *string
+	VolumeClient() VolumeClient
 }
 
 type gardenWorker struct {
@@ -78,11 +81,13 @@ type gardenWorker struct {
 	activeContainers int
 	resourceTypes    []atc.WorkerResourceType
 	platform         string
+	workerType       string
 	tags             atc.Tags
 	teamID           int
 	name             string
 	startTime        int64
 	version          *string
+	baggageclaimURL  *string
 }
 
 func NewGardenWorker(
@@ -105,10 +110,12 @@ func NewGardenWorker(
 		resourceTypes:    dbWorker.ResourceTypes(),
 		platform:         dbWorker.Platform(),
 		tags:             dbWorker.Tags(),
+		workerType:       dbWorker.Type(),
 		teamID:           dbWorker.TeamID(),
 		name:             dbWorker.Name(),
 		startTime:        dbWorker.StartTime(),
 		version:          dbWorker.Version(),
+		baggageclaimURL:  dbWorker.BaggageclaimURL(),
 	}
 }
 
@@ -116,8 +123,20 @@ func (worker *gardenWorker) GardenClient() garden.Client {
 	return worker.gardenClient
 }
 
+func (worker *gardenWorker) Type() string {
+	return worker.workerType
+}
+
 func (worker *gardenWorker) BaggageclaimClient() baggageclaim.Client {
 	return worker.baggageclaimClient
+}
+
+func (worker *gardenWorker) VolumeClient() VolumeClient {
+	return worker.volumeClient
+}
+
+func (worker *gardenWorker) BaggageclaimURL() *string {
+	return worker.baggageclaimURL
 }
 
 func (worker *gardenWorker) IsVersionCompatible(logger lager.Logger, comparedVersion *version.Version) bool {

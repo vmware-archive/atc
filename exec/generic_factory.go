@@ -63,6 +63,8 @@ func (factory *factory) Get(
 		plan.Get.Tags,
 
 		delegate,
+
+		factory.orchestrator,
 		factory.resourceFetcher,
 		build.TeamID(),
 		build.ID(),

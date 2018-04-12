@@ -63,6 +63,8 @@ func (factory *gardenFactory) Get(
 		plan.Get.Tags,
 
 		delegate,
+		&runtime.GardenOrchestrator{WorkerPool: factory.workerClient},
+
 		factory.resourceFetcher,
 		build.TeamID(),
 		build.ID(),

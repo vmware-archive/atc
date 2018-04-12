@@ -23,6 +23,10 @@ type GardenOrchestrator struct {
 	WorkerPool worker.Client
 }
 
+func (s *GardenOrchestrator) SetWorkerPool(pool worker.Client) {
+	s.WorkerPool = pool
+}
+
 func (s *GardenOrchestrator) RunTask(
 	ctx context.Context,
 	delegate TaskExecutionDelegate,
@@ -167,55 +171,55 @@ func (t *gardenTask) VolumeMounts() []worker.VolumeMount {
 	return t.container.VolumeMounts()
 }
 
-func (s *GardenOrchestrator) resource(
+func (s *GardenOrchestrator) GetResource(
+	logger lager.Logger,
 	ctx context.Context,
-	config atc.ResourceConfig,
-	params atc.Params,
-
-	delegate TaskExecutionDelegate,
-	owner db.ContainerOwner,
-	metadata db.ContainerMetadata,
+	targetWorker worker.Worker,
 	containerSpec worker.ContainerSpec,
+	resourceInstance resource.ResourceInstance,
+	session resource.Session,
 	resourceTypes creds.VersionedResourceTypes,
-) resource.Resource {
-	resourceFactory := resource.NewResourceFactory(s.WorkerPool)
+	delegate worker.ImageFetchingDelegate,
+) (resource.VersionedSource, worker.Volume, error) {
 
-	// mountPath := resource.ResourcesDir("get")
-
-	// containerSpec := worker.ContainerSpec{
-	// 	ImageSpec: worker.ImageSpec{
-	// 		ResourceType: string(s.resourceInstance.ResourceType()),
-	// 	},
-	// 	Tags:   s.tags,
-	// 	TeamID: s.teamID,
-	// 	Env:    s.metadata.Env(),
-
-	// 	Outputs: map[string]string{
-	// 		"resource": mountPath,
-	// 	},
-	// }
-
-	logger := lagerctx.FromContext(ctx)
-	resource, err := resourceFactory.NewResource(
+	resourceFactory := resource.NewResourceFactory(targetWorker)
+	res, err := resourceFactory.NewResource(
 		ctx,
 		logger,
-		owner,
-		metadata,
+		resourceInstance.ContainerOwner(),
+		session.Metadata,
 		containerSpec,
 		resourceTypes,
 		delegate,
 	)
 	if err != nil {
-		return nil
+		logger.Error("failed-to-construct-resource", err)
+		return nil, nil, err
 	}
 
-	// var volume worker.Volume
-	// for _, mount := range resource.Container().VolumeMounts() {
-	// 	if mount.MountPath == mountPath {
-	// 		volume = mount.Volume
-	// 		break
-	// 	}
-	// }
+	var volume worker.Volume
+	for _, mount := range res.Container().VolumeMounts() {
+		if mount.MountPath == resource.ResourcesDir("get") {
+			volume = mount.Volume
+			break
+		}
+	}
 
-	return resource
+	versionedSource, err := res.Get(
+		ctx,
+		volume,
+		resource.IOConfig{
+			Stdout: delegate.Stdout(),
+			Stderr: delegate.Stderr(),
+		},
+		resourceInstance.Source(),
+		resourceInstance.Params(),
+		resourceInstance.Version(),
+	)
+	if err != nil {
+		logger.Error("failed-to-fetch-resource", err)
+		return nil, nil, err
+	}
+
+	return versionedSource, volume, nil
 }

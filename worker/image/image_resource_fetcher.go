@@ -14,6 +14,7 @@ import (
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/resource"
+	"github.com/concourse/atc/runtime"
 	"github.com/concourse/atc/worker"
 )
 
@@ -54,6 +55,7 @@ type imageResourceFetcherFactory struct {
 	resourceFetcherFactory  resource.FetcherFactory
 	dbResourceCacheFactory  db.ResourceCacheFactory
 	dbResourceConfigFactory db.ResourceConfigFactory
+	orchestrator            runtime.Orchestrator
 	clock                   clock.Clock
 }
 
@@ -61,13 +63,15 @@ func NewImageResourceFetcherFactory(
 	resourceFetcherFactory resource.FetcherFactory,
 	dbResourceCacheFactory db.ResourceCacheFactory,
 	dbResourceConfigFactory db.ResourceConfigFactory,
+	orchestrator runtime.Orchestrator,
 	clock clock.Clock,
 ) ImageResourceFetcherFactory {
 	return &imageResourceFetcherFactory{
 		resourceFetcherFactory:  resourceFetcherFactory,
 		dbResourceCacheFactory:  dbResourceCacheFactory,
 		dbResourceConfigFactory: dbResourceConfigFactory,
-		clock: clock,
+		orchestrator:            orchestrator,
+		clock:                   clock,
 	}
 }
 
@@ -93,6 +97,8 @@ func (f *imageResourceFetcherFactory) NewImageResourceFetcher(
 		teamID:                teamID,
 		customTypes:           customTypes,
 		imageFetchingDelegate: imageFetchingDelegate,
+
+		orchestrator: f.orchestrator,
 	}
 }
 
@@ -104,6 +110,7 @@ type imageResourceFetcher struct {
 	dbResourceConfigFactory db.ResourceConfigFactory
 	clock                   clock.Clock
 
+	orchestrator          runtime.Orchestrator
 	imageResource         worker.ImageResource
 	version               atc.Version
 	teamID                int
@@ -183,6 +190,7 @@ func (i *imageResourceFetcher) Fetch(
 		resourceInstance,
 		resource.EmptyMetadata{},
 		i.imageFetchingDelegate,
+		i.orchestrator,
 	)
 	if err != nil {
 		logger.Error("failed-to-fetch-image", err)

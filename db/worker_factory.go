@@ -355,6 +355,10 @@ func saveWorker(tx Tx, atcWorker atc.Worker, teamID *int, ttl time.Duration, con
 		workerVersion = &atcWorker.Version
 	}
 
+	if atcWorker.Type == "" {
+		atcWorker.Type = "garden"
+	}
+
 	err = psql.Select("team_id").From("workers").Where(sq.Eq{
 		"name": atcWorker.Name,
 	}).RunWith(tx).QueryRow().Scan(&oldTeamID)

@@ -32,6 +32,7 @@ type Fetcher interface {
 		resourceInstance ResourceInstance,
 		metadata Metadata,
 		imageFetchingDelegate worker.ImageFetchingDelegate,
+		orchestrator resourceOrchestrator,
 	) (VersionedSource, error)
 }
 
@@ -63,6 +64,7 @@ func (f *fetcher) Fetch(
 	resourceInstance ResourceInstance,
 	metadata Metadata,
 	imageFetchingDelegate worker.ImageFetchingDelegate,
+	orchestrator resourceOrchestrator,
 ) (VersionedSource, error) {
 	sourceProvider := f.fetchSourceProviderFactory.NewFetchSourceProvider(
 		logger,
@@ -73,6 +75,7 @@ func (f *fetcher) Fetch(
 		resourceTypes,
 		resourceInstance,
 		imageFetchingDelegate,
+		orchestrator,
 	)
 
 	source, err := sourceProvider.Get()

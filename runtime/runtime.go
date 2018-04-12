@@ -8,6 +8,7 @@ import (
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
+	"github.com/concourse/atc/resource"
 	"github.com/concourse/atc/worker"
 )
 
@@ -30,6 +31,7 @@ type TaskExecutionDelegate interface {
 
 //go:generate counterfeiter . Orchestrator
 type Orchestrator interface {
+	SetWorkerPool(worker.Client)
 	RunTask(
 		context.Context,
 		TaskExecutionDelegate,
@@ -44,7 +46,17 @@ type Orchestrator interface {
 		IOConfig,
 		atc.TaskConfig,
 	) (chan TaskResult, []worker.VolumeMount, error)
-	// GetResource(context.Context, atc.ResourceConfig, worker.Volume, IOConfig, atc.Source, atc.Params, atc.Version) (resource.VersionedSource, error)
+	GetResource(
+		lager.Logger,
+		context.Context,
+		worker.Worker,
+		worker.ContainerSpec,
+		resource.ResourceInstance,
+		resource.Session,
+		creds.VersionedResourceTypes,
+		worker.ImageFetchingDelegate,
+	) (resource.VersionedSource, worker.Volume, error)
+
 	// PutResource(context.Context, atc.ResourceConfig, IOConfig, atc.Source, atc.Params) (resource.VersionedSource, error)
 	// CheckResource(context.Context, atc.ResourceConfig, atc.Source, atc.Version) ([]atc.Version, error)
 }

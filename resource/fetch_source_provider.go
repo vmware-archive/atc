@@ -22,6 +22,7 @@ type FetchSourceProviderFactory interface {
 		resourceTypes creds.VersionedResourceTypes,
 		resourceInstance ResourceInstance,
 		imageFetchingDelegate worker.ImageFetchingDelegate,
+		orchestrator resourceOrchestrator,
 	) FetchSourceProvider
 }
 
@@ -47,6 +48,7 @@ type fetchSourceProviderFactory struct {
 func NewFetchSourceProviderFactory(
 	workerClient worker.Client,
 	dbResourceCacheFactory db.ResourceCacheFactory,
+	orchestrator resourceOrchestrator,
 ) FetchSourceProviderFactory {
 	return &fetchSourceProviderFactory{
 		workerClient:           workerClient,
@@ -63,6 +65,7 @@ func (f *fetchSourceProviderFactory) NewFetchSourceProvider(
 	resourceTypes creds.VersionedResourceTypes,
 	resourceInstance ResourceInstance,
 	imageFetchingDelegate worker.ImageFetchingDelegate,
+	orchestrator resourceOrchestrator,
 ) FetchSourceProvider {
 	return &fetchSourceProvider{
 		logger:                 logger,
@@ -75,6 +78,7 @@ func (f *fetchSourceProviderFactory) NewFetchSourceProvider(
 		imageFetchingDelegate:  imageFetchingDelegate,
 		workerClient:           f.workerClient,
 		dbResourceCacheFactory: f.dbResourceCacheFactory,
+		orchestrator:           orchestrator,
 	}
 }
 
@@ -89,6 +93,7 @@ type fetchSourceProvider struct {
 	workerClient           worker.Client
 	imageFetchingDelegate  worker.ImageFetchingDelegate
 	dbResourceCacheFactory db.ResourceCacheFactory
+	orchestrator           resourceOrchestrator
 }
 
 func (f *fetchSourceProvider) Get() (FetchSource, error) {
@@ -115,5 +120,6 @@ func (f *fetchSourceProvider) Get() (FetchSource, error) {
 		f.metadata,
 		f.imageFetchingDelegate,
 		f.dbResourceCacheFactory,
+		f.orchestrator,
 	), nil
 }
