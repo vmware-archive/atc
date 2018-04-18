@@ -26,6 +26,8 @@
 // db/migration/migrations/1522178770_add_job_tags.up.go
 // db/migration/migrations/1523974520_add_worker_reaper_addr.down.sql
 // db/migration/migrations/1523974520_add_worker_reaper_addr.up.sql
+// db/migration/migrations/1524079655_update_reaper_addr_with_default_value.down.sql
+// db/migration/migrations/1524079655_update_reaper_addr_with_default_value.up.sql
 // DO NOT EDIT!
 
 package migration
@@ -288,7 +290,7 @@ func _1517330648_add_worker_resource_certsUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1517330648_add_worker_resource_certs.up.sql", size: 1140, mode: os.FileMode(420), modTime: time.Unix(1522691344, 0)}
+	info := bindataFileInfo{name: "1517330648_add_worker_resource_certs.up.sql", size: 1140, mode: os.FileMode(420), modTime: time.Unix(1524073237, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -428,7 +430,7 @@ func _1520950708_add_tracked_by_to_buildsDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1520950708_add_tracked_by_to_builds.down.sql", size: 3430, mode: os.FileMode(420), modTime: time.Unix(1521726261, 0)}
+	info := bindataFileInfo{name: "1520950708_add_tracked_by_to_builds.down.sql", size: 3430, mode: os.FileMode(420), modTime: time.Unix(1524073237, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -448,7 +450,7 @@ func _1520950708_add_tracked_by_to_buildsUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1520950708_add_tracked_by_to_builds.up.sql", size: 3494, mode: os.FileMode(420), modTime: time.Unix(1521726261, 0)}
+	info := bindataFileInfo{name: "1520950708_add_tracked_by_to_builds.up.sql", size: 3494, mode: os.FileMode(420), modTime: time.Unix(1524073237, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -468,7 +470,7 @@ func _1521209088_drop_pipesDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1521209088_drop_pipes.down.sql", size: 380, mode: os.FileMode(420), modTime: time.Unix(1521726261, 0)}
+	info := bindataFileInfo{name: "1521209088_drop_pipes.down.sql", size: 380, mode: os.FileMode(420), modTime: time.Unix(1524073237, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -488,7 +490,7 @@ func _1521209088_drop_pipesUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1521209088_drop_pipes.up.sql", size: 35, mode: os.FileMode(420), modTime: time.Unix(1521726261, 0)}
+	info := bindataFileInfo{name: "1521209088_drop_pipes.up.sql", size: 35, mode: os.FileMode(420), modTime: time.Unix(1524073237, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -508,7 +510,7 @@ func _1522176230_add_tags_to_jobsDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1522176230_add_tags_to_jobs.down.sql", size: 54, mode: os.FileMode(420), modTime: time.Unix(1523306413, 0)}
+	info := bindataFileInfo{name: "1522176230_add_tags_to_jobs.down.sql", size: 54, mode: os.FileMode(420), modTime: time.Unix(1524073237, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -528,7 +530,7 @@ func _1522176230_add_tags_to_jobsUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1522176230_add_tags_to_jobs.up.sql", size: 60, mode: os.FileMode(420), modTime: time.Unix(1523306413, 0)}
+	info := bindataFileInfo{name: "1522176230_add_tags_to_jobs.up.sql", size: 60, mode: os.FileMode(420), modTime: time.Unix(1524073237, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -548,7 +550,7 @@ func _1522178770_add_job_tagsDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1522178770_add_job_tags.down.sql", size: 1, mode: os.FileMode(420), modTime: time.Unix(1523306413, 0)}
+	info := bindataFileInfo{name: "1522178770_add_job_tags.down.sql", size: 1, mode: os.FileMode(420), modTime: time.Unix(1524073237, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -568,7 +570,7 @@ func _1522178770_add_job_tagsUpGo() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1522178770_add_job_tags.up.go", size: 1475, mode: os.FileMode(420), modTime: time.Unix(1523306413, 0)}
+	info := bindataFileInfo{name: "1522178770_add_job_tags.up.go", size: 1475, mode: os.FileMode(420), modTime: time.Unix(1524073237, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -588,7 +590,7 @@ func _1523974520_add_worker_reaper_addrDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1523974520_add_worker_reaper_addr.down.sql", size: 64, mode: os.FileMode(420), modTime: time.Unix(1523975711, 0)}
+	info := bindataFileInfo{name: "1523974520_add_worker_reaper_addr.down.sql", size: 64, mode: os.FileMode(420), modTime: time.Unix(1524073237, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -608,7 +610,47 @@ func _1523974520_add_worker_reaper_addrUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1523974520_add_worker_reaper_addr.up.sql", size: 68, mode: os.FileMode(420), modTime: time.Unix(1523975724, 0)}
+	info := bindataFileInfo{name: "1523974520_add_worker_reaper_addr.up.sql", size: 68, mode: os.FileMode(420), modTime: time.Unix(1524079610, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1524079655_update_reaper_addr_with_default_valueDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\xe2\x52\x50\x70\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x28\xcf\x2f\xca\x4e\x2d\x2a\x86\x8a\x39\xfb\xfb\x84\xfa\xfa\x29\x14\xa5\x26\x16\xa4\x16\xc5\x27\xa6\xa4\x14\x29\xb8\x04\xf9\x07\x28\xb8\xb8\xba\x39\x86\xfa\x84\x58\x73\x71\x39\xfb\xfb\xfa\x7a\x86\x58\x73\x01\x02\x00\x00\xff\xff\x58\x4d\x09\xa0\x4e\x00\x00\x00")
+
+func _1524079655_update_reaper_addr_with_default_valueDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1524079655_update_reaper_addr_with_default_valueDownSql,
+		"1524079655_update_reaper_addr_with_default_value.down.sql",
+	)
+}
+
+func _1524079655_update_reaper_addr_with_default_valueDownSql() (*asset, error) {
+	bytes, err := _1524079655_update_reaper_addr_with_default_valueDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1524079655_update_reaper_addr_with_default_value.down.sql", size: 78, mode: os.FileMode(420), modTime: time.Unix(1524079995, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1524079655_update_reaper_addr_with_default_valueUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\xe2\x52\x50\x70\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x28\xcf\x2f\xca\x4e\x2d\x2a\x86\x8a\x39\xfb\xfb\x84\xfa\xfa\x29\x14\xa5\x26\x16\xa4\x16\xc5\x27\xa6\xa4\x14\x29\x04\xbb\x86\x28\xb8\xb8\xba\x39\x86\xfa\x84\x28\xa8\xab\x5b\x59\x95\xa4\x56\x94\x58\x73\x71\x39\xfb\xfb\xfa\x7a\x86\x58\x73\x01\x02\x00\x00\xff\xff\xc7\x57\xe9\x23\x56\x00\x00\x00")
+
+func _1524079655_update_reaper_addr_with_default_valueUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1524079655_update_reaper_addr_with_default_valueUpSql,
+		"1524079655_update_reaper_addr_with_default_value.up.sql",
+	)
+}
+
+func _1524079655_update_reaper_addr_with_default_valueUpSql() (*asset, error) {
+	bytes, err := _1524079655_update_reaper_addr_with_default_valueUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1524079655_update_reaper_addr_with_default_value.up.sql", size: 86, mode: os.FileMode(420), modTime: time.Unix(1524079847, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -691,6 +733,8 @@ var _bindata = map[string]func() (*asset, error){
 	"1522178770_add_job_tags.up.go": _1522178770_add_job_tagsUpGo,
 	"1523974520_add_worker_reaper_addr.down.sql": _1523974520_add_worker_reaper_addrDownSql,
 	"1523974520_add_worker_reaper_addr.up.sql": _1523974520_add_worker_reaper_addrUpSql,
+	"1524079655_update_reaper_addr_with_default_value.down.sql": _1524079655_update_reaper_addr_with_default_valueDownSql,
+	"1524079655_update_reaper_addr_with_default_value.up.sql": _1524079655_update_reaper_addr_with_default_valueUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -759,6 +803,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1522178770_add_job_tags.up.go": &bintree{_1522178770_add_job_tagsUpGo, map[string]*bintree{}},
 	"1523974520_add_worker_reaper_addr.down.sql": &bintree{_1523974520_add_worker_reaper_addrDownSql, map[string]*bintree{}},
 	"1523974520_add_worker_reaper_addr.up.sql": &bintree{_1523974520_add_worker_reaper_addrUpSql, map[string]*bintree{}},
+	"1524079655_update_reaper_addr_with_default_value.down.sql": &bintree{_1524079655_update_reaper_addr_with_default_valueDownSql, map[string]*bintree{}},
+	"1524079655_update_reaper_addr_with_default_value.up.sql": &bintree{_1524079655_update_reaper_addr_with_default_valueUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
