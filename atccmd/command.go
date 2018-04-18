@@ -981,20 +981,16 @@ func (cmd *ATCCommand) constructWorkerPool(
 }
 
 func (cmd *ATCCommand) loadOrGenerateSigningKey() (*rsa.PrivateKey, error) {
-	var signingKey *rsa.PrivateKey
-
 	if cmd.SessionSigningKey.PrivateKey == nil {
 		generatedKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate session signing key: %s", err)
 		}
 
-		signingKey = generatedKey
-	} else {
-		signingKey = cmd.SessionSigningKey.PrivateKey
+		cmd.SessionSigningKey.PrivateKey = generatedKey
 	}
 
-	return signingKey, nil
+	return cmd.SessionSigningKey.PrivateKey, nil
 }
 
 func (cmd *ATCCommand) configureAuthForDefaultTeam(teamFactory db.TeamFactory) error {
