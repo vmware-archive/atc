@@ -167,6 +167,17 @@ type FakeResource struct {
 		result1 bool
 		result2 error
 	}
+	SpacesStub        func() ([]string, error)
+	spacesMutex       sync.RWMutex
+	spacesArgsForCall []struct{}
+	spacesReturns     struct {
+		result1 []string
+		result2 error
+	}
+	spacesReturnsOnCall map[int]struct {
+		result1 []string
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -862,6 +873,49 @@ func (fake *FakeResource) ReloadReturnsOnCall(i int, result1 bool, result2 error
 	}{result1, result2}
 }
 
+func (fake *FakeResource) Spaces() ([]string, error) {
+	fake.spacesMutex.Lock()
+	ret, specificReturn := fake.spacesReturnsOnCall[len(fake.spacesArgsForCall)]
+	fake.spacesArgsForCall = append(fake.spacesArgsForCall, struct{}{})
+	fake.recordInvocation("Spaces", []interface{}{})
+	fake.spacesMutex.Unlock()
+	if fake.SpacesStub != nil {
+		return fake.SpacesStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.spacesReturns.result1, fake.spacesReturns.result2
+}
+
+func (fake *FakeResource) SpacesCallCount() int {
+	fake.spacesMutex.RLock()
+	defer fake.spacesMutex.RUnlock()
+	return len(fake.spacesArgsForCall)
+}
+
+func (fake *FakeResource) SpacesReturns(result1 []string, result2 error) {
+	fake.SpacesStub = nil
+	fake.spacesReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeResource) SpacesReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.SpacesStub = nil
+	if fake.spacesReturnsOnCall == nil {
+		fake.spacesReturnsOnCall = make(map[int]struct {
+			result1 []string
+			result2 error
+		})
+	}
+	fake.spacesReturnsOnCall[i] = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeResource) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -899,6 +953,8 @@ func (fake *FakeResource) Invocations() map[string][][]interface{} {
 	defer fake.unpauseMutex.RUnlock()
 	fake.reloadMutex.RLock()
 	defer fake.reloadMutex.RUnlock()
+	fake.spacesMutex.RLock()
+	defer fake.spacesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

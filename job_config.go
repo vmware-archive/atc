@@ -17,6 +17,8 @@ type JobConfig struct {
 	Failure *PlanConfig `yaml:"on_failure,omitempty" json:"on_failure,omitempty" mapstructure:"on_failure"`
 	Ensure  *PlanConfig `yaml:"ensure,omitempty" json:"ensure,omitempty" mapstructure:"ensure"`
 	Success *PlanConfig `yaml:"on_success,omitempty" json:"on_success,omitempty" mapstructure:"on_success"`
+
+	Space map[string][]string `yaml:"space,omitempty" json:"space,omitempty" mapstructure:"space"`
 }
 
 func (config JobConfig) Hooks() Hooks {
@@ -171,7 +173,10 @@ func (config JobConfig) Outputs() []JobOutput {
 }
 
 func (config JobConfig) Spaces() map[string][]string {
-	spaces := map[string][]string{}
+	spaces := config.Space
+	if spaces == nil {
+		spaces = map[string][]string{}
+	}
 
 	for _, plan := range config.Plans() {
 		resource := plan.Resource
@@ -182,7 +187,7 @@ func (config JobConfig) Spaces() map[string][]string {
 		if resource == "" {
 			resource = plan.Put
 		}
-		if resource != "" {
+		if resource != "" && len(spaces[resource]) == 0 {
 			spaces[resource] = []string{"default"}
 		}
 	}

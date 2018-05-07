@@ -78,11 +78,14 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 		// pipeline is public or authorized
 		case atc.GetPipeline,
 			atc.GetJobBuild,
+			atc.GetJobCombinationBuild,
 			atc.PipelineBadge,
 			atc.JobBadge,
+			atc.ListSpaceJobs,
 			atc.ListJobs,
 			atc.GetJob,
 			atc.ListJobBuilds,
+			atc.ListJobCombinationBuilds,
 			atc.ListPipelineBuilds,
 			atc.GetResource,
 			atc.ListBuildsWithVersionAsInput,
@@ -91,6 +94,7 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 			atc.GetResourceVersion,
 			atc.ListResources,
 			atc.ListResourceTypes,
+			atc.ListSpaceResources,
 			atc.ListResourceVersions:
 			newHandler = wrappa.checkPipelineAccessHandlerFactory.HandlerFor(handler, rejector)
 

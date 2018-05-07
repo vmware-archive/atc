@@ -19,13 +19,14 @@ func Build(build db.Build) atc.Build {
 	}
 
 	atcBuild := atc.Build{
-		ID:           build.ID(),
-		Name:         build.Name(),
-		JobName:      build.JobName(),
-		PipelineName: build.PipelineName(),
-		TeamName:     build.TeamName(),
-		Status:       string(build.Status()),
-		APIURL:       apiURL,
+		ID:               build.ID(),
+		JobCombinationID: build.JobCombinationID(),
+		Name:             build.Name(),
+		JobName:          build.JobName(),
+		PipelineName:     build.PipelineName(),
+		TeamName:         build.TeamName(),
+		Status:           string(build.Status()),
+		APIURL:           apiURL,
 	}
 
 	if !build.StartTime().IsZero() {

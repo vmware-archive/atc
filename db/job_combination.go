@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"encoding/json"
 
 	sq "github.com/Masterminds/squirrel"
@@ -13,6 +14,9 @@ type JobCombination interface {
 	JobID() int
 	Combination() map[string]string
 
+	Builds(page Page) ([]Build, Pagination, error)
+	Build(name string) (Build, bool, error)
+
 	CreateBuild() (Build, error)
 	EnsurePendingBuildExists() error
 
@@ -23,6 +27,9 @@ type JobCombination interface {
 	SaveIndependentInputMapping(inputMapping algorithm.InputMapping) error
 	DeleteNextInputMapping() error
 }
+
+var jobCombinationsQuery = psql.Select("c.id", "c.job_id", "c.combination").
+	From("job_combinations c")
 
 type jobCombination struct {
 	id          int
@@ -36,6 +43,8 @@ type jobCombination struct {
 	lockFactory lock.LockFactory
 }
 
+type JobCombinations []JobCombination
+
 func (c *jobCombination) ID() int {
 	return c.id
 }
@@ -46,6 +55,112 @@ func (c *jobCombination) JobID() int {
 
 func (c *jobCombination) Combination() map[string]string {
 	return c.combination
+}
+
+func (c *jobCombination) Builds(page Page) ([]Build, Pagination, error) {
+	query := buildsQuery.Where(sq.Eq{"c.id": c.id})
+
+	limit := uint64(page.Limit)
+
+	var reverse bool
+	if page.Since == 0 && page.Until == 0 {
+		query = query.OrderBy("b.id DESC").Limit(limit)
+	} else if page.Until != 0 {
+		query = query.Where(sq.Gt{"b.id": page.Until}).OrderBy("b.id ASC").Limit(limit)
+		reverse = true
+	} else {
+		query = query.Where(sq.Lt{"b.id": page.Since}).OrderBy("b.id DESC").Limit(limit)
+	}
+
+	rows, err := query.RunWith(c.conn).Query()
+	if err != nil {
+		return nil, Pagination{}, err
+	}
+
+	defer Close(rows)
+
+	builds := []Build{}
+
+	for rows.Next() {
+		build := &build{conn: c.conn, lockFactory: c.lockFactory}
+		err = scanBuild(build, rows, c.conn.EncryptionStrategy())
+		if err != nil {
+			return nil, Pagination{}, err
+		}
+
+		if reverse {
+			builds = append([]Build{build}, builds...)
+		} else {
+			builds = append(builds, build)
+		}
+	}
+
+	if len(builds) == 0 {
+		return []Build{}, Pagination{}, nil
+	}
+
+	var maxID, minID int
+	err = psql.Select("COALESCE(MAX(b.id), 0) as maxID", "COALESCE(MIN(b.id), 0) as minID").
+		From("builds b").
+		Join("job_combinations c ON c.id = b.job_combination_id").
+		Where(sq.Eq{"c.id": c.id}).
+		RunWith(c.conn).
+		QueryRow().
+		Scan(&maxID, &minID)
+	if err != nil {
+		return nil, Pagination{}, err
+	}
+
+	firstBuild := builds[0]
+	lastBuild := builds[len(builds)-1]
+
+	var pagination Pagination
+
+	if firstBuild.ID() < maxID {
+		pagination.Previous = &Page{
+			Until: firstBuild.ID(),
+			Limit: page.Limit,
+		}
+	}
+
+	if lastBuild.ID() > minID {
+		pagination.Next = &Page{
+			Since: lastBuild.ID(),
+			Limit: page.Limit,
+		}
+	}
+
+	return builds, pagination, nil
+}
+
+func (c *jobCombination) Build(name string) (Build, bool, error) {
+	var query sq.SelectBuilder
+
+	if name == "latest" {
+		query = buildsQuery.
+			Where(sq.Eq{"c.id": c.id}).
+			OrderBy("b.id DESC").
+			Limit(1)
+	} else {
+		query = buildsQuery.Where(sq.Eq{
+			"c.id":   c.id,
+			"b.name": name,
+		})
+	}
+
+	row := query.RunWith(c.conn).QueryRow()
+
+	build := &build{conn: c.conn, lockFactory: c.lockFactory}
+
+	err := scanBuild(build, row, c.conn.EncryptionStrategy())
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+
+	return build, true, nil
 }
 
 func (c *jobCombination) CreateBuild() (Build, error) {
@@ -342,4 +457,39 @@ func (c *jobCombination) saveJobInputMapping(table string, inputMapping algorith
 	}
 
 	return tx.Commit()
+}
+
+func scanJobCombination(c *jobCombination, row scannable) error {
+	var combination []byte
+
+	err := row.Scan(&c.id, &c.jobID, &combination)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(combination, &c.combination)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func scanJobCombinations(conn Conn, lockFactory lock.LockFactory, rows *sql.Rows) (JobCombinations, error) {
+	defer Close(rows)
+
+	jobCombinations := JobCombinations{}
+
+	for rows.Next() {
+		jobCombination := &jobCombination{conn: conn, lockFactory: lockFactory}
+
+		err := scanJobCombination(jobCombination, rows)
+		if err != nil {
+			return nil, err
+		}
+
+		jobCombinations = append(jobCombinations, jobCombination)
+	}
+
+	return jobCombinations, nil
 }

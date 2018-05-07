@@ -375,6 +375,7 @@ func (cmd *ATCCommand) constructMembers(
 	dbPipelineFactory := db.NewPipelineFactory(dbConn, lockFactory)
 	dbJobFactory := db.NewJobFactory(dbConn, lockFactory)
 	dbResourceFactory := db.NewResourceFactory(dbConn, lockFactory)
+	dbSpaceJobFactory := db.NewSpaceJobFactory(dbConn, lockFactory)
 	dbWorkerFactory := db.NewWorkerFactory(dbConn)
 	dbWorkerLifecycle := db.NewWorkerLifecycle(dbConn)
 	resourceConfigCheckSessionLifecycle := db.NewResourceConfigCheckSessionLifecycle(dbConn)
@@ -508,6 +509,7 @@ func (cmd *ATCCommand) constructMembers(
 		dbPipelineFactory,
 		dbJobFactory,
 		dbResourceFactory,
+		dbSpaceJobFactory,
 		dbWorkerFactory,
 		dbVolumeRepository,
 		dbContainerRepository,
@@ -1026,6 +1028,7 @@ func (cmd *ATCCommand) constructAPIHandler(
 	dbPipelineFactory db.PipelineFactory,
 	dbJobFactory db.JobFactory,
 	dbResourceFactory db.ResourceFactory,
+	dbSpaceJobFactory db.SpaceJobFactory,
 	dbWorkerFactory db.WorkerFactory,
 	dbVolumeRepository db.VolumeRepository,
 	dbContainerRepository db.ContainerRepository,
@@ -1065,6 +1068,7 @@ func (cmd *ATCCommand) constructAPIHandler(
 		dbPipelineFactory,
 		dbJobFactory,
 		dbResourceFactory,
+		dbSpaceJobFactory,
 		dbWorkerFactory,
 		dbVolumeRepository,
 		dbContainerRepository,

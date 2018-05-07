@@ -15,22 +15,26 @@ const (
 	AbortBuild          = "AbortBuild"
 	GetBuildPreparation = "GetBuildPreparation"
 
-	GetJob         = "GetJob"
-	CreateJobBuild = "CreateJobBuild"
-	ListAllJobs    = "ListAllJobs"
-	ListJobs       = "ListJobs"
-	ListJobBuilds  = "ListJobBuilds"
-	ListJobInputs  = "ListJobInputs"
-	GetJobBuild    = "GetJobBuild"
-	PauseJob       = "PauseJob"
-	UnpauseJob     = "UnpauseJob"
-	GetVersionsDB  = "GetVersionsDB"
-	JobBadge       = "JobBadge"
-	MainJobBadge   = "MainJobBadge"
+	GetJob                   = "GetJob"
+	CreateJobBuild           = "CreateJobBuild"
+	ListAllJobs              = "ListAllJobs"
+	ListSpaceJobs            = "ListSpaceJobs"
+	ListJobs                 = "ListJobs"
+	ListJobBuilds            = "ListJobBuilds"
+	ListJobCombinationBuilds = "ListJobCombinationBuilds"
+	ListJobInputs            = "ListJobInputs"
+	GetJobBuild              = "GetJobBuild"
+	GetJobCombinationBuild   = "GetJobCombinationBuild"
+	PauseJob                 = "PauseJob"
+	UnpauseJob               = "UnpauseJob"
+	GetVersionsDB            = "GetVersionsDB"
+	JobBadge                 = "JobBadge"
+	MainJobBadge             = "MainJobBadge"
 
 	ListAllResources     = "ListAllResources"
 	ListResources        = "ListResources"
 	ListResourceTypes    = "ListResourceTypes"
+	ListSpaceResources   = "ListSpaceResources"
 	GetResource          = "GetResource"
 	PauseResource        = "PauseResource"
 	UnpauseResource      = "UnpauseResource"
@@ -110,12 +114,15 @@ var Routes = rata.Routes([]rata.Route{
 	{Path: "/api/v1/builds/:build_id/preparation", Method: "GET", Name: GetBuildPreparation},
 
 	{Path: "/api/v1/jobs", Method: "GET", Name: ListAllJobs},
+	{Path: "/api/v1/space/teams/:team_name/pipelines/:pipeline_name/jobs", Method: "GET", Name: ListSpaceJobs},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs", Method: "GET", Name: ListJobs},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs/:job_name", Method: "GET", Name: GetJob},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs/:job_name/builds", Method: "GET", Name: ListJobBuilds},
+	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs/:job_name/:job_combination_id/builds", Method: "GET", Name: ListJobCombinationBuilds},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs/:job_name/builds", Method: "POST", Name: CreateJobBuild},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs/:job_name/inputs", Method: "GET", Name: ListJobInputs},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs/:job_name/builds/:build_name", Method: "GET", Name: GetJobBuild},
+	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs/:job_name/:job_combination_id/builds/:build_name", Method: "GET", Name: GetJobCombinationBuild},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs/:job_name/pause", Method: "PUT", Name: PauseJob},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs/:job_name/unpause", Method: "PUT", Name: UnpauseJob},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/jobs/:job_name/badge", Method: "GET", Name: JobBadge},
@@ -139,6 +146,7 @@ var Routes = rata.Routes([]rata.Route{
 	{Path: "/api/v1/resources", Method: "GET", Name: ListAllResources},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resources", Method: "GET", Name: ListResources},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resource-types", Method: "GET", Name: ListResourceTypes},
+	{Path: "/api/v1/space/teams/:team_name/pipelines/:pipeline_name/resources", Method: "GET", Name: ListSpaceResources},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name", Method: "GET", Name: GetResource},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/pause", Method: "PUT", Name: PauseResource},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/unpause", Method: "PUT", Name: UnpauseResource},

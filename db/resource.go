@@ -35,6 +35,8 @@ type Resource interface {
 	Unpause() error
 
 	Reload() (bool, error)
+
+	Spaces() ([]string, error)
 }
 
 var resourcesQuery = psql.Select("r.id, r.name, r.config, r.check_error, r.paused, r.last_checked, r.pipeline_id, r.nonce, p.name, t.name").
@@ -167,6 +169,41 @@ func (r *resource) SetResourceConfig(resourceConfigID int) error {
 		Exec()
 
 	return err
+}
+
+func (r *resource) Spaces() ([]string, error) {
+	rows, err := psql.Select("DISTINCT(rs.name)").
+		From("job_combinations_resource_spaces crs").
+		Join("resource_spaces rs ON rs.id = crs.resource_space_id").
+		Join("resources r ON r.id = rs.resource_id").
+		Join("job_combinations c ON c.id = crs.job_combination_id").
+		Join("jobs j ON j.id = c.job_id").
+		Join("pipelines p ON p.id = j.pipeline_id").
+		Where(sq.And{
+			sq.Eq{"p.id": r.pipelineID},
+			sq.Eq{"r.id": r.id},
+		}).
+		RunWith(r.conn).
+		Query()
+	if err != nil {
+		return []string{}, err
+	}
+
+	defer Close(rows)
+
+	var spaces []string
+	var space string
+
+	for rows.Next() {
+		err = rows.Scan(&space)
+		if err != nil {
+			return []string{}, err
+		}
+
+		spaces = append(spaces, space)
+	}
+
+	return spaces, nil
 }
 
 func scanResource(r *resource, row scannable) error {

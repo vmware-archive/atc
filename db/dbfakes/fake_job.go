@@ -161,6 +161,19 @@ type FakeJob struct {
 		result1 []db.JobCombination
 		result2 error
 	}
+	FindJobCombinationByIDStub        func(id string) (db.JobCombination, error)
+	findJobCombinationByIDMutex       sync.RWMutex
+	findJobCombinationByIDArgsForCall []struct {
+		id string
+	}
+	findJobCombinationByIDReturns struct {
+		result1 db.JobCombination
+		result2 error
+	}
+	findJobCombinationByIDReturnsOnCall map[int]struct {
+		result1 db.JobCombination
+		result2 error
+	}
 	BuildsStub        func(page db.Page) ([]db.Build, db.Pagination, error)
 	buildsMutex       sync.RWMutex
 	buildsArgsForCall []struct {
@@ -939,6 +952,57 @@ func (fake *FakeJob) JobCombinationsReturnsOnCall(i int, result1 []db.JobCombina
 	}{result1, result2}
 }
 
+func (fake *FakeJob) FindJobCombinationByID(id string) (db.JobCombination, error) {
+	fake.findJobCombinationByIDMutex.Lock()
+	ret, specificReturn := fake.findJobCombinationByIDReturnsOnCall[len(fake.findJobCombinationByIDArgsForCall)]
+	fake.findJobCombinationByIDArgsForCall = append(fake.findJobCombinationByIDArgsForCall, struct {
+		id string
+	}{id})
+	fake.recordInvocation("FindJobCombinationByID", []interface{}{id})
+	fake.findJobCombinationByIDMutex.Unlock()
+	if fake.FindJobCombinationByIDStub != nil {
+		return fake.FindJobCombinationByIDStub(id)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.findJobCombinationByIDReturns.result1, fake.findJobCombinationByIDReturns.result2
+}
+
+func (fake *FakeJob) FindJobCombinationByIDCallCount() int {
+	fake.findJobCombinationByIDMutex.RLock()
+	defer fake.findJobCombinationByIDMutex.RUnlock()
+	return len(fake.findJobCombinationByIDArgsForCall)
+}
+
+func (fake *FakeJob) FindJobCombinationByIDArgsForCall(i int) string {
+	fake.findJobCombinationByIDMutex.RLock()
+	defer fake.findJobCombinationByIDMutex.RUnlock()
+	return fake.findJobCombinationByIDArgsForCall[i].id
+}
+
+func (fake *FakeJob) FindJobCombinationByIDReturns(result1 db.JobCombination, result2 error) {
+	fake.FindJobCombinationByIDStub = nil
+	fake.findJobCombinationByIDReturns = struct {
+		result1 db.JobCombination
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeJob) FindJobCombinationByIDReturnsOnCall(i int, result1 db.JobCombination, result2 error) {
+	fake.FindJobCombinationByIDStub = nil
+	if fake.findJobCombinationByIDReturnsOnCall == nil {
+		fake.findJobCombinationByIDReturnsOnCall = make(map[int]struct {
+			result1 db.JobCombination
+			result2 error
+		})
+	}
+	fake.findJobCombinationByIDReturnsOnCall[i] = struct {
+		result1 db.JobCombination
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeJob) Builds(page db.Page) ([]db.Build, db.Pagination, error) {
 	fake.buildsMutex.Lock()
 	ret, specificReturn := fake.buildsReturnsOnCall[len(fake.buildsArgsForCall)]
@@ -1438,6 +1502,8 @@ func (fake *FakeJob) Invocations() map[string][][]interface{} {
 	defer fake.jobCombinationMutex.RUnlock()
 	fake.jobCombinationsMutex.RLock()
 	defer fake.jobCombinationsMutex.RUnlock()
+	fake.findJobCombinationByIDMutex.RLock()
+	defer fake.findJobCombinationByIDMutex.RUnlock()
 	fake.buildsMutex.RLock()
 	defer fake.buildsMutex.RUnlock()
 	fake.buildMutex.RLock()

@@ -32,6 +32,7 @@ type Job interface {
 	ResourceSpaceCombinations(map[string][]string) []map[string]string
 	JobCombination() (JobCombination, error)
 	JobCombinations() ([]JobCombination, error)
+	FindJobCombinationByID(id string) (JobCombination, error)
 	Builds(page Page) ([]Build, Pagination, error)
 	Build(name string) (Build, bool, error)
 	FinishedAndNextBuild() (Build, Build, error)
@@ -262,6 +263,31 @@ func (j *job) ResourceSpaceCombinations(resourceSpaces map[string][]string) []ma
 	}
 
 	return combinations
+}
+
+func (j *job) FindJobCombinationByID(id string) (JobCombination, error) {
+	var jobCombinationID, jobID int
+	var marshaled sql.NullString
+	var combination map[string]string
+
+	err := psql.Select("id, job_id, combination").
+		From("job_combinations").
+		Where(sq.Eq{"id": id}).
+		RunWith(j.conn).QueryRow().
+		Scan(&jobCombinationID, &jobID, &marshaled)
+	if err != nil {
+		return nil, err
+	}
+
+	if marshaled.Valid {
+		err = json.Unmarshal([]byte(marshaled.String), &combination)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	jc := &jobCombination{conn: j.conn, lockFactory: j.lockFactory, id: jobCombinationID, jobID: jobID, pipelineID: j.pipelineID, teamID: j.teamID, combination: combination}
+	return jc, nil
 }
 
 func (j *job) JobCombination() (JobCombination, error) {
@@ -736,9 +762,33 @@ func (j *job) syncResourceSpaceCombinations(tx Tx, combinations []map[string]str
 		}
 
 		for resource, space := range c {
+			// HACK: insert resource space manually since resource cannot discover spaces yet
+			var resourceID int
+
+			err := psql.Select("r.id").
+				From("resources r").
+				Where(sq.Eq{
+					"r.name":        resource,
+					"r.pipeline_id": j.PipelineID(),
+				}).RunWith(tx).QueryRow().Scan(&resourceID)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = psql.Insert("resource_spaces").
+				Columns("resource_id", "name").
+				Values(resourceID, space).
+				Suffix("ON CONFLICT (resource_id, name) DO NOTHING").
+				RunWith(tx).Exec()
+			if err != nil {
+				return nil, err
+			}
+
+			// END HACK
+
 			var resourceSpaceID int
 
-			err := psql.Select("rs.id").
+			err = psql.Select("rs.id").
 				From("resource_spaces rs").
 				Join("resources r ON r.id = rs.resource_id").
 				Where(sq.Eq{

@@ -22,6 +22,7 @@ type Server struct {
 	rejector         auth.Rejector
 	variablesFactory creds.VariablesFactory
 	jobFactory       db.JobFactory
+	spaceJobFactory  db.SpaceJobFactory
 }
 
 func NewServer(
@@ -30,6 +31,7 @@ func NewServer(
 	externalURL string,
 	variablesFactory creds.VariablesFactory,
 	jobFactory db.JobFactory,
+	spaceJobFactory db.SpaceJobFactory,
 ) *Server {
 	return &Server{
 		logger:           logger,
@@ -38,5 +40,6 @@ func NewServer(
 		rejector:         auth.UnauthorizedRejector{},
 		variablesFactory: variablesFactory,
 		jobFactory:       jobFactory,
+		spaceJobFactory:  spaceJobFactory,
 	}
 }
