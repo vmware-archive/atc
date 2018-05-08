@@ -699,7 +699,7 @@ func _1525442981_create_version_resources_check_order_indexUpSql() (*asset, erro
 	return a, nil
 }
 
-var __1525724789_drop_reaper_addr_from_workersDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\xe2\x52\x50\x70\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x28\xcf\x2f\xca\x4e\x2d\x2a\x56\x70\x74\x71\x51\x70\xf6\xf7\x09\xf5\xf5\x53\x28\x4a\x4d\x2c\x48\x2d\x8a\x4f\x4c\x49\x29\x52\x70\x71\x75\x73\x0c\xf5\x09\x51\x50\x57\xb7\xb2\x2a\x49\xad\x28\xb1\xe6\xe2\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\x02\x04\x00\x00\xff\xff\xd3\xe2\xf9\xf7\x50\x00\x00\x00")
+var __1525724789_drop_reaper_addr_from_workersDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\xe2\x52\x50\x70\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x28\xcf\x2f\xca\x4e\x2d\x2a\x56\x70\x74\x71\x51\x28\x4a\x4d\x2c\x48\x2d\x8a\x4f\x4c\x49\x29\x52\x28\x49\xad\x28\x51\x70\x71\x75\x73\x0c\xf5\x09\x51\x50\x57\xb7\xe6\xe2\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\x02\x04\x00\x00\xff\xff\x8d\x7e\x0f\x6d\x48\x00\x00\x00")
 
 func _1525724789_drop_reaper_addr_from_workersDownSqlBytes() ([]byte, error) {
 	return bindataRead(
@@ -714,7 +714,7 @@ func _1525724789_drop_reaper_addr_from_workersDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1525724789_drop_reaper_addr_from_workers.down.sql", size: 80, mode: os.FileMode(420), modTime: time.Unix(1525724984, 0)}
+	info := bindataFileInfo{name: "1525724789_drop_reaper_addr_from_workers.down.sql", size: 72, mode: os.FileMode(420), modTime: time.Unix(1525801877, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -734,7 +734,7 @@ func _1525724789_drop_reaper_addr_from_workersUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1525724789_drop_reaper_addr_from_workers.up.sql", size: 64, mode: os.FileMode(420), modTime: time.Unix(1525724986, 0)}
+	info := bindataFileInfo{name: "1525724789_drop_reaper_addr_from_workers.up.sql", size: 64, mode: os.FileMode(420), modTime: time.Unix(1525794826, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
