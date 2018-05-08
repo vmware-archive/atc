@@ -14,6 +14,7 @@ type jobCombination struct {
 	id               int
 	jobID            int
 	combination      string
+	buildNumberSeq   int
 	inputsDetermined bool
 }
 
@@ -72,11 +73,11 @@ var _ = Describe("Populate job combinations", func() {
 			setupTeamAndPipeline(db)
 
 			_, err := db.Exec(`
-				INSERT INTO jobs(id, pipeline_id, name, config, inputs_determined, active) VALUES
-					(1, 1, 'a-job', '{"name":"a-job"}', true, true),
-					(2, 1, 'some-job', '{"name":"some-job","plan":[{"get":"some-resource"}]}', true, true),
-					(3, 1, 'other-job', '{"name":"other-job","plan":[{"get":"some-resource"},{"put":"other-resource"}]}', false, true),
-					(4, 1, 'another-job', '{"name":"another-job"}', true, false)
+				INSERT INTO jobs(id, pipeline_id, name, config, build_number_seq, inputs_determined, active) VALUES
+					(1, 1, 'a-job', '{"name":"a-job"}', 0, true, true),
+					(2, 1, 'some-job', '{"name":"some-job","plan":[{"get":"some-resource"}]}', 1, true, true),
+					(3, 1, 'other-job', '{"name":"other-job","plan":[{"get":"some-resource"},{"put":"other-resource"}]}', 2, false, true),
+					(4, 1, 'another-job', '{"name":"another-job"}', 3, true, false)
 			`)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -99,7 +100,7 @@ var _ = Describe("Populate job combinations", func() {
 			db = postgresRunner.OpenDBAtVersion(postMigrationVersion)
 
 			rows, err := db.Query(`
-				SELECT id, job_id, combination, inputs_determined FROM job_combinations
+				SELECT id, job_id, combination, build_number_seq, inputs_determined FROM job_combinations
 			`)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -110,7 +111,7 @@ var _ = Describe("Populate job combinations", func() {
 
 				jc := jobCombination{}
 
-				err := rows.Scan(&jc.id, &jc.jobID, &combination, &jc.inputsDetermined)
+				err := rows.Scan(&jc.id, &jc.jobID, &combination, &jc.buildNumberSeq, &jc.inputsDetermined)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(combination.Valid).To(BeTrue())
 
@@ -146,6 +147,9 @@ var _ = Describe("Populate job combinations", func() {
 			Expect(jobCombinations[0].combination).To(Equal(`{}`))
 			Expect(jobCombinations[1].combination).To(Equal(`{"some-resource": "default"}`))
 			Expect(jobCombinations[2].combination).To(Equal(`{"some-resource": "default", "other-resource": "default"}`))
+			Expect(jobCombinations[0].buildNumberSeq).To(Equal(0))
+			Expect(jobCombinations[1].buildNumberSeq).To(Equal(1))
+			Expect(jobCombinations[2].buildNumberSeq).To(Equal(2))
 			Expect(jobCombinations[0].inputsDetermined).To(Equal(true))
 			Expect(jobCombinations[1].inputsDetermined).To(Equal(true))
 			Expect(jobCombinations[2].inputsDetermined).To(Equal(false))
@@ -195,8 +199,8 @@ func setupResourceSpace(db *sql.DB) {
 
 func setupJobCombination(db *sql.DB) {
 	_, err := db.Exec(`
-				INSERT INTO jobs(id, pipeline_id, name, config, inputs_determined) VALUES
-					(1, 1, 'a-job', '{"name":"a-job"}', true)
+				INSERT INTO jobs(id, pipeline_id, name, config, build_number_seq, inputs_determined) VALUES
+					(1, 1, 'a-job', '{"name":"a-job"}', 0, true)
 			`)
 	Expect(err).NotTo(HaveOccurred())
 

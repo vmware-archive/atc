@@ -4,6 +4,7 @@ BEGIN;
     id SERIAL PRIMARY KEY,
     job_id int REFERENCES jobs (id) ON DELETE CASCADE,
     combination jsonb NOT NULL,
+    build_number_seq integer DEFAULT 0 NOT NULL,
     inputs_determined boolean DEFAULT false
   );
 

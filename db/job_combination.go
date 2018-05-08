@@ -314,9 +314,9 @@ func (c *jobCombination) DeleteNextInputMapping() error {
 
 func (c *jobCombination) getNewBuildName(tx Tx) (string, error) {
 	var buildName string
-	err := psql.Update("jobs").
+	err := psql.Update("job_combinations").
 		Set("build_number_seq", sq.Expr("build_number_seq + 1")).
-		Where(sq.Eq{"id": c.jobID}).
+		Where(sq.Eq{"id": c.id}).
 		Suffix("RETURNING build_number_seq").
 		RunWith(tx).
 		QueryRow().

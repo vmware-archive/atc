@@ -31,6 +31,7 @@ type jobConfig struct {
 type job struct {
 	id               int
 	config           jobConfig
+	buildNumberSeq   int
 	inputsDetermined bool
 	pipeline_id      int
 }
@@ -154,7 +155,7 @@ func (self *migrations) Up_1515427942() error {
 		_ = tx.Rollback()
 	}()
 
-	rows, err := tx.Query("SELECT id, config, inputs_determined, nonce, pipeline_id FROM jobs WHERE active='true'")
+	rows, err := tx.Query("SELECT id, config, build_number_seq, inputs_determined, nonce, pipeline_id FROM jobs WHERE active='true'")
 	if err != nil {
 		return err
 	}
@@ -167,7 +168,7 @@ func (self *migrations) Up_1515427942() error {
 	for rows.Next() {
 		job := job{}
 
-		err = rows.Scan(&job.id, &configBlob, &job.inputsDetermined, &nonce, &job.pipeline_id)
+		err = rows.Scan(&job.id, &configBlob, &job.buildNumberSeq, &job.inputsDetermined, &nonce, &job.pipeline_id)
 		if err != nil {
 			return err
 		}
@@ -203,9 +204,9 @@ func (self *migrations) Up_1515427942() error {
 			}
 
 			_, err = tx.Exec(`
-				INSERT INTO job_combinations(id, job_id, combination, inputs_determined)
-				VALUES ($1, $2, $3, $4)
-			`, job.id, job.id, marshaled, job.inputsDetermined)
+				INSERT INTO job_combinations(id, job_id, combination, build_number_seq, inputs_determined)
+				VALUES ($1, $2, $3, $4, $5)
+			`, job.id, job.id, marshaled, job.buildNumberSeq, job.inputsDetermined)
 			if err != nil {
 				return err
 			}
