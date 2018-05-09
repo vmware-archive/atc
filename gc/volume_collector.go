@@ -15,14 +15,14 @@ import (
 var volumeCollectorFailedErr = errors.New("volume collector failed")
 
 type volumeCollector struct {
-	volumeFactory db.VolumeFactory
-	jobRunner     WorkerJobRunner
+	volumeRepository db.VolumeRepository
+	jobRunner        WorkerJobRunner
 }
 
-func NewVolumeCollector(volumeFactory db.VolumeFactory, jobRunner WorkerJobRunner) Collector {
+func NewVolumeCollector(volumeRepository db.VolumeRepository, jobRunner WorkerJobRunner) Collector {
 	return &volumeCollector{
-		volumeFactory: volumeFactory,
-		jobRunner:     jobRunner,
+		volumeRepository: volumeRepository,
+		jobRunner:        jobRunner,
 	}
 }
 
@@ -50,7 +50,7 @@ func (vc *volumeCollector) Run(ctx context.Context) error {
 }
 
 func (vc *volumeCollector) cleanupFailedVolumes(logger lager.Logger) error {
-	failedVolumes, err := vc.volumeFactory.GetFailedVolumes()
+	failedVolumes, err := vc.volumeRepository.GetFailedVolumes()
 	if err != nil {
 		logger.Error("failed-to-get-failed-volumes", err)
 		return err
@@ -74,7 +74,7 @@ func (vc *volumeCollector) cleanupFailedVolumes(logger lager.Logger) error {
 }
 
 func (vc *volumeCollector) cleanupOrphanedVolumes(logger lager.Logger) error {
-	createdVolumes, destroyingVolumes, err := vc.volumeFactory.GetOrphanedVolumes()
+	createdVolumes, destroyingVolumes, err := vc.volumeRepository.GetOrphanedVolumes()
 	if err != nil {
 		logger.Error("failed-to-get-orphaned-volumes", err)
 		return err
