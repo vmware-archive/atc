@@ -58,8 +58,8 @@ const (
 	CreatePipelineBuild = "CreatePipelineBuild"
 	PipelineBadge       = "PipelineBadge"
 
-	RegisterWorker  = "RegisterWorker"
-	LandWorker      = "LandWorker"
+	RegisterWorker = "RegisterWorker"
+	//LandWorker      = "LandWorker"
 	RetireWorker    = "RetireWorker"
 	PruneWorker     = "PruneWorker"
 	HeartbeatWorker = "HeartbeatWorker"
@@ -157,7 +157,7 @@ var Routes = rata.Routes([]rata.Route{
 
 	{Path: "/api/v1/workers", Method: "GET", Name: ListWorkers},
 	{Path: "/api/v1/workers", Method: "POST", Name: RegisterWorker},
-	{Path: "/api/v1/workers/:worker_name/land", Method: "PUT", Name: LandWorker},
+	//{Path: "/api/v1/workers/:worker_name/land", Method: "PUT", Name: LandWorker},
 	{Path: "/api/v1/workers/:worker_name/retire", Method: "PUT", Name: RetireWorker},
 	{Path: "/api/v1/workers/:worker_name/prune", Method: "PUT", Name: PruneWorker},
 	{Path: "/api/v1/workers/:worker_name/heartbeat", Method: "PUT", Name: HeartbeatWorker},

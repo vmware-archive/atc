@@ -460,105 +460,105 @@ var _ = Describe("Workers API", func() {
 		})
 	})
 
-	Describe("PUT /api/v1/workers/:worker_name/land", func() {
-		var (
-			response   *http.Response
-			workerName string
-			fakeWorker *dbfakes.FakeWorker
-		)
-
-		JustBeforeEach(func() {
-			req, err := http.NewRequest("PUT", server.URL+"/api/v1/workers/"+workerName+"/land", nil)
-			Expect(err).NotTo(HaveOccurred())
-
-			response, err = client.Do(req)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		BeforeEach(func() {
-			fakeWorker = new(dbfakes.FakeWorker)
-			workerName = "some-worker"
-			fakeWorker.NameReturns(workerName)
-			fakeWorker.TeamNameReturns("some-team")
-			fakeWorker.LandReturns(nil)
-
-			fakeaccess.IsAuthenticatedReturns(true)
-			dbWorkerFactory.GetWorkerReturns(fakeWorker, true, nil)
-		})
-
-		Context("when the request is authenticated as system", func() {
-			BeforeEach(func() {
-				fakeaccess.IsSystemReturns(true)
-			})
-
-			It("returns 200", func() {
-				Expect(response.StatusCode).To(Equal(http.StatusOK))
-			})
-
-			It("sees if the worker exists and attempts to land it", func() {
-				Expect(dbWorkerFactory.GetWorkerCallCount()).To(Equal(1))
-				Expect(dbWorkerFactory.GetWorkerArgsForCall(0)).To(Equal(workerName))
-				Expect(fakeWorker.LandCallCount()).To(Equal(1))
-			})
-
-			Context("when landing the worker fails", func() {
-				var returnedErr error
-
-				BeforeEach(func() {
-					returnedErr = errors.New("some-error")
-					fakeWorker.LandReturns(returnedErr)
-				})
-
-				It("returns 500", func() {
-					Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
-				})
-			})
-
-			Context("when the worker does not exist", func() {
-				BeforeEach(func() {
-					dbWorkerFactory.GetWorkerReturns(nil, false, nil)
-				})
-
-				It("returns 404", func() {
-					Expect(response.StatusCode).To(Equal(http.StatusNotFound))
-				})
-			})
-		})
-
-		Context("when the request is authorized as the worker's owner", func() {
-			BeforeEach(func() {
-				fakeaccess.IsAuthorizedReturns(true)
-			})
-
-			It("returns 200", func() {
-				Expect(response.StatusCode).To(Equal(http.StatusOK))
-			})
-		})
-
-		Context("when the request is authorized as the wrong team", func() {
-			BeforeEach(func() {
-				fakeaccess.IsAuthorizedReturns(false)
-			})
-
-			It("returns 403", func() {
-				Expect(response.StatusCode).To(Equal(http.StatusForbidden))
-			})
-		})
-
-		Context("when not authenticated", func() {
-			BeforeEach(func() {
-				fakeaccess.IsAuthenticatedReturns(false)
-			})
-
-			It("returns 401", func() {
-				Expect(response.StatusCode).To(Equal(http.StatusUnauthorized))
-			})
-
-			It("does not attempt to find the worker", func() {
-				Expect(dbWorkerFactory.GetWorkerCallCount()).To(BeZero())
-			})
-		})
-	})
+	// Describe("PUT /api/v1/workers/:worker_name/land", func() {
+	// 	var (
+	// 		response   *http.Response
+	// 		workerName string
+	// 		fakeWorker *dbfakes.FakeWorker
+	// 	)
+	//
+	// 	JustBeforeEach(func() {
+	// 		req, err := http.NewRequest("PUT", server.URL+"/api/v1/workers/"+workerName+"/land", nil)
+	// 		Expect(err).NotTo(HaveOccurred())
+	//
+	// 		response, err = client.Do(req)
+	// 		Expect(err).NotTo(HaveOccurred())
+	// 	})
+	//
+	// 	BeforeEach(func() {
+	// 		fakeWorker = new(dbfakes.FakeWorker)
+	// 		workerName = "some-worker"
+	// 		fakeWorker.NameReturns(workerName)
+	// 		fakeWorker.TeamNameReturns("some-team")
+	// 		fakeWorker.LandReturns(nil)
+	//
+	// 		fakeaccess.IsAuthenticatedReturns(true)
+	// 		dbWorkerFactory.GetWorkerReturns(fakeWorker, true, nil)
+	// 	})
+	//
+	// 	Context("when the request is authenticated as system", func() {
+	// 		BeforeEach(func() {
+	// 			fakeaccess.IsSystemReturns(true)
+	// 		})
+	//
+	// 		It("returns 200", func() {
+	// 			Expect(response.StatusCode).To(Equal(http.StatusOK))
+	// 		})
+	//
+	// 		It("sees if the worker exists and attempts to land it", func() {
+	// 			Expect(dbWorkerFactory.GetWorkerCallCount()).To(Equal(1))
+	// 			Expect(dbWorkerFactory.GetWorkerArgsForCall(0)).To(Equal(workerName))
+	// 			Expect(fakeWorker.LandCallCount()).To(Equal(1))
+	// 		})
+	//
+	// 		Context("when landing the worker fails", func() {
+	// 			var returnedErr error
+	//
+	// 			BeforeEach(func() {
+	// 				returnedErr = errors.New("some-error")
+	// 				fakeWorker.LandReturns(returnedErr)
+	// 			})
+	//
+	// 			It("returns 500", func() {
+	// 				Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
+	// 			})
+	// 		})
+	//
+	// 		Context("when the worker does not exist", func() {
+	// 			BeforeEach(func() {
+	// 				dbWorkerFactory.GetWorkerReturns(nil, false, nil)
+	// 			})
+	//
+	// 			It("returns 404", func() {
+	// 				Expect(response.StatusCode).To(Equal(http.StatusNotFound))
+	// 			})
+	// 		})
+	// 	})
+	//
+	// 	Context("when the request is authorized as the worker's owner", func() {
+	// 		BeforeEach(func() {
+	// 			fakeaccess.IsAuthorizedReturns(true)
+	// 		})
+	//
+	// 		It("returns 200", func() {
+	// 			Expect(response.StatusCode).To(Equal(http.StatusOK))
+	// 		})
+	// 	})
+	//
+	// 	Context("when the request is authorized as the wrong team", func() {
+	// 		BeforeEach(func() {
+	// 			fakeaccess.IsAuthorizedReturns(false)
+	// 		})
+	//
+	// 		It("returns 403", func() {
+	// 			Expect(response.StatusCode).To(Equal(http.StatusForbidden))
+	// 		})
+	// 	})
+	//
+	// 	Context("when not authenticated", func() {
+	// 		BeforeEach(func() {
+	// 			fakeaccess.IsAuthenticatedReturns(false)
+	// 		})
+	//
+	// 		It("returns 401", func() {
+	// 			Expect(response.StatusCode).To(Equal(http.StatusUnauthorized))
+	// 		})
+	//
+	// 		It("does not attempt to find the worker", func() {
+	// 			Expect(dbWorkerFactory.GetWorkerCallCount()).To(BeZero())
+	// 		})
+	// 	})
+	// })
 
 	Describe("PUT /api/v1/workers/:worker_name/retire", func() {
 		var (

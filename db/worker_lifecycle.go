@@ -10,7 +10,7 @@ import (
 
 type WorkerLifecycle interface {
 	StallUnresponsiveWorkers() ([]string, error)
-	LandFinishedLandingWorkers() ([]string, error)
+	//	LandFinishedLandingWorkers() ([]string, error)
 	DeleteFinishedRetiringWorkers() ([]string, error)
 }
 
@@ -110,57 +110,57 @@ func (lifecycle *workerLifecycle) DeleteFinishedRetiringWorkers() ([]string, err
 	return workersAffected(rows)
 }
 
-func (lifecycle *workerLifecycle) LandFinishedLandingWorkers() ([]string, error) {
-	subQ, subQArgs, err := sq.Select("w.name").
-		Distinct().
-		From("builds b").
-		Join("containers c ON b.id = c.build_id").
-		Join("workers w ON w.name = c.worker_name").
-		LeftJoin("jobs j ON j.id = b.job_id").
-		Where(sq.Or{
-			sq.Eq{
-				"b.status": string(BuildStatusStarted),
-			},
-			sq.Eq{
-				"b.status": string(BuildStatusPending),
-			},
-		}).
-		Where(sq.Or{
-			sq.Eq{
-				"j.interruptible": false,
-			},
-			sq.Eq{
-				"b.job_id": nil,
-			},
-		}).ToSql()
-
-	if err != nil {
-		return nil, err
-	}
-
-	query, args, err := sq.Update("workers").
-		Set("state", string(WorkerStateLanded)).
-		Set("addr", nil).
-		Set("baggageclaim_url", nil).
-		Where(sq.Eq{
-			"state": string(WorkerStateLanding),
-		}).
-		Where("name NOT IN ("+subQ+")", subQArgs...).
-		PlaceholderFormat(sq.Dollar).
-		Suffix("RETURNING name").
-		ToSql()
-
-	if err != nil {
-		return []string{}, err
-	}
-
-	rows, err := lifecycle.conn.Query(query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return workersAffected(rows)
-}
+// func (lifecycle *workerLifecycle) LandFinishedLandingWorkers() ([]string, error) {
+// 	subQ, subQArgs, err := sq.Select("w.name").
+// 		Distinct().
+// 		From("builds b").
+// 		Join("containers c ON b.id = c.build_id").
+// 		Join("workers w ON w.name = c.worker_name").
+// 		LeftJoin("jobs j ON j.id = b.job_id").
+// 		Where(sq.Or{
+// 			sq.Eq{
+// 				"b.status": string(BuildStatusStarted),
+// 			},
+// 			sq.Eq{
+// 				"b.status": string(BuildStatusPending),
+// 			},
+// 		}).
+// 		Where(sq.Or{
+// 			sq.Eq{
+// 				"j.interruptible": false,
+// 			},
+// 			sq.Eq{
+// 				"b.job_id": nil,
+// 			},
+// 		}).ToSql()
+//
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	query, args, err := sq.Update("workers").
+// 		Set("state", string(WorkerStateLanded)).
+// 		Set("addr", nil).
+// 		Set("baggageclaim_url", nil).
+// 		Where(sq.Eq{
+// 			"state": string(WorkerStateLanding),
+// 		}).
+// 		Where("name NOT IN ("+subQ+")", subQArgs...).
+// 		PlaceholderFormat(sq.Dollar).
+// 		Suffix("RETURNING name").
+// 		ToSql()
+//
+// 	if err != nil {
+// 		return []string{}, err
+// 	}
+//
+// 	rows, err := lifecycle.conn.Query(query, args...)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	return workersAffected(rows)
+// }
 
 func workersAffected(rows *sql.Rows) ([]string, error) {
 	var (
