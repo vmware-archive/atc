@@ -212,7 +212,7 @@ var _ = Describe("DBProvider", func() {
 			Context("when some of the workers returned are stalled or retiring", func() {
 				BeforeEach(func() {
 					retiringWorker := new(dbfakes.FakeWorker)
-					retiringWorker.NameReturns("landing-worker")
+					retiringWorker.NameReturns("retiring-worker")
 					retiringWorker.GardenAddrReturns(&gardenAddr)
 					retiringWorker.BaggageclaimURLReturns(&baggageclaimURL)
 					retiringWorker.StateReturns(db.WorkerStateRetiring)

@@ -7,3 +7,13 @@ OR
 OR
 ((state = 'retiring'::worker_state) AND ((addr IS NOT NULL) OR (addr IS NULL)) AND ((baggageclaim_url IS NOT NULL) OR (baggageclaim_url IS NULL)))
 ));
+
+UPDATE workers SET state='retiring' WHERE state='landing' OR state='landed';
+
+DROP TYPE worker_state;
+
+CREATE TYPE worker_state AS ENUM (
+      'running',
+      'stalled',
+      'retiring'
+);
