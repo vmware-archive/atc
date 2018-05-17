@@ -170,7 +170,6 @@ var _ = Describe("APIAuthWrappa", func() {
 
 				// resource belongs to authorized team
 				atc.PruneWorker:              checkTeamAccessForWorker(inputHandlers[atc.PruneWorker]),
-				atc.LandWorker:               checkTeamAccessForWorker(inputHandlers[atc.LandWorker]),
 				atc.ReportWorkerContainers:   checkTeamAccessForWorker(inputHandlers[atc.ReportWorkerContainers]),
 				atc.ReportWorkerVolumes:      checkTeamAccessForWorker(inputHandlers[atc.ReportWorkerVolumes]),
 				atc.RetireWorker:             checkTeamAccessForWorker(inputHandlers[atc.RetireWorker]),

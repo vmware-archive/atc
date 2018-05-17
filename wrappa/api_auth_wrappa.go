@@ -69,7 +69,6 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 
 		// requester is system, admin team, or worker owning team
 		case atc.PruneWorker,
-			//		atc.LandWorker,
 			atc.RetireWorker,
 			atc.ListDestroyingVolumes,
 			atc.ListDestroyingContainers,

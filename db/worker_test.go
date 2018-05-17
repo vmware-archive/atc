@@ -45,58 +45,6 @@ var _ = Describe("Worker", func() {
 		}
 	})
 
-	Describe("Land", func() {
-
-		BeforeEach(func() {
-			var err error
-			worker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		Context("when the worker is present", func() {
-
-			It("marks the worker as `landing`", func() {
-				err := worker.Land()
-				Expect(err).NotTo(HaveOccurred())
-
-				_, err = worker.Reload()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(worker.Name()).To(Equal(atcWorker.Name))
-				Expect(worker.State()).To(Equal(WorkerStateLanding))
-			})
-
-			Context("when worker is already landed", func() {
-				BeforeEach(func() {
-					err := worker.Land()
-					Expect(err).NotTo(HaveOccurred())
-					_, err = workerLifecycle.LandFinishedLandingWorkers()
-					Expect(err).NotTo(HaveOccurred())
-				})
-
-				It("keeps worker state as landed", func() {
-					err := worker.Land()
-					Expect(err).NotTo(HaveOccurred())
-					_, err = worker.Reload()
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(worker.Name()).To(Equal(atcWorker.Name))
-					Expect(worker.State()).To(Equal(WorkerStateLanded))
-				})
-			})
-		})
-
-		Context("when the worker is not present", func() {
-			It("returns an error", func() {
-				err := worker.Delete()
-				Expect(err).NotTo(HaveOccurred())
-
-				err = worker.Land()
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(Equal(ErrWorkerNotPresent))
-			})
-		})
-	})
-
 	Describe("Retire", func() {
 		BeforeEach(func() {
 			var err error
@@ -163,7 +111,6 @@ var _ = Describe("Worker", func() {
 				},
 
 				Entry("running", "running", Equal(ErrCannotPruneRunningWorker)),
-				Entry("landing", "landing", BeNil()),
 				Entry("retiring", "retiring", BeNil()),
 			)
 

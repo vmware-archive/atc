@@ -302,23 +302,6 @@ var _ = Describe("VolumeFactory", func() {
 				Expect(destoryingVolumes).To(HaveLen(0))
 			})
 		})
-
-		Context("when worker is landed", func() {
-			BeforeEach(func() {
-				err := defaultWorker.Land()
-				Expect(err).NotTo(HaveOccurred())
-				landedWorkers, err := workerLifecycle.LandFinishedLandingWorkers()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(landedWorkers).To(ContainElement(defaultWorker.Name()))
-			})
-
-			It("does not return volumes", func() {
-				createdVolumes, destoryingVolumes, err := volumeRepository.GetOrphanedVolumes()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(createdVolumes).To(HaveLen(0))
-				Expect(destoryingVolumes).To(HaveLen(0))
-			})
-		})
 	})
 
 	Describe("GetFailedVolumes", func() {

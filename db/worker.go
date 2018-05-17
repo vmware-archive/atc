@@ -17,10 +17,8 @@ var (
 type WorkerState string
 
 const (
-	WorkerStateRunning = WorkerState("running")
-	WorkerStateStalled = WorkerState("stalled")
-	// WorkerStateLanding  = WorkerState("landing")
-	// WorkerStateLanded   = WorkerState("landed")
+	WorkerStateRunning  = WorkerState("running")
+	WorkerStateStalled  = WorkerState("stalled")
 	WorkerStateRetiring = WorkerState("retiring")
 )
 
@@ -48,7 +46,6 @@ type Worker interface {
 
 	Reload() (bool, error)
 
-	//Land() error
 	Retire() error
 	Prune() error
 	Delete() error
@@ -113,37 +110,6 @@ func (worker *worker) Reload() (bool, error) {
 
 	return true, nil
 }
-
-// func (worker *worker) Land() error {
-// 	cSQL, _, err := sq.Case("state").
-// 		When("'landed'::worker_state", "'landed'::worker_state").
-// 		Else("'landing'::worker_state").
-// 		ToSql()
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	result, err := psql.Update("workers").
-// 		Set("state", sq.Expr("("+cSQL+")")).
-// 		Where(sq.Eq{"name": worker.name}).
-// 		RunWith(worker.conn).
-// 		Exec()
-//
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	count, err := result.RowsAffected()
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	if count == 0 {
-// 		return ErrWorkerNotPresent
-// 	}
-//
-// 	return nil
-// }
 
 func (worker *worker) Retire() error {
 	result, err := psql.Update("workers").

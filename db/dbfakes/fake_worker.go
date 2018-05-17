@@ -187,15 +187,6 @@ type FakeWorker struct {
 		result1 bool
 		result2 error
 	}
-	LandStub        func() error
-	landMutex       sync.RWMutex
-	landArgsForCall []struct{}
-	landReturns     struct {
-		result1 error
-	}
-	landReturnsOnCall map[int]struct {
-		result1 error
-	}
 	RetireStub        func() error
 	retireMutex       sync.RWMutex
 	retireArgsForCall []struct{}
@@ -996,46 +987,6 @@ func (fake *FakeWorker) ReloadReturnsOnCall(i int, result1 bool, result2 error) 
 	}{result1, result2}
 }
 
-func (fake *FakeWorker) Land() error {
-	fake.landMutex.Lock()
-	ret, specificReturn := fake.landReturnsOnCall[len(fake.landArgsForCall)]
-	fake.landArgsForCall = append(fake.landArgsForCall, struct{}{})
-	fake.recordInvocation("Land", []interface{}{})
-	fake.landMutex.Unlock()
-	if fake.LandStub != nil {
-		return fake.LandStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.landReturns.result1
-}
-
-func (fake *FakeWorker) LandCallCount() int {
-	fake.landMutex.RLock()
-	defer fake.landMutex.RUnlock()
-	return len(fake.landArgsForCall)
-}
-
-func (fake *FakeWorker) LandReturns(result1 error) {
-	fake.LandStub = nil
-	fake.landReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeWorker) LandReturnsOnCall(i int, result1 error) {
-	fake.LandStub = nil
-	if fake.landReturnsOnCall == nil {
-		fake.landReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.landReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeWorker) Retire() error {
 	fake.retireMutex.Lock()
 	ret, specificReturn := fake.retireReturnsOnCall[len(fake.retireArgsForCall)]
@@ -1197,8 +1148,6 @@ func (fake *FakeWorker) Invocations() map[string][][]interface{} {
 	defer fake.expiresAtMutex.RUnlock()
 	fake.reloadMutex.RLock()
 	defer fake.reloadMutex.RUnlock()
-	fake.landMutex.RLock()
-	defer fake.landMutex.RUnlock()
 	fake.retireMutex.RLock()
 	defer fake.retireMutex.RUnlock()
 	fake.pruneMutex.RLock()

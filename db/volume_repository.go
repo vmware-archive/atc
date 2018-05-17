@@ -328,7 +328,6 @@ func (repository *volumeRepository) GetOrphanedVolumes() ([]CreatedVolume, []Des
 		}).
 		Where(sq.Or{
 			sq.Eq{"w.state": string(WorkerStateRunning)},
-			//sq.Eq{"w.state": string(WorkerStateLanding)},
 			sq.Eq{"w.state": string(WorkerStateRetiring)},
 		}).
 		ToSql()

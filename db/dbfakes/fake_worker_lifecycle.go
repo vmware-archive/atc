@@ -19,17 +19,6 @@ type FakeWorkerLifecycle struct {
 		result1 []string
 		result2 error
 	}
-	LandFinishedLandingWorkersStub        func() ([]string, error)
-	landFinishedLandingWorkersMutex       sync.RWMutex
-	landFinishedLandingWorkersArgsForCall []struct{}
-	landFinishedLandingWorkersReturns     struct {
-		result1 []string
-		result2 error
-	}
-	landFinishedLandingWorkersReturnsOnCall map[int]struct {
-		result1 []string
-		result2 error
-	}
 	DeleteFinishedRetiringWorkersStub        func() ([]string, error)
 	deleteFinishedRetiringWorkersMutex       sync.RWMutex
 	deleteFinishedRetiringWorkersArgsForCall []struct{}
@@ -88,49 +77,6 @@ func (fake *FakeWorkerLifecycle) StallUnresponsiveWorkersReturnsOnCall(i int, re
 	}{result1, result2}
 }
 
-func (fake *FakeWorkerLifecycle) LandFinishedLandingWorkers() ([]string, error) {
-	fake.landFinishedLandingWorkersMutex.Lock()
-	ret, specificReturn := fake.landFinishedLandingWorkersReturnsOnCall[len(fake.landFinishedLandingWorkersArgsForCall)]
-	fake.landFinishedLandingWorkersArgsForCall = append(fake.landFinishedLandingWorkersArgsForCall, struct{}{})
-	fake.recordInvocation("LandFinishedLandingWorkers", []interface{}{})
-	fake.landFinishedLandingWorkersMutex.Unlock()
-	if fake.LandFinishedLandingWorkersStub != nil {
-		return fake.LandFinishedLandingWorkersStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.landFinishedLandingWorkersReturns.result1, fake.landFinishedLandingWorkersReturns.result2
-}
-
-func (fake *FakeWorkerLifecycle) LandFinishedLandingWorkersCallCount() int {
-	fake.landFinishedLandingWorkersMutex.RLock()
-	defer fake.landFinishedLandingWorkersMutex.RUnlock()
-	return len(fake.landFinishedLandingWorkersArgsForCall)
-}
-
-func (fake *FakeWorkerLifecycle) LandFinishedLandingWorkersReturns(result1 []string, result2 error) {
-	fake.LandFinishedLandingWorkersStub = nil
-	fake.landFinishedLandingWorkersReturns = struct {
-		result1 []string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeWorkerLifecycle) LandFinishedLandingWorkersReturnsOnCall(i int, result1 []string, result2 error) {
-	fake.LandFinishedLandingWorkersStub = nil
-	if fake.landFinishedLandingWorkersReturnsOnCall == nil {
-		fake.landFinishedLandingWorkersReturnsOnCall = make(map[int]struct {
-			result1 []string
-			result2 error
-		})
-	}
-	fake.landFinishedLandingWorkersReturnsOnCall[i] = struct {
-		result1 []string
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeWorkerLifecycle) DeleteFinishedRetiringWorkers() ([]string, error) {
 	fake.deleteFinishedRetiringWorkersMutex.Lock()
 	ret, specificReturn := fake.deleteFinishedRetiringWorkersReturnsOnCall[len(fake.deleteFinishedRetiringWorkersArgsForCall)]
@@ -179,8 +125,6 @@ func (fake *FakeWorkerLifecycle) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.stallUnresponsiveWorkersMutex.RLock()
 	defer fake.stallUnresponsiveWorkersMutex.RUnlock()
-	fake.landFinishedLandingWorkersMutex.RLock()
-	defer fake.landFinishedLandingWorkersMutex.RUnlock()
 	fake.deleteFinishedRetiringWorkersMutex.RLock()
 	defer fake.deleteFinishedRetiringWorkersMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

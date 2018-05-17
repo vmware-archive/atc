@@ -44,15 +44,5 @@ func (wc *workerCollector) Run(ctx context.Context) error {
 		logger.Debug("retired", lager.Data{"count": len(affected), "workers": affected})
 	}
 
-	// affected, err = wc.workerLifecycle.LandFinishedLandingWorkers()
-	// if err != nil {
-	// 	logger.Error("failed-to-land-finished-landing-workers", err)
-	// 	return err
-	// }
-	//
-	// if len(affected) > 0 {
-	// 	logger.Debug("landed", lager.Data{"count": len(affected), "workers": affected})
-	// }
-
 	return nil
 }

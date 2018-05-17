@@ -209,15 +209,15 @@ var _ = Describe("DBProvider", func() {
 				Expect(workers).To(HaveLen(2))
 			})
 
-			Context("when some of the workers returned are stalled or landing", func() {
+			Context("when some of the workers returned are stalled or retiring", func() {
 				BeforeEach(func() {
-					landingWorker := new(dbfakes.FakeWorker)
-					landingWorker.NameReturns("landing-worker")
-					landingWorker.GardenAddrReturns(&gardenAddr)
-					landingWorker.BaggageclaimURLReturns(&baggageclaimURL)
-					landingWorker.StateReturns(db.WorkerStateLanding)
-					landingWorker.ActiveContainersReturns(5)
-					landingWorker.ResourceTypesReturns([]atc.WorkerResourceType{
+					retiringWorker := new(dbfakes.FakeWorker)
+					retiringWorker.NameReturns("landing-worker")
+					retiringWorker.GardenAddrReturns(&gardenAddr)
+					retiringWorker.BaggageclaimURLReturns(&baggageclaimURL)
+					retiringWorker.StateReturns(db.WorkerStateRetiring)
+					retiringWorker.ActiveContainersReturns(5)
+					retiringWorker.ResourceTypesReturns([]atc.WorkerResourceType{
 						{Type: "some-resource-b", Image: "some-image-b"}})
 
 					stalledWorker := new(dbfakes.FakeWorker)
@@ -233,7 +233,7 @@ var _ = Describe("DBProvider", func() {
 						[]db.Worker{
 							fakeWorker1,
 							stalledWorker,
-							landingWorker,
+							retiringWorker,
 						}, nil)
 				})
 

@@ -156,9 +156,8 @@ func NewHandler(
 		atc.ListBuildsWithVersionAsOutput: pipelineHandlerFactory.HandlerFor(versionServer.ListBuildsWithVersionAsOutput),
 		atc.GetResourceCausality:          pipelineHandlerFactory.HandlerFor(versionServer.GetCausality),
 
-		atc.ListWorkers:    http.HandlerFunc(workerServer.ListWorkers),
-		atc.RegisterWorker: http.HandlerFunc(workerServer.RegisterWorker),
-		//	atc.LandWorker:      http.HandlerFunc(workerServer.LandWorker),
+		atc.ListWorkers:     http.HandlerFunc(workerServer.ListWorkers),
+		atc.RegisterWorker:  http.HandlerFunc(workerServer.RegisterWorker),
 		atc.RetireWorker:    http.HandlerFunc(workerServer.RetireWorker),
 		atc.PruneWorker:     http.HandlerFunc(workerServer.PruneWorker),
 		atc.HeartbeatWorker: http.HandlerFunc(workerServer.HeartbeatWorker),
