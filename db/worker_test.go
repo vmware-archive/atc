@@ -49,7 +49,7 @@ var _ = Describe("Worker", func() {
 
 		BeforeEach(func() {
 			var err error
-			worker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+			worker, err = workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -100,7 +100,7 @@ var _ = Describe("Worker", func() {
 	Describe("Retire", func() {
 		BeforeEach(func() {
 			var err error
-			worker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+			worker, err = workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -133,7 +133,7 @@ var _ = Describe("Worker", func() {
 	Describe("Delete", func() {
 		BeforeEach(func() {
 			var err error
-			worker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+			worker, err = workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -141,7 +141,7 @@ var _ = Describe("Worker", func() {
 			err := worker.Delete()
 			Expect(err).NotTo(HaveOccurred())
 
-			_, found, err := workerFactory.GetWorker(atcWorker.Name)
+			_, found, err := workerRepository.GetWorker(atcWorker.Name)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeFalse())
 		})
@@ -151,7 +151,7 @@ var _ = Describe("Worker", func() {
 		Context("when worker exists", func() {
 			DescribeTable("worker in state",
 				func(workerState string, errMatch GomegaMatcher) {
-					worker, err := workerFactory.SaveWorker(atc.Worker{
+					worker, err := workerRepository.SaveWorker(atc.Worker{
 						Name:       "worker-to-prune",
 						GardenAddr: "1.2.3.4",
 						State:      workerState,
@@ -170,7 +170,7 @@ var _ = Describe("Worker", func() {
 			Context("when worker is stalled", func() {
 				var pruneErr error
 				BeforeEach(func() {
-					worker, err := workerFactory.SaveWorker(atc.Worker{
+					worker, err := workerRepository.SaveWorker(atc.Worker{
 						Name:       "worker-to-prune",
 						GardenAddr: "1.2.3.4",
 						State:      "running",
@@ -191,7 +191,7 @@ var _ = Describe("Worker", func() {
 		Context("when worker does not exist", func() {
 			BeforeEach(func() {
 				var err error
-				worker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+				worker, err = workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 				err = worker.Delete()
 				Expect(err).NotTo(HaveOccurred())

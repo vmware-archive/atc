@@ -152,7 +152,7 @@ var _ = Describe("ContainerRepository", func() {
 					newlyUpdatedResource.Version = newlyUpdatedResource.Version + "-new"
 					newlyUpdatedWorker.ResourceTypes = []atc.WorkerResourceType{newlyUpdatedResource}
 
-					defaultWorker, err = workerFactory.SaveWorker(newlyUpdatedWorker, 0)
+					defaultWorker, err = workerRepository.SaveWorker(newlyUpdatedWorker, 0)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
@@ -171,7 +171,7 @@ var _ = Describe("ContainerRepository", func() {
 					var err error
 					sameWorker := defaultWorkerPayload
 
-					defaultWorker, err = workerFactory.SaveWorker(sameWorker, 0)
+					defaultWorker, err = workerRepository.SaveWorker(sameWorker, 0)
 					Expect(err).NotTo(HaveOccurred())
 				})
 

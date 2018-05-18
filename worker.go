@@ -3,6 +3,7 @@ package atc
 import (
 	"errors"
 	"regexp"
+	"time"
 )
 
 type Worker struct {
@@ -22,18 +23,22 @@ type Worker struct {
 
 	ResourceTypes []WorkerResourceType `json:"resource_types"`
 
-	Platform  string   `json:"platform"`
-	Tags      []string `json:"tags"`
-	Team      string   `json:"team"`
-	Name      string   `json:"name"`
-	Version   string   `json:"version"`
-	StartTime int64    `json:"start_time"`
-	State     string   `json:"state"`
+	Platform  string    `json:"platform"`
+	Tags      []string  `json:"tags"`
+	Team      string    `json:"team"`
+	TeamID    int       `json:"team_id"`
+	Name      string    `json:"name"`
+	Version   string    `json:"version"`
+	StartTime int64     `json:"start_time"`
+	ExpiresAt time.Time `json:"expires_at"`
+	State     string    `json:"state"`
 }
 
 var ErrInvalidWorkerVersion = errors.New("invalid worker version, only numeric characters are allowed")
 var ErrMissingWorkerGardenAddress = errors.New("missing garden address")
 
+// Validate ensures the worker has a version in the proper information
+// It also ensure the GardenAddr is set.
 func (w Worker) Validate() error {
 	if w.Version != "" && !regexp.MustCompile(`^[0-9\.]+$`).MatchString(w.Version) {
 		return ErrInvalidWorkerVersion

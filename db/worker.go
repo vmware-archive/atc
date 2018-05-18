@@ -46,8 +46,6 @@ type Worker interface {
 	StartTime() int64
 	ExpiresAt() time.Time
 
-	Reload() (bool, error)
-
 	Land() error
 	Retire() error
 	Prune() error
@@ -97,22 +95,6 @@ func (worker *worker) TeamName() string                        { return worker.t
 // TODO: normalize time values
 func (worker *worker) StartTime() int64     { return worker.startTime }
 func (worker *worker) ExpiresAt() time.Time { return worker.expiresAt }
-
-func (worker *worker) Reload() (bool, error) {
-	row := workersQuery.Where(sq.Eq{"w.name": worker.name}).
-		RunWith(worker.conn).
-		QueryRow()
-
-	err := scanWorker(worker, row)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return false, nil
-		}
-		return false, err
-	}
-
-	return true, nil
-}
 
 func (worker *worker) Land() error {
 	cSQL, _, err := sq.Case("state").

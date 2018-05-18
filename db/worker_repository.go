@@ -11,22 +11,24 @@ import (
 	"github.com/concourse/atc"
 )
 
-//go:generate counterfeiter . WorkerFactory
+//go:generate counterfeiter . WorkerRepository
 
-type WorkerFactory interface {
-	GetWorker(name string) (Worker, bool, error)
-	SaveWorker(atcWorker atc.Worker, ttl time.Duration) (Worker, error)
-	HeartbeatWorker(worker atc.Worker, ttl time.Duration) (Worker, error)
-	Workers() ([]Worker, error)
-	VisibleWorkers([]string) ([]Worker, error)
+type WorkerRepository interface {
+	GetWorker(name string) (*atc.Worker, bool, error)
+	SaveWorker(atcWorker atc.Worker, ttl time.Duration) (*atc.Worker, error)
+	HeartbeatWorker(worker atc.Worker, ttl time.Duration) (*atc.Worker, error)
+	Workers() ([]atc.Worker, error)
+	VisibleWorkers([]string) ([]atc.Worker, error)
+	Reload(*atc.Worker) (bool, error)
 }
 
-type workerFactory struct {
+type PostgresWorkerRepository struct {
 	conn Conn
 }
 
-func NewWorkerFactory(conn Conn) WorkerFactory {
-	return &workerFactory{
+// NewWorkerRepository returns a worker repository located at the given database connection
+func NewWorkerRepository(conn Conn) WorkerRepository {
+	return &PostgresWorkerRepository{
 		conn: conn,
 	}
 }
@@ -53,18 +55,23 @@ var workersQuery = psql.Select(`
 	From("workers w").
 	LeftJoin("teams t ON w.team_id = t.id")
 
-func (f *workerFactory) GetWorker(name string) (Worker, bool, error) {
-	return getWorker(f.conn, workersQuery.Where(sq.Eq{"w.name": name}))
+// GetWorker will fetch a atc.Worker from our WorkerRepository
+// Pass in name of the worker for the query
+func (workerRepo *PostgresWorkerRepository) GetWorker(name string) (*atc.Worker, bool, error) {
+	return getWorker(workerRepo.conn, workersQuery.Where(sq.Eq{"w.name": name}))
 }
 
-func (f *workerFactory) VisibleWorkers(teamNames []string) ([]Worker, error) {
+// VisibleWorkers returns a list of workers that are visible to the given team teamNames
+// Returned workers are either specific to one of the given team names or they already
+// workers accessible to all teams.
+func (workerRepo *PostgresWorkerRepository) VisibleWorkers(teamNames []string) ([]atc.Worker, error) {
 	workersQuery := workersQuery.
 		Where(sq.Or{
 			sq.Eq{"t.name": teamNames},
 			sq.Eq{"w.team_id": nil},
 		})
 
-	workers, err := getWorkers(f.conn, workersQuery)
+	workers, err := getWorkers(workerRepo.conn, workersQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -72,16 +79,34 @@ func (f *workerFactory) VisibleWorkers(teamNames []string) ([]Worker, error) {
 	return workers, nil
 }
 
-func (f *workerFactory) Workers() ([]Worker, error) {
-	return getWorkers(f.conn, workersQuery)
+// Workers returns all available workers on in this Concourse instance
+func (workerRepo *PostgresWorkerRepository) Workers() ([]atc.Worker, error) {
+	return getWorkers(workerRepo.conn, workersQuery)
 }
 
-func getWorker(conn Conn, query sq.SelectBuilder) (Worker, bool, error) {
+// Reload will reload the stored information for a worker from the repository
+func (workerRepo *PostgresWorkerRepository) Reload(worker *atc.Worker) (bool, error) {
+	row := workersQuery.Where(sq.Eq{"w.name": worker.Name}).
+		RunWith(workerRepo.conn).
+		QueryRow()
+
+	err := scanWorker(worker, row)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
+func getWorker(conn Conn, query sq.SelectBuilder) (*atc.Worker, bool, error) {
 	row := query.
 		RunWith(conn).
 		QueryRow()
 
-	worker := &worker{conn: conn}
+	worker := &atc.Worker{}
 	err := scanWorker(worker, row)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -93,29 +118,29 @@ func getWorker(conn Conn, query sq.SelectBuilder) (Worker, bool, error) {
 	return worker, true, nil
 }
 
-func getWorkers(conn Conn, query sq.SelectBuilder) ([]Worker, error) {
+func getWorkers(conn Conn, query sq.SelectBuilder) ([]atc.Worker, error) {
 	rows, err := query.RunWith(conn).Query()
 	if err != nil {
 		return nil, err
 	}
 	defer Close(rows)
 
-	workers := []Worker{}
+	workers := []atc.Worker{}
 
 	for rows.Next() {
-		worker := &worker{conn: conn}
+		worker := &atc.Worker{}
 		err := scanWorker(worker, rows)
 		if err != nil {
 			return nil, err
 		}
 
-		workers = append(workers, worker)
+		workers = append(workers, *worker)
 	}
 
 	return workers, nil
 }
 
-func scanWorker(worker *worker, row scannable) error {
+func scanWorker(worker *atc.Worker, row scannable) error {
 	var (
 		version  sql.NullString
 		addStr   sql.NullString
@@ -136,7 +161,7 @@ func scanWorker(worker *worker, row scannable) error {
 	)
 
 	err := row.Scan(
-		&worker.name,
+		&worker.Name,
 		&version,
 		&addStr,
 		&state,
@@ -146,7 +171,7 @@ func scanWorker(worker *worker, row scannable) error {
 		&httpProxyURL,
 		&httpsProxyURL,
 		&noProxy,
-		&worker.activeContainers,
+		&worker.ActiveContainers,
 		&resourceTypes,
 		&platform,
 		&tags,
@@ -160,15 +185,15 @@ func scanWorker(worker *worker, row scannable) error {
 	}
 
 	if version.Valid {
-		worker.version = &version.String
+		worker.Version = version.String
 	}
 
 	if addStr.Valid {
-		worker.gardenAddr = &addStr.String
+		worker.GardenAddr = addStr.String
 	}
 
 	if bcURLStr.Valid {
-		worker.baggageclaimURL = &bcURLStr.String
+		worker.BaggageclaimURL = bcURLStr.String
 	}
 
 	// if reaperAddr.Valid {
@@ -176,59 +201,61 @@ func scanWorker(worker *worker, row scannable) error {
 	// }
 
 	if certsPathStr.Valid {
-		worker.certsPath = &certsPathStr.String
+		worker.CertsPath = &certsPathStr.String
 	}
 
-	worker.state = WorkerState(state)
+	worker.State = string(WorkerState(state))
 
 	if startTime.Valid {
-		worker.startTime = startTime.Int64
+		worker.StartTime = startTime.Int64
 	}
 
 	if expiresAt != nil {
-		worker.expiresAt = *expiresAt
+		worker.ExpiresAt = *expiresAt
 	}
 
 	if httpProxyURL.Valid {
-		worker.httpProxyURL = httpProxyURL.String
+		worker.HTTPProxyURL = httpProxyURL.String
 	}
 
 	if httpsProxyURL.Valid {
-		worker.httpsProxyURL = httpsProxyURL.String
+		worker.HTTPSProxyURL = httpsProxyURL.String
 	}
 
 	if noProxy.Valid {
-		worker.noProxy = noProxy.String
+		worker.NoProxy = noProxy.String
 	}
 
 	if teamName.Valid {
-		worker.teamName = teamName.String
+		worker.Team = teamName.String
 	}
 
 	if teamID.Valid {
-		worker.teamID = int(teamID.Int64)
+		worker.TeamID = int(teamID.Int64)
 	}
 
 	if platform.Valid {
-		worker.platform = platform.String
+		worker.Platform = platform.String
 	}
 
-	err = json.Unmarshal(resourceTypes, &worker.resourceTypes)
+	err = json.Unmarshal(resourceTypes, &worker.ResourceTypes)
 	if err != nil {
 		return err
 	}
 
-	return json.Unmarshal(tags, &worker.tags)
+	return json.Unmarshal(tags, &worker.Tags)
 }
 
-func (f *workerFactory) HeartbeatWorker(atcWorker atc.Worker, ttl time.Duration) (Worker, error) {
+// HeartbeatWorker is used to update the TTL for the worker for the atc.Worker on the persistent store
+// It allows Concourse to recognize when workers become unresponsive and should be put in 'stalled' state
+func (workerRepo *PostgresWorkerRepository) HeartbeatWorker(atcWorker atc.Worker, ttl time.Duration) (*atc.Worker, error) {
 	// In order to be able to calculate the ttl that we return to the caller
 	// we must compare time.Now() to the worker.expires column
 	// However, workers.expires column is a "timestamp (without timezone)"
 	// So we format time.Now() without any timezone information and then
 	// parse that using the same layout to strip the timezone information
 
-	tx, err := f.conn.Begin()
+	tx, err := workerRepo.conn.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +322,7 @@ func (f *workerFactory) HeartbeatWorker(atcWorker atc.Worker, ttl time.Duration)
 		RunWith(tx).
 		QueryRow()
 
-	worker := &worker{conn: f.conn}
+	worker := &atc.Worker{}
 	err = scanWorker(worker, row)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -312,15 +339,16 @@ func (f *workerFactory) HeartbeatWorker(atcWorker atc.Worker, ttl time.Duration)
 
 }
 
-func (f *workerFactory) SaveWorker(atcWorker atc.Worker, ttl time.Duration) (Worker, error) {
-	tx, err := f.conn.Begin()
+// SaveWorker persists a atc.Worker to the data store
+func (workerRepo *PostgresWorkerRepository) SaveWorker(atcWorker atc.Worker, ttl time.Duration) (*atc.Worker, error) {
+	tx, err := workerRepo.conn.Begin()
 	if err != nil {
 		return nil, err
 	}
 
 	defer Rollback(tx)
 
-	savedWorker, err := saveWorker(tx, atcWorker, nil, ttl, f.conn)
+	savedWorker, err := saveWorker(tx, atcWorker, nil, ttl, workerRepo.conn)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +361,7 @@ func (f *workerFactory) SaveWorker(atcWorker atc.Worker, ttl time.Duration) (Wor
 	return savedWorker, nil
 }
 
-func saveWorker(tx Tx, atcWorker atc.Worker, teamID *int, ttl time.Duration, conn Conn) (Worker, error) {
+func saveWorker(tx Tx, atcWorker atc.Worker, teamID *int, ttl time.Duration, conn Conn) (*atc.Worker, error) {
 	resourceTypes, err := json.Marshal(atcWorker.ResourceTypes)
 	if err != nil {
 		return nil, err
@@ -454,25 +482,23 @@ func saveWorker(tx Tx, atcWorker atc.Worker, teamID *int, ttl time.Duration, con
 		workerTeamID = *teamID
 	}
 
-	savedWorker := &worker{
-		name:            atcWorker.Name,
-		version:         workerVersion,
-		state:           workerState,
-		gardenAddr:      &atcWorker.GardenAddr,
-		baggageclaimURL: &atcWorker.BaggageclaimURL,
-		//reaperAddr:       &atcWorker.ReaperAddr,
-		certsPath:        atcWorker.CertsPath,
-		httpProxyURL:     atcWorker.HTTPProxyURL,
-		httpsProxyURL:    atcWorker.HTTPSProxyURL,
-		noProxy:          atcWorker.NoProxy,
-		activeContainers: atcWorker.ActiveContainers,
-		resourceTypes:    atcWorker.ResourceTypes,
-		platform:         atcWorker.Platform,
-		tags:             atcWorker.Tags,
-		teamName:         atcWorker.Team,
-		teamID:           workerTeamID,
-		startTime:        atcWorker.StartTime,
-		conn:             conn,
+	savedWorker := &atc.Worker{
+		Name:             atcWorker.Name,
+		Version:          *workerVersion,
+		State:            string(workerState),
+		GardenAddr:       atcWorker.GardenAddr,
+		BaggageclaimURL:  atcWorker.BaggageclaimURL,
+		CertsPath:        atcWorker.CertsPath,
+		HTTPProxyURL:     atcWorker.HTTPProxyURL,
+		HTTPSProxyURL:    atcWorker.HTTPSProxyURL,
+		NoProxy:          atcWorker.NoProxy,
+		ActiveContainers: atcWorker.ActiveContainers,
+		ResourceTypes:    atcWorker.ResourceTypes,
+		Platform:         atcWorker.Platform,
+		Tags:             atcWorker.Tags,
+		Team:             atcWorker.Team,
+		TeamID:           workerTeamID,
+		StartTime:        atcWorker.StartTime,
 	}
 
 	workerBaseResourceTypeIDs := []int{}

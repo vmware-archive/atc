@@ -40,7 +40,7 @@ var _ = Describe("ContainerOwner", func() {
 			}
 
 			var err error
-			worker, err = workerFactory.SaveWorker(workerPayload, 0)
+			worker, err = workerRepository.SaveWorker(workerPayload, 0)
 			Expect(err).NotTo(HaveOccurred())
 
 			resourceConfigCheckSession, err = resourceConfigCheckSessionFactory.FindOrCreateResourceConfigCheckSession(logger,

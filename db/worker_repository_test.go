@@ -70,12 +70,12 @@ var _ = Describe("WorkerFactory", func() {
 		Context("when the worker already exists", func() {
 			BeforeEach(func() {
 				var err error
-				worker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+				worker, err = workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("saves resource types", func() {
-				worker, found, err := workerFactory.GetWorker(atcWorker.Name)
+				worker, found, err := workerRepository.GetWorker(atcWorker.Name)
 				Expect(found).To(BeTrue())
 				Expect(err).NotTo(HaveOccurred())
 
@@ -92,7 +92,7 @@ var _ = Describe("WorkerFactory", func() {
 					},
 				}
 
-				_, err := workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+				_, err := workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 
 				var count int
@@ -111,7 +111,7 @@ var _ = Describe("WorkerFactory", func() {
 
 				atcWorker.ResourceTypes[0].Version = "some-new-version"
 
-				_, err := workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+				_, err := workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 
 				afterIDs := resourceTypeIDs("some-name")
@@ -123,7 +123,7 @@ var _ = Describe("WorkerFactory", func() {
 
 			Context("when the worker is in stalled state", func() {
 				BeforeEach(func() {
-					_, err := workerFactory.SaveWorker(atcWorker, -5*time.Minute)
+					_, err := workerRepository.SaveWorker(atcWorker, -5*time.Minute)
 					Expect(err).NotTo(HaveOccurred())
 
 					_, err = workerLifecycle.StallUnresponsiveWorkers()
@@ -131,7 +131,7 @@ var _ = Describe("WorkerFactory", func() {
 				})
 
 				It("repopulates the garden address", func() {
-					savedWorker, err := workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+					savedWorker, err := workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(savedWorker.Name()).To(Equal("some-name"))
 					Expect(*savedWorker.GardenAddr()).To(Equal("some-garden-addr"))
@@ -145,7 +145,7 @@ var _ = Describe("WorkerFactory", func() {
 				})
 
 				It("updates the version of the worker", func() {
-					savedWorker, err := workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+					savedWorker, err := workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(worker.Version()).To(BeNil())
 					Expect(*savedWorker.Version()).To(Equal("1.0.0"))
@@ -159,7 +159,7 @@ var _ = Describe("WorkerFactory", func() {
 			})
 
 			It("saves worker", func() {
-				savedWorker, err := workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+				savedWorker, err := workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(savedWorker.Name()).To(Equal("some-name"))
 				Expect(*savedWorker.GardenAddr()).To(Equal("some-garden-addr"))
@@ -168,7 +168,7 @@ var _ = Describe("WorkerFactory", func() {
 			})
 
 			It("saves worker resource types as base resource types", func() {
-				_, err := workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+				_, err := workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 
 				var count int
@@ -186,12 +186,12 @@ var _ = Describe("WorkerFactory", func() {
 	Describe("GetWorker", func() {
 		Context("when the worker is present", func() {
 			BeforeEach(func() {
-				_, err := workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+				_, err := workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("finds the worker", func() {
-				foundWorker, found, err := workerFactory.GetWorker("some-name")
+				foundWorker, found, err := workerRepository.GetWorker("some-name")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(found).To(BeTrue())
 
@@ -225,7 +225,7 @@ var _ = Describe("WorkerFactory", func() {
 
 			Context("when worker is stalled", func() {
 				BeforeEach(func() {
-					_, err := workerFactory.SaveWorker(atcWorker, -1*time.Minute)
+					_, err := workerRepository.SaveWorker(atcWorker, -1*time.Minute)
 					Expect(err).NotTo(HaveOccurred())
 					stalled, err := workerLifecycle.StallUnresponsiveWorkers()
 					Expect(err).NotTo(HaveOccurred())
@@ -233,7 +233,7 @@ var _ = Describe("WorkerFactory", func() {
 				})
 
 				It("sets its garden and baggageclaim address to nil", func() {
-					foundWorker, found, err := workerFactory.GetWorker("some-name")
+					foundWorker, found, err := workerRepository.GetWorker("some-name")
 					Expect(err).NotTo(HaveOccurred())
 					Expect(found).To(BeTrue())
 					Expect(foundWorker.GardenAddr()).To(BeNil())
@@ -245,7 +245,7 @@ var _ = Describe("WorkerFactory", func() {
 
 		Context("when the worker is not present", func() {
 			It("returns false but no error", func() {
-				foundWorker, found, err := workerFactory.GetWorker("some-name")
+				foundWorker, found, err := workerRepository.GetWorker("some-name")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(found).To(BeFalse())
 				Expect(foundWorker).To(BeNil())
@@ -267,7 +267,7 @@ var _ = Describe("WorkerFactory", func() {
 				team3, err := teamFactory.CreateTeam(atc.Team{Name: "not-this-team"})
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = workerFactory.SaveWorker(atcWorker, 0)
+				_, err = workerRepository.SaveWorker(atcWorker, 0)
 				Expect(err).NotTo(HaveOccurred())
 
 				atcWorker.Name = "some-new-worker"
@@ -293,23 +293,23 @@ var _ = Describe("WorkerFactory", func() {
 			})
 
 			It("finds visble workers for the given teams", func() {
-				workers, err := workerFactory.VisibleWorkers([]string{"some-team", "some-other-team"})
+				workers, err := workerRepository.VisibleWorkers([]string{"some-team", "some-other-team"})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(workers)).To(Equal(3))
 
-				w1, found, err := workerFactory.GetWorker("some-name")
+				w1, found, err := workerRepository.GetWorker("some-name")
 				Expect(found).To(BeTrue())
 				Expect(err).NotTo(HaveOccurred())
 
-				w2, found, err := workerFactory.GetWorker("some-new-worker")
+				w2, found, err := workerRepository.GetWorker("some-new-worker")
 				Expect(found).To(BeTrue())
 				Expect(err).NotTo(HaveOccurred())
 
-				w3, found, err := workerFactory.GetWorker("some-other-new-worker")
+				w3, found, err := workerRepository.GetWorker("some-other-new-worker")
 				Expect(found).To(BeTrue())
 				Expect(err).NotTo(HaveOccurred())
 
-				w4, found, err := workerFactory.GetWorker("not-this-worker")
+				w4, found, err := workerRepository.GetWorker("not-this-worker")
 				Expect(found).To(BeTrue())
 				Expect(err).NotTo(HaveOccurred())
 
@@ -320,7 +320,7 @@ var _ = Describe("WorkerFactory", func() {
 
 		Context("when there are no workers", func() {
 			It("returns an error", func() {
-				workers, err := workerFactory.VisibleWorkers([]string{"some-team"})
+				workers, err := workerRepository.VisibleWorkers([]string{"some-team"})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(workers).To(BeEmpty())
 			})
@@ -334,19 +334,19 @@ var _ = Describe("WorkerFactory", func() {
 
 		Context("when there are workers", func() {
 			BeforeEach(func() {
-				_, err := workerFactory.SaveWorker(atcWorker, 0)
+				_, err := workerRepository.SaveWorker(atcWorker, 0)
 				Expect(err).NotTo(HaveOccurred())
 
 				atcWorker.Name = "some-new-worker"
 				atcWorker.GardenAddr = "some-other-garden-addr"
 				atcWorker.BaggageclaimURL = "some-other-bc-url"
 				//	atcWorker.ReaperAddr = "some-other-reaper-addr"
-				_, err = workerFactory.SaveWorker(atcWorker, 0)
+				_, err = workerRepository.SaveWorker(atcWorker, 0)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("finds them without error", func() {
-				workers, err := workerFactory.Workers()
+				workers, err := workerRepository.Workers()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(workers)).To(Equal(2))
 
@@ -373,7 +373,7 @@ var _ = Describe("WorkerFactory", func() {
 
 		Context("when there are no workers", func() {
 			It("returns an error", func() {
-				workers, err := workerFactory.Workers()
+				workers, err := workerRepository.Workers()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(workers).To(BeEmpty())
 			})
@@ -397,7 +397,7 @@ var _ = Describe("WorkerFactory", func() {
 
 		Context("when the worker is present", func() {
 			JustBeforeEach(func() {
-				_, err := workerFactory.SaveWorker(atcWorker, 1*time.Second)
+				_, err := workerRepository.SaveWorker(atcWorker, 1*time.Second)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -411,7 +411,7 @@ var _ = Describe("WorkerFactory", func() {
 				By("later time")
 				By(later.String())
 				By("found worker expiry")
-				foundWorker, err := workerFactory.HeartbeatWorker(atcWorker, ttl)
+				foundWorker, err := workerRepository.HeartbeatWorker(atcWorker, ttl)
 				Expect(err).NotTo(HaveOccurred())
 				By(foundWorker.ExpiresAt().String())
 
@@ -429,7 +429,7 @@ var _ = Describe("WorkerFactory", func() {
 				})
 
 				It("keeps the state as landing", func() {
-					foundWorker, err := workerFactory.HeartbeatWorker(atcWorker, ttl)
+					foundWorker, err := workerRepository.HeartbeatWorker(atcWorker, ttl)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(foundWorker.State()).To(Equal(db.WorkerStateLanding))
@@ -442,7 +442,7 @@ var _ = Describe("WorkerFactory", func() {
 				})
 
 				It("keeps the state as retiring", func() {
-					foundWorker, err := workerFactory.HeartbeatWorker(atcWorker, ttl)
+					foundWorker, err := workerRepository.HeartbeatWorker(atcWorker, ttl)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(foundWorker.State()).To(Equal(db.WorkerStateRetiring))
@@ -455,7 +455,7 @@ var _ = Describe("WorkerFactory", func() {
 				})
 
 				It("keeps the state as running", func() {
-					foundWorker, err := workerFactory.HeartbeatWorker(atcWorker, ttl)
+					foundWorker, err := workerRepository.HeartbeatWorker(atcWorker, ttl)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(foundWorker.State()).To(Equal(db.WorkerStateRunning))
@@ -469,7 +469,7 @@ var _ = Describe("WorkerFactory", func() {
 				)
 
 				JustBeforeEach(func() {
-					unresponsiveWorker, err = workerFactory.SaveWorker(atcWorker, -5*time.Minute)
+					unresponsiveWorker, err = workerRepository.SaveWorker(atcWorker, -5*time.Minute)
 					Expect(err).NotTo(HaveOccurred())
 
 					_, err = workerLifecycle.StallUnresponsiveWorkers()
@@ -478,14 +478,14 @@ var _ = Describe("WorkerFactory", func() {
 				})
 
 				It("sets the state as running", func() {
-					stalledWorker, found, err := workerFactory.GetWorker(unresponsiveWorker.Name())
+					stalledWorker, found, err := workerRepository.GetWorker(unresponsiveWorker.Name())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(found).To(BeTrue())
 
 					Expect(stalledWorker.GardenAddr()).To(BeNil())
 					Expect(stalledWorker.BaggageclaimURL()).To(BeNil())
 
-					foundWorker, err := workerFactory.HeartbeatWorker(atcWorker, ttl)
+					foundWorker, err := workerRepository.HeartbeatWorker(atcWorker, ttl)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(*foundWorker.GardenAddr()).To(Equal("some-garden-addr"))
@@ -498,7 +498,7 @@ var _ = Describe("WorkerFactory", func() {
 
 		Context("when the worker is not present", func() {
 			It("returns an error", func() {
-				foundWorker, err := workerFactory.HeartbeatWorker(atcWorker, ttl)
+				foundWorker, err := workerRepository.HeartbeatWorker(atcWorker, ttl)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(db.ErrWorkerNotPresent))
 				Expect(foundWorker).To(BeNil())

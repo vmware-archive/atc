@@ -130,7 +130,7 @@ var _ = Describe("VolumeFactory", func() {
 			Context("when worker is stalled", func() {
 				BeforeEach(func() {
 					var err error
-					defaultWorker, err = workerFactory.SaveWorker(defaultWorkerPayload, -10*time.Minute)
+					defaultWorker, err = workerRepository.SaveWorker(defaultWorkerPayload, -10*time.Minute)
 					Expect(err).NotTo(HaveOccurred())
 					stalledWorkers, err := workerLifecycle.StallUnresponsiveWorkers()
 					Expect(err).NotTo(HaveOccurred())
@@ -288,7 +288,7 @@ var _ = Describe("VolumeFactory", func() {
 		Context("when worker is stalled", func() {
 			BeforeEach(func() {
 				var err error
-				defaultWorker, err = workerFactory.SaveWorker(defaultWorkerPayload, -11*time.Minute)
+				defaultWorker, err = workerRepository.SaveWorker(defaultWorkerPayload, -11*time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 				stalledWorkers, err := workerLifecycle.StallUnresponsiveWorkers()
 				Expect(err).NotTo(HaveOccurred())

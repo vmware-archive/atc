@@ -31,7 +31,7 @@ var (
 	volumeRepository                    db.VolumeRepository
 	containerRepository                 db.ContainerRepository
 	teamFactory                         db.TeamFactory
-	workerFactory                       db.WorkerFactory
+	workerRepository                    db.WorkerRepository
 	workerLifecycle                     db.WorkerLifecycle
 	resourceConfigCheckSessionLifecycle db.ResourceConfigCheckSessionLifecycle
 	resourceConfigCheckSessionFactory   db.ResourceConfigCheckSessionFactory
@@ -94,7 +94,7 @@ var _ = BeforeEach(func() {
 	volumeRepository = db.NewVolumeRepository(dbConn)
 	containerRepository = db.NewContainerRepository(dbConn)
 	teamFactory = db.NewTeamFactory(dbConn, lockFactory)
-	workerFactory = db.NewWorkerFactory(dbConn)
+	workerRepository = db.NewWorkerRepository(dbConn)
 	workerLifecycle = db.NewWorkerLifecycle(dbConn)
 	resourceConfigCheckSessionLifecycle = db.NewResourceConfigCheckSessionLifecycle(dbConn)
 	resourceConfigCheckSessionFactory = db.NewResourceConfigCheckSessionFactory(dbConn, lockFactory)
@@ -124,7 +124,7 @@ var _ = BeforeEach(func() {
 		CertsPath:       &certsPath,
 	}
 
-	defaultWorker, err = workerFactory.SaveWorker(defaultWorkerPayload, 0)
+	defaultWorker, err = workerRepository.SaveWorker(defaultWorkerPayload, 0)
 	Expect(err).NotTo(HaveOccurred())
 
 	defaultPipeline, _, err = defaultTeam.SavePipeline("default-pipeline", atc.Config{

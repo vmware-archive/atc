@@ -188,7 +188,7 @@ var _ = Describe("Team", func() {
 				atcWorker.Name = "some-new-worker"
 				atcWorker.GardenAddr = "some-other-garden-addr"
 				atcWorker.BaggageclaimURL = "some-other-bc-url"
-				_, err = workerFactory.SaveWorker(atcWorker, 0)
+				_, err = workerRepository.SaveWorker(atcWorker, 0)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -225,7 +225,7 @@ var _ = Describe("Team", func() {
 
 		Context("when there are no workers", func() {
 			It("returns an error", func() {
-				workers, err := workerFactory.Workers()
+				workers, err := workerRepository.Workers()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(workers).To(BeEmpty())
 			})

@@ -47,7 +47,7 @@ var _ = Describe("Worker Lifecycle", func() {
 	Describe("StallUnresponsiveWorkers", func() {
 		Context("when the worker has heartbeated recently", func() {
 			BeforeEach(func() {
-				_, err := workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+				_, err := workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -60,7 +60,7 @@ var _ = Describe("Worker Lifecycle", func() {
 
 		Context("when the worker has not heartbeated recently", func() {
 			BeforeEach(func() {
-				_, err := workerFactory.SaveWorker(atcWorker, -1*time.Minute)
+				_, err := workerRepository.SaveWorker(atcWorker, -1*time.Minute)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -81,7 +81,7 @@ var _ = Describe("Worker Lifecycle", func() {
 
 		JustBeforeEach(func() {
 			var err error
-			dbWorker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+			dbWorker, err = workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -89,12 +89,12 @@ var _ = Describe("Worker Lifecycle", func() {
 			JustBeforeEach(func() {
 				var err error
 				atcWorker.State = string(db.WorkerStateRunning)
-				dbWorker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+				dbWorker, err = workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("does not delete worker", func() {
-				_, found, err := workerFactory.GetWorker(atcWorker.Name)
+				_, found, err := workerRepository.GetWorker(atcWorker.Name)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
@@ -102,7 +102,7 @@ var _ = Describe("Worker Lifecycle", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(len(deletedWorkers)).To(Equal(0))
 
-				_, found, err = workerFactory.GetWorker(atcWorker.Name)
+				_, found, err = workerRepository.GetWorker(atcWorker.Name)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 			})
@@ -115,7 +115,7 @@ var _ = Describe("Worker Lifecycle", func() {
 
 			Context("when the worker does not have any running builds", func() {
 				It("deletes worker", func() {
-					_, found, err := workerFactory.GetWorker(atcWorker.Name)
+					_, found, err := workerRepository.GetWorker(atcWorker.Name)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
@@ -124,7 +124,7 @@ var _ = Describe("Worker Lifecycle", func() {
 					Expect(len(deletedWorkers)).To(Equal(1))
 					Expect(deletedWorkers[0]).To(Equal(atcWorker.Name))
 
-					_, found, err = workerFactory.GetWorker(atcWorker.Name)
+					_, found, err = workerRepository.GetWorker(atcWorker.Name)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeFalse())
 				})
@@ -147,14 +147,14 @@ var _ = Describe("Worker Lifecycle", func() {
 					_, err = defaultTeam.CreateContainer(dbWorker.Name(), db.NewBuildStepContainerOwner(dbBuild.ID(), atc.PlanID(4)), db.ContainerMetadata{})
 					Expect(err).ToNot(HaveOccurred())
 
-					_, found, err := workerFactory.GetWorker(atcWorker.Name)
+					_, found, err := workerRepository.GetWorker(atcWorker.Name)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
 					_, err = workerLifecycle.DeleteFinishedRetiringWorkers()
 					Expect(err).ToNot(HaveOccurred())
 
-					_, found, err = workerFactory.GetWorker(atcWorker.Name)
+					_, found, err = workerRepository.GetWorker(atcWorker.Name)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(Equal(expectedExistence))
 				},
@@ -180,14 +180,14 @@ var _ = Describe("Worker Lifecycle", func() {
 				_, err := defaultTeam.CreateContainer(dbWorker.Name(), db.NewBuildStepContainerOwner(dbBuild.ID(), atc.PlanID(4)), db.ContainerMetadata{})
 				Expect(err).ToNot(HaveOccurred())
 
-				_, found, err := workerFactory.GetWorker(atcWorker.Name)
+				_, found, err := workerRepository.GetWorker(atcWorker.Name)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
 				_, err = workerLifecycle.DeleteFinishedRetiringWorkers()
 				Expect(err).ToNot(HaveOccurred())
 
-				_, found, err = workerFactory.GetWorker(atcWorker.Name)
+				_, found, err = workerRepository.GetWorker(atcWorker.Name)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(Equal(expectedExistence))
 			}
@@ -284,7 +284,7 @@ var _ = Describe("Worker Lifecycle", func() {
 
 		JustBeforeEach(func() {
 			var err error
-			dbWorker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+			dbWorker, err = workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -292,12 +292,12 @@ var _ = Describe("Worker Lifecycle", func() {
 			JustBeforeEach(func() {
 				var err error
 				atcWorker.State = string(db.WorkerStateRunning)
-				dbWorker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+				dbWorker, err = workerRepository.SaveWorker(atcWorker, 5*time.Minute)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("does not land worker", func() {
-				_, found, err := workerFactory.GetWorker(atcWorker.Name)
+				_, found, err := workerRepository.GetWorker(atcWorker.Name)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
@@ -305,7 +305,7 @@ var _ = Describe("Worker Lifecycle", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(len(landedWorkers)).To(Equal(0))
 
-				foundWorker, found, err := workerFactory.GetWorker(atcWorker.Name)
+				foundWorker, found, err := workerRepository.GetWorker(atcWorker.Name)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 				Expect(foundWorker.State()).To(Equal(db.WorkerStateRunning))
@@ -319,7 +319,7 @@ var _ = Describe("Worker Lifecycle", func() {
 
 			Context("when the worker does not have any running builds", func() {
 				It("lands worker", func() {
-					_, found, err := workerFactory.GetWorker(atcWorker.Name)
+					_, found, err := workerRepository.GetWorker(atcWorker.Name)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
@@ -328,7 +328,7 @@ var _ = Describe("Worker Lifecycle", func() {
 					Expect(len(landedWorkers)).To(Equal(1))
 					Expect(landedWorkers[0]).To(Equal(atcWorker.Name))
 
-					foundWorker, found, err := workerFactory.GetWorker(atcWorker.Name)
+					foundWorker, found, err := workerRepository.GetWorker(atcWorker.Name)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 					Expect(foundWorker.State()).To(Equal(db.WorkerStateLanded))
@@ -344,7 +344,7 @@ var _ = Describe("Worker Lifecycle", func() {
 						err                   error
 					)
 
-					worker, found, err = workerFactory.GetWorker(atcWorker.Name)
+					worker, found, err = workerRepository.GetWorker(atcWorker.Name)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
@@ -392,14 +392,14 @@ var _ = Describe("Worker Lifecycle", func() {
 					_, err = defaultTeam.CreateContainer(dbWorker.Name(), db.NewBuildStepContainerOwner(dbBuild.ID(), atc.PlanID(4)), db.ContainerMetadata{})
 					Expect(err).ToNot(HaveOccurred())
 
-					_, found, err := workerFactory.GetWorker(atcWorker.Name)
+					_, found, err := workerRepository.GetWorker(atcWorker.Name)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
 					_, err = workerLifecycle.LandFinishedLandingWorkers()
 					Expect(err).ToNot(HaveOccurred())
 
-					foundWorker, found, err := workerFactory.GetWorker(atcWorker.Name)
+					foundWorker, found, err := workerRepository.GetWorker(atcWorker.Name)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 					Expect(foundWorker.State()).To(Equal(expectedState))
@@ -426,14 +426,14 @@ var _ = Describe("Worker Lifecycle", func() {
 				_, err := defaultTeam.CreateContainer(dbWorker.Name(), db.NewBuildStepContainerOwner(dbBuild.ID(), atc.PlanID(4)), db.ContainerMetadata{})
 				Expect(err).ToNot(HaveOccurred())
 
-				_, found, err := workerFactory.GetWorker(atcWorker.Name)
+				_, found, err := workerRepository.GetWorker(atcWorker.Name)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
 				_, err = workerLifecycle.LandFinishedLandingWorkers()
 				Expect(err).ToNot(HaveOccurred())
 
-				foundWorker, found, err := workerFactory.GetWorker(atcWorker.Name)
+				foundWorker, found, err := workerRepository.GetWorker(atcWorker.Name)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 				Expect(foundWorker.State()).To(Equal(expectedState))

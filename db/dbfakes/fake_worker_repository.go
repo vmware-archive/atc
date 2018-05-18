@@ -9,7 +9,7 @@ import (
 	"github.com/concourse/atc/db"
 )
 
-type FakeWorkerFactory struct {
+type FakeWorkerRepository struct {
 	GetWorkerStub        func(name string) (db.Worker, bool, error)
 	getWorkerMutex       sync.RWMutex
 	getWorkerArgsForCall []struct {
@@ -81,7 +81,7 @@ type FakeWorkerFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeWorkerFactory) GetWorker(name string) (db.Worker, bool, error) {
+func (fake *FakeWorkerRepository) GetWorker(name string) (db.Worker, bool, error) {
 	fake.getWorkerMutex.Lock()
 	ret, specificReturn := fake.getWorkerReturnsOnCall[len(fake.getWorkerArgsForCall)]
 	fake.getWorkerArgsForCall = append(fake.getWorkerArgsForCall, struct {
@@ -98,19 +98,19 @@ func (fake *FakeWorkerFactory) GetWorker(name string) (db.Worker, bool, error) {
 	return fake.getWorkerReturns.result1, fake.getWorkerReturns.result2, fake.getWorkerReturns.result3
 }
 
-func (fake *FakeWorkerFactory) GetWorkerCallCount() int {
+func (fake *FakeWorkerRepository) GetWorkerCallCount() int {
 	fake.getWorkerMutex.RLock()
 	defer fake.getWorkerMutex.RUnlock()
 	return len(fake.getWorkerArgsForCall)
 }
 
-func (fake *FakeWorkerFactory) GetWorkerArgsForCall(i int) string {
+func (fake *FakeWorkerRepository) GetWorkerArgsForCall(i int) string {
 	fake.getWorkerMutex.RLock()
 	defer fake.getWorkerMutex.RUnlock()
 	return fake.getWorkerArgsForCall[i].name
 }
 
-func (fake *FakeWorkerFactory) GetWorkerReturns(result1 db.Worker, result2 bool, result3 error) {
+func (fake *FakeWorkerRepository) GetWorkerReturns(result1 db.Worker, result2 bool, result3 error) {
 	fake.GetWorkerStub = nil
 	fake.getWorkerReturns = struct {
 		result1 db.Worker
@@ -119,7 +119,7 @@ func (fake *FakeWorkerFactory) GetWorkerReturns(result1 db.Worker, result2 bool,
 	}{result1, result2, result3}
 }
 
-func (fake *FakeWorkerFactory) GetWorkerReturnsOnCall(i int, result1 db.Worker, result2 bool, result3 error) {
+func (fake *FakeWorkerRepository) GetWorkerReturnsOnCall(i int, result1 db.Worker, result2 bool, result3 error) {
 	fake.GetWorkerStub = nil
 	if fake.getWorkerReturnsOnCall == nil {
 		fake.getWorkerReturnsOnCall = make(map[int]struct {
@@ -135,7 +135,7 @@ func (fake *FakeWorkerFactory) GetWorkerReturnsOnCall(i int, result1 db.Worker, 
 	}{result1, result2, result3}
 }
 
-func (fake *FakeWorkerFactory) SaveWorker(atcWorker atc.Worker, ttl time.Duration) (db.Worker, error) {
+func (fake *FakeWorkerRepository) SaveWorker(atcWorker atc.Worker, ttl time.Duration) (db.Worker, error) {
 	fake.saveWorkerMutex.Lock()
 	ret, specificReturn := fake.saveWorkerReturnsOnCall[len(fake.saveWorkerArgsForCall)]
 	fake.saveWorkerArgsForCall = append(fake.saveWorkerArgsForCall, struct {
@@ -153,19 +153,19 @@ func (fake *FakeWorkerFactory) SaveWorker(atcWorker atc.Worker, ttl time.Duratio
 	return fake.saveWorkerReturns.result1, fake.saveWorkerReturns.result2
 }
 
-func (fake *FakeWorkerFactory) SaveWorkerCallCount() int {
+func (fake *FakeWorkerRepository) SaveWorkerCallCount() int {
 	fake.saveWorkerMutex.RLock()
 	defer fake.saveWorkerMutex.RUnlock()
 	return len(fake.saveWorkerArgsForCall)
 }
 
-func (fake *FakeWorkerFactory) SaveWorkerArgsForCall(i int) (atc.Worker, time.Duration) {
+func (fake *FakeWorkerRepository) SaveWorkerArgsForCall(i int) (atc.Worker, time.Duration) {
 	fake.saveWorkerMutex.RLock()
 	defer fake.saveWorkerMutex.RUnlock()
 	return fake.saveWorkerArgsForCall[i].atcWorker, fake.saveWorkerArgsForCall[i].ttl
 }
 
-func (fake *FakeWorkerFactory) SaveWorkerReturns(result1 db.Worker, result2 error) {
+func (fake *FakeWorkerRepository) SaveWorkerReturns(result1 db.Worker, result2 error) {
 	fake.SaveWorkerStub = nil
 	fake.saveWorkerReturns = struct {
 		result1 db.Worker
@@ -173,7 +173,7 @@ func (fake *FakeWorkerFactory) SaveWorkerReturns(result1 db.Worker, result2 erro
 	}{result1, result2}
 }
 
-func (fake *FakeWorkerFactory) SaveWorkerReturnsOnCall(i int, result1 db.Worker, result2 error) {
+func (fake *FakeWorkerRepository) SaveWorkerReturnsOnCall(i int, result1 db.Worker, result2 error) {
 	fake.SaveWorkerStub = nil
 	if fake.saveWorkerReturnsOnCall == nil {
 		fake.saveWorkerReturnsOnCall = make(map[int]struct {
@@ -187,7 +187,7 @@ func (fake *FakeWorkerFactory) SaveWorkerReturnsOnCall(i int, result1 db.Worker,
 	}{result1, result2}
 }
 
-func (fake *FakeWorkerFactory) HeartbeatWorker(worker atc.Worker, ttl time.Duration) (db.Worker, error) {
+func (fake *FakeWorkerRepository) HeartbeatWorker(worker atc.Worker, ttl time.Duration) (db.Worker, error) {
 	fake.heartbeatWorkerMutex.Lock()
 	ret, specificReturn := fake.heartbeatWorkerReturnsOnCall[len(fake.heartbeatWorkerArgsForCall)]
 	fake.heartbeatWorkerArgsForCall = append(fake.heartbeatWorkerArgsForCall, struct {
@@ -205,19 +205,19 @@ func (fake *FakeWorkerFactory) HeartbeatWorker(worker atc.Worker, ttl time.Durat
 	return fake.heartbeatWorkerReturns.result1, fake.heartbeatWorkerReturns.result2
 }
 
-func (fake *FakeWorkerFactory) HeartbeatWorkerCallCount() int {
+func (fake *FakeWorkerRepository) HeartbeatWorkerCallCount() int {
 	fake.heartbeatWorkerMutex.RLock()
 	defer fake.heartbeatWorkerMutex.RUnlock()
 	return len(fake.heartbeatWorkerArgsForCall)
 }
 
-func (fake *FakeWorkerFactory) HeartbeatWorkerArgsForCall(i int) (atc.Worker, time.Duration) {
+func (fake *FakeWorkerRepository) HeartbeatWorkerArgsForCall(i int) (atc.Worker, time.Duration) {
 	fake.heartbeatWorkerMutex.RLock()
 	defer fake.heartbeatWorkerMutex.RUnlock()
 	return fake.heartbeatWorkerArgsForCall[i].worker, fake.heartbeatWorkerArgsForCall[i].ttl
 }
 
-func (fake *FakeWorkerFactory) HeartbeatWorkerReturns(result1 db.Worker, result2 error) {
+func (fake *FakeWorkerRepository) HeartbeatWorkerReturns(result1 db.Worker, result2 error) {
 	fake.HeartbeatWorkerStub = nil
 	fake.heartbeatWorkerReturns = struct {
 		result1 db.Worker
@@ -225,7 +225,7 @@ func (fake *FakeWorkerFactory) HeartbeatWorkerReturns(result1 db.Worker, result2
 	}{result1, result2}
 }
 
-func (fake *FakeWorkerFactory) HeartbeatWorkerReturnsOnCall(i int, result1 db.Worker, result2 error) {
+func (fake *FakeWorkerRepository) HeartbeatWorkerReturnsOnCall(i int, result1 db.Worker, result2 error) {
 	fake.HeartbeatWorkerStub = nil
 	if fake.heartbeatWorkerReturnsOnCall == nil {
 		fake.heartbeatWorkerReturnsOnCall = make(map[int]struct {
@@ -239,7 +239,7 @@ func (fake *FakeWorkerFactory) HeartbeatWorkerReturnsOnCall(i int, result1 db.Wo
 	}{result1, result2}
 }
 
-func (fake *FakeWorkerFactory) Workers() ([]db.Worker, error) {
+func (fake *FakeWorkerRepository) Workers() ([]db.Worker, error) {
 	fake.workersMutex.Lock()
 	ret, specificReturn := fake.workersReturnsOnCall[len(fake.workersArgsForCall)]
 	fake.workersArgsForCall = append(fake.workersArgsForCall, struct{}{})
@@ -254,13 +254,13 @@ func (fake *FakeWorkerFactory) Workers() ([]db.Worker, error) {
 	return fake.workersReturns.result1, fake.workersReturns.result2
 }
 
-func (fake *FakeWorkerFactory) WorkersCallCount() int {
+func (fake *FakeWorkerRepository) WorkersCallCount() int {
 	fake.workersMutex.RLock()
 	defer fake.workersMutex.RUnlock()
 	return len(fake.workersArgsForCall)
 }
 
-func (fake *FakeWorkerFactory) WorkersReturns(result1 []db.Worker, result2 error) {
+func (fake *FakeWorkerRepository) WorkersReturns(result1 []db.Worker, result2 error) {
 	fake.WorkersStub = nil
 	fake.workersReturns = struct {
 		result1 []db.Worker
@@ -268,7 +268,7 @@ func (fake *FakeWorkerFactory) WorkersReturns(result1 []db.Worker, result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeWorkerFactory) WorkersReturnsOnCall(i int, result1 []db.Worker, result2 error) {
+func (fake *FakeWorkerRepository) WorkersReturnsOnCall(i int, result1 []db.Worker, result2 error) {
 	fake.WorkersStub = nil
 	if fake.workersReturnsOnCall == nil {
 		fake.workersReturnsOnCall = make(map[int]struct {
@@ -282,7 +282,7 @@ func (fake *FakeWorkerFactory) WorkersReturnsOnCall(i int, result1 []db.Worker, 
 	}{result1, result2}
 }
 
-func (fake *FakeWorkerFactory) VisibleWorkers(arg1 []string) ([]db.Worker, error) {
+func (fake *FakeWorkerRepository) VisibleWorkers(arg1 []string) ([]db.Worker, error) {
 	var arg1Copy []string
 	if arg1 != nil {
 		arg1Copy = make([]string, len(arg1))
@@ -304,19 +304,19 @@ func (fake *FakeWorkerFactory) VisibleWorkers(arg1 []string) ([]db.Worker, error
 	return fake.visibleWorkersReturns.result1, fake.visibleWorkersReturns.result2
 }
 
-func (fake *FakeWorkerFactory) VisibleWorkersCallCount() int {
+func (fake *FakeWorkerRepository) VisibleWorkersCallCount() int {
 	fake.visibleWorkersMutex.RLock()
 	defer fake.visibleWorkersMutex.RUnlock()
 	return len(fake.visibleWorkersArgsForCall)
 }
 
-func (fake *FakeWorkerFactory) VisibleWorkersArgsForCall(i int) []string {
+func (fake *FakeWorkerRepository) VisibleWorkersArgsForCall(i int) []string {
 	fake.visibleWorkersMutex.RLock()
 	defer fake.visibleWorkersMutex.RUnlock()
 	return fake.visibleWorkersArgsForCall[i].arg1
 }
 
-func (fake *FakeWorkerFactory) VisibleWorkersReturns(result1 []db.Worker, result2 error) {
+func (fake *FakeWorkerRepository) VisibleWorkersReturns(result1 []db.Worker, result2 error) {
 	fake.VisibleWorkersStub = nil
 	fake.visibleWorkersReturns = struct {
 		result1 []db.Worker
@@ -324,7 +324,7 @@ func (fake *FakeWorkerFactory) VisibleWorkersReturns(result1 []db.Worker, result
 	}{result1, result2}
 }
 
-func (fake *FakeWorkerFactory) VisibleWorkersReturnsOnCall(i int, result1 []db.Worker, result2 error) {
+func (fake *FakeWorkerRepository) VisibleWorkersReturnsOnCall(i int, result1 []db.Worker, result2 error) {
 	fake.VisibleWorkersStub = nil
 	if fake.visibleWorkersReturnsOnCall == nil {
 		fake.visibleWorkersReturnsOnCall = make(map[int]struct {
@@ -338,7 +338,7 @@ func (fake *FakeWorkerFactory) VisibleWorkersReturnsOnCall(i int, result1 []db.W
 	}{result1, result2}
 }
 
-func (fake *FakeWorkerFactory) Invocations() map[string][][]interface{} {
+func (fake *FakeWorkerRepository) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.getWorkerMutex.RLock()
@@ -358,7 +358,7 @@ func (fake *FakeWorkerFactory) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeWorkerFactory) recordInvocation(key string, args []interface{}) {
+func (fake *FakeWorkerRepository) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -370,4 +370,4 @@ func (fake *FakeWorkerFactory) recordInvocation(key string, args []interface{}) 
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ db.WorkerFactory = new(FakeWorkerFactory)
+var _ db.WorkerRepository = new(FakeWorkerRepository)
