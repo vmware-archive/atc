@@ -126,21 +126,21 @@ func (t *team) Rename(name string) error {
 	return err
 }
 
-func (t *team) Workers() ([]Worker, error) {
+func (t *team) Workers() ([]atc.Worker, error) {
 	return getWorkers(t.conn, workersQuery.Where(sq.Or{
 		sq.Eq{"t.id": t.id},
 		sq.Eq{"w.team_id": nil},
 	}))
 }
 
-func (t *team) FindWorkerForContainer(handle string) (Worker, bool, error) {
+func (t *team) FindWorkerForContainer(handle string) (*atc.Worker, bool, error) {
 	return getWorker(t.conn, workersQuery.Join("containers c ON c.worker_name = w.name").Where(sq.And{
 		sq.Eq{"c.handle": handle},
 		sq.Eq{"c.team_id": t.id},
 	}))
 }
 
-func (t *team) FindWorkerForContainerByOwner(owner ContainerOwner) (Worker, bool, error) {
+func (t *team) FindWorkerForContainerByOwner(owner ContainerOwner) (*atc.Worker, bool, error) {
 	ownerQuery, found, err := owner.Find(t.conn)
 	if err != nil {
 		return nil, false, err
@@ -759,7 +759,7 @@ func (t *team) Builds(page Page) ([]Build, Pagination, error) {
 	return getBuildsWithPagination(buildsQuery.Where(sq.Eq{"t.id": t.id}), page, t.conn, t.lockFactory)
 }
 
-func (t *team) SaveWorker(atcWorker atc.Worker, ttl time.Duration) (Worker, error) {
+func (t *team) SaveWorker(atcWorker atc.Worker, ttl time.Duration) (*atc.Worker, error) {
 	tx, err := t.conn.Begin()
 	if err != nil {
 		return nil, err

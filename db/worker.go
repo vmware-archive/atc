@@ -27,25 +27,6 @@ const (
 //go:generate counterfeiter . Worker
 
 type Worker interface {
-	Name() string
-	Version() *string
-	State() WorkerState
-	GardenAddr() *string
-	BaggageclaimURL() *string
-	CertsPath() *string
-	ResourceCerts() (*UsedWorkerResourceCerts, bool, error)
-	HTTPProxyURL() string
-	HTTPSProxyURL() string
-	NoProxy() string
-	ActiveContainers() int
-	ResourceTypes() []atc.WorkerResourceType
-	Platform() string
-	Tags() []string
-	TeamID() int
-	TeamName() string
-	StartTime() int64
-	ExpiresAt() time.Time
-
 	Land() error
 	Retire() error
 	Prune() error
@@ -55,12 +36,11 @@ type Worker interface {
 type worker struct {
 	conn Conn
 
-	name            string
-	version         *string
-	state           WorkerState
-	gardenAddr      *string
-	baggageclaimURL *string
-	//	reaperAddr       *string
+	name             string
+	version          *string
+	state            WorkerState
+	gardenAddr       *string
+	baggageclaimURL  *string
 	httpProxyURL     string
 	httpsProxyURL    string
 	noProxy          string
@@ -74,27 +54,6 @@ type worker struct {
 	expiresAt        time.Time
 	certsPath        *string
 }
-
-func (worker *worker) Name() string             { return worker.name }
-func (worker *worker) Version() *string         { return worker.version }
-func (worker *worker) State() WorkerState       { return worker.state }
-func (worker *worker) GardenAddr() *string      { return worker.gardenAddr }
-func (worker *worker) CertsPath() *string       { return worker.certsPath }
-func (worker *worker) BaggageclaimURL() *string { return worker.baggageclaimURL }
-
-func (worker *worker) HTTPProxyURL() string                    { return worker.httpProxyURL }
-func (worker *worker) HTTPSProxyURL() string                   { return worker.httpsProxyURL }
-func (worker *worker) NoProxy() string                         { return worker.noProxy }
-func (worker *worker) ActiveContainers() int                   { return worker.activeContainers }
-func (worker *worker) ResourceTypes() []atc.WorkerResourceType { return worker.resourceTypes }
-func (worker *worker) Platform() string                        { return worker.platform }
-func (worker *worker) Tags() []string                          { return worker.tags }
-func (worker *worker) TeamID() int                             { return worker.teamID }
-func (worker *worker) TeamName() string                        { return worker.teamName }
-
-// TODO: normalize time values
-func (worker *worker) StartTime() int64     { return worker.startTime }
-func (worker *worker) ExpiresAt() time.Time { return worker.expiresAt }
 
 func (worker *worker) Land() error {
 	cSQL, _, err := sq.Case("state").
@@ -190,18 +149,6 @@ func (worker *worker) Prune() error {
 	}
 
 	return nil
-}
-
-func (worker *worker) Delete() error {
-	_, err := sq.Delete("workers").
-		Where(sq.Eq{
-			"name": worker.name,
-		}).
-		PlaceholderFormat(sq.Dollar).
-		RunWith(worker.conn).
-		Exec()
-
-	return err
 }
 
 func (worker *worker) ResourceCerts() (*UsedWorkerResourceCerts, bool, error) {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/concourse/atc"
 	"github.com/lib/pq"
 )
 
@@ -27,7 +28,7 @@ func (e WorkerBaseResourceTypeAlreadyExistsError) Error() string {
 // | id | resource_cache_id | base_resource_type_id | source_hash | params_hash | version |
 
 type WorkerResourceType struct {
-	Worker  Worker
+	Worker  atc.Worker
 	Image   string // The path to the image, e.g. '/opt/concourse/resources/git'.
 	Version string // The version of the image, e.g. a SHA of the rootfs.
 
@@ -65,7 +66,7 @@ func (wrt WorkerResourceType) find(tx Tx, usedBaseResourceType *UsedBaseResource
 		id         int
 	)
 	err := psql.Select("id", "worker_name").From("worker_base_resource_types").Where(sq.Eq{
-		"worker_name":           wrt.Worker.Name(),
+		"worker_name":           wrt.Worker.Name,
 		"base_resource_type_id": usedBaseResourceType.ID,
 		"image":                 wrt.Image,
 		"version":               wrt.Version,

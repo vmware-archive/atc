@@ -9,25 +9,16 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/service"
 )
 
-//go:generate counterfeiter . WorkerRepository
-
-type WorkerRepository interface {
-	GetWorker(name string) (*atc.Worker, bool, error)
-	SaveWorker(atcWorker atc.Worker, ttl time.Duration) (*atc.Worker, error)
-	HeartbeatWorker(worker atc.Worker, ttl time.Duration) (*atc.Worker, error)
-	Workers() ([]atc.Worker, error)
-	VisibleWorkers([]string) ([]atc.Worker, error)
-	Reload(*atc.Worker) (bool, error)
-}
-
+// PostgresWorkerRepository implements service.WorkerRepository for a Postgres back-end
 type PostgresWorkerRepository struct {
 	conn Conn
 }
 
 // NewWorkerRepository returns a worker repository located at the given database connection
-func NewWorkerRepository(conn Conn) WorkerRepository {
+func NewWorkerRepository(conn Conn) service.WorkerRepository {
 	return &PostgresWorkerRepository{
 		conn: conn,
 	}
@@ -361,6 +352,19 @@ func (workerRepo *PostgresWorkerRepository) SaveWorker(atcWorker atc.Worker, ttl
 	return savedWorker, nil
 }
 
+// Delete a worker from the persistent store
+func (workerRepo *PostgresWorkerRepository) Delete(worker *atc.Worker) error {
+	_, err := sq.Delete("workers").
+		Where(sq.Eq{
+			"name": worker.Name,
+		}).
+		PlaceholderFormat(sq.Dollar).
+		RunWith(workerRepo.conn).
+		Exec()
+
+	return err
+}
+
 func saveWorker(tx Tx, atcWorker atc.Worker, teamID *int, ttl time.Duration, conn Conn) (*atc.Worker, error) {
 	resourceTypes, err := json.Marshal(atcWorker.ResourceTypes)
 	if err != nil {
@@ -574,4 +578,18 @@ func saveWorker(tx Tx, atcWorker atc.Worker, teamID *int, ttl time.Duration, con
 	}
 
 	return savedWorker, nil
+}
+
+// ResourceCerts returns the resource certs for the worker
+func (workerRepo *PostgresWorkerRepository) ResourceCerts(worker *atc.Worker) (*UsedWorkerResourceCerts, bool, error) {
+	if worker.CertsPath != nil {
+		wrc := &WorkerResourceCerts{
+			WorkerName: worker.Name,
+			CertsPath:  *worker.CertsPath,
+		}
+
+		return wrc.Find(workerRepo.conn)
+	}
+
+	return nil, false, nil
 }
