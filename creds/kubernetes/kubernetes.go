@@ -23,22 +23,15 @@ func (k Kubernetes) Get(varDef template.VariableDefinition) (interface{}, bool, 
 	var pipelineSecretName = k.PipelineName + "." + varDef.Name
 	var secretName = varDef.Name
 
-	secret, found, err := k.findSecret(namespace, pipelineSecretName)
+	secret, err := k.findSecret(namespace, pipelineSecretName)
 
-	if !found && err == nil {
-		secret, found, err = k.findSecret(namespace, secretName)
+	if secret != nil {
+		return k.getValueFromSecret(secret)
 	}
 
-	if err != nil {
-		k.logger.Error("k8s-secret-error", err, lager.Data{
-			"namespace":          namespace,
-			"pipelineSecretName": pipelineSecretName,
-			"secretName":         secretName,
-		})
-		return nil, false, err
-	}
+	secret, err = k.findSecret(namespace, secretName)
 
-	if found {
+	if secret != nil {
 		return k.getValueFromSecret(secret)
 	}
 
@@ -47,7 +40,7 @@ func (k Kubernetes) Get(varDef template.VariableDefinition) (interface{}, bool, 
 		"pipelineSecretName": pipelineSecretName,
 		"secretName":         secretName,
 	})
-	return nil, false, nil
+	return nil, false, err
 }
 
 func (k Kubernetes) getValueFromSecret(secret *v1.Secret) (interface{}, bool, error) {
@@ -64,18 +57,22 @@ func (k Kubernetes) getValueFromSecret(secret *v1.Secret) (interface{}, bool, er
 	return evenLessTyped, true, nil
 }
 
-func (k Kubernetes) findSecret(namespace, name string) (*v1.Secret, bool, error) {
+func (k Kubernetes) findSecret(namespace, name string) (*v1.Secret, error) {
 	var secret *v1.Secret
 	var err error
 
 	secret, err = k.Clientset.Core().Secrets(namespace).Get(name, meta_v1.GetOptions{})
 
 	if err != nil && k8s_errors.IsNotFound(err) {
-		return nil, false, nil
+		return nil, nil
 	} else if err != nil {
-		return nil, false, err
+		k.logger.Error("k8s-secret-error", err, lager.Data{
+			"namespace": namespace,
+			"name":      name,
+		})
+		return nil, err
 	} else {
-		return secret, true, err
+		return secret, err
 	}
 }
 
