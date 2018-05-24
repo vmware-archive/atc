@@ -195,6 +195,7 @@ func validateJobs(c Config) ([]Warning, error) {
 	warnings := []Warning{}
 
 	names := map[string]int{}
+	graph := NewGraph()
 
 	for i, job := range c.Jobs {
 		var identifier string
@@ -224,34 +225,34 @@ func validateJobs(c Config) ([]Warning, error) {
 			)
 		}
 
-		planWarnings, planErrMessages := validatePlan(c, identifier+".plan", PlanConfig{Do: &job.Plan})
+		planWarnings, planErrMessages := validatePlan(c, identifier+".plan", PlanConfig{Do: &job.Plan}, job, graph)
 		warnings = append(warnings, planWarnings...)
 		errorMessages = append(errorMessages, planErrMessages...)
 
 		if job.Abort != nil {
 			subIdentifier := fmt.Sprintf("%s.abort", identifier)
-			planWarnings, planErrMessages := validatePlan(c, subIdentifier, *job.Abort)
+			planWarnings, planErrMessages := validatePlan(c, subIdentifier, *job.Abort, job, graph)
 			warnings = append(warnings, planWarnings...)
 			errorMessages = append(errorMessages, planErrMessages...)
 		}
 
 		if job.Failure != nil {
 			subIdentifier := fmt.Sprintf("%s.failure", identifier)
-			planWarnings, planErrMessages := validatePlan(c, subIdentifier, *job.Failure)
+			planWarnings, planErrMessages := validatePlan(c, subIdentifier, *job.Failure, job, graph)
 			warnings = append(warnings, planWarnings...)
 			errorMessages = append(errorMessages, planErrMessages...)
 		}
 
 		if job.Ensure != nil {
 			subIdentifier := fmt.Sprintf("%s.ensure", identifier)
-			planWarnings, planErrMessages := validatePlan(c, subIdentifier, *job.Ensure)
+			planWarnings, planErrMessages := validatePlan(c, subIdentifier, *job.Ensure, job, graph)
 			warnings = append(warnings, planWarnings...)
 			errorMessages = append(errorMessages, planErrMessages...)
 		}
 
 		if job.Success != nil {
 			subIdentifier := fmt.Sprintf("%s.success", identifier)
-			planWarnings, planErrMessages := validatePlan(c, subIdentifier, *job.Success)
+			planWarnings, planErrMessages := validatePlan(c, subIdentifier, *job.Success, job, graph)
 			warnings = append(warnings, planWarnings...)
 			errorMessages = append(errorMessages, planErrMessages...)
 		}
@@ -267,6 +268,13 @@ func validateJobs(c Config) ([]Warning, error) {
 				)
 			}
 		}
+	}
+
+	if graph.HasCycle() {
+		errorMessages = append(
+			errorMessages,
+			"Cycle detected between passed constraints",
+		)
 	}
 
 	return warnings, compositeErr(errorMessages)
@@ -301,7 +309,7 @@ func (ft foundTypes) IsValid() (bool, string) {
 	return true, ""
 }
 
-func validatePlan(c Config, identifier string, plan PlanConfig) ([]Warning, []string) {
+func validatePlan(c Config, identifier string, plan PlanConfig, job JobConfig, graph Graph) ([]Warning, []string) {
 	foundTypes := foundTypes{
 		identifier: identifier,
 		found:      make(map[string]bool),
@@ -342,7 +350,7 @@ func validatePlan(c Config, identifier string, plan PlanConfig) ([]Warning, []st
 	case plan.Do != nil:
 		for i, plan := range *plan.Do {
 			subIdentifier := fmt.Sprintf("%s[%d]", identifier, i)
-			planWarnings, planErrMessages := validatePlan(c, subIdentifier, plan)
+			planWarnings, planErrMessages := validatePlan(c, subIdentifier, plan, job, graph)
 			warnings = append(warnings, planWarnings...)
 			errorMessages = append(errorMessages, planErrMessages...)
 		}
@@ -350,7 +358,7 @@ func validatePlan(c Config, identifier string, plan PlanConfig) ([]Warning, []st
 	case plan.Aggregate != nil:
 		for i, plan := range *plan.Aggregate {
 			subIdentifier := fmt.Sprintf("%s.aggregate[%d]", identifier, i)
-			planWarnings, planErrMessages := validatePlan(c, subIdentifier, plan)
+			planWarnings, planErrMessages := validatePlan(c, subIdentifier, plan, job, graph)
 			warnings = append(warnings, planWarnings...)
 			errorMessages = append(errorMessages, planErrMessages...)
 		}
@@ -388,15 +396,16 @@ func validatePlan(c Config, identifier string, plan PlanConfig) ([]Warning, []st
 			}
 		}
 
-		for _, job := range plan.Passed {
-			jobConfig, found := c.Jobs.Lookup(job)
+		for _, jobName := range plan.Passed {
+			jobConfig, found := c.Jobs.Lookup(jobName)
+			graph.AddEdge(job.Name, jobName)
 			if !found {
 				errorMessages = append(
 					errorMessages,
 					fmt.Sprintf(
 						"%s.passed references an unknown job ('%s')",
 						identifier,
-						job,
+						jobName,
 					),
 				)
 			} else {
@@ -422,7 +431,7 @@ func validatePlan(c Config, identifier string, plan PlanConfig) ([]Warning, []st
 						fmt.Sprintf(
 							"%s.passed references a job ('%s') which doesn't interact with the resource ('%s')",
 							identifier,
-							job,
+							jobName,
 							plan.Get,
 						),
 					)
@@ -497,35 +506,35 @@ func validatePlan(c Config, identifier string, plan PlanConfig) ([]Warning, []st
 
 	case plan.Try != nil:
 		subIdentifier := fmt.Sprintf("%s.try", identifier)
-		planWarnings, planErrMessages := validatePlan(c, subIdentifier, *plan.Try)
+		planWarnings, planErrMessages := validatePlan(c, subIdentifier, *plan.Try, job, graph)
 		warnings = append(warnings, planWarnings...)
 		errorMessages = append(errorMessages, planErrMessages...)
 	}
 
 	if plan.Abort != nil {
 		subIdentifier := fmt.Sprintf("%s.abort", identifier)
-		planWarnings, planErrMessages := validatePlan(c, subIdentifier, *plan.Abort)
+		planWarnings, planErrMessages := validatePlan(c, subIdentifier, *plan.Abort, job, graph)
 		warnings = append(warnings, planWarnings...)
 		errorMessages = append(errorMessages, planErrMessages...)
 	}
 
 	if plan.Ensure != nil {
 		subIdentifier := fmt.Sprintf("%s.ensure", identifier)
-		planWarnings, planErrMessages := validatePlan(c, subIdentifier, *plan.Ensure)
+		planWarnings, planErrMessages := validatePlan(c, subIdentifier, *plan.Ensure, job, graph)
 		warnings = append(warnings, planWarnings...)
 		errorMessages = append(errorMessages, planErrMessages...)
 	}
 
 	if plan.Success != nil {
 		subIdentifier := fmt.Sprintf("%s.success", identifier)
-		planWarnings, planErrMessages := validatePlan(c, subIdentifier, *plan.Success)
+		planWarnings, planErrMessages := validatePlan(c, subIdentifier, *plan.Success, job, graph)
 		warnings = append(warnings, planWarnings...)
 		errorMessages = append(errorMessages, planErrMessages...)
 	}
 
 	if plan.Failure != nil {
 		subIdentifier := fmt.Sprintf("%s.failure", identifier)
-		planWarnings, planErrMessages := validatePlan(c, subIdentifier, *plan.Failure)
+		planWarnings, planErrMessages := validatePlan(c, subIdentifier, *plan.Failure, job, graph)
 		warnings = append(warnings, planWarnings...)
 		errorMessages = append(errorMessages, planErrMessages...)
 	}
@@ -599,4 +608,51 @@ func compositeErr(errorMessages []string) error {
 	}
 
 	return errors.New(strings.Join(errorMessages, "\n"))
+}
+
+type Graph struct {
+	graph    map[string][]string
+	vertices map[string]bool
+}
+
+func NewGraph() Graph {
+	return Graph{
+		graph:    map[string][]string{},
+		vertices: map[string]bool{},
+	}
+}
+
+func (g *Graph) AddEdge(u, v string) {
+	g.graph[u] = append(g.graph[u], v)
+	g.vertices[u] = true
+	g.vertices[v] = true
+}
+
+func (g *Graph) HasCycle() bool {
+	visited := map[string]bool{}
+	stack := map[string]bool{}
+	for v, _ := range g.vertices {
+		if _, ok := visited[v]; !ok {
+			if g.hasCycle(v, visited, stack) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (g *Graph) hasCycle(v string, visited, stack map[string]bool) bool {
+	visited[v] = true
+	stack[v] = true
+	for _, child := range g.graph[v] {
+		if _, ok := visited[child]; !ok {
+			if g.hasCycle(child, visited, stack) {
+				return true
+			}
+		} else if _, ok := stack[child]; ok {
+			return true
+		}
+	}
+	delete(stack, v)
+	return false
 }
