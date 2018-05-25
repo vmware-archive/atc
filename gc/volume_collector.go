@@ -49,25 +49,21 @@ func (vc *volumeCollector) Run(ctx context.Context) error {
 }
 
 func (vc *volumeCollector) cleanupFailedVolumes(logger lager.Logger) error {
-	failedVolumes, err := vc.volumeRepository.GetFailedVolumes()
+	failedVolumesLen, err := vc.volumeRepository.DestroyFailedVolumes()
 	if err != nil {
 		logger.Error("failed-to-get-failed-volumes", err)
 		return err
 	}
 
-	if len(failedVolumes) > 0 {
+	if failedVolumesLen > 0 {
 		logger.Debug("found-failed-volumes", lager.Data{
-			"failed": len(failedVolumes),
+			"failed": failedVolumesLen,
 		})
 	}
 
 	metric.FailedVolumesToBeGarbageCollected{
-		Volumes: len(failedVolumes),
+		Volumes: failedVolumesLen,
 	}.Emit(logger)
-
-	for _, failedVolume := range failedVolumes {
-		destroyDBVolume(logger, failedVolume)
-	}
 
 	return nil
 }

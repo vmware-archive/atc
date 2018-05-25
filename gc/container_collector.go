@@ -68,33 +68,33 @@ func (c *containerCollector) Run(ctx context.Context) error {
 }
 
 func (c *containerCollector) cleanupFailedContainers(logger lager.Logger) error {
-	failedContainers, err := c.containerRepository.FindFailedContainers()
+	failedContainersLen, err := c.containerRepository.DestroyFailedContainers()
 	if err != nil {
 		logger.Error("failed-to-find-failed-containers-for-deletion", err)
 		return err
 	}
 
-	failedContainerHandles := []string{}
-	var failedContainerstoDestroy = []destroyableContainer{}
+	// failedContainerHandles := []string{}
+	// var failedContainerstoDestroy = []destroyableContainer{}
 
-	if len(failedContainers) > 0 {
-		for _, container := range failedContainers {
-			failedContainerHandles = append(failedContainerHandles, container.Handle())
-			failedContainerstoDestroy = append(failedContainerstoDestroy, container)
-		}
-	}
+	// if failedContainersLen > 0 {
+	// 	for _, container := range failedContainers {
+	// 		failedContainerHandles = append(failedContainerHandles, container.Handle())
+	// 		failedContainerstoDestroy = append(failedContainerstoDestroy, container)
+	// 	}
+	// }
 
-	if len(failedContainerHandles) > 0 {
+	if failedContainersLen > 0 {
 		logger.Debug("found-failed-containers-for-deletion", lager.Data{
-			"failed-containers": failedContainerHandles,
+			"number": failedContainerLen,
 		})
 	}
 
 	metric.FailedContainersToBeGarbageCollected{
-		Containers: len(failedContainerHandles),
+		Containers: failedContainerLen,
 	}.Emit(logger)
 
-	destroyDBContainers(logger, failedContainerstoDestroy)
+	// destroyDBContainers(logger, failedContainerstoDestroy)
 
 	return nil
 }

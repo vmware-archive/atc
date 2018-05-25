@@ -30,7 +30,8 @@ type VolumeRepository interface {
 	FindVolumesForContainer(CreatedContainer) ([]CreatedVolume, error)
 	GetOrphanedVolumes() ([]CreatedVolume, []DestroyingVolume, error)
 
-	GetFailedVolumes() ([]FailedVolume, error)
+	DestroyFailedVolumes() (int, error)
+
 	GetDestroyingVolumes(workerName string) ([]string, error)
 
 	FindCreatedVolume(handle string) (CreatedVolume, bool, error)
@@ -364,8 +365,8 @@ func (repository *volumeRepository) GetOrphanedVolumes() ([]CreatedVolume, []Des
 	return createdVolumes, destroyingVolumes, nil
 }
 
-func (repository *volumeRepository) GetFailedVolumes() ([]FailedVolume, error) {
-	query, args, err := psql.Select(volumeColumns...).
+func (repository *volumeRepository) DestroyFailedVolumes() (int, error) {
+	queryId, args, err := psql.Select("v.id").
 		From("volumes v").
 		LeftJoin("workers w ON v.worker_name = w.name").
 		LeftJoin("containers c ON v.container_id = c.id").
@@ -376,30 +377,23 @@ func (repository *volumeRepository) GetFailedVolumes() ([]FailedVolume, error) {
 		}).
 		ToSql()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	rows, err := repository.conn.Query(query, args...)
+	rows, err := sq.Delete("volumes").
+		Where("id IN ("+queryId+")", args...).
+		RunWith(repository.conn).
+		Exec()
 	if err != nil {
-		return nil, err
-	}
-	defer Close(rows)
-
-	failedVolumes := []FailedVolume{}
-
-	for rows.Next() {
-		_, _, _, failedVolume, err := scanVolume(rows, repository.conn)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if failedVolume != nil {
-			failedVolumes = append(failedVolumes, failedVolume)
-		}
+		return 0, err
 	}
 
-	return failedVolumes, nil
+	failedVolumeLen, err := rows.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(failedVolumeLen), nil
 }
 
 func (repository *volumeRepository) GetDestroyingVolumes(workerName string) ([]string, error) {

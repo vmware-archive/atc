@@ -88,16 +88,16 @@ var _ = Describe("VolumeCollector", func() {
 			})
 
 			It("deletes all the failed volumes from the database", func() {
-				failedVolumes, err := volumeRepository.GetFailedVolumes()
+				failedVolumesLen, err := volumeRepository.DestroyFailedVolumes()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(failedVolumes).To(HaveLen(1))
+				Expect(failedVolumesLen).To(Equal(1))
 
 				err = volumeCollector.Run(context.TODO())
 				Expect(err).NotTo(HaveOccurred())
 
-				failedVolumes, err = volumeRepository.GetFailedVolumes()
+				failedVolumesLen, err = volumeRepository.DestroyFailedVolumes()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(failedVolumes).To(HaveLen(0))
+				Expect(failedVolumesLen).To(Equal(0))
 			})
 		})
 

@@ -435,10 +435,10 @@ var _ = Describe("ContainerRepository", func() {
 
 	Describe("FindFailedContainers", func() {
 		var failedErr error
-		var failedContainers []db.FailedContainer
+		var failedContainersLen int
 
 		JustBeforeEach(func() {
-			failedContainers, failedErr = containerRepository.FindFailedContainers()
+			failedContainersLen, failedErr = containerRepository.DestroyFailedContainers()
 		})
 
 		ItClosesConnection := func() {
@@ -446,7 +446,7 @@ var _ = Describe("ContainerRepository", func() {
 				closed := make(chan bool)
 
 				go func() {
-					_, _ = containerRepository.FindFailedContainers()
+					_, _ = containerRepository.DestroyFailedContainers()
 					closed <- true
 				}()
 
@@ -470,7 +470,7 @@ var _ = Describe("ContainerRepository", func() {
 			})
 
 			It("returns all failed containers", func() {
-				Expect(failedContainers).To(HaveLen(1))
+				Expect(failedContainersLen).To(HaveLen(1))
 			})
 			It("does not return an error", func() {
 				Expect(failedErr).ToNot(HaveOccurred())
@@ -480,7 +480,7 @@ var _ = Describe("ContainerRepository", func() {
 
 		Context("when there are no failed containers", func() {
 			It("returns an empty array", func() {
-				Expect(failedContainers).To(HaveLen(0))
+				Expect(failedContainersLen).To(HaveLen(0))
 			})
 			It("does not return an error", func() {
 				Expect(failedErr).ToNot(HaveOccurred())
