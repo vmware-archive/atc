@@ -117,11 +117,10 @@ func getWorkers(conn Conn, query sq.SelectBuilder) ([]Worker, error) {
 
 func scanWorker(worker *worker, row scannable) error {
 	var (
-		version  sql.NullString
-		addStr   sql.NullString
-		state    string
-		bcURLStr sql.NullString
-		//	reaperAddr    sql.NullString
+		version       sql.NullString
+		addStr        sql.NullString
+		state         string
+		bcURLStr      sql.NullString
 		certsPathStr  sql.NullString
 		httpProxyURL  sql.NullString
 		httpsProxyURL sql.NullString
