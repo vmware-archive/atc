@@ -74,27 +74,15 @@ func (c *containerCollector) cleanupFailedContainers(logger lager.Logger) error 
 		return err
 	}
 
-	// failedContainerHandles := []string{}
-	// var failedContainerstoDestroy = []destroyableContainer{}
-
-	// if failedContainersLen > 0 {
-	// 	for _, container := range failedContainers {
-	// 		failedContainerHandles = append(failedContainerHandles, container.Handle())
-	// 		failedContainerstoDestroy = append(failedContainerstoDestroy, container)
-	// 	}
-	// }
-
 	if failedContainersLen > 0 {
 		logger.Debug("found-failed-containers-for-deletion", lager.Data{
-			"number": failedContainerLen,
+			"number": failedContainersLen,
 		})
 	}
 
 	metric.FailedContainersToBeGarbageCollected{
-		Containers: failedContainerLen,
+		Containers: failedContainersLen,
 	}.Emit(logger)
-
-	// destroyDBContainers(logger, failedContainerstoDestroy)
 
 	return nil
 }
@@ -246,41 +234,6 @@ func markHijackedContainerAsDestroying(
 	}
 
 	return nil, nil
-}
-
-type destroyableContainer interface {
-	Handle() string
-	Destroy() (bool, error)
-}
-
-func destroyDBContainers(logger lager.Logger, dbContainers []destroyableContainer) {
-	if len(dbContainers) == 0 {
-		return
-	}
-
-	logger.Debug("start", lager.Data{"length": len(dbContainers)})
-	defer logger.Debug("done")
-
-	for _, dbContainer := range dbContainers {
-		dLog := logger.Session("destroy-container", lager.Data{
-			"container": dbContainer.Handle(),
-		})
-
-		destroyed, err := dbContainer.Destroy()
-		if err != nil {
-			dLog.Error("failed-to-destroy", err)
-			continue
-		}
-
-		if !destroyed {
-			dLog.Info("container-not-destroyed")
-			continue
-		}
-
-		metric.ContainersDeleted.Inc()
-
-		logger.Debug("destroyed")
-	}
 }
 
 func findContainer(gardenClient garden.Client, handle string) (garden.Container, bool, error) {

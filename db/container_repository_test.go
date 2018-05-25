@@ -433,7 +433,7 @@ var _ = Describe("ContainerRepository", func() {
 		})
 	})
 
-	Describe("FindFailedContainers", func() {
+	Describe("DestroyFailedContainers", func() {
 		var failedErr error
 		var failedContainersLen int
 
@@ -503,7 +503,7 @@ var _ = Describe("ContainerRepository", func() {
 				ItClosesConnection()
 			})
 
-			Context("when there is an error iterating through the rows", func() {
+			Context("when there is an invalid row", func() {
 				BeforeEach(func() {
 					By("adding a row without expected values")
 					result, err := psql.Insert("containers").SetMap(map[string]interface{}{
@@ -513,12 +513,13 @@ var _ = Describe("ContainerRepository", func() {
 
 					Expect(err).ToNot(HaveOccurred())
 					Expect(result.RowsAffected()).To(Equal(int64(1)))
-
 				})
-				It("returns an error", func() {
-					Expect(failedErr).To(HaveOccurred())
 
+				It("destroy the invalid row", func() {
+					Expect(failedErr).ToNot(HaveOccurred())
+					Expect(failedContainersLen).To(Equal(1))
 				})
+
 				ItClosesConnection()
 			})
 		})
