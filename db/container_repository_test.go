@@ -470,7 +470,7 @@ var _ = Describe("ContainerRepository", func() {
 			})
 
 			It("returns all failed containers", func() {
-				Expect(failedContainersLen).To(HaveLen(1))
+				Expect(failedContainersLen).To(Equal(1))
 			})
 			It("does not return an error", func() {
 				Expect(failedErr).ToNot(HaveOccurred())
@@ -480,7 +480,7 @@ var _ = Describe("ContainerRepository", func() {
 
 		Context("when there are no failed containers", func() {
 			It("returns an empty array", func() {
-				Expect(failedContainersLen).To(HaveLen(0))
+				Expect(failedContainersLen).To(Equal(0))
 			})
 			It("does not return an error", func() {
 				Expect(failedErr).ToNot(HaveOccurred())

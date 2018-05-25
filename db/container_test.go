@@ -123,27 +123,13 @@ var _ = Describe("Container", func() {
 		var failedContainerHandles []string
 
 		JustBeforeEach(func() {
-			//fmt.Printf("name", dbConn.
-			// res, err := psql.Select("*").From("containers").Exec()
-			// Expect(err).NotTo(HaveOccurred())
-			// x, err := res.RowsAffected()
-			// Expect(err).NotTo(HaveOccurred())
-			//fmt.Printf("================ %d", x)
-			//	time.Sleep(100 * time.Second)
 			By("transition to failed")
 			failedContainer, failedErr = creatingContainer.Failed()
-			Expect(failedErr).NotTo(HaveOccurred())
 
 			query, args, err := psql.Select("handle").
-				From("containers ").
-				//		LeftJoin("builds b ON b.id = c.build_id").
-				//			LeftJoin("containers icc ON icc.id = c.image_check_container_id").
-				//				LeftJoin("containers igc ON igc.id = c.image_get_container_id").
+				From("containers c").
 				Where(sq.Eq{"c.state": db.ContainerStateFailed}).
 				ToSql()
-			// query, args, err := psql.Select("handle").From("containers").Where(sq.Eq{
-			// 	"state": db.ContainerStateFailed,
-			// }).ToSql()
 			Expect(err).NotTo(HaveOccurred())
 
 			rows, err := dbConn.Query(query, args...)
@@ -187,7 +173,7 @@ var _ = Describe("Container", func() {
 			})
 		})
 
-		FContext("when the container is actually in created state", func() {
+		Context("when the container is actually in created state", func() {
 			BeforeEach(func() {
 				c, err := creatingContainer.Created()
 				Expect(err).ToNot(HaveOccurred())
@@ -196,13 +182,8 @@ var _ = Describe("Container", func() {
 
 			It("does not mark it as failed", func() {
 				Expect(failedContainerHandles).To(HaveLen(0))
-				//	Expect(failedContainer).NotTo(BeNil())
-				Expect(failedContainerHandles).ToNot(ContainElement(failedContainer.Handle()))
+				Expect(failedContainer).To(BeNil())
 			})
-
-			// It("returns an error", func() {
-			// 	Expect(failedErr).To(HaveOccurred())
-			// })
 		})
 
 		Context("when the container is actually in destroying state", func() {
