@@ -2,7 +2,6 @@ package gc
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"code.cloudfoundry.org/garden"
@@ -95,46 +94,24 @@ func (c *containerCollector) cleanupOrphanedContainers(logger lager.Logger) erro
 		return err
 	}
 
-	creatingContainerHandles := []string{}
-	createdContainerHandles := []string{}
-	destroyingContainerHandles := []string{}
-
-	if len(creatingContainers) > 0 {
-		for _, container := range creatingContainers {
-			creatingContainerHandles = append(creatingContainerHandles, container.Handle())
-		}
-	}
-
-	if len(createdContainers) > 0 {
-		for _, container := range createdContainers {
-			createdContainerHandles = append(createdContainerHandles, container.Handle())
-		}
-	}
-
-	if len(destroyingContainers) > 0 {
-		for _, container := range destroyingContainers {
-			destroyingContainerHandles = append(destroyingContainerHandles, container.Handle())
-		}
-	}
-
-	if len(createdContainerHandles) > 0 || len(createdContainerHandles) > 0 || len(destroyingContainerHandles) > 0 {
+	if len(creatingContainers) > 0 || len(createdContainers) > 0 || len(destroyingContainers) > 0 {
 		logger.Debug("found-orphaned-containers-for-deletion", lager.Data{
-			"creating-containers":   creatingContainerHandles,
-			"created-containers":    createdContainerHandles,
-			"destroying-containers": destroyingContainerHandles,
+			"creating-containers-num":   len(creatingContainers),
+			"created-containers-num":    len(createdContainers),
+			"destroying-containers-num": len(destroyingContainers),
 		})
 	}
 
 	metric.CreatingContainersToBeGarbageCollected{
-		Containers: len(creatingContainerHandles),
+		Containers: len(creatingContainers),
 	}.Emit(logger)
 
 	metric.CreatedContainersToBeGarbageCollected{
-		Containers: len(createdContainerHandles),
+		Containers: len(createdContainers),
 	}.Emit(logger)
 
 	metric.DestroyingContainersToBeGarbageCollected{
-		Containers: len(destroyingContainerHandles),
+		Containers: len(destroyingContainers),
 	}.Emit(logger)
 
 	var workerCreatedContainers = make(map[string][]db.CreatedContainer)
@@ -149,6 +126,9 @@ func (c *containerCollector) cleanupOrphanedContainers(logger lager.Logger) erro
 			// create new array
 			workerCreatedContainers[createdContainer.WorkerName()] = []db.CreatedContainer{createdContainer}
 		}
+		logger.Debug("found-created-containers-for-deletion", lager.Data{
+			"handle": createdContainer.Handle(),
+		})
 	}
 
 	for worker, createdContainers := range workerCreatedContainers {
@@ -156,7 +136,7 @@ func (c *containerCollector) cleanupOrphanedContainers(logger lager.Logger) erro
 		c.jobRunner.Try(logger,
 			worker,
 			&job{
-				JobName: fmt.Sprintf("created-containers-%d", len(createdContainers)),
+				JobName: "created-containers",
 				RunFunc: destroyCreatedContainers(logger, createdContainers),
 			},
 		)

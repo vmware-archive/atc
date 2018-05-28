@@ -14,21 +14,16 @@ func (s *Server) ListDestroyingVolumes(w http.ResponseWriter, r *http.Request) {
 	hLog := s.logger.Session("marked-volumes-for-worker", lager.Data{"worker_name": workerName})
 
 	if workerName != "" {
-		destroyingVolumes, err := s.destroyer.FindOrphanedVolumesasDestroying(workerName)
+		destroyingVolumesHandles, err := s.destroyer.FindOrphanedVolumesasDestroying(workerName)
 		if err != nil {
 			hLog.Error("failed-to-find-destroying-volumes", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		volumeHandles := make([]string, len(destroyingVolumes))
-		for i, v := range destroyingVolumes {
-			volumeHandles[i] = v.Handle()
-		}
+		hLog.Debug("list", lager.Data{"destroying-volume-count": len(destroyingVolumesHandles)})
 
-		hLog.Debug("list", lager.Data{"destroying-volume-count": len(volumeHandles)})
-
-		err = json.NewEncoder(w).Encode(volumeHandles)
+		err = json.NewEncoder(w).Encode(destroyingVolumesHandles)
 		if err != nil {
 			hLog.Error("failed-to-encode-volumes", err)
 			w.WriteHeader(http.StatusInternalServerError)

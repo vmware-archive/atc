@@ -12,7 +12,7 @@ import (
 
 // Destroyer allows the caller to remove containers and volumes
 type Destroyer interface {
-	FindOrphanedVolumesasDestroying(workerName string) ([]db.DestroyingVolume, error)
+	FindOrphanedVolumesasDestroying(workerName string) ([]string, error)
 	DestroyContainers(workerName string, handles []string) error
 	DestroyVolumes(workerName string, handles []string) error
 }
@@ -46,9 +46,7 @@ func (d *destroyer) DestroyContainers(workerName string, currentHandles []string
 				return err
 			}
 
-			for i := 0; i < deleted; i++ {
-				metric.ContainersDeleted.Inc()
-			}
+			metric.ContainersDeleted.IncDelta(deleted)
 		}
 		return nil
 	}
@@ -69,9 +67,7 @@ func (d *destroyer) DestroyVolumes(workerName string, currentHandles []string) e
 				return err
 			}
 
-			for i := 0; i < deleted; i++ {
-				metric.VolumesDeleted.Inc()
-			}
+			metric.VolumesDeleted.IncDelta(deleted)
 		}
 		return nil
 	}
@@ -82,17 +78,17 @@ func (d *destroyer) DestroyVolumes(workerName string, currentHandles []string) e
 	return err
 }
 
-func (d *destroyer) FindOrphanedVolumesasDestroying(workerName string) ([]db.DestroyingVolume, error) {
-	createdVolumes, destroyingVolumes, err := d.volumeRepository.GetOrphanedVolumes(workerName)
+func (d *destroyer) FindOrphanedVolumesasDestroying(workerName string) ([]string, error) {
+	createdVolumes, destroyingVolumesHandles, err := d.volumeRepository.GetOrphanedVolumes(workerName)
 	if err != nil {
 		d.logger.Error("failed-to-get-orphaned-volumes", err)
 		return nil, err
 	}
 
-	if len(createdVolumes) > 0 || len(destroyingVolumes) > 0 {
+	if len(createdVolumes) > 0 || len(destroyingVolumesHandles) > 0 {
 		d.logger.Debug("found-orphaned-volumes", lager.Data{
 			"created":    len(createdVolumes),
-			"destroying": len(destroyingVolumes),
+			"destroying": len(destroyingVolumesHandles),
 		})
 	}
 
@@ -101,7 +97,7 @@ func (d *destroyer) FindOrphanedVolumesasDestroying(workerName string) ([]db.Des
 	}.Emit(d.logger)
 
 	metric.DestroyingVolumesToBeGarbageCollected{
-		Volumes: len(destroyingVolumes),
+		Volumes: len(destroyingVolumesHandles),
 	}.Emit(d.logger)
 
 	for _, createdVolume := range createdVolumes {
@@ -117,8 +113,8 @@ func (d *destroyer) FindOrphanedVolumesasDestroying(workerName string) ([]db.Des
 			continue
 		}
 
-		destroyingVolumes = append(destroyingVolumes, destroyingVolume)
+		destroyingVolumesHandles = append(destroyingVolumesHandles, destroyingVolume.Handle())
 	}
 
-	return destroyingVolumes, nil
+	return destroyingVolumesHandles, nil
 }

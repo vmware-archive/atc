@@ -28,7 +28,7 @@ type VolumeRepository interface {
 	CreateResourceCertsVolume(workerName string, uwrc *UsedWorkerResourceCerts) (CreatingVolume, error)
 
 	FindVolumesForContainer(CreatedContainer) ([]CreatedVolume, error)
-	GetOrphanedVolumes(workerName string) ([]CreatedVolume, []DestroyingVolume, error)
+	GetOrphanedVolumes(workerName string) ([]CreatedVolume, []string, error)
 
 	DestroyFailedVolumes() (int, error)
 
@@ -293,7 +293,7 @@ func (repository *volumeRepository) FindCreatedVolume(handle string) (CreatedVol
 	return createdVolume, true, nil
 }
 
-func (repository *volumeRepository) GetOrphanedVolumes(workerName string) ([]CreatedVolume, []DestroyingVolume, error) {
+func (repository *volumeRepository) GetOrphanedVolumes(workerName string) ([]CreatedVolume, []string, error) {
 	query, args, err := psql.Select(volumeColumns...).
 		From("volumes v").
 		LeftJoin("workers w ON v.worker_name = w.name").
@@ -345,7 +345,7 @@ func (repository *volumeRepository) GetOrphanedVolumes(workerName string) ([]Cre
 	defer Close(rows)
 
 	createdVolumes := []CreatedVolume{}
-	destroyingVolumes := []DestroyingVolume{}
+	destroyingVolumesHandles := []string{}
 
 	for rows.Next() {
 		_, createdVolume, destroyingVolume, _, err := scanVolume(rows, repository.conn)
@@ -359,11 +359,11 @@ func (repository *volumeRepository) GetOrphanedVolumes(workerName string) ([]Cre
 		}
 
 		if destroyingVolume != nil {
-			destroyingVolumes = append(destroyingVolumes, destroyingVolume)
+			destroyingVolumesHandles = append(destroyingVolumesHandles, destroyingVolume.Handle())
 		}
 	}
 
-	return createdVolumes, destroyingVolumes, nil
+	return createdVolumes, destroyingVolumesHandles, nil
 }
 
 func (repository *volumeRepository) DestroyFailedVolumes() (int, error) {

@@ -174,19 +174,19 @@ type FakeVolumeRepository struct {
 		result1 []db.CreatedVolume
 		result2 error
 	}
-	GetOrphanedVolumesStub        func(workerName string) ([]db.CreatedVolume, []db.DestroyingVolume, error)
+	GetOrphanedVolumesStub        func(workerName string) ([]db.CreatedVolume, []string, error)
 	getOrphanedVolumesMutex       sync.RWMutex
 	getOrphanedVolumesArgsForCall []struct {
 		workerName string
 	}
 	getOrphanedVolumesReturns struct {
 		result1 []db.CreatedVolume
-		result2 []db.DestroyingVolume
+		result2 []string
 		result3 error
 	}
 	getOrphanedVolumesReturnsOnCall map[int]struct {
 		result1 []db.CreatedVolume
-		result2 []db.DestroyingVolume
+		result2 []string
 		result3 error
 	}
 	DestroyFailedVolumesStub        func() (int, error)
@@ -835,7 +835,7 @@ func (fake *FakeVolumeRepository) FindVolumesForContainerReturnsOnCall(i int, re
 	}{result1, result2}
 }
 
-func (fake *FakeVolumeRepository) GetOrphanedVolumes(workerName string) ([]db.CreatedVolume, []db.DestroyingVolume, error) {
+func (fake *FakeVolumeRepository) GetOrphanedVolumes(workerName string) ([]db.CreatedVolume, []string, error) {
 	fake.getOrphanedVolumesMutex.Lock()
 	ret, specificReturn := fake.getOrphanedVolumesReturnsOnCall[len(fake.getOrphanedVolumesArgsForCall)]
 	fake.getOrphanedVolumesArgsForCall = append(fake.getOrphanedVolumesArgsForCall, struct {
@@ -864,27 +864,27 @@ func (fake *FakeVolumeRepository) GetOrphanedVolumesArgsForCall(i int) string {
 	return fake.getOrphanedVolumesArgsForCall[i].workerName
 }
 
-func (fake *FakeVolumeRepository) GetOrphanedVolumesReturns(result1 []db.CreatedVolume, result2 []db.DestroyingVolume, result3 error) {
+func (fake *FakeVolumeRepository) GetOrphanedVolumesReturns(result1 []db.CreatedVolume, result2 []string, result3 error) {
 	fake.GetOrphanedVolumesStub = nil
 	fake.getOrphanedVolumesReturns = struct {
 		result1 []db.CreatedVolume
-		result2 []db.DestroyingVolume
+		result2 []string
 		result3 error
 	}{result1, result2, result3}
 }
 
-func (fake *FakeVolumeRepository) GetOrphanedVolumesReturnsOnCall(i int, result1 []db.CreatedVolume, result2 []db.DestroyingVolume, result3 error) {
+func (fake *FakeVolumeRepository) GetOrphanedVolumesReturnsOnCall(i int, result1 []db.CreatedVolume, result2 []string, result3 error) {
 	fake.GetOrphanedVolumesStub = nil
 	if fake.getOrphanedVolumesReturnsOnCall == nil {
 		fake.getOrphanedVolumesReturnsOnCall = make(map[int]struct {
 			result1 []db.CreatedVolume
-			result2 []db.DestroyingVolume
+			result2 []string
 			result3 error
 		})
 	}
 	fake.getOrphanedVolumesReturnsOnCall[i] = struct {
 		result1 []db.CreatedVolume
-		result2 []db.DestroyingVolume
+		result2 []string
 		result3 error
 	}{result1, result2, result3}
 }
