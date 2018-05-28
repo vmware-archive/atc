@@ -2,6 +2,7 @@ package credhub
 
 import (
 	"path"
+	"strings"
 
 	"code.cloudfoundry.org/lager"
 
@@ -24,20 +25,23 @@ func (c CredHubAtc) Get(varDef template.VariableDefinition) (interface{}, bool, 
 	var found bool
 	var err error
 
-	if c.PipelineName != "" {
-		path := c.path(c.TeamName, c.PipelineName, varDef.Name)
+	var paths []string
+	if strings.HasPrefix(varDef.Name, "/") {
+		paths = append(paths, varDef.Name)
+	} else {
+		if c.PipelineName != "" {
+			paths = append(paths, c.path(c.TeamName, c.PipelineName, varDef.Name))
+		}
+		paths = append(paths, c.path(c.TeamName, varDef.Name)})
+	}
+	for _, path := range paths {
 		cred, found, err = c.findCred(path)
 		if err != nil {
 			c.logger.Error("could not find cred", err)
 			return nil, false, err
 		}
-	}
-
-	if !found {
-		cred, found, err = c.findCred(c.path(c.TeamName, varDef.Name))
-		if err != nil {
-			c.logger.Error("could not find cred", err)
-			return nil, false, err
+		if found {
+			break
 		}
 	}
 
