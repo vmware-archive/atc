@@ -264,7 +264,7 @@ var _ = Describe("VolumeFactory", func() {
 		})
 
 		It("returns orphaned volumes", func() {
-			createdVolumes, destoryingVolumes, err := volumeRepository.GetOrphanedVolumes()
+			createdVolumes, destoryingVolumes, err := volumeRepository.GetOrphanedVolumes(defaultWorker.Name())
 			Expect(err).NotTo(HaveOccurred())
 			createdHandles := []string{}
 
@@ -296,7 +296,7 @@ var _ = Describe("VolumeFactory", func() {
 			})
 
 			It("does not return volumes", func() {
-				createdVolumes, destoryingVolumes, err := volumeRepository.GetOrphanedVolumes()
+				createdVolumes, destoryingVolumes, err := volumeRepository.GetOrphanedVolumes(defaultWorker.Name())
 				Expect(err).NotTo(HaveOccurred())
 				Expect(createdVolumes).To(HaveLen(0))
 				Expect(destoryingVolumes).To(HaveLen(0))
@@ -313,7 +313,7 @@ var _ = Describe("VolumeFactory", func() {
 			})
 
 			It("does not return volumes", func() {
-				createdVolumes, destoryingVolumes, err := volumeRepository.GetOrphanedVolumes()
+				createdVolumes, destoryingVolumes, err := volumeRepository.GetOrphanedVolumes(defaultWorker.Name())
 				Expect(err).NotTo(HaveOccurred())
 				Expect(createdVolumes).To(HaveLen(0))
 				Expect(destoryingVolumes).To(HaveLen(0))

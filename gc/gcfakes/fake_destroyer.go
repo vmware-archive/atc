@@ -4,10 +4,24 @@ package gcfakes
 import (
 	"sync"
 
+	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/gc"
 )
 
 type FakeDestroyer struct {
+	FindOrphanedVolumesasDestroyingStub        func(workerName string) ([]db.DestroyingVolume, error)
+	findOrphanedVolumesasDestroyingMutex       sync.RWMutex
+	findOrphanedVolumesasDestroyingArgsForCall []struct {
+		workerName string
+	}
+	findOrphanedVolumesasDestroyingReturns struct {
+		result1 []db.DestroyingVolume
+		result2 error
+	}
+	findOrphanedVolumesasDestroyingReturnsOnCall map[int]struct {
+		result1 []db.DestroyingVolume
+		result2 error
+	}
 	DestroyContainersStub        func(workerName string, handles []string) error
 	destroyContainersMutex       sync.RWMutex
 	destroyContainersArgsForCall []struct {
@@ -34,6 +48,57 @@ type FakeDestroyer struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeDestroyer) FindOrphanedVolumesasDestroying(workerName string) ([]db.DestroyingVolume, error) {
+	fake.findOrphanedVolumesasDestroyingMutex.Lock()
+	ret, specificReturn := fake.findOrphanedVolumesasDestroyingReturnsOnCall[len(fake.findOrphanedVolumesasDestroyingArgsForCall)]
+	fake.findOrphanedVolumesasDestroyingArgsForCall = append(fake.findOrphanedVolumesasDestroyingArgsForCall, struct {
+		workerName string
+	}{workerName})
+	fake.recordInvocation("FindOrphanedVolumesasDestroying", []interface{}{workerName})
+	fake.findOrphanedVolumesasDestroyingMutex.Unlock()
+	if fake.FindOrphanedVolumesasDestroyingStub != nil {
+		return fake.FindOrphanedVolumesasDestroyingStub(workerName)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.findOrphanedVolumesasDestroyingReturns.result1, fake.findOrphanedVolumesasDestroyingReturns.result2
+}
+
+func (fake *FakeDestroyer) FindOrphanedVolumesasDestroyingCallCount() int {
+	fake.findOrphanedVolumesasDestroyingMutex.RLock()
+	defer fake.findOrphanedVolumesasDestroyingMutex.RUnlock()
+	return len(fake.findOrphanedVolumesasDestroyingArgsForCall)
+}
+
+func (fake *FakeDestroyer) FindOrphanedVolumesasDestroyingArgsForCall(i int) string {
+	fake.findOrphanedVolumesasDestroyingMutex.RLock()
+	defer fake.findOrphanedVolumesasDestroyingMutex.RUnlock()
+	return fake.findOrphanedVolumesasDestroyingArgsForCall[i].workerName
+}
+
+func (fake *FakeDestroyer) FindOrphanedVolumesasDestroyingReturns(result1 []db.DestroyingVolume, result2 error) {
+	fake.FindOrphanedVolumesasDestroyingStub = nil
+	fake.findOrphanedVolumesasDestroyingReturns = struct {
+		result1 []db.DestroyingVolume
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDestroyer) FindOrphanedVolumesasDestroyingReturnsOnCall(i int, result1 []db.DestroyingVolume, result2 error) {
+	fake.FindOrphanedVolumesasDestroyingStub = nil
+	if fake.findOrphanedVolumesasDestroyingReturnsOnCall == nil {
+		fake.findOrphanedVolumesasDestroyingReturnsOnCall = make(map[int]struct {
+			result1 []db.DestroyingVolume
+			result2 error
+		})
+	}
+	fake.findOrphanedVolumesasDestroyingReturnsOnCall[i] = struct {
+		result1 []db.DestroyingVolume
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeDestroyer) DestroyContainers(workerName string, handles []string) error {
@@ -147,6 +212,8 @@ func (fake *FakeDestroyer) DestroyVolumesReturnsOnCall(i int, result1 error) {
 func (fake *FakeDestroyer) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.findOrphanedVolumesasDestroyingMutex.RLock()
+	defer fake.findOrphanedVolumesasDestroyingMutex.RUnlock()
 	fake.destroyContainersMutex.RLock()
 	defer fake.destroyContainersMutex.RUnlock()
 	fake.destroyVolumesMutex.RLock()

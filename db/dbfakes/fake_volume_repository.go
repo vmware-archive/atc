@@ -174,10 +174,12 @@ type FakeVolumeRepository struct {
 		result1 []db.CreatedVolume
 		result2 error
 	}
-	GetOrphanedVolumesStub        func() ([]db.CreatedVolume, []db.DestroyingVolume, error)
+	GetOrphanedVolumesStub        func(workerName string) ([]db.CreatedVolume, []db.DestroyingVolume, error)
 	getOrphanedVolumesMutex       sync.RWMutex
-	getOrphanedVolumesArgsForCall []struct{}
-	getOrphanedVolumesReturns     struct {
+	getOrphanedVolumesArgsForCall []struct {
+		workerName string
+	}
+	getOrphanedVolumesReturns struct {
 		result1 []db.CreatedVolume
 		result2 []db.DestroyingVolume
 		result3 error
@@ -833,14 +835,16 @@ func (fake *FakeVolumeRepository) FindVolumesForContainerReturnsOnCall(i int, re
 	}{result1, result2}
 }
 
-func (fake *FakeVolumeRepository) GetOrphanedVolumes() ([]db.CreatedVolume, []db.DestroyingVolume, error) {
+func (fake *FakeVolumeRepository) GetOrphanedVolumes(workerName string) ([]db.CreatedVolume, []db.DestroyingVolume, error) {
 	fake.getOrphanedVolumesMutex.Lock()
 	ret, specificReturn := fake.getOrphanedVolumesReturnsOnCall[len(fake.getOrphanedVolumesArgsForCall)]
-	fake.getOrphanedVolumesArgsForCall = append(fake.getOrphanedVolumesArgsForCall, struct{}{})
-	fake.recordInvocation("GetOrphanedVolumes", []interface{}{})
+	fake.getOrphanedVolumesArgsForCall = append(fake.getOrphanedVolumesArgsForCall, struct {
+		workerName string
+	}{workerName})
+	fake.recordInvocation("GetOrphanedVolumes", []interface{}{workerName})
 	fake.getOrphanedVolumesMutex.Unlock()
 	if fake.GetOrphanedVolumesStub != nil {
-		return fake.GetOrphanedVolumesStub()
+		return fake.GetOrphanedVolumesStub(workerName)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
@@ -852,6 +856,12 @@ func (fake *FakeVolumeRepository) GetOrphanedVolumesCallCount() int {
 	fake.getOrphanedVolumesMutex.RLock()
 	defer fake.getOrphanedVolumesMutex.RUnlock()
 	return len(fake.getOrphanedVolumesArgsForCall)
+}
+
+func (fake *FakeVolumeRepository) GetOrphanedVolumesArgsForCall(i int) string {
+	fake.getOrphanedVolumesMutex.RLock()
+	defer fake.getOrphanedVolumesMutex.RUnlock()
+	return fake.getOrphanedVolumesArgsForCall[i].workerName
 }
 
 func (fake *FakeVolumeRepository) GetOrphanedVolumesReturns(result1 []db.CreatedVolume, result2 []db.DestroyingVolume, result3 error) {

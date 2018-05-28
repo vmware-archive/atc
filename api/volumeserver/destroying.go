@@ -14,11 +14,16 @@ func (s *Server) ListDestroyingVolumes(w http.ResponseWriter, r *http.Request) {
 	hLog := s.logger.Session("marked-volumes-for-worker", lager.Data{"worker_name": workerName})
 
 	if workerName != "" {
-		volumeHandles, err := s.repository.GetDestroyingVolumes(workerName)
+		destroyingVolumes, err := s.destroyer.FindOrphanedVolumesasDestroying(workerName)
 		if err != nil {
 			hLog.Error("failed-to-find-destroying-volumes", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
+		}
+
+		volumeHandles := make([]string, len(destroyingVolumes))
+		for i, v := range destroyingVolumes {
+			volumeHandles[i] = v.Handle()
 		}
 
 		hLog.Debug("list", lager.Data{"destroying-volume-count": len(volumeHandles)})
