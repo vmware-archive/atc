@@ -2,6 +2,7 @@ package gc
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"code.cloudfoundry.org/garden"
@@ -137,7 +138,7 @@ func (c *containerCollector) cleanupOrphanedContainers(logger lager.Logger) erro
 		c.jobRunner.Try(logger,
 			worker,
 			&job{
-				JobName: "created-containers",
+				JobName: fmt.Sprintf("created-containers-%d", len(createdContainers)),
 				RunFunc: destroyCreatedContainers(logger, createdContainers),
 			},
 		)
