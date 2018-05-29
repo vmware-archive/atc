@@ -31,12 +31,6 @@ func (vc *volumeCollector) Run(ctx context.Context) error {
 
 	var errs error
 
-	// err := vc.markOrphanedVolumesasDestroying(logger.Session("orphaned-volumes"))
-	// if err != nil {
-	// 	errs = multierror.Append(errs, err)
-	// 	logger.Error("failed-to-mark-orphaned-volumes-as-destroying", err)
-	// }
-
 	err := vc.cleanupFailedVolumes(logger.Session("failed-volumes"))
 	if err != nil {
 		errs = multierror.Append(errs, err)

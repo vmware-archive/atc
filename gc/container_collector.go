@@ -128,6 +128,7 @@ func (c *containerCollector) cleanupOrphanedContainers(logger lager.Logger) erro
 		}
 		logger.Debug("found-created-containers-for-deletion", lager.Data{
 			"handle": createdContainer.Handle(),
+			"worker": createdContainer.WorkerName(),
 		})
 	}
 
