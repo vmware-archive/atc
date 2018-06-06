@@ -676,7 +676,7 @@ func _1525442981_create_version_resources_check_order_indexDownSql() (*asset, er
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1525442981_create_version_resources_check_order_index.down.sql", size: 61, mode: os.FileMode(420), modTime: time.Unix(1528314909, 0)}
+	info := bindataFileInfo{name: "1525442981_create_version_resources_check_order_index.down.sql", size: 61, mode: os.FileMode(420), modTime: time.Unix(1528315425, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -696,7 +696,7 @@ func _1525442981_create_version_resources_check_order_indexUpSql() (*asset, erro
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1525442981_create_version_resources_check_order_index.up.sql", size: 105, mode: os.FileMode(420), modTime: time.Unix(1528314909, 0)}
+	info := bindataFileInfo{name: "1525442981_create_version_resources_check_order_index.up.sql", size: 105, mode: os.FileMode(420), modTime: time.Unix(1528315425, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -756,12 +756,12 @@ func _1528314953_drop_versioned_resources_check_order_indexDownSql() (*asset, er
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1528314953_drop_versioned_resources_check_order_index.down.sql", size: 105, mode: os.FileMode(420), modTime: time.Unix(1528314973, 0)}
+	info := bindataFileInfo{name: "1528314953_drop_versioned_resources_check_order_index.down.sql", size: 105, mode: os.FileMode(420), modTime: time.Unix(1528315425, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var __1528314953_drop_versioned_resources_check_order_indexUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\x09\xf2\x0f\x50\xf0\xf4\x73\x71\x8d\x50\x28\x4b\x2d\x2a\xce\xcc\xcf\x4b\x4d\x89\x2f\x4a\x2d\xce\x2f\x2d\x4a\x4e\x2d\x8e\x4f\xce\x48\x4d\xce\x8e\xcf\x2f\x4a\x49\x2d\xb2\xe6\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\x02\x04\x00\x00\xff\xff\x27\xe3\x82\xfa\x3d\x00\x00\x00")
+var __1528314953_drop_versioned_resources_check_order_indexUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\x09\xf2\x0f\x50\xf0\xf4\x73\x71\x8d\x50\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x4b\x2d\x2a\xce\xcc\xcf\x4b\x4d\x89\x2f\x4a\x2d\xce\x2f\x2d\x4a\x4e\x2d\x8e\x4f\xce\x48\x4d\xce\x8e\xcf\x2f\x4a\x49\x2d\xb2\xe6\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\x02\x04\x00\x00\xff\xff\x1b\x30\x57\x90\x47\x00\x00\x00")
 
 func _1528314953_drop_versioned_resources_check_order_indexUpSqlBytes() ([]byte, error) {
 	return bindataRead(
@@ -776,7 +776,7 @@ func _1528314953_drop_versioned_resources_check_order_indexUpSql() (*asset, erro
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1528314953_drop_versioned_resources_check_order_index.up.sql", size: 61, mode: os.FileMode(420), modTime: time.Unix(1528314966, 0)}
+	info := bindataFileInfo{name: "1528314953_drop_versioned_resources_check_order_index.up.sql", size: 71, mode: os.FileMode(420), modTime: time.Unix(1528320592, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
