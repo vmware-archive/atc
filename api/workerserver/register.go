@@ -55,6 +55,8 @@ func (s *Server) RegisterWorker(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	registration.Type = "kubernetes"
+
 	if registration.Name == "" {
 		registration.Name = registration.GardenAddr
 	}

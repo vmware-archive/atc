@@ -70,14 +70,53 @@ func (s *k8sOrchestrator) SetWorkerPool(pool worker.Client) {
 func (s *k8sOrchestrator) GetResource(
 	logger lager.Logger,
 	ctx context.Context,
-	worker worker.Worker,
+	targetWorker worker.Worker,
 	containerSpec worker.ContainerSpec,
 	resourceInstance resource.ResourceInstance,
 	session resource.Session,
 	resourceTypes creds.VersionedResourceTypes,
 	delegate worker.ImageFetchingDelegate,
 ) (resource.VersionedSource, worker.Volume, error) {
-	return nil, nil, errors.New("nope")
+	resourceFactory := resource.NewResourceFactory(targetWorker)
+	res, err := resourceFactory.NewResource(
+		ctx,
+		logger,
+		resourceInstance.ContainerOwner(),
+		session.Metadata,
+		containerSpec,
+		resourceTypes,
+		delegate,
+	)
+	if err != nil {
+		logger.Error("failed-to-construct-resource", err)
+		return nil, nil, err
+	}
+
+	var volume worker.Volume
+	for _, mount := range res.Container().VolumeMounts() {
+		if mount.MountPath == resource.ResourcesDir("get") {
+			volume = mount.Volume
+			break
+		}
+	}
+
+	versionedSource, err := res.Get(
+		ctx,
+		volume,
+		resource.IOConfig{
+			Stdout: delegate.Stdout(),
+			Stderr: delegate.Stderr(),
+		},
+		resourceInstance.Source(),
+		resourceInstance.Params(),
+		resourceInstance.Version(),
+	)
+	if err != nil {
+		logger.Error("failed-to-fetch-resource", err)
+		return nil, nil, err
+	}
+
+	return versionedSource, volume, nil
 }
 
 func (o *k8sOrchestrator) k8sWorker(logger lager.Logger) (worker.Worker, error) {
@@ -87,7 +126,7 @@ func (o *k8sOrchestrator) k8sWorker(logger lager.Logger) (worker.Worker, error) 
 	}
 
 	for _, w := range workers {
-		if w.Type() == "garden" {
+		if w.Type() == "kubernetes" {
 			o.containerProvider.WorkerName = w.Name()
 			return w, nil
 		}
@@ -255,13 +294,13 @@ func (o *k8sOrchestrator) trackProgress(
 		}
 		podEvents.Stop()
 
-		if task.pod != nil {
-			outputCmd := append([]string{"conveyor", "outputs"}, task.outputArgs...)
-			err := o.execInContainer("prep-outputs", outputCmd, *task.pod, task.ioConfig)
-			if err != nil {
-				logger.Error("failed-to-prep-outputs", err)
-			}
-		}
+		// if task.pod != nil {
+		// 	outputCmd := append([]string{"conveyor", "outputs"}, task.outputArgs...)
+		// 	err := o.execInContainer("prep-outputs", outputCmd, *task.pod, task.ioConfig)
+		// 	if err != nil {
+		// 		logger.Error("failed-to-prep-outputs", err)
+		// 	}
+		// }
 
 		result <- taskResult
 	}()
@@ -399,7 +438,7 @@ func (o *k8sOrchestrator) jobForTask(
 						v1.Container{
 							Name:            "prep-inputs",
 							Image:           "topherbullock/conveyor",
-							ImagePullPolicy: v1.PullNever,
+							ImagePullPolicy: v1.PullIfNotPresent,
 							Command:         []string{"conveyor", "inputs"},
 							Args:            inputArgs,
 							WorkingDir:      workDir,
@@ -408,24 +447,25 @@ func (o *k8sOrchestrator) jobForTask(
 					},
 					Containers: []v1.Container{
 						v1.Container{
-							Name:         TaskContainerName,
-							Image:        config.RootfsURI,
-							Command:      []string{config.Run.Path},
-							Args:         config.Run.Args,
-							WorkingDir:   workDir,
-							VolumeMounts: mounts,
-							Env:          envVars,
+							Name:            TaskContainerName,
+							Image:           config.RootfsURI,
+							ImagePullPolicy: v1.PullIfNotPresent,
+							Command:         []string{config.Run.Path},
+							Args:            config.Run.Args,
+							WorkingDir:      workDir,
+							VolumeMounts:    mounts,
+							Env:             envVars,
 						},
-						v1.Container{
-							Name:            "prep-outputs",
-							Image:           "topherbullock/conveyor",
-							ImagePullPolicy: v1.PullNever,
-							// Command:      []string{"sleep"},
-							// Args:         []string{"10000"},
-							VolumeMounts: mounts,
-							TTY:          true,
-							Stdin:        true,
-						},
+						// v1.Container{
+						// 	Name:            "prep-outputs",
+						// 	Image:           "topherbullock/conveyor",
+						// 	ImagePullPolicy: v1.PullIfNotPresent,
+						// 	// Command:      []string{"sleep"},
+						// 	// Args:         []string{"10000"},
+						// 	VolumeMounts: mounts,
+						// 	TTY:          true,
+						// 	Stdin:        true,
+						// },
 					},
 				},
 			},
