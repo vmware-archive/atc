@@ -766,7 +766,7 @@ func _1528314953_drop_versioned_resources_check_order_indexDownSql() (*asset, er
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1528314953_drop_versioned_resources_check_order_index.down.sql", size: 105, mode: os.FileMode(420), modTime: time.Unix(1529098320, 0)}
+	info := bindataFileInfo{name: "1528314953_drop_versioned_resources_check_order_index.down.sql", size: 105, mode: os.FileMode(420), modTime: time.Unix(1531147700, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -786,7 +786,7 @@ func _1528314953_drop_versioned_resources_check_order_indexUpSql() (*asset, erro
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1528314953_drop_versioned_resources_check_order_index.up.sql", size: 71, mode: os.FileMode(420), modTime: time.Unix(1529098320, 0)}
+	info := bindataFileInfo{name: "1528314953_drop_versioned_resources_check_order_index.up.sql", size: 71, mode: os.FileMode(420), modTime: time.Unix(1531147700, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -806,7 +806,7 @@ func _1528470872_add_global_usersDownGo() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1528470872_add_global_users.down.go", size: 773, mode: os.FileMode(420), modTime: time.Unix(1529098320, 0)}
+	info := bindataFileInfo{name: "1528470872_add_global_users.down.go", size: 773, mode: os.FileMode(420), modTime: time.Unix(1531147700, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -826,7 +826,7 @@ func _1528470872_add_global_usersUpGo() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1528470872_add_global_users.up.go", size: 7124, mode: os.FileMode(420), modTime: time.Unix(1529949536, 0)}
+	info := bindataFileInfo{name: "1528470872_add_global_users.up.go", size: 7124, mode: os.FileMode(420), modTime: time.Unix(1531147700, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -846,7 +846,7 @@ func _1529692120_add_cache_index_to_pipelinesDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1529692120_add_cache_index_to_pipelines.down.sql", size: 384, mode: os.FileMode(420), modTime: time.Unix(1529949536, 0)}
+	info := bindataFileInfo{name: "1529692120_add_cache_index_to_pipelines.down.sql", size: 384, mode: os.FileMode(420), modTime: time.Unix(1531147700, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -866,7 +866,7 @@ func _1529692120_add_cache_index_to_pipelinesUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1529692120_add_cache_index_to_pipelines.up.sql", size: 260, mode: os.FileMode(420), modTime: time.Unix(1529949536, 0)}
+	info := bindataFileInfo{name: "1529692120_add_cache_index_to_pipelines.up.sql", size: 260, mode: os.FileMode(420), modTime: time.Unix(1531147700, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -886,7 +886,7 @@ func _1530037770_replace_materialized_views_with_joinsDownSql() (*asset, error) 
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1530037770_replace_materialized_views_with_joins.down.sql", size: 3412, mode: os.FileMode(420), modTime: time.Unix(1530798477, 0)}
+	info := bindataFileInfo{name: "1530037770_replace_materialized_views_with_joins.down.sql", size: 3412, mode: os.FileMode(420), modTime: time.Unix(1531147700, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -906,12 +906,12 @@ func _1530037770_replace_materialized_views_with_joinsUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1530037770_replace_materialized_views_with_joins.up.sql", size: 967, mode: os.FileMode(420), modTime: time.Unix(1531144703, 0)}
+	info := bindataFileInfo{name: "1530037770_replace_materialized_views_with_joins.up.sql", size: 967, mode: os.FileMode(420), modTime: time.Unix(1531147700, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var __1530823998_create_teams_triggerDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xcd\xb1\x0a\xc2\x30\x10\x80\xe1\xfd\x9e\xe2\xde\x23\x9b\x35\x0d\x37\x34\x91\x34\x82\xdb\xa1\xf4\x28\x81\x1a\x21\x39\x7d\x7e\xa1\x0a\x3a\x38\xd8\xfd\xe7\xfb\x77\xd6\x91\x37\x00\x88\xfb\x18\x0e\xd8\x1f\x7d\x97\x28\x78\xa4\x1e\xed\x89\xc6\x34\xe2\xad\xb0\xca\xf9\xca\x93\x2c\xa2\x62\xfe\x28\x73\x69\x52\xf5\x83\xa6\x48\xce\xd9\xf8\x55\xae\xd9\xe5\x9e\x97\x89\xe5\x21\x45\xdb\x5b\x67\xad\x79\x9e\xa5\x62\xf0\x6b\xd3\xcc\x16\xe3\xf5\xfd\x61\x40\x17\x86\x81\x92\x01\x78\x06\x00\x00\xff\xff\x42\x5c\xfe\xb9\xef\x00\x00\x00")
+var __1530823998_create_teams_triggerDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\x09\xf2\x0f\x50\x08\x09\xf2\x74\x77\x77\x0d\x52\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x49\x4d\xcc\x8d\x4f\x2a\xcd\xcc\x49\x89\x4f\x2d\x4b\xcd\x2b\x29\x8e\x4f\x49\xcd\x49\x2d\x49\x8d\x2f\x29\xca\x4c\x4f\x4f\x2d\x52\xf0\xf7\x03\xab\x29\x26\xc9\x8c\xcc\xbc\xe2\xd4\xa2\x12\x2c\x66\xc0\x0c\x71\x0b\xf5\x73\x0e\xf1\xf4\xf7\x43\x32\x25\x3f\x2f\x1e\x6c\x10\xc4\x7e\x0d\x4d\x6b\x22\xd4\x42\xec\x01\xa9\x75\xf6\xf7\xf5\xf5\x0c\xb1\xe6\xe2\x02\x04\x00\x00\xff\xff\xe6\x01\x31\xbf\xf1\x00\x00\x00")
 
 func _1530823998_create_teams_triggerDownSqlBytes() ([]byte, error) {
 	return bindataRead(
@@ -926,7 +926,7 @@ func _1530823998_create_teams_triggerDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1530823998_create_teams_trigger.down.sql", size: 239, mode: os.FileMode(420), modTime: time.Unix(1531144703, 0)}
+	info := bindataFileInfo{name: "1530823998_create_teams_trigger.down.sql", size: 241, mode: os.FileMode(420), modTime: time.Unix(1531154638, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -946,12 +946,12 @@ func _1530823998_create_teams_triggerUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1530823998_create_teams_trigger.up.sql", size: 848, mode: os.FileMode(420), modTime: time.Unix(1531144703, 0)}
+	info := bindataFileInfo{name: "1530823998_create_teams_trigger.up.sql", size: 848, mode: os.FileMode(420), modTime: time.Unix(1531147700, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var __1530824006_create_pipelines_triggerDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\x09\xf2\x0f\x50\x70\x0b\xf5\x73\x0e\xf1\xf4\xf7\x53\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xc8\xcf\x8b\x2f\xc8\x2c\x48\xcd\xc9\xcc\x4b\x8d\x4f\x49\xcd\x49\x2d\x49\x25\x56\x75\x66\x5e\x71\x6a\x51\x89\x35\x17\x4c\x79\x48\x90\xa7\xbb\xbb\x6b\x10\x92\x6a\xb8\xd2\xa4\xd2\xcc\x9c\x94\xf8\xd4\xb2\xd4\xbc\x92\x62\xa8\x2d\xf1\x25\x45\x99\xe9\xe9\xa9\x45\x0a\xfe\x7e\x70\x75\xc5\xd6\xa4\x9a\x05\x71\x03\x0e\xb3\x9c\xfd\x7d\x7d\x3d\x43\xac\xb9\x00\x01\x00\x00\xff\xff\xc3\x9b\x5b\xe5\x04\x01\x00\x00")
+var __1530824006_create_pipelines_triggerDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\x09\xf2\x0f\x50\x08\x09\xf2\x74\x77\x77\x0d\x52\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\xc8\x2c\x48\xcd\xc9\xcc\x4b\x8d\x4f\x2a\xcd\xcc\x49\x89\x4f\x2d\x4b\xcd\x2b\x29\x8e\x4f\x49\xcd\x49\x2d\x49\x8d\x2f\x29\xca\x4c\x4f\x4f\x2d\x52\xf0\xf7\x83\xab\x2b\x26\xd9\xac\xcc\xbc\xe2\xd4\xa2\x12\x1c\x66\xc1\x0c\x73\x0b\xf5\x73\x0e\xf1\xf4\xf7\x43\x32\x2d\x3f\x2f\x1e\x6e\x20\xc4\x3d\x1a\x9a\xd6\x44\xaa\x87\xd8\x09\x52\xef\xec\xef\xeb\xeb\x19\x62\xcd\x05\x08\x00\x00\xff\xff\xc0\x6b\xef\x8d\x08\x01\x00\x00")
 
 func _1530824006_create_pipelines_triggerDownSqlBytes() ([]byte, error) {
 	return bindataRead(
@@ -966,7 +966,7 @@ func _1530824006_create_pipelines_triggerDownSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1530824006_create_pipelines_trigger.down.sql", size: 260, mode: os.FileMode(420), modTime: time.Unix(1531144703, 0)}
+	info := bindataFileInfo{name: "1530824006_create_pipelines_trigger.down.sql", size: 264, mode: os.FileMode(420), modTime: time.Unix(1531154638, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -986,7 +986,7 @@ func _1530824006_create_pipelines_triggerUpSql() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "1530824006_create_pipelines_trigger.up.sql", size: 1219, mode: os.FileMode(420), modTime: time.Unix(1531144703, 0)}
+	info := bindataFileInfo{name: "1530824006_create_pipelines_trigger.up.sql", size: 1219, mode: os.FileMode(420), modTime: time.Unix(1531147700, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
