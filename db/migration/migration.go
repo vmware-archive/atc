@@ -3,7 +3,10 @@ package migration
 import (
 	"database/sql"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"sort"
+	"sync"
 	"time"
 
 	"code.cloudfoundry.org/lager"
@@ -13,9 +16,9 @@ import (
 	"github.com/mattes/migrate/database/postgres"
 	"github.com/mattes/migrate/source"
 	"github.com/mattes/migrate/source/go-bindata"
+	"github.com/pressly/goose"
 
 	_ "github.com/lib/pq"
-	_ "github.com/mattes/migrate/source/file"
 )
 
 func NewOpenHelper(driver, name string, lockFactory lock.LockFactory, strategy encryption.Strategy) *OpenHelper {
@@ -106,42 +109,70 @@ type Migrator interface {
 	Up() error
 }
 
+var extractOnce = &sync.Once{}
+
 func NewMigrator(db *sql.DB, lockFactory lock.LockFactory, strategy encryption.Strategy) Migrator {
 	return NewMigratorForMigrations(db, lockFactory, strategy, AssetNames())
 }
 
 func NewMigratorForMigrations(db *sql.DB, lockFactory lock.LockFactory, strategy encryption.Strategy, migrations []string) Migrator {
+
+	var tempdir string
+	extractOnce.Do(func() {
+		tempdir, _ = ioutil.TempDir("", "migrations")
+		//defer os.RemoveAll(tempdir) // clean up
+		fmt.Println("=======================================", tempdir)
+		var content []byte
+		for _, filename := range AssetNames() {
+			content, _ = Asset(filename)
+			tmpfn := filepath.Join(tempdir, filename)
+			_ = ioutil.WriteFile(tmpfn, content, 0644)
+		}
+	})
+
 	return &migrator{
 		db,
 		lockFactory,
 		strategy,
 		lager.NewLogger("migrations"),
 		migrations,
+		tempdir,
 	}
 }
 
 type migrator struct {
-	db          *sql.DB
-	lockFactory lock.LockFactory
-	strategy    encryption.Strategy
-	logger      lager.Logger
-	migrations  filenames
+	db            *sql.DB
+	lockFactory   lock.LockFactory
+	strategy      encryption.Strategy
+	logger        lager.Logger
+	migrations    filenames
+	migrationsdir string
+}
+
+func (self *migrator) Stategy() encryption.Strategy {
+	return self.Stategy()
 }
 
 func (self *migrator) SupportedVersion() (int, error) {
 
-	latest := self.migrations.Latest()
-
-	m, err := source.Parse(latest)
+	v, err := goose.GetDBVersion(self.db)
 	if err != nil {
 		return -1, err
 	}
+	return int(v), nil
 
-	return int(m.Version), nil
+	// latest := self.migrations.Latest()
+	//
+	// m, err := source.Parse(latest)
+	// if err != nil {
+	// 	return -1, err
+	// }
+	//
+	//return int(m.Version), nil
 }
 
 func (self *migrator) CurrentVersion() (int, error) {
-	m, lock, err := self.openWithLock()
+	_, lock, err := self.openWithLock()
 	if err != nil {
 		return -1, err
 	}
@@ -150,17 +181,23 @@ func (self *migrator) CurrentVersion() (int, error) {
 		defer lock.Release()
 	}
 
-	version, _, err := m.Version()
+	v, err := goose.GetDBVersion(self.db)
 	if err != nil {
 		return -1, err
 	}
+	return int(v), nil
 
-	return int(version), nil
+	// version, _, err := m.Version()
+	// if err != nil {
+	// 	return -1, err
+	// }
+	//
+	// return int(version), nil
 }
 
 func (self *migrator) Migrate(version int) error {
 
-	m, lock, err := self.openWithLock()
+	_, lock, err := self.openWithLock()
 	if err != nil {
 		return err
 	}
@@ -169,18 +206,23 @@ func (self *migrator) Migrate(version int) error {
 		defer lock.Release()
 	}
 
-	if err = m.Migrate(uint(version)); err != nil {
+	if err = goose.UpTo(self.db, self.migrationsdir, int64(version)); err != nil {
 		if err.Error() != "no change" {
 			return err
 		}
 	}
+	// if err = m.Migrate(uint(version)); err != nil {
+	// 	if err.Error() != "no change" {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }
 
 func (self *migrator) Up() error {
 
-	m, lock, err := self.openWithLock()
+	_, lock, err := self.openWithLock()
 	if err != nil {
 		return err
 	}
@@ -189,16 +231,23 @@ func (self *migrator) Up() error {
 		defer lock.Release()
 	}
 
-	if err = m.Up(); err != nil {
+	if err = goose.Up(self.db, self.migrationsdir); err != nil {
 		if err.Error() != "no change" {
 			return err
 		}
 	}
+	// if err = m.Up(); err != nil {
+	// 	if err.Error() != "no change" {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }
 
 func (self *migrator) open() (*migrate.Migrate, error) {
+
+	//func (self *migrator) open() (*migrate.Migrate, error) {
 
 	forceVersion, err := self.checkLegacyVersion()
 	if err != nil {
