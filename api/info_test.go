@@ -7,8 +7,10 @@ import (
 	"github.com/concourse/atc/api/accessor/accessorfakes"
 	"github.com/concourse/atc/creds/credhub"
 	"github.com/concourse/atc/creds/vault"
+	vaultapi "github.com/hashicorp/vault/api"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 )
 
 var _ = Describe("Pipelines API", func() {
@@ -39,8 +41,9 @@ var _ = Describe("Pipelines API", func() {
 
 	Describe("GET /api/v1/info/creds", func() {
 		var (
-			response   *http.Response
-			fakeaccess *accessorfakes.FakeAccess
+			response    *http.Response
+			fakeaccess  *accessorfakes.FakeAccess
+			vaultServer *ghttp.Server
 		)
 
 		BeforeEach(func() {
@@ -62,7 +65,7 @@ var _ = Describe("Pipelines API", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		Context("vault", func() {
+		FContext("vault", func() {
 			BeforeEach(func() {
 				fakeaccess.IsAuthenticatedReturns(true)
 				fakeaccess.IsAdminReturns(true)
@@ -75,12 +78,13 @@ var _ = Describe("Pipelines API", func() {
 				}
 
 				tls := vault.TLS{
-					CACert:     "ca-cert",
+					CACert:     "",
 					ServerName: "server-name",
 				}
 
+				vaultServer = ghttp.NewServer()
 				vaultManager := &vault.VaultManager{
-					URL:        "http://1.2.3.4:8080",
+					URL:        vaultServer.URL(),
 					PathPrefix: "testpath",
 					Cache:      false,
 					MaxLease:   60,
@@ -89,6 +93,19 @@ var _ = Describe("Pipelines API", func() {
 				}
 
 				credsManagers["vault"] = vaultManager
+
+				vaultServer.RouteToHandler("GET", "/v1/sys/health", ghttp.RespondWithJSONEncoded(
+					http.StatusOK,
+					&vaultapi.HealthResponse{
+						Initialized:                true,
+						Sealed:                     false,
+						Standby:                    false,
+						ReplicationPerformanceMode: "foo",
+						ReplicationDRMode:          "blah",
+						ServerTimeUTC:              0,
+						Version:                    "1.0.0",
+					},
+				))
 			})
 
 			It("returns Content-Type 'application/json'", func() {
@@ -102,16 +119,25 @@ var _ = Describe("Pipelines API", func() {
 
 				Expect(body).To(MatchJSON(`{
           "vault": {
-            "url": "http://1.2.3.4:8080",
+            "url": "` + vaultServer.URL() + `",
             "path_prefix": "testpath",
 						"cache": false,
 						"max_lease": 60,
-            "ca_cert": "ca-cert",
+            "ca_cert": "",
             "server_name": "server-name",
 						"auth_backend": "backend-server",
 						"auth_max_ttl": 20,
 						"auth_retry_max": 5,
-						"auth_retry_initial": 2
+						"auth_retry_initial": 2,
+						"health": {
+							"initialized": true,
+							"sealed": false,
+							"standby": false,
+							"replication_performance_mode": "foo",
+							"replication_dr_mode": "blah",
+							"server_time_utc": 0,
+							"version": "1.0.0"
+						}
           }
         }`))
 			})
