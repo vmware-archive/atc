@@ -1,48 +1,77 @@
 package atc_test
 
 import (
-	"encoding/json"
-
-	. "github.com/concourse/atc"
-	yaml "gopkg.in/yaml.v2"
+	"github.com/concourse/atc"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Config", func() {
-	Describe("VersionConfig", func() {
-		Context("when unmarshaling a pinned version from YAML", func() {
-			It("produces the correct version config without error", func() {
-				var versionConfig VersionConfig
-				bs := []byte(`some: version`)
-				err := yaml.Unmarshal(bs, &versionConfig)
-				Expect(err).NotTo(HaveOccurred())
+	var config atc.Config
 
-				expected := VersionConfig{
-					Pinned: Version{
-						"some": "version",
+	Describe("determining if a job's builds are publically viewable", func() {
+		Context("when the job is publically viewable", func() {
+			BeforeEach(func() {
+				config = atc.Config{
+					Jobs: atc.JobConfigs{
+						{
+							Name:   "some-job",
+							Public: true,
+						},
 					},
 				}
+			})
 
-				Expect(versionConfig).To(Equal(expected))
+			It("returns true", func() {
+				public, _ := config.JobIsPublic("some-job")
+				Expect(public).To(BeTrue())
+			})
+
+			It("does not error", func() {
+				_, err := config.JobIsPublic("some-job")
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
-		Context("when unmarshaling a pinned version from JSON", func() {
-			It("produces the correct version config without error", func() {
-				var versionConfig VersionConfig
-				bs := []byte(`{ "some": "version" }`)
-				err := json.Unmarshal(bs, &versionConfig)
-				Expect(err).NotTo(HaveOccurred())
-
-				expected := VersionConfig{
-					Pinned: Version{
-						"some": "version",
+		Context("when the job is not publically viewable", func() {
+			BeforeEach(func() {
+				config = atc.Config{
+					Jobs: atc.JobConfigs{
+						{
+							Name:   "some-job",
+							Public: false,
+						},
 					},
 				}
+			})
 
-				Expect(versionConfig).To(Equal(expected))
+			It("returns false", func() {
+				public, _ := config.JobIsPublic("some-job")
+				Expect(public).To(BeFalse())
+			})
+
+			It("does not error", func() {
+				_, err := config.JobIsPublic("some-job")
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("when the job with the given name can't be found", func() {
+			BeforeEach(func() {
+				config = atc.Config{
+					Jobs: atc.JobConfigs{
+						{
+							Name:   "some-job",
+							Public: false,
+						},
+					},
+				}
+			})
+
+			It("errors", func() {
+				_, err := config.JobIsPublic("does-not-exist")
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
