@@ -41,9 +41,9 @@ var _ = Describe("Pipelines API", func() {
 
 	Describe("GET /api/v1/info/creds", func() {
 		var (
-			response    *http.Response
-			fakeaccess  *accessorfakes.FakeAccess
-			vaultServer *ghttp.Server
+			response   *http.Response
+			fakeaccess *accessorfakes.FakeAccess
+			credServer *ghttp.Server
 		)
 
 		BeforeEach(func() {
@@ -65,7 +65,7 @@ var _ = Describe("Pipelines API", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		FContext("vault", func() {
+		Context("vault", func() {
 			BeforeEach(func() {
 				fakeaccess.IsAuthenticatedReturns(true)
 				fakeaccess.IsAdminReturns(true)
@@ -82,9 +82,9 @@ var _ = Describe("Pipelines API", func() {
 					ServerName: "server-name",
 				}
 
-				vaultServer = ghttp.NewServer()
+				credServer = ghttp.NewServer()
 				vaultManager := &vault.VaultManager{
-					URL:        vaultServer.URL(),
+					URL:        credServer.URL(),
 					PathPrefix: "testpath",
 					Cache:      false,
 					MaxLease:   60,
@@ -94,7 +94,7 @@ var _ = Describe("Pipelines API", func() {
 
 				credsManagers["vault"] = vaultManager
 
-				vaultServer.RouteToHandler("GET", "/v1/sys/health", ghttp.RespondWithJSONEncoded(
+				credServer.RouteToHandler("GET", "/v1/sys/health", ghttp.RespondWithJSONEncoded(
 					http.StatusOK,
 					&vaultapi.HealthResponse{
 						Initialized:                true,
@@ -119,7 +119,7 @@ var _ = Describe("Pipelines API", func() {
 
 				Expect(body).To(MatchJSON(`{
           "vault": {
-            "url": "` + vaultServer.URL() + `",
+            "url": "` + credServer.URL() + `",
             "path_prefix": "testpath",
 						"cache": false,
 						"max_lease": 60,
@@ -149,20 +149,33 @@ var _ = Describe("Pipelines API", func() {
 				fakeaccess.IsAdminReturns(true)
 
 				tls := credhub.TLS{
-					CACerts: []string{"cert1"},
+					CACerts: []string{},
 				}
 				uaa := credhub.UAA{
 					ClientId:     "client-id",
 					ClientSecret: "client-secret",
 				}
+				credServer = ghttp.NewServer()
 				credhubManager := &credhub.CredHubManager{
-					URL:        "http://1.2.3.4:8080",
+					URL:        credServer.URL(),
 					PathPrefix: "some-prefix",
 					TLS:        tls,
 					UAA:        uaa,
 				}
 
 				credsManagers["credhub"] = credhubManager
+				credServer.RouteToHandler("GET", "/health", ghttp.RespondWithJSONEncoded(
+					http.StatusOK, map[string]string{
+						"status": "UP",
+					},
+				))
+				credServer.RouteToHandler("GET", "/info", ghttp.RespondWithJSONEncoded(
+					http.StatusOK, map[string]interface{}{
+						"auth-server": map[string]string{"url": "http://1.2.3.4:8080"},
+						"app":         map[string]string{"app": "CredHub"},
+					},
+				))
+
 			})
 
 			It("returns Content-Type 'application/json'", func() {
@@ -176,10 +189,11 @@ var _ = Describe("Pipelines API", func() {
 
 				Expect(body).To(MatchJSON(`{
           "credhub": {
-            "url": "http://1.2.3.4:8080",
+            "url": "` + credServer.URL() + `",
             "path_prefix": "some-prefix",
-            "ca_certs": ["cert1"],
-						"uaa_client_id": "client-id"
+            "ca_certs": [],
+						"uaa_client_id": "client-id",
+						"health": {"status": "UP"}
           }
         }`))
 			})

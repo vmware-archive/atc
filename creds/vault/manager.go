@@ -52,7 +52,6 @@ func (manager *VaultManager) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	fmt.Printf("vault health response %v", health)
 	return json.Marshal(&map[string]interface{}{
 		"url":                manager.URL,
 		"path_prefix":        manager.PathPrefix,

@@ -54,6 +54,10 @@ func (manager *SsmManager) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (manager SsmManager) Health() (interface{}, error) {
+	return nil, nil
+}
+
 func (manager SsmManager) IsConfigured() bool {
 	return manager.AwsRegion != ""
 }

@@ -43,6 +43,10 @@ func buildSecretTemplate(name, tmpl string) (*template.Template, error) {
 	return t, nil
 }
 
+func (manager Manager) Health() (interface{}, error) {
+	return nil, nil
+}
+
 func (manager *Manager) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&map[string]interface{}{
 		"aws_region":               manager.AwsRegion,

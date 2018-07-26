@@ -38,6 +38,10 @@ func (manager KubernetesManager) buildConfig() (*rest.Config, error) {
 	return clientcmd.BuildConfigFromFlags("", manager.ConfigPath)
 }
 
+func (manager KubernetesManager) Health() (interface{}, error) {
+	return nil, nil
+}
+
 func (manager KubernetesManager) Validate() error {
 	if manager.InClusterConfig && manager.ConfigPath != "" {
 		return errors.New("Either in-cluster or config-path can be used, not both.")
