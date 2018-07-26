@@ -8,7 +8,7 @@ import (
 type Manager interface {
 	IsConfigured() bool
 	Validate() error
-	// Health() (interface{}, error)
+	Health() (interface{}, error)
 
 	NewVariablesFactory(lager.Logger) (VariablesFactory, error)
 }

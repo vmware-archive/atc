@@ -35,11 +35,16 @@ type UAA struct {
 }
 
 func (manager *CredHubManager) MarshalJSON() ([]byte, error) {
+	health, err := manager.Health()
+	if err != nil {
+		return nil, err
+	}
 	return json.Marshal(&map[string]interface{}{
 		"url":           manager.URL,
 		"path_prefix":   manager.PathPrefix,
 		"ca_certs":      manager.TLS.CACerts,
 		"uaa_client_id": manager.UAA.ClientId,
+		"health":        health,
 	})
 }
 
@@ -68,8 +73,60 @@ func (manager CredHubManager) Validate() error {
 }
 
 func (manager CredHubManager) Health() (interface{}, error) {
-	lc, err := CredHub()
-	return nil, nil
+	var options []credhub.Option
+
+	if manager.TLS.Insecure {
+		options = append(options, credhub.SkipTLSValidation(true))
+	}
+
+	caCerts := []string{}
+	for _, cert := range manager.TLS.CACerts {
+		contents, err := ioutil.ReadFile(cert)
+		if err != nil {
+			return nil, err
+		}
+
+		caCerts = append(caCerts, string(contents))
+	}
+
+	if len(caCerts) > 0 {
+		options = append(options, credhub.CaCerts(caCerts...))
+	}
+
+	if manager.UAA.ClientId != "" && manager.UAA.ClientSecret != "" {
+		options = append(options, credhub.Auth(auth.UaaClientCredentials(
+			manager.UAA.ClientId,
+			manager.UAA.ClientSecret,
+		)))
+	}
+
+	if manager.TLS.ClientCert != "" && manager.TLS.ClientKey != "" {
+		options = append(options, credhub.ClientCert(manager.TLS.ClientCert, manager.TLS.ClientKey))
+	}
+
+	lc := newLazyCredhub(manager.URL, options)
+	credhubObject, err := lc.CredHub()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := credhubObject.Client().Get(manager.URL + "/health")
+	if err != nil {
+		return nil, err
+	}
+
+	var credhubHealth struct {
+		Status string `json:"status"`
+	}
+
+	defer response.Body.Close()
+
+	err = json.NewDecoder(response.Body).Decode(&credhubHealth)
+	if err != nil {
+		return nil, err
+	}
+
+	return credhubHealth, nil
 }
 
 func (manager CredHubManager) NewVariablesFactory(logger lager.Logger) (creds.VariablesFactory, error) {
