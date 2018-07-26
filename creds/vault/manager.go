@@ -47,6 +47,12 @@ type AuthConfig struct {
 }
 
 func (manager *VaultManager) MarshalJSON() ([]byte, error) {
+	health, err := manager.Health()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("vault health response %v", health)
 	return json.Marshal(&map[string]interface{}{
 		"url":                manager.URL,
 		"path_prefix":        manager.PathPrefix,
@@ -58,6 +64,7 @@ func (manager *VaultManager) MarshalJSON() ([]byte, error) {
 		"auth_max_ttl":       manager.Auth.BackendMaxTTL,
 		"auth_retry_max":     manager.Auth.RetryMax,
 		"auth_retry_initial": manager.Auth.RetryInitial,
+		"health":             health,
 	})
 }
 
@@ -80,6 +87,30 @@ func (manager VaultManager) Validate() error {
 	}
 
 	return errors.New("must configure client token or auth backend")
+}
+
+func (manager VaultManager) Health() (interface{}, error) {
+	tlsConfig := &vaultapi.TLSConfig{
+		CACert:        manager.TLS.CACert,
+		CAPath:        manager.TLS.CAPath,
+		TLSServerName: manager.TLS.ServerName,
+		Insecure:      manager.TLS.Insecure,
+
+		ClientCert: manager.TLS.ClientCert,
+		ClientKey:  manager.TLS.ClientKey,
+	}
+
+	c, err := NewAPIClient(nil, manager.URL, tlsConfig, manager.Auth)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := c.health()
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (manager VaultManager) NewVariablesFactory(logger lager.Logger) (creds.VariablesFactory, error) {

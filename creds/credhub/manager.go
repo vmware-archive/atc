@@ -67,6 +67,11 @@ func (manager CredHubManager) Validate() error {
 	return nil
 }
 
+func (manager CredHubManager) Health() (interface{}, error) {
+	lc, err := CredHub()
+	return nil, nil
+}
+
 func (manager CredHubManager) NewVariablesFactory(logger lager.Logger) (creds.VariablesFactory, error) {
 	var options []credhub.Option
 
