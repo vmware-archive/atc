@@ -13,9 +13,11 @@ import (
 )
 
 type KubernetesManager struct {
-	InClusterConfig bool   `long:"in-cluster" description:"Enables the in-cluster client."`
-	ConfigPath      string `long:"config-path" description:"Path to Kubernetes config when running ATC outside Kubernetes."`
-	NamespacePrefix string `long:"namespace-prefix" default:"concourse-" description:"Prefix to use for Kubernetes namespaces under which secrets will be looked up."`
+	InClusterConfig  bool   `long:"in-cluster" description:"Enables the in-cluster client."`
+	ConfigPath       string `long:"config-path" description:"Path to Kubernetes config when running ATC outside Kubernetes."`
+	DefaultNamespace string `long:"default-namespace" description:"Default namespace to look for all secrets in."`
+	SecretsName      string `long:"secrets-name" description:"The secret to look for credentials in"`
+	NamespacePrefix  string `long:"namespace-prefix" default:"concourse-" description:"Prefix to use for Kubernetes namespaces under which secrets will be looked up if not using default namespace."`
 }
 
 func (manager *KubernetesManager) MarshalJSON() ([]byte, error) {
@@ -60,5 +62,5 @@ func (manager KubernetesManager) NewVariablesFactory(logger lager.Logger) (creds
 		return nil, err
 	}
 
-	return NewKubernetesFactory(logger, clientset, manager.NamespacePrefix), nil
+	return NewKubernetesFactory(logger, clientset, manager.NamespacePrefix, manager.DefaultNamespace, manager.SecretsName), nil
 }
