@@ -44,6 +44,8 @@
 // db/migration/migrations/1530823998_create_teams_trigger.up.sql
 // db/migration/migrations/1530824006_create_pipelines_trigger.down.sql
 // db/migration/migrations/1530824006_create_pipelines_trigger.up.sql
+// db/migration/migrations/1532629387_upsert_uniqueness.down.sql
+// db/migration/migrations/1532629387_upsert_uniqueness.up.sql
 // DO NOT EDIT!
 
 package migration
@@ -991,6 +993,46 @@ func _1530824006_create_pipelines_triggerUpSql() (*asset, error) {
 	return a, nil
 }
 
+var __1532629387_upsert_uniquenessDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\x09\xf2\x0f\x50\xf0\xf4\x73\x71\x8d\x50\x28\xcf\x2f\xca\x4e\x2d\x8a\x2f\x4a\x2d\xce\x2f\x2d\x4a\x4e\x8d\x4f\x4e\x4c\xce\x48\x2d\x8e\x2f\xcd\xcb\x2c\xc4\xae\xb2\x24\xb1\x38\x9b\xb0\x2a\x84\x79\xf9\x79\x69\x99\xe9\xf1\xc9\x19\xa9\xc9\xd9\xf1\xc5\xa9\xc5\xc5\x99\xf9\x79\x30\x8d\xce\xfe\xbe\xbe\x9e\x21\xd6\x5c\x80\x00\x00\x00\xff\xff\x6a\x91\xda\x77\x98\x00\x00\x00")
+
+func _1532629387_upsert_uniquenessDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1532629387_upsert_uniquenessDownSql,
+		"1532629387_upsert_uniqueness.down.sql",
+	)
+}
+
+func _1532629387_upsert_uniquenessDownSql() (*asset, error) {
+	bytes, err := _1532629387_upsert_uniquenessDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1532629387_upsert_uniqueness.down.sql", size: 152, mode: os.FileMode(420), modTime: time.Unix(1532713641, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1532629387_upsert_uniquenessUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x90\xcd\x6a\x84\x30\x14\x85\xf7\x79\x8a\xbb\xb4\xe0\x1b\xb8\x6a\x6d\x28\x59\x18\x69\x51\xe8\x2e\xc4\xf4\xb6\xa6\x62\x62\x73\x23\x65\xde\x7e\x98\x91\x19\x1d\xf0\x67\x99\x9c\x0f\xbe\x73\xcf\x0b\x7f\x13\x32\x63\x00\xf9\x07\x7f\xae\x38\xd4\x52\xbc\xd7\x1c\x84\x7c\xe5\x9f\xf0\xef\x43\x87\x41\x05\x24\x3f\x06\x83\xca\x68\xd3\x22\xa9\xd1\xd9\x3f\x06\x50\xca\x0d\x00\x92\xc7\x0f\x65\xbf\xd2\x1b\xda\x68\xc2\x99\x8f\xa7\xe1\x92\x3e\x65\x6c\xbf\x41\xd4\xd4\x6d\xda\x17\x21\x24\xbf\xbe\xb9\xea\x28\xe2\xa0\x9c\xee\xf1\x6e\x9e\x1e\x83\x8e\xed\xa1\x6e\xae\xef\xdd\xb7\xfd\x51\xa6\x45\xd3\x29\x42\x22\xeb\xdd\xee\xfd\x6b\xfc\x72\x8e\x95\xfc\x70\x9d\x14\x22\xea\x7e\x9a\x29\x2f\x8b\x42\x54\x19\x3b\x07\x00\x00\xff\xff\xe1\xa8\x33\xe5\xb7\x01\x00\x00")
+
+func _1532629387_upsert_uniquenessUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1532629387_upsert_uniquenessUpSql,
+		"1532629387_upsert_uniqueness.up.sql",
+	)
+}
+
+func _1532629387_upsert_uniquenessUpSql() (*asset, error) {
+	bytes, err := _1532629387_upsert_uniquenessUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1532629387_upsert_uniqueness.up.sql", size: 439, mode: os.FileMode(420), modTime: time.Unix(1532713637, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -1087,6 +1129,8 @@ var _bindata = map[string]func() (*asset, error){
 	"1530823998_create_teams_trigger.up.sql": _1530823998_create_teams_triggerUpSql,
 	"1530824006_create_pipelines_trigger.down.sql": _1530824006_create_pipelines_triggerDownSql,
 	"1530824006_create_pipelines_trigger.up.sql": _1530824006_create_pipelines_triggerUpSql,
+	"1532629387_upsert_uniqueness.down.sql": _1532629387_upsert_uniquenessDownSql,
+	"1532629387_upsert_uniqueness.up.sql": _1532629387_upsert_uniquenessUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -1173,6 +1217,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1530823998_create_teams_trigger.up.sql": &bintree{_1530823998_create_teams_triggerUpSql, map[string]*bintree{}},
 	"1530824006_create_pipelines_trigger.down.sql": &bintree{_1530824006_create_pipelines_triggerDownSql, map[string]*bintree{}},
 	"1530824006_create_pipelines_trigger.up.sql": &bintree{_1530824006_create_pipelines_triggerUpSql, map[string]*bintree{}},
+	"1532629387_upsert_uniqueness.down.sql": &bintree{_1532629387_upsert_uniquenessDownSql, map[string]*bintree{}},
+	"1532629387_upsert_uniqueness.up.sql": &bintree{_1532629387_upsert_uniquenessUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
