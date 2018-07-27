@@ -7,33 +7,17 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc/db/encryption"
 	"github.com/concourse/atc/db/lock"
 	"github.com/concourse/atc/db/migration/migrations"
-	"github.com/mattes/migrate/source"
-
+	multierror "github.com/hashicorp/go-multierror"
 	_ "github.com/lib/pq"
+	"github.com/mattes/migrate/source"
 	_ "github.com/mattes/migrate/source/file"
 )
-
-//go:generate counterfeiter . Bindata
-
-type Bindata interface {
-	AssetNames() []string
-	Asset(name string) ([]byte, error)
-}
-
-type bindataSource struct{}
-
-func (bs *bindataSource) AssetNames() []string {
-	return AssetNames()
-}
-
-func (bs *bindataSource) Asset(name string) ([]byte, error) {
-	return Asset(name)
-}
 
 func NewOpenHelper(driver, name string, lockFactory lock.LockFactory, strategy encryption.Strategy) *OpenHelper {
 	return &OpenHelper{
@@ -160,7 +144,7 @@ func (self *migrator) SupportedVersion() (int, error) {
 func (self *migrator) CurrentVersion() (int, error) {
 	var currentVersion int
 	var direction string
-	err := self.db.QueryRow("SELECT version, direction FROM schema_migrations ORDER BY tstamp DESC LIMIT 1").Scan(&currentVersion, &direction)
+	err := self.db.QueryRow("SELECT version, direction FROM schema_migrations WHERE status!='failed' ORDER BY tstamp DESC LIMIT 1").Scan(&currentVersion, &direction)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return 0, nil
@@ -187,7 +171,17 @@ func (self *migrator) CurrentVersion() (int, error) {
 }
 
 func (self *migrator) Migrate(toVersion int) error {
-	_, err := self.db.Exec("CREATE TABLE IF NOT EXISTS schema_migrations (version integer, tstamp timestamp with time zone, direction varchar)")
+
+	lock, err := self.acquireLock()
+	if err != nil {
+		return err
+	}
+
+	if lock != nil {
+		defer lock.Release()
+	}
+
+	_, err = self.db.Exec("CREATE TABLE IF NOT EXISTS schema_migrations (version bigint, tstamp timestamp with time zone, direction varchar, status varchar)")
 	if err != nil {
 		return err
 	}
@@ -204,9 +198,11 @@ func (self *migrator) Migrate(toVersion int) error {
 		return err
 	}
 
+	fmt.Printf("currentVersion: %d toVersion %d\n", currentVersion, toVersion)
 	if currentVersion <= toVersion {
 		for _, m := range migrations {
 			if currentVersion < m.version && m.version <= toVersion && m.direction == "up" {
+				fmt.Printf("running migration up: %d\n", m.version)
 				err = m.run()
 				if err != nil {
 					return err
@@ -216,6 +212,7 @@ func (self *migrator) Migrate(toVersion int) error {
 	} else {
 		for i := len(migrations) - 1; i >= 0; i-- {
 			if currentVersion >= migrations[i].version && migrations[i].version > toVersion && migrations[i].direction == "down" {
+				fmt.Printf("running migration down: %d\n", migrations[i].version)
 				err = migrations[i].run()
 				if err != nil {
 					return err
@@ -226,14 +223,14 @@ func (self *migrator) Migrate(toVersion int) error {
 	return nil
 }
 
-func (self *migrator) migrationExists(schemaVersion int) (bool, error) {
-	var migrationCount int
-	err := self.db.QueryRow("SELECT COUNT(*) FROM schema_migrations where version=$1", schemaVersion).Scan(&migrationCount)
-	if err != nil {
-		return false, err
-	}
-	return migrationCount == 1, nil
-}
+// func (self *migrator) migrationExists(schemaVersion int) (bool, error) {
+// 	var migrationCount int
+// 	err := self.db.QueryRow("SELECT COUNT(*) FROM schema_migrations where version=$1", schemaVersion).Scan(&migrationCount)
+// 	if err != nil {
+// 		return false, err
+// 	}
+// 	return migrationCount == 1, nil
+// }
 
 func schemaVersion(assetName string) (int, error) {
 	regex := regexp.MustCompile("(\\d+)")
@@ -272,7 +269,7 @@ func (self *migrator) Migrations() ([]migration, error) {
 			}
 			runFunc = func() error {
 				contents := string(asset)
-				re := regexp.MustCompile("Up_[0-9]*")
+				re := regexp.MustCompile("(Up|Down)_[0-9]*")
 				name := re.FindString(contents)
 				err := migrations.NewMigrations(self.db, self.strategy).Run(name)
 				return err
@@ -280,6 +277,7 @@ func (self *migrator) Migrations() ([]migration, error) {
 		}
 		if strings.HasSuffix(assetName, ".sql") {
 			if strings.HasSuffix(assetName, ".up.sql") {
+				// fmt.Printf("asset %s classified as 'up'\n", assetName)
 				direction = "up"
 			} else if strings.HasSuffix(assetName, ".down.sql") {
 				direction = "down"
@@ -287,16 +285,70 @@ func (self *migrator) Migrations() ([]migration, error) {
 				return nil, fmt.Errorf("cannot determine migration direction for file '%s'", assetName)
 			}
 			runFunc = func() error {
-				_, err := self.db.Exec(string(asset))
-				return err
+				var migrationStatements = []string{}
+				migrationFileContents := string(asset)
+				migrationStatements = append(migrationStatements, strings.Split(string(migrationFileContents), ";")...)
+				// last string is whitespace
+				if strings.TrimSpace(migrationStatements[len(migrationStatements)-1]) == "" {
+					migrationStatements = migrationStatements[:len(migrationStatements)-1]
+				}
+
+				if strings.Contains(migrationStatements[0], "NO_TRANSACTION") {
+					_, err := self.db.Exec(migrationFileContents)
+					return err
+				} else {
+					parser := NewParser()
+					migrationStatements, err = parser.ParseFile(assetName)
+					if err != nil {
+						return err
+					}
+
+					tx, err := self.db.Begin()
+
+					// var isSqlStatement bool = false
+					// var sqlStatement string
+					for _, statement := range migrationStatements {
+						// statement = strings.TrimSpace(statement)
+						// if statement == "BEGIN" || statement == "COMMIT" {
+						// 	continue
+						// }
+						//
+						// if strings.Contains(statement, "BEGIN") {
+						// 	isSqlStatement = true
+						// 	sqlStatement = statement + ";"
+						// 	continue
+						// }
+						// if isSqlStatement {
+						// 	sqlStatement = strings.Join([]string{sqlStatement, statement, ";"}, "")
+						//
+						// 	if strings.HasPrefix(statement, "$$") {
+						// 		isSqlStatement = false
+						// 		statement = sqlStatement
+						// 		fmt.Println(statement)
+						// 	} else {
+						// 		continue
+						// 	}
+						// }
+						_, err := tx.Exec(statement)
+						if err != nil {
+							tx.Rollback()
+							fmt.Printf("assetName: %s, direction: %s", assetName, direction)
+							return multierror.Append(err, fmt.Errorf("Transaction %v failed, rolled back the migration", statement))
+						}
+					}
+					err = tx.Commit()
+					return err
+				}
 			}
+
 		}
 		runFuncWrapper := func() error {
 			err := runFunc()
 			if err != nil {
-				return fmt.Errorf("Migration '%s' failed: %v", assetName, err)
+				_, errDb := self.db.Exec("INSERT INTO schema_migrations (version, tstamp, direction, status) VALUES ($1, current_timestamp, $2, 'failed')", version, direction)
+				return multierror.Append(fmt.Errorf("Migration '%s' failed: %v", assetName, err), errDb)
 			}
-			_, err = self.db.Exec("INSERT INTO schema_migrations (version, tstamp, direction) VALUES ($1, current_timestamp, $2)", version, direction)
+			_, err = self.db.Exec("INSERT INTO schema_migrations (version, tstamp, direction, status) VALUES ($1, current_timestamp, $2, 'passed')", version, direction)
 			return err
 		}
 		m = migration{version, runFuncWrapper, direction}
@@ -314,72 +366,30 @@ func (self *migrator) Up() error {
 	return self.Migrate(migrations[len(migrations)-1].version)
 }
 
-// func (self *migrator) open() (*migrate.Migrate, error) {
+func (self *migrator) acquireLock() (lock.Lock, error) {
 
-// 	forceVersion, err := self.checkLegacyVersion()
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	var err error
+	var acquired bool
+	var newLock lock.Lock
 
-// 	s, err := bindata.WithInstance(bindata.Resource(
-// 		self.source.AssetNames(),
-// 		func(name string) ([]byte, error) {
-// 			return Asset(name)
-// 		}),
-// 	)
+	if self.lockFactory != nil {
+		for {
+			newLock, acquired, err = self.lockFactory.Acquire(self.logger, lock.NewDatabaseMigrationLockID())
 
-// 	d, err := postgres.WithInstance(self.db, &postgres.Config{})
-// 	if err != nil {
-// 		return nil, err
-// 	}
+			if err != nil {
+				return nil, err
+			}
 
-// 	driver := NewDriver(d, self.db, self.strategy)
+			if acquired {
+				break
+			}
 
-// 	m, err := migrate.NewWithInstance("go-bindata", s, "postgres", driver)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+			time.Sleep(1 * time.Second)
+		}
+	}
 
-// 	if forceVersion > 0 {
-// 		if err = m.Force(forceVersion); err != nil {
-// 			return nil, err
-// 		}
-// 	}
-
-// 	return m, nil
-// }
-
-// func (self *migrator) openWithLock() (*migrate.Migrate, lock.Lock, error) {
-
-// 	var err error
-// 	var acquired bool
-// 	var newLock lock.Lock
-
-// 	if self.lockFactory != nil {
-// 		for {
-// 			newLock, acquired, err = self.lockFactory.Acquire(self.logger, lock.NewDatabaseMigrationLockID())
-
-// 			if err != nil {
-// 				return nil, nil, err
-// 			}
-
-// 			if acquired {
-// 				break
-// 			}
-
-// 			time.Sleep(1 * time.Second)
-// 		}
-// 	}
-
-// 	m, err := self.open()
-
-// 	if err != nil && newLock != nil {
-// 		newLock.Release()
-// 		return nil, nil, err
-// 	}
-
-// 	return m, newLock, err
-// }
+	return newLock, err
+}
 
 func (self *migrator) existLegacyVersion() bool {
 	var exists bool
@@ -411,7 +421,7 @@ func (self *migrator) convertLegacySchemaTableToCurrent() error {
 		return err
 	}
 
-	_, err = self.db.Exec("INSERT INTO schema_migrations (version) VALUES ($1)", newMigrationStartVersion)
+	_, err = self.db.Exec("INSERT INTO schema_migrations (version, tstamp, direction) VALUES ($1, current_timestamp, 'up')", newMigrationStartVersion)
 	if err != nil {
 		return err
 	}
