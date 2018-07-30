@@ -12,8 +12,6 @@
 // db/migration/migrations/1517330648_add_worker_resource_certs.up.sql
 // db/migration/migrations/1517585875_add_name_index_to_builds.down.sql
 // db/migration/migrations/1517585875_add_name_index_to_builds.up.sql
-// db/migration/migrations/1517978531_add_ephemeral_workers.down.sql
-// db/migration/migrations/1517978531_add_ephemeral_workers.up.sql
 // db/migration/migrations/1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.down.sql
 // db/migration/migrations/1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.up.sql
 // db/migration/migrations/1520796340_drop_explicit_from_build_outputs.down.sql
@@ -46,6 +44,8 @@
 // db/migration/migrations/1530823998_create_teams_trigger.up.sql
 // db/migration/migrations/1530824006_create_pipelines_trigger.down.sql
 // db/migration/migrations/1530824006_create_pipelines_trigger.up.sql
+// db/migration/migrations/1532706545_add_ephemeral_workers.down.sql
+// db/migration/migrations/1532706545_add_ephemeral_workers.up.sql
 // DO NOT EDIT!
 
 package migration
@@ -349,46 +349,6 @@ func _1517585875_add_name_index_to_buildsUpSql() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "1517585875_add_name_index_to_builds.up.sql", size: 72, mode: os.FileMode(420), modTime: time.Unix(1524149740, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var __1517978531_add_ephemeral_workersDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x50\x2a\xcf\x2f\xca\x4e\x2d\x2a\x56\x52\x70\x09\xf2\x0f\x50\x70\xf6\xf7\x09\xf5\xf5\x53\x50\x4a\x2d\xc8\x48\xcd\x4d\x2d\x4a\xcc\x51\xb2\xe6\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\xe2\x02\x04\x00\x00\xff\xff\xef\x24\x10\xa1\x41\x00\x00\x00")
-
-func _1517978531_add_ephemeral_workersDownSqlBytes() ([]byte, error) {
-	return bindataRead(
-		__1517978531_add_ephemeral_workersDownSql,
-		"1517978531_add_ephemeral_workers.down.sql",
-	)
-}
-
-func _1517978531_add_ephemeral_workersDownSql() (*asset, error) {
-	bytes, err := _1517978531_add_ephemeral_workersDownSqlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "1517978531_add_ephemeral_workers.down.sql", size: 65, mode: os.FileMode(420), modTime: time.Unix(1532703106, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var __1517978531_add_ephemeral_workersUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x50\x2a\xcf\x2f\xca\x4e\x2d\x2a\x56\x52\x70\x74\x71\x51\x70\xf6\xf7\x09\xf5\xf5\x53\x50\x4a\x2d\xc8\x48\xcd\x4d\x2d\x4a\xcc\x51\x52\x48\xca\xcf\xcf\x49\x4d\xcc\xb3\xe6\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\xe2\x02\x04\x00\x00\xff\xff\x84\x03\x28\x09\x48\x00\x00\x00")
-
-func _1517978531_add_ephemeral_workersUpSqlBytes() ([]byte, error) {
-	return bindataRead(
-		__1517978531_add_ephemeral_workersUpSql,
-		"1517978531_add_ephemeral_workers.up.sql",
-	)
-}
-
-func _1517978531_add_ephemeral_workersUpSql() (*asset, error) {
-	bytes, err := _1517978531_add_ephemeral_workersUpSqlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "1517978531_add_ephemeral_workers.up.sql", size: 72, mode: os.FileMode(420), modTime: time.Unix(1532703106, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1033,6 +993,46 @@ func _1530824006_create_pipelines_triggerUpSql() (*asset, error) {
 	return a, nil
 }
 
+var __1532706545_add_ephemeral_workersDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x50\x2a\xcf\x2f\xca\x4e\x2d\x2a\x56\x52\x70\x09\xf2\x0f\x50\x70\xf6\xf7\x09\xf5\xf5\x53\x50\x4a\x2d\xc8\x48\xcd\x4d\x2d\x4a\xcc\x51\xb2\xe6\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\xe2\x02\x04\x00\x00\xff\xff\xef\x24\x10\xa1\x41\x00\x00\x00")
+
+func _1532706545_add_ephemeral_workersDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1532706545_add_ephemeral_workersDownSql,
+		"1532706545_add_ephemeral_workers.down.sql",
+	)
+}
+
+func _1532706545_add_ephemeral_workersDownSql() (*asset, error) {
+	bytes, err := _1532706545_add_ephemeral_workersDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1532706545_add_ephemeral_workers.down.sql", size: 65, mode: os.FileMode(420), modTime: time.Unix(1532703106, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var __1532706545_add_ephemeral_workersUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\x52\x50\x70\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x50\x2a\xcf\x2f\xca\x4e\x2d\x2a\x56\x52\x70\x74\x71\x51\x70\xf6\xf7\x09\xf5\xf5\x53\x50\x4a\x2d\xc8\x48\xcd\x4d\x2d\x4a\xcc\x51\x52\x48\xca\xcf\xcf\x49\x4d\xcc\xb3\xe6\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\xe2\x02\x04\x00\x00\xff\xff\x84\x03\x28\x09\x48\x00\x00\x00")
+
+func _1532706545_add_ephemeral_workersUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1532706545_add_ephemeral_workersUpSql,
+		"1532706545_add_ephemeral_workers.up.sql",
+	)
+}
+
+func _1532706545_add_ephemeral_workersUpSql() (*asset, error) {
+	bytes, err := _1532706545_add_ephemeral_workersUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1532706545_add_ephemeral_workers.up.sql", size: 72, mode: os.FileMode(420), modTime: time.Unix(1532703106, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -1097,8 +1097,6 @@ var _bindata = map[string]func() (*asset, error){
 	"1517330648_add_worker_resource_certs.up.sql": _1517330648_add_worker_resource_certsUpSql,
 	"1517585875_add_name_index_to_builds.down.sql": _1517585875_add_name_index_to_buildsDownSql,
 	"1517585875_add_name_index_to_builds.up.sql": _1517585875_add_name_index_to_buildsUpSql,
-	"1517978531_add_ephemeral_workers.down.sql": _1517978531_add_ephemeral_workersDownSql,
-	"1517978531_add_ephemeral_workers.up.sql": _1517978531_add_ephemeral_workersUpSql,
 	"1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.down.sql": _1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumesDownSql,
 	"1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.up.sql": _1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumesUpSql,
 	"1520796340_drop_explicit_from_build_outputs.down.sql": _1520796340_drop_explicit_from_build_outputsDownSql,
@@ -1131,6 +1129,8 @@ var _bindata = map[string]func() (*asset, error){
 	"1530823998_create_teams_trigger.up.sql": _1530823998_create_teams_triggerUpSql,
 	"1530824006_create_pipelines_trigger.down.sql": _1530824006_create_pipelines_triggerDownSql,
 	"1530824006_create_pipelines_trigger.up.sql": _1530824006_create_pipelines_triggerUpSql,
+	"1532706545_add_ephemeral_workers.down.sql": _1532706545_add_ephemeral_workersDownSql,
+	"1532706545_add_ephemeral_workers.up.sql": _1532706545_add_ephemeral_workersUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -1185,8 +1185,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1517330648_add_worker_resource_certs.up.sql": &bintree{_1517330648_add_worker_resource_certsUpSql, map[string]*bintree{}},
 	"1517585875_add_name_index_to_builds.down.sql": &bintree{_1517585875_add_name_index_to_buildsDownSql, map[string]*bintree{}},
 	"1517585875_add_name_index_to_builds.up.sql": &bintree{_1517585875_add_name_index_to_buildsUpSql, map[string]*bintree{}},
-	"1517978531_add_ephemeral_workers.down.sql": &bintree{_1517978531_add_ephemeral_workersDownSql, map[string]*bintree{}},
-	"1517978531_add_ephemeral_workers.up.sql": &bintree{_1517978531_add_ephemeral_workersUpSql, map[string]*bintree{}},
 	"1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.down.sql": &bintree{_1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumesDownSql, map[string]*bintree{}},
 	"1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumes.up.sql": &bintree{_1520369727_drop_constraint_cannot_invalidate_during_initialization_from_volumesUpSql, map[string]*bintree{}},
 	"1520796340_drop_explicit_from_build_outputs.down.sql": &bintree{_1520796340_drop_explicit_from_build_outputsDownSql, map[string]*bintree{}},
@@ -1219,6 +1217,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1530823998_create_teams_trigger.up.sql": &bintree{_1530823998_create_teams_triggerUpSql, map[string]*bintree{}},
 	"1530824006_create_pipelines_trigger.down.sql": &bintree{_1530824006_create_pipelines_triggerDownSql, map[string]*bintree{}},
 	"1530824006_create_pipelines_trigger.up.sql": &bintree{_1530824006_create_pipelines_triggerUpSql, map[string]*bintree{}},
+	"1532706545_add_ephemeral_workers.down.sql": &bintree{_1532706545_add_ephemeral_workersDownSql, map[string]*bintree{}},
+	"1532706545_add_ephemeral_workers.up.sql": &bintree{_1532706545_add_ephemeral_workersUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
