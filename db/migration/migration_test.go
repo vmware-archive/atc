@@ -51,6 +51,19 @@ var _ = Describe("Migration", func() {
 	})
 
 	Context("Migration test run", func() {
+		FIt("sorts all the migrations", func() {
+			migrator := migration.NewMigrator(db, lockFactory, strategy)
+			migrations, err := migrator.Migrations()
+			Expect(err).NotTo(HaveOccurred())
+
+			var prevVersion = 0
+			for _, migration := range migrations {
+				if migration.Direction == "up" {
+					Expect(migration.Version).Should(BeNumerically(">", prevVersion))
+				}
+			}
+		})
+
 		FIt("Runs all the migrations", func() {
 			migrator := migration.NewMigrator(db, lockFactory, strategy)
 
@@ -127,7 +140,7 @@ var _ = Describe("Migration", func() {
 
 	Context("Upgrade", func() {
 		Context("sql migrations", func() {
-			It("runs a migration", func() {
+			FIt("runs a migration", func() {
 				simpleMigrationFilename := "1000_test_table_created.up.sql"
 				bindata.AssetStub = func(name string) ([]byte, error) {
 					if name == simpleMigrationFilename {

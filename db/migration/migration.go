@@ -105,6 +105,7 @@ type Migrator interface {
 	SupportedVersion() (int, error)
 	Migrate(version int) error
 	Up() error
+	Migrations() ([]migration, error)
 }
 
 func NewMigrator(db *sql.DB, lockFactory lock.LockFactory, strategy encryption.Strategy) Migrator {
@@ -155,10 +156,10 @@ func (self *migrator) CurrentVersion() (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	versions := []int{migrations[0].version}
+	versions := []int{migrations[0].Version}
 	for _, m := range migrations {
-		if m.version > versions[len(versions)-1] {
-			versions = append(versions, m.version)
+		if m.Version > versions[len(versions)-1] {
+			versions = append(versions, m.Version)
 		}
 	}
 	for i, version := range versions {
@@ -201,8 +202,8 @@ func (self *migrator) Migrate(toVersion int) error {
 	fmt.Printf("currentVersion: %d toVersion %d\n", currentVersion, toVersion)
 	if currentVersion <= toVersion {
 		for _, m := range migrations {
-			if currentVersion < m.version && m.version <= toVersion && m.direction == "up" {
-				fmt.Printf("running migration up: %d\n", m.version)
+			if currentVersion < m.Version && m.Version <= toVersion && m.Direction == "up" {
+				// fmt.Printf("running migration up: %d\n", m.Version)
 				err = m.run()
 				if err != nil {
 					return err
@@ -211,8 +212,8 @@ func (self *migrator) Migrate(toVersion int) error {
 		}
 	} else {
 		for i := len(migrations) - 1; i >= 0; i-- {
-			if currentVersion >= migrations[i].version && migrations[i].version > toVersion && migrations[i].direction == "down" {
-				fmt.Printf("running migration down: %d\n", migrations[i].version)
+			if currentVersion >= migrations[i].Version && migrations[i].Version > toVersion && migrations[i].Direction == "down" {
+				// fmt.Printf("running migration down: %d\n", migrations[i].Version)
 				err = migrations[i].run()
 				if err != nil {
 					return err
@@ -239,9 +240,10 @@ func schemaVersion(assetName string) (int, error) {
 }
 
 type migration struct {
-	version   int
-	run       func() error
-	direction string
+	Version             int
+	run                 func() error
+	Direction           string
+	MigrationStatements []string
 }
 
 func (self *migrator) Migrations() ([]migration, error) {
@@ -259,6 +261,8 @@ func (self *migrator) Migrations() ([]migration, error) {
 		var m migration
 		var runFunc func() error
 		var direction string
+		var migrationStatements []string
+
 		if strings.HasSuffix(assetName, ".go") {
 			if strings.HasSuffix(assetName, ".up.go") {
 				direction = "up"
@@ -277,68 +281,37 @@ func (self *migrator) Migrations() ([]migration, error) {
 		}
 		if strings.HasSuffix(assetName, ".sql") {
 			if strings.HasSuffix(assetName, ".up.sql") {
-				// fmt.Printf("asset %s classified as 'up'\n", assetName)
 				direction = "up"
 			} else if strings.HasSuffix(assetName, ".down.sql") {
 				direction = "down"
 			} else {
 				return nil, fmt.Errorf("cannot determine migration direction for file '%s'", assetName)
 			}
+
+			var parser = NewSqlParser()
+
+			migrationFileContents, _ := Asset(assetName)
+			migrationStatements, err = parser.ParseFile(string(migrationFileContents))
+			if err != nil {
+				return nil, err
+			}
 			runFunc = func() error {
-				var migrationStatements = []string{}
-				migrationFileContents := string(asset)
-				migrationStatements = append(migrationStatements, strings.Split(string(migrationFileContents), ";")...)
-				// last string is whitespace
-				if strings.TrimSpace(migrationStatements[len(migrationStatements)-1]) == "" {
-					migrationStatements = migrationStatements[:len(migrationStatements)-1]
-				}
+				// if strings.Contains(migrationStatements[0], "NO_TRANSACTION") {
+				// 	_, err := self.db.Exec(migrationFileContents)
+				// 	return err
+				// } else {
 
-				if strings.Contains(migrationStatements[0], "NO_TRANSACTION") {
-					_, err := self.db.Exec(migrationFileContents)
-					return err
-				} else {
-					parser := NewParser()
-					migrationStatements, err = parser.ParseFile(assetName)
+				tx, err := self.db.Begin()
+				for _, statement := range migrationStatements {
+					_, err := tx.Exec(statement)
 					if err != nil {
-						return err
+						tx.Rollback()
+						return multierror.Append(fmt.Errorf("Transaction %v failed, rolled back the migration", statement), err)
 					}
-
-					tx, err := self.db.Begin()
-
-					// var isSqlStatement bool = false
-					// var sqlStatement string
-					for _, statement := range migrationStatements {
-						// statement = strings.TrimSpace(statement)
-						// if statement == "BEGIN" || statement == "COMMIT" {
-						// 	continue
-						// }
-						//
-						// if strings.Contains(statement, "BEGIN") {
-						// 	isSqlStatement = true
-						// 	sqlStatement = statement + ";"
-						// 	continue
-						// }
-						// if isSqlStatement {
-						// 	sqlStatement = strings.Join([]string{sqlStatement, statement, ";"}, "")
-						//
-						// 	if strings.HasPrefix(statement, "$$") {
-						// 		isSqlStatement = false
-						// 		statement = sqlStatement
-						// 		fmt.Println(statement)
-						// 	} else {
-						// 		continue
-						// 	}
-						// }
-						_, err := tx.Exec(statement)
-						if err != nil {
-							tx.Rollback()
-							fmt.Printf("assetName: %s, direction: %s", assetName, direction)
-							return multierror.Append(err, fmt.Errorf("Transaction %v failed, rolled back the migration", statement))
-						}
-					}
-					err = tx.Commit()
-					return err
 				}
+				err = tx.Commit()
+				return err
+				// }
 			}
 
 		}
@@ -351,10 +324,11 @@ func (self *migrator) Migrations() ([]migration, error) {
 			_, err = self.db.Exec("INSERT INTO schema_migrations (version, tstamp, direction, status) VALUES ($1, current_timestamp, $2, 'passed')", version, direction)
 			return err
 		}
-		m = migration{version, runFuncWrapper, direction}
+		m = migration{version, runFuncWrapper, direction, migrationStatements}
 		migrationList = append(migrationList, m)
 	}
-	sort.Slice(migrationList, func(i, j int) bool { return migrationList[i].version < migrationList[j].version })
+	sort.Slice(migrationList, func(i, j int) bool { return migrationList[i].Version < migrationList[j].Version })
+
 	return migrationList, nil
 }
 
@@ -363,7 +337,7 @@ func (self *migrator) Up() error {
 	if err != nil {
 		return err
 	}
-	return self.Migrate(migrations[len(migrations)-1].version)
+	return self.Migrate(migrations[len(migrations)-1].Version)
 }
 
 func (self *migrator) acquireLock() (lock.Lock, error) {

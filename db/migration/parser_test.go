@@ -11,7 +11,7 @@ var _ = Describe("Parser", func() {
 		It("parses the migration into statements", func() {
 			migrationFileName := "1513895878_update_timestamp_with_timezone.up.sql"
 
-			parser := NewParser()
+			parser := NewSqlParser()
 			statements, err := parser.ParseFile(migrationFileName)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(statements)).To(Equal(13))
@@ -20,7 +20,7 @@ var _ = Describe("Parser", func() {
 		It("combines sql functions in one statement", func() {
 			migrationFileName := "1530823998_create_teams_trigger.up.sql"
 
-			parser := NewParser()
+			parser := NewSqlParser()
 			statements, err := parser.ParseFile(migrationFileName)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(statements)).To(Equal(6))
@@ -30,7 +30,7 @@ var _ = Describe("Parser", func() {
 		It("removes the BEGIN and COMMIT statements", func() {
 			migrationFileName := "1510670987_update_unique_constraint_for_resource_caches.down.sql"
 
-			parser := NewParser()
+			parser := NewSqlParser()
 			statements, err := parser.ParseFile(migrationFileName)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(statements)).To(Equal(2))

@@ -4,19 +4,15 @@ import (
 	"strings"
 )
 
-type Parser struct{}
+type SqlParser struct{}
 
-func NewParser() *Parser {
-	return &Parser{}
+func NewSqlParser() *SqlParser {
+	return &SqlParser{}
 }
 
-func (p *Parser) ParseFile(fileName string) ([]string, error) {
+func (p *SqlParser) ParseFile(migrationFileContents string) ([]string, error) {
 
 	var fileStatements []string
-	migrationFileContents, err := Asset(fileName)
-	if err != nil {
-		return nil, err
-	}
 	var migrationStatements = []string{}
 	fileStatements = append(fileStatements, strings.Split(string(migrationFileContents), ";")...)
 	// last string is whitespace
