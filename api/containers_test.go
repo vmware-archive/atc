@@ -27,6 +27,7 @@ import (
 var _ = Describe("Containers API", func() {
 	var (
 		stepType         = db.ContainerTypeTask
+		checkType        = db.ContainerTypeCheck
 		fakeaccess       *accessorfakes.FakeAccess
 		stepName         = "some-step"
 		pipelineID       = 1111
@@ -1080,4 +1081,345 @@ var _ = Describe("Containers API", func() {
 			})
 		})
 	})
+
+	Describe("GET /api/v1/teams/a-team/checkcontainers", func() {
+		var (
+			resourceConfigID = 4444
+			resourceTypeName = "some-resource-type"
+
+			fakeCheckContainer1 *dbfakes.FakeContainer
+			fakeCheckContainer2 *dbfakes.FakeContainer
+		)
+
+		BeforeEach(func() {
+			fakeCheckContainer1 = new(dbfakes.FakeContainer)
+			fakeCheckContainer1.HandleReturns("check-handle-1")
+			fakeCheckContainer1.WorkerNameReturns("check-worker-name")
+			fakeCheckContainer1.MetadataReturns(db.ContainerMetadata{
+				Type: checkType,
+
+				WorkingDirectory: workingDirectory,
+				User:             user,
+
+				ResourceConfigID: resourceConfigID,
+				ResourceTypeName: resourceTypeName,
+			})
+
+			fakeCheckContainer2 = new(dbfakes.FakeContainer)
+			fakeCheckContainer2.HandleReturns("check-handle-2")
+			fakeCheckContainer2.WorkerNameReturns("check-worker-name")
+			fakeCheckContainer2.MetadataReturns(db.ContainerMetadata{
+				Type: checkType,
+
+				WorkingDirectory: workingDirectory + "/other",
+				User:             user + "-other",
+
+				ResourceConfigID: resourceConfigID + 1,
+				ResourceTypeName: resourceTypeName,
+			})
+
+			var err error
+			req, err = http.NewRequest("GET", server.URL+"/api/v1/teams/a-team/checkcontainers", nil)
+			Expect(err).NotTo(HaveOccurred())
+			req.Header.Set("Content-Type", "application/json")
+		})
+
+		Context("when not authenticated", func() {
+			BeforeEach(func() {
+				fakeaccess.IsAuthenticatedReturns(false)
+			})
+
+			It("returns 401 Unauthorized", func() {
+				response, err := client.Do(req)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(response.StatusCode).To(Equal(http.StatusUnauthorized))
+			})
+		})
+
+		Context("when authenticated", func() {
+			BeforeEach(func() {
+				fakeaccess.IsAuthenticatedReturns(true)
+				fakeaccess.IsAuthorizedReturns(true)
+			})
+
+			Context("when no errors are returned", func() {
+				BeforeEach(func() {
+					dbTeam.FindCheckContainerDetailsReturns([]db.Container{fakeCheckContainer1, fakeCheckContainer2}, nil)
+				})
+
+				It("called with detailed == false", func() {
+					_, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(dbTeam.FindCheckContainerDetailsArgsForCall(0)).To(Equal(false))
+				})
+
+				It("returns 200", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(response.StatusCode).To(Equal(http.StatusOK))
+				})
+
+				It("returns Content-Type application/json", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
+				})
+
+				It("returns only check containers", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					body, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(body).To(MatchJSON(`
+						[{
+						    "id": "check-handle-1",
+						    "worker_name": "check-worker-name",
+						    "type": "check",
+						    "resource_config_id": 4444,
+						    "resource_type_name": "some-resource-type",
+						    "user": "snoopy",
+						    "working_directory": "/tmp/build/my-favorite-guid"
+						  },
+						  {
+						    "id": "check-handle-2",
+						    "worker_name": "check-worker-name",
+						    "type": "check",
+						    "resource_config_id": 4445,
+						    "resource_type_name": "some-resource-type",
+						    "user": "snoopy-other",
+						    "working_directory": "/tmp/build/my-favorite-guid/other"
+						  }]
+					`))
+				})
+			})
+
+			Context("when no containers are found", func() {
+				BeforeEach(func() {
+					dbTeam.FindCheckContainerDetailsReturns([]db.Container{}, nil)
+				})
+
+				It("returns 200", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(response.StatusCode).To(Equal(http.StatusOK))
+				})
+
+				It("returns an empty array", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					body, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(body).To(MatchJSON(`
+					  []
+					`))
+				})
+			})
+
+			Context("when there is an error", func() {
+				var (
+					expectedErr error
+				)
+
+				BeforeEach(func() {
+					expectedErr = errors.New("some error")
+					dbTeam.FindCheckContainerDetailsReturns(nil, expectedErr)
+				})
+
+				It("returns 500", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
+				})
+			})
+
+		})
+	})
+
+	Describe("GET /api/v1/teams/a-team/checkcontainersdetailed", func() {
+		var (
+			pipelineName     = "some-pipeline"
+			resourceConfigID = 4444
+			resourceTypeName = "some-resource-type"
+			resourceName     = "some-resource-name"
+
+			fakeCheckContainer1 *dbfakes.FakeContainer
+			fakeCheckContainer2 *dbfakes.FakeContainer
+		)
+
+		BeforeEach(func() {
+			fakeCheckContainer1 = new(dbfakes.FakeContainer)
+			fakeCheckContainer1.HandleReturns("check-handle-1")
+			fakeCheckContainer1.WorkerNameReturns("check-worker-name")
+			fakeCheckContainer1.MetadataReturns(db.ContainerMetadata{
+				Type: checkType,
+
+				WorkingDirectory: workingDirectory,
+				User:             user,
+
+				PipelineID:       pipelineID,
+				PipelineName:     pipelineName,
+				ResourceConfigID: resourceConfigID,
+				ResourceTypeName: resourceTypeName,
+				ResourceName:     resourceName,
+			})
+
+			fakeCheckContainer2 = new(dbfakes.FakeContainer)
+			fakeCheckContainer2.HandleReturns("check-handle-2")
+			fakeCheckContainer2.WorkerNameReturns("check-worker-name")
+			fakeCheckContainer2.MetadataReturns(db.ContainerMetadata{
+				Type: checkType,
+
+				WorkingDirectory: workingDirectory + "/other",
+				User:             user + "-other",
+
+				PipelineID:       pipelineID,
+				PipelineName:     pipelineName,
+				ResourceConfigID: resourceConfigID + 1,
+				ResourceTypeName: resourceTypeName,
+				ResourceName:     resourceName + "-2",
+			})
+
+			var err error
+			req, err = http.NewRequest("GET", server.URL+"/api/v1/teams/a-team/checkcontainersdetailed", nil)
+			Expect(err).NotTo(HaveOccurred())
+			req.Header.Set("Content-Type", "application/json")
+		})
+
+		Context("when not authenticated", func() {
+			BeforeEach(func() {
+				fakeaccess.IsAuthenticatedReturns(false)
+			})
+
+			It("returns 401 Unauthorized", func() {
+				response, err := client.Do(req)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(response.StatusCode).To(Equal(http.StatusUnauthorized))
+			})
+		})
+
+		Context("when authenticated", func() {
+			BeforeEach(func() {
+				fakeaccess.IsAuthenticatedReturns(true)
+				fakeaccess.IsAuthorizedReturns(true)
+			})
+
+			Context("when no errors are returned", func() {
+				BeforeEach(func() {
+					dbTeam.FindCheckContainerDetailsReturns([]db.Container{fakeCheckContainer1, fakeCheckContainer2}, nil)
+				})
+
+				It("called with detailed == true", func() {
+					_, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(dbTeam.FindCheckContainerDetailsArgsForCall(0)).To(Equal(true))
+				})
+
+				It("returns 200", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(response.StatusCode).To(Equal(http.StatusOK))
+				})
+
+				It("returns Content-Type application/json", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(response.Header.Get("Content-Type")).To(Equal("application/json"))
+				})
+
+				It("returns only check containers", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					body, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(body).To(MatchJSON(`
+							  [{
+							    "id": "check-handle-1",
+							    "worker_name": "check-worker-name",
+							    "type": "check",
+							    "pipeline_id": 1111,
+							    "pipeline_name": "some-pipeline",
+							    "resource_config_id": 4444,
+							    "resource_name": "some-resource-name",
+							    "resource_type_name": "some-resource-type",
+							    "user": "snoopy",
+							    "working_directory": "/tmp/build/my-favorite-guid"
+							  },
+							  {
+							    "id": "check-handle-2",
+							    "worker_name": "check-worker-name",
+							    "type": "check",
+							    "pipeline_id": 1111,
+							    "pipeline_name": "some-pipeline",
+							    "resource_config_id": 4445,
+							    "resource_name": "some-resource-name-2",
+							    "resource_type_name": "some-resource-type",
+							    "user": "snoopy-other",
+							    "working_directory": "/tmp/build/my-favorite-guid/other"
+							  }]
+					`))
+				})
+			})
+
+			Context("when no containers are found", func() {
+				BeforeEach(func() {
+					dbTeam.FindCheckContainerDetailsReturns([]db.Container{}, nil)
+				})
+
+				It("returns 200", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(response.StatusCode).To(Equal(http.StatusOK))
+				})
+
+				It("returns an empty array", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					body, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(body).To(MatchJSON(`
+					  []
+					`))
+				})
+			})
+
+			Context("when there is an error", func() {
+				var (
+					expectedErr error
+				)
+
+				BeforeEach(func() {
+					expectedErr = errors.New("some error")
+					dbTeam.FindCheckContainerDetailsReturns(nil, expectedErr)
+				})
+
+				It("returns 500", func() {
+					response, err := client.Do(req)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
+				})
+			})
+
+		})
+	})
+
 })
