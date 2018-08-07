@@ -170,11 +170,13 @@ func NewHandler(
 		atc.GetInfo:      http.HandlerFunc(infoServer.Info),
 		atc.GetInfoCreds: http.HandlerFunc(infoServer.Creds),
 
-		atc.ListContainers:           teamHandlerFactory.HandlerFor(containerServer.ListContainers),
-		atc.GetContainer:             teamHandlerFactory.HandlerFor(containerServer.GetContainer),
-		atc.HijackContainer:          teamHandlerFactory.HandlerFor(containerServer.HijackContainer),
-		atc.ListDestroyingContainers: http.HandlerFunc(containerServer.ListDestroyingContainers),
-		atc.ReportWorkerContainers:   http.HandlerFunc(containerServer.ReportWorkerContainers),
+		atc.ListContainers:              teamHandlerFactory.HandlerFor(containerServer.ListContainers),
+		atc.ListCheckContainers:         teamHandlerFactory.HandlerFor(containerServer.ListCheckContainers),
+		atc.ListCheckContainersDetailed: teamHandlerFactory.HandlerFor(containerServer.ListCheckContainersDetailed),
+		atc.GetContainer:                teamHandlerFactory.HandlerFor(containerServer.GetContainer),
+		atc.HijackContainer:             teamHandlerFactory.HandlerFor(containerServer.HijackContainer),
+		atc.ListDestroyingContainers:    http.HandlerFunc(containerServer.ListDestroyingContainers),
+		atc.ReportWorkerContainers:      http.HandlerFunc(containerServer.ReportWorkerContainers),
 
 		atc.ListVolumes:           teamHandlerFactory.HandlerFor(volumesServer.ListVolumes),
 		atc.ListDestroyingVolumes: http.HandlerFunc(volumesServer.ListDestroyingVolumes),

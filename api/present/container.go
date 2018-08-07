@@ -27,5 +27,9 @@ func Container(container db.Container) atc.Container {
 
 		WorkingDirectory: meta.WorkingDirectory,
 		User:             meta.User,
+
+		ResourceConfigID: meta.ResourceConfigID,
+		ResourceName:     meta.ResourceName,
+		ResourceTypeName: meta.ResourceTypeName,
 	}
 }

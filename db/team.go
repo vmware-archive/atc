@@ -55,6 +55,7 @@ type Team interface {
 	FindContainerByHandle(string) (Container, bool, error)
 	FindContainersByMetadata(ContainerMetadata) ([]Container, error)
 	FindCheckContainers(lager.Logger, string, string, creds.VariablesFactory) ([]Container, error)
+	FindCheckContainerDetails(bool) ([]Container, error)
 
 	FindCreatedContainerByHandle(string) (CreatedContainer, bool, error)
 
@@ -327,6 +328,69 @@ func (t *team) FindCheckContainers(logger lager.Logger, pipelineName string, res
 			"rccs.resource_config_id": resourceConfig.ID,
 			"c.team_id":               t.id,
 		}).
+		RunWith(t.conn).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+
+	defer Close(rows)
+
+	var containers []Container
+	for rows.Next() {
+		creating, created, destroying, _, err := scanContainer(rows, t.conn)
+		if err != nil {
+			return nil, err
+		}
+
+		if creating != nil {
+			containers = append(containers, creating)
+		}
+
+		if created != nil {
+			containers = append(containers, created)
+		}
+
+		if destroying != nil {
+			containers = append(containers, destroying)
+		}
+	}
+
+	return containers, nil
+}
+
+func (t *team) FindCheckContainerDetails(detailed bool) ([]Container, error) {
+	var mappings = map[string]string{"meta_resource_type_name": `case
+		      when rcache.resource_config_id is not NULL then 'Used by parent resource ' || rcache.resource_config_id
+		      when rt.name is not NULL then rt.name
+		      when brt.name is not NULL then brt.name
+		      else 'unknown'
+		    end`,
+		"meta_resource_config_id": "rc.id",
+	}
+
+	if detailed {
+		mappings["meta_resource_name"] = "COALESCE(r.name, '')"
+		mappings["meta_pipeline_id"] = "COALESCE(p.id, 0)"
+		mappings["meta_pipeline_name"] = "COALESCE(p.name, '')"
+	}
+
+	sqlBuilder := selectContainersWithRemappedFields("c", mappings).
+		Join("worker_resource_config_check_sessions wrccs ON wrccs.id = c.worker_resource_config_check_session_id").
+		Join("resource_config_check_sessions rccs ON rccs.id = wrccs.resource_config_check_session_id").
+		Join("resource_configs rc ON rc.id = rccs.resource_config_id").
+		LeftJoin("base_resource_types brt ON brt.id = rc.base_resource_type_id").
+		LeftJoin("resource_types rt ON rt.resource_config_id = rc.id").
+		LeftJoin("resource_caches rcache ON rcache.id = rc.resource_cache_id")
+
+	if detailed {
+		sqlBuilder = sqlBuilder.LeftJoin("resources r ON r.resource_config_id = rc.id").
+			LeftJoin("pipelines p ON p.id = r.pipeline_id")
+	}
+
+	rows, err := sqlBuilder.Where(sq.Eq{
+		"c.team_id": t.id,
+	}).
 		RunWith(t.conn).
 		Query()
 	if err != nil {

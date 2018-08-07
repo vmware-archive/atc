@@ -180,6 +180,25 @@ func selectContainers(asOptional ...string) sq.SelectBuilder {
 	return psql.Select(columns...).From(table)
 }
 
+func selectContainersWithRemappedFields(containerTableAlias string, fieldMappings map[string]string) sq.SelectBuilder {
+	// fieldMappings:  (container column to replace, string to replace it with)
+	// e.g. ("meta_pipeline_name", "p.name") produces 'p.name as meta_pipeline_name' in the select query
+
+	columns := []string{"id", "handle", "worker_name", "hijacked", "discontinued", "state"}
+	columns = append(columns, containerMetadataColumns...)
+
+	for i, c := range columns {
+		if replacement, exists := fieldMappings[c]; exists {
+			columns[i] = replacement + " as " + c
+		} else {
+			columns[i] = containerTableAlias + "." + c
+		}
+	}
+
+	table := "containers " + containerTableAlias
+	return psql.Select(columns...).From(table)
+}
+
 func scanContainer(row sq.RowScanner, conn Conn) (CreatingContainer, CreatedContainer, DestroyingContainer, FailedContainer, error) {
 	var (
 		id             int
