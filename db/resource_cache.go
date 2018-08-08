@@ -11,6 +11,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/db/lock"
 )
 
 var ErrResourceCacheAlreadyExists = errors.New("resource-cache-already-exists")
@@ -23,9 +24,9 @@ var ErrResourceCacheDisappeared = errors.New("resource-cache-disappeared")
 //
 // ResourceCaches are garbage-collected by gc.ResourceCacheCollector.
 type ResourceCache struct {
-	ResourceConfig ResourceConfig // The resource configuration.
-	Version        atc.Version    // The version of the resource.
-	Params         atc.Params     // The params used when fetching the version.
+	ResourceConfigDescriptor ResourceConfigDescriptor // The resource configuration.
+	Version                  atc.Version              // The version of the resource.
+	Params                   atc.Params               // The params used when fetching the version.
 }
 
 // UsedResourceCache is created whenever a ResourceCache is Created and/or
@@ -41,7 +42,7 @@ type ResourceCache struct {
 // FindOrCreateForResourceType for more information on when it becomes unused.
 type UsedResourceCache struct {
 	ID             int
-	ResourceConfig *UsedResourceConfig
+	ResourceConfig ResourceConfigVVV
 	Version        atc.Version
 }
 
@@ -69,7 +70,7 @@ func (cache *UsedResourceCache) Destroy(tx Tx) (bool, error) {
 }
 
 func (cache ResourceCache) Find(tx Tx) (*UsedResourceCache, bool, error) {
-	usedResourceConfig, found, err := cache.ResourceConfig.Find(tx)
+	resourceConfig, found, err := cache.ResourceConfigDescriptor.Find(tx)
 	if err != nil {
 		return nil, false, err
 	}
@@ -78,19 +79,21 @@ func (cache ResourceCache) Find(tx Tx) (*UsedResourceCache, bool, error) {
 		return nil, false, nil
 	}
 
-	return cache.findWithResourceConfig(tx, usedResourceConfig)
+	return cache.findWithResourceConfig(tx, resourceConfig)
 }
 
 func (cache ResourceCache) findOrCreate(
 	logger lager.Logger,
 	tx Tx,
+	lockFactory lock.LockFactory,
+	conn Conn,
 ) (*UsedResourceCache, error) {
-	usedResourceConfig, err := cache.ResourceConfig.findOrCreate(logger, tx)
+	resourceConfig, err := cache.ResourceConfigDescriptor.findOrCreate(logger, tx, lockFactory, conn)
 	if err != nil {
 		return nil, err
 	}
 
-	rc, found, err := cache.findWithResourceConfig(tx, usedResourceConfig)
+	rc, found, err := cache.findWithResourceConfig(tx, resourceConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +107,7 @@ func (cache ResourceCache) findOrCreate(
 				"params_hash",
 			).
 			Values(
-				usedResourceConfig.ID,
+				resourceConfig.ID(),
 				cache.version(),
 				paramsHash(cache.Params),
 			).
@@ -114,7 +117,7 @@ func (cache ResourceCache) findOrCreate(
 					version = ?,
 					params_hash = ?
 				RETURNING id
-			`, usedResourceConfig.ID, cache.version(), paramsHash(cache.Params)).
+			`, resourceConfig.ID(), cache.version(), paramsHash(cache.Params)).
 			RunWith(tx).
 			QueryRow().
 			Scan(&id)
@@ -124,7 +127,7 @@ func (cache ResourceCache) findOrCreate(
 
 		rc = &UsedResourceCache{
 			ID:             id,
-			ResourceConfig: usedResourceConfig,
+			ResourceConfig: resourceConfig,
 			Version:        cache.Version,
 		}
 	}
@@ -166,7 +169,7 @@ func (cache ResourceCache) use(
 	return err
 }
 
-func (cache ResourceCache) findWithResourceConfig(tx Tx, resourceConfig *UsedResourceConfig) (*UsedResourceCache, bool, error) {
+func (cache ResourceCache) findWithResourceConfig(tx Tx, resourceConfig ResourceConfigVVV) (*UsedResourceCache, bool, error) {
 	var id int
 	err := psql.Select("id").
 		From("resource_caches").
@@ -200,11 +203,11 @@ func (cache ResourceCache) version() string {
 }
 
 func (cache *UsedResourceCache) BaseResourceType() *UsedBaseResourceType {
-	if cache.ResourceConfig.CreatedByBaseResourceType != nil {
-		return cache.ResourceConfig.CreatedByBaseResourceType
+	if cache.ResourceConfig.CreatedByBaseResourceType() != nil {
+		return cache.ResourceConfig.CreatedByBaseResourceType()
 	}
 
-	return cache.ResourceConfig.CreatedByResourceCache.BaseResourceType()
+	return cache.ResourceConfig.CreatedByResourceCache().BaseResourceType()
 }
 
 func paramsHash(p atc.Params) string {

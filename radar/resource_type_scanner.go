@@ -101,6 +101,7 @@ func (scanner *resourceTypeScanner) scan(logger lager.Logger, resourceTypeName s
 		}
 	}
 
+	// XXX: check possibility of updating error message
 	resourceTypes, err = scanner.dbPipeline.ResourceTypes()
 	if err != nil {
 		logger.Error("failed-to-get-resource-types", err)

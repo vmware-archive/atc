@@ -320,12 +320,12 @@ type FakePipeline struct {
 		result2 bool
 		result3 error
 	}
-	AcquireResourceCheckingLockWithIntervalCheckStub        func(logger lager.Logger, resourceName string, usedResourceConfig *db.UsedResourceConfig, interval time.Duration, immediate bool) (lock.Lock, bool, error)
+	AcquireResourceCheckingLockWithIntervalCheckStub        func(logger lager.Logger, resourceName string, usedResourceConfig db.ResourceConfigVVV, interval time.Duration, immediate bool) (lock.Lock, bool, error)
 	acquireResourceCheckingLockWithIntervalCheckMutex       sync.RWMutex
 	acquireResourceCheckingLockWithIntervalCheckArgsForCall []struct {
 		logger             lager.Logger
 		resourceName       string
-		usedResourceConfig *db.UsedResourceConfig
+		usedResourceConfig db.ResourceConfigVVV
 		interval           time.Duration
 		immediate          bool
 	}
@@ -339,12 +339,12 @@ type FakePipeline struct {
 		result2 bool
 		result3 error
 	}
-	AcquireResourceTypeCheckingLockWithIntervalCheckStub        func(logger lager.Logger, resourceTypeName string, usedResourceConfig *db.UsedResourceConfig, interval time.Duration, immediate bool) (lock.Lock, bool, error)
+	AcquireResourceTypeCheckingLockWithIntervalCheckStub        func(logger lager.Logger, resourceTypeName string, usedResourceConfig db.ResourceConfigVVV, interval time.Duration, immediate bool) (lock.Lock, bool, error)
 	acquireResourceTypeCheckingLockWithIntervalCheckMutex       sync.RWMutex
 	acquireResourceTypeCheckingLockWithIntervalCheckArgsForCall []struct {
 		logger             lager.Logger
 		resourceTypeName   string
-		usedResourceConfig *db.UsedResourceConfig
+		usedResourceConfig db.ResourceConfigVVV
 		interval           time.Duration
 		immediate          bool
 	}
@@ -1761,13 +1761,13 @@ func (fake *FakePipeline) AcquireSchedulingLockReturnsOnCall(i int, result1 lock
 	}{result1, result2, result3}
 }
 
-func (fake *FakePipeline) AcquireResourceCheckingLockWithIntervalCheck(logger lager.Logger, resourceName string, usedResourceConfig *db.UsedResourceConfig, interval time.Duration, immediate bool) (lock.Lock, bool, error) {
+func (fake *FakePipeline) AcquireResourceCheckingLockWithIntervalCheck(logger lager.Logger, resourceName string, usedResourceConfig db.ResourceConfigVVV, interval time.Duration, immediate bool) (lock.Lock, bool, error) {
 	fake.acquireResourceCheckingLockWithIntervalCheckMutex.Lock()
 	ret, specificReturn := fake.acquireResourceCheckingLockWithIntervalCheckReturnsOnCall[len(fake.acquireResourceCheckingLockWithIntervalCheckArgsForCall)]
 	fake.acquireResourceCheckingLockWithIntervalCheckArgsForCall = append(fake.acquireResourceCheckingLockWithIntervalCheckArgsForCall, struct {
 		logger             lager.Logger
 		resourceName       string
-		usedResourceConfig *db.UsedResourceConfig
+		usedResourceConfig db.ResourceConfigVVV
 		interval           time.Duration
 		immediate          bool
 	}{logger, resourceName, usedResourceConfig, interval, immediate})
@@ -1788,7 +1788,7 @@ func (fake *FakePipeline) AcquireResourceCheckingLockWithIntervalCheckCallCount(
 	return len(fake.acquireResourceCheckingLockWithIntervalCheckArgsForCall)
 }
 
-func (fake *FakePipeline) AcquireResourceCheckingLockWithIntervalCheckArgsForCall(i int) (lager.Logger, string, *db.UsedResourceConfig, time.Duration, bool) {
+func (fake *FakePipeline) AcquireResourceCheckingLockWithIntervalCheckArgsForCall(i int) (lager.Logger, string, db.ResourceConfigVVV, time.Duration, bool) {
 	fake.acquireResourceCheckingLockWithIntervalCheckMutex.RLock()
 	defer fake.acquireResourceCheckingLockWithIntervalCheckMutex.RUnlock()
 	return fake.acquireResourceCheckingLockWithIntervalCheckArgsForCall[i].logger, fake.acquireResourceCheckingLockWithIntervalCheckArgsForCall[i].resourceName, fake.acquireResourceCheckingLockWithIntervalCheckArgsForCall[i].usedResourceConfig, fake.acquireResourceCheckingLockWithIntervalCheckArgsForCall[i].interval, fake.acquireResourceCheckingLockWithIntervalCheckArgsForCall[i].immediate
@@ -1819,13 +1819,13 @@ func (fake *FakePipeline) AcquireResourceCheckingLockWithIntervalCheckReturnsOnC
 	}{result1, result2, result3}
 }
 
-func (fake *FakePipeline) AcquireResourceTypeCheckingLockWithIntervalCheck(logger lager.Logger, resourceTypeName string, usedResourceConfig *db.UsedResourceConfig, interval time.Duration, immediate bool) (lock.Lock, bool, error) {
+func (fake *FakePipeline) AcquireResourceTypeCheckingLockWithIntervalCheck(logger lager.Logger, resourceTypeName string, usedResourceConfig db.ResourceConfigVVV, interval time.Duration, immediate bool) (lock.Lock, bool, error) {
 	fake.acquireResourceTypeCheckingLockWithIntervalCheckMutex.Lock()
 	ret, specificReturn := fake.acquireResourceTypeCheckingLockWithIntervalCheckReturnsOnCall[len(fake.acquireResourceTypeCheckingLockWithIntervalCheckArgsForCall)]
 	fake.acquireResourceTypeCheckingLockWithIntervalCheckArgsForCall = append(fake.acquireResourceTypeCheckingLockWithIntervalCheckArgsForCall, struct {
 		logger             lager.Logger
 		resourceTypeName   string
-		usedResourceConfig *db.UsedResourceConfig
+		usedResourceConfig db.ResourceConfigVVV
 		interval           time.Duration
 		immediate          bool
 	}{logger, resourceTypeName, usedResourceConfig, interval, immediate})
@@ -1846,7 +1846,7 @@ func (fake *FakePipeline) AcquireResourceTypeCheckingLockWithIntervalCheckCallCo
 	return len(fake.acquireResourceTypeCheckingLockWithIntervalCheckArgsForCall)
 }
 
-func (fake *FakePipeline) AcquireResourceTypeCheckingLockWithIntervalCheckArgsForCall(i int) (lager.Logger, string, *db.UsedResourceConfig, time.Duration, bool) {
+func (fake *FakePipeline) AcquireResourceTypeCheckingLockWithIntervalCheckArgsForCall(i int) (lager.Logger, string, db.ResourceConfigVVV, time.Duration, bool) {
 	fake.acquireResourceTypeCheckingLockWithIntervalCheckMutex.RLock()
 	defer fake.acquireResourceTypeCheckingLockWithIntervalCheckMutex.RUnlock()
 	return fake.acquireResourceTypeCheckingLockWithIntervalCheckArgsForCall[i].logger, fake.acquireResourceTypeCheckingLockWithIntervalCheckArgsForCall[i].resourceTypeName, fake.acquireResourceTypeCheckingLockWithIntervalCheckArgsForCall[i].usedResourceConfig, fake.acquireResourceTypeCheckingLockWithIntervalCheckArgsForCall[i].interval, fake.acquireResourceTypeCheckingLockWithIntervalCheckArgsForCall[i].immediate

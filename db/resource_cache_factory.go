@@ -8,6 +8,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/creds"
+	"github.com/concourse/atc/db/lock"
 )
 
 //go:generate counterfeiter . ResourceCacheFactory
@@ -32,12 +33,14 @@ type ResourceCacheFactory interface {
 }
 
 type resourceCacheFactory struct {
-	conn Conn
+	conn        Conn
+	lockFactory lock.LockFactory
 }
 
-func NewResourceCacheFactory(conn Conn) ResourceCacheFactory {
+func NewResourceCacheFactory(conn Conn, lockFactory lock.LockFactory) ResourceCacheFactory {
 	return &resourceCacheFactory{
-		conn: conn,
+		conn:        conn,
+		lockFactory: lockFactory,
 	}
 }
 
@@ -50,15 +53,15 @@ func (f *resourceCacheFactory) FindOrCreateResourceCache(
 	params atc.Params,
 	resourceTypes creds.VersionedResourceTypes,
 ) (*UsedResourceCache, error) {
-	resourceConfig, err := constructResourceConfig(resourceTypeName, source, resourceTypes)
+	resourceConfigDescriptor, err := constructResourceConfigDescriptor(resourceTypeName, source, resourceTypes)
 	if err != nil {
 		return nil, err
 	}
 
 	resourceCache := ResourceCache{
-		ResourceConfig: resourceConfig,
-		Version:        version,
-		Params:         params,
+		ResourceConfigDescriptor: resourceConfigDescriptor,
+		Version:                  version,
+		Params:                   params,
 	}
 
 	tx, err := f.conn.Begin()
@@ -68,7 +71,7 @@ func (f *resourceCacheFactory) FindOrCreateResourceCache(
 
 	defer Rollback(tx)
 
-	usedResourceCache, err := resourceCache.findOrCreate(logger, tx)
+	usedResourceCache, err := resourceCache.findOrCreate(logger, tx, f.lockFactory, f.conn)
 	if err != nil {
 		return nil, err
 	}

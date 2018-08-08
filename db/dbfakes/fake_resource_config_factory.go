@@ -11,7 +11,7 @@ import (
 )
 
 type FakeResourceConfigFactory struct {
-	FindResourceConfigStub        func(logger lager.Logger, resourceType string, source atc.Source, resourceTypes creds.VersionedResourceTypes) (*db.UsedResourceConfig, bool, error)
+	FindResourceConfigStub        func(logger lager.Logger, resourceType string, source atc.Source, resourceTypes creds.VersionedResourceTypes) (db.ResourceConfigVVV, bool, error)
 	findResourceConfigMutex       sync.RWMutex
 	findResourceConfigArgsForCall []struct {
 		logger        lager.Logger
@@ -20,12 +20,12 @@ type FakeResourceConfigFactory struct {
 		resourceTypes creds.VersionedResourceTypes
 	}
 	findResourceConfigReturns struct {
-		result1 *db.UsedResourceConfig
+		result1 db.ResourceConfigVVV
 		result2 bool
 		result3 error
 	}
 	findResourceConfigReturnsOnCall map[int]struct {
-		result1 *db.UsedResourceConfig
+		result1 db.ResourceConfigVVV
 		result2 bool
 		result3 error
 	}
@@ -42,7 +42,7 @@ type FakeResourceConfigFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeResourceConfigFactory) FindResourceConfig(logger lager.Logger, resourceType string, source atc.Source, resourceTypes creds.VersionedResourceTypes) (*db.UsedResourceConfig, bool, error) {
+func (fake *FakeResourceConfigFactory) FindResourceConfig(logger lager.Logger, resourceType string, source atc.Source, resourceTypes creds.VersionedResourceTypes) (db.ResourceConfigVVV, bool, error) {
 	fake.findResourceConfigMutex.Lock()
 	ret, specificReturn := fake.findResourceConfigReturnsOnCall[len(fake.findResourceConfigArgsForCall)]
 	fake.findResourceConfigArgsForCall = append(fake.findResourceConfigArgsForCall, struct {
@@ -74,26 +74,26 @@ func (fake *FakeResourceConfigFactory) FindResourceConfigArgsForCall(i int) (lag
 	return fake.findResourceConfigArgsForCall[i].logger, fake.findResourceConfigArgsForCall[i].resourceType, fake.findResourceConfigArgsForCall[i].source, fake.findResourceConfigArgsForCall[i].resourceTypes
 }
 
-func (fake *FakeResourceConfigFactory) FindResourceConfigReturns(result1 *db.UsedResourceConfig, result2 bool, result3 error) {
+func (fake *FakeResourceConfigFactory) FindResourceConfigReturns(result1 db.ResourceConfigVVV, result2 bool, result3 error) {
 	fake.FindResourceConfigStub = nil
 	fake.findResourceConfigReturns = struct {
-		result1 *db.UsedResourceConfig
+		result1 db.ResourceConfigVVV
 		result2 bool
 		result3 error
 	}{result1, result2, result3}
 }
 
-func (fake *FakeResourceConfigFactory) FindResourceConfigReturnsOnCall(i int, result1 *db.UsedResourceConfig, result2 bool, result3 error) {
+func (fake *FakeResourceConfigFactory) FindResourceConfigReturnsOnCall(i int, result1 db.ResourceConfigVVV, result2 bool, result3 error) {
 	fake.FindResourceConfigStub = nil
 	if fake.findResourceConfigReturnsOnCall == nil {
 		fake.findResourceConfigReturnsOnCall = make(map[int]struct {
-			result1 *db.UsedResourceConfig
+			result1 db.ResourceConfigVVV
 			result2 bool
 			result3 error
 		})
 	}
 	fake.findResourceConfigReturnsOnCall[i] = struct {
-		result1 *db.UsedResourceConfig
+		result1 db.ResourceConfigVVV
 		result2 bool
 		result3 error
 	}{result1, result2, result3}
