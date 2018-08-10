@@ -253,6 +253,10 @@ func (scanner *resourceScanner) check(
 		Env:    metadata.Env(),
 	}
 
+	// TODO: turn default time out to global configurable param
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
 	res, err := scanner.resourceFactory.NewResource(
 		context.Background(),
 		logger,
@@ -274,7 +278,19 @@ func (scanner *resourceScanner) check(
 		"from": fromVersion,
 	})
 
-	newVersions, err := res.Check(source, fromVersion)
+	var newVersions []atc.Version
+	checkFinish := make(chan bool)
+	go func() {
+		newVersions, err = res.Check(source, fromVersion)
+		checkFinish <- true
+	}()
+
+	select {
+	case <-ctx.Done():
+		return errors.New("check-timed-out")
+	case <-checkFinish:
+		break
+	}
 
 	scanner.setResourceCheckError(logger, savedResource, err)
 	metric.ResourceCheck{
