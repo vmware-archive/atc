@@ -4,8 +4,11 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/aws/aws-sdk-go/aws"
 	awsssm "github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
+	"github.com/cloudfoundry/bosh-cli/director/template"
 	"github.com/concourse/atc/api/accessor/accessorfakes"
 	"github.com/concourse/atc/creds/credhub"
 	"github.com/concourse/atc/creds/ssm"
@@ -15,6 +18,16 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 )
+
+type mockedSsmClient struct {
+	ssmiface.SSMAPI
+}
+
+type MockSsmService struct {
+	ssmiface.SSMAPI
+
+	stubDescribeInstanceInformation func(input *awsssm.DescribeInstanceInformationInput) (awsssm.DescribeInstanceInformationOutput, error)
+}
 
 var _ = Describe("Pipelines API", func() {
 	Describe("GET /api/v1/info", func() {
@@ -69,6 +82,7 @@ var _ = Describe("Pipelines API", func() {
 		})
 
 		FContext("SSM", func() {
+			var mockService MockSsmService
 			BeforeEach(func() {
 				fakeaccess.IsAuthenticatedReturns(true)
 				fakeaccess.IsAdminReturns(true)
@@ -77,24 +91,26 @@ var _ = Describe("Pipelines API", func() {
 					AwsAccessKeyID:         "",
 					AwsSecretAccessKey:     "",
 					AwsSessionToken:        "",
-					AwsRegion:              "",
+					AwsRegion:              "blah",
 					PipelineSecretTemplate: "",
 					TeamSecretTemplate:     "",
+					Client:                 &mockedSsmClient{},
 				}
 
 				credsManagers["ssm"] = ssmManager
 
-				credServer = ghttp.NewServer()
-				credServer.RouteToHandler("GET", "/v1/sys/health", ghttp.RespondWithJSONEncoded(
-					http.StatusOK,
-					&awsssm.DescribeInstanceInformationOutput{
-						InstanceInformationList: []*awsssm.InstanceInformation{
-							{
-								PingStatus: aws.String("Online"),
-							},
-						},
-					},
-				))
+				t1, err := template.New("test").Parse(DefaultPipelineSecretTemplate)
+				Expect(t1).NotTo(BeNil())
+				Expect(err).To(BeNil())
+				t2, err := template.New("test").Parse(DefaultTeamSecretTemplate)
+				Expect(t2).NotTo(BeNil())
+				Expect(err).To(BeNil())
+				ssmAccess = NewSsm(lager.NewLogger("ssm_test"), &mockService, "alpha", "bogus", []*template.Template{t1, t2})
+				mockService.stubDescribeInstanceInformation = func(input *awsssm.DescribeInstanceInformationInput) (awsssm.DescribeInstanceInformationOutput, error) {
+					return awsssm.DescribeInstanceInformationOutput{
+						PingStatus: aws.String("Online"),
+					}
+				}
 			})
 
 			It("returns configured ssm manager", func() {
@@ -103,9 +119,14 @@ var _ = Describe("Pipelines API", func() {
 
 				Expect(body).To(MatchJSON(`{
           "ssm": {
-            "url": "` + credServer.URL() + `",
-            "path_prefix": "testpath",
-						"health": {}
+						"region": "blah",
+						"health": {
+							"InstanceInformationList": [
+								{
+									"PingStatus": "Online"
+								}
+							]
+						}
           }
         }`))
 			})

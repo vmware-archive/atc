@@ -31,6 +31,10 @@ func NewSsm(log lager.Logger, api ssmiface.SSMAPI, teamName string, pipelineName
 	}
 }
 
+func (s *Ssm) health() (*ssm.DescribeInstanceInformationOutput, error) {
+	return nil, nil
+}
+
 func (s *Ssm) transformSecret(nameTemplate *template.Template, secret string) (string, error) {
 	var buf bytes.Buffer
 	err := nameTemplate.Execute(&buf, &SsmSecret{

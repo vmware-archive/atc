@@ -12,7 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/concourse/atc/creds"
+	"github.com/prometheus/common/log"
 )
 
 const DefaultPipelineSecretTemplate = "/concourse/{{.Team}}/{{.Pipeline}}/{{.Secret}}"
@@ -25,6 +27,7 @@ type SsmManager struct {
 	AwsRegion              string `long:"region" description:"AWS region to send requests to" env:"AWS_REGION"`
 	PipelineSecretTemplate string `long:"pipeline-secret-template" description:"AWS SSM parameter name template used for pipeline specific parameter" default:"/concourse/{{.Team}}/{{.Pipeline}}/{{.Secret}}"`
 	TeamSecretTemplate     string `long:"team-secret-template" description:"AWS SSM parameter name template used for team specific parameter" default:"/concourse/{{.Team}}/{{.Secret}}"`
+	Ssm                    *Ssm
 }
 
 type SsmSecret struct {
@@ -48,7 +51,6 @@ func buildSecretTemplate(name, tmpl string) (*template.Template, error) {
 }
 
 func (manager *SsmManager) MarshalJSON() ([]byte, error) {
-
 	health, err := manager.Health()
 	if err != nil {
 		return nil, err
@@ -63,16 +65,7 @@ func (manager *SsmManager) MarshalJSON() ([]byte, error) {
 }
 
 func (manager SsmManager) Health() (interface{}, error) {
-	config := &aws.Config{Region: &manager.AwsRegion}
-	if manager.AwsAccessKeyID != "" {
-		config.Credentials = credentials.NewStaticCredentials(manager.AwsAccessKeyID, manager.AwsSecretAccessKey, manager.AwsSessionToken)
-	}
-
-	session, err := session.NewSession(config)
-	if err != nil {
-		return nil, err
-	}
-	response, err := ssm.New(session, config).DescribeInstanceInformation(&ssm.DescribeInstanceInformationInput{})
+	response, err := manager.Ssm.health()
 	if err != nil {
 		return nil, err
 	}
@@ -117,6 +110,30 @@ func (manager SsmManager) Validate() error {
 	}
 
 	return nil
+}
+
+func (manager SsmManager) NewSsmFactory(mockImplementor ssmiface.SSMAPI) (*Ssm, error) {
+	if mockImplementor != nil {
+		return Ssm{
+			api: implementor,
+		}
+	}
+
+	config := &aws.Config{Region: &manager.AwsRegion}
+	if manager.AwsAccessKeyID != "" {
+		config.Credentials = credentials.NewStaticCredentials(manager.AwsAccessKeyID, manager.AwsSecretAccessKey, manager.AwsSessionToken)
+	}
+
+	session, err := session.NewSession(config)
+	if err != nil {
+		log.Error("failed-to-create-aws-session", err)
+		return nil, err
+	}
+
+	ssmSvc := ssm.New(session)
+	// ...
+
+	return nil, nil
 }
 
 func (manager SsmManager) NewVariablesFactory(log lager.Logger) (creds.VariablesFactory, error) {
