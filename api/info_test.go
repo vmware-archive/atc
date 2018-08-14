@@ -4,8 +4,11 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/aws/aws-sdk-go/aws"
+	awsssm "github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/concourse/atc/api/accessor/accessorfakes"
 	"github.com/concourse/atc/creds/credhub"
+	"github.com/concourse/atc/creds/ssm"
 	"github.com/concourse/atc/creds/vault"
 	vaultapi "github.com/hashicorp/vault/api"
 	. "github.com/onsi/ginkgo"
@@ -63,6 +66,49 @@ var _ = Describe("Pipelines API", func() {
 
 			response, err = client.Do(req)
 			Expect(err).NotTo(HaveOccurred())
+		})
+
+		FContext("SSM", func() {
+			BeforeEach(func() {
+				fakeaccess.IsAuthenticatedReturns(true)
+				fakeaccess.IsAdminReturns(true)
+
+				ssmManager := &ssm.SsmManager{
+					AwsAccessKeyID:         "",
+					AwsSecretAccessKey:     "",
+					AwsSessionToken:        "",
+					AwsRegion:              "",
+					PipelineSecretTemplate: "",
+					TeamSecretTemplate:     "",
+				}
+
+				credsManagers["ssm"] = ssmManager
+
+				credServer = ghttp.NewServer()
+				credServer.RouteToHandler("GET", "/v1/sys/health", ghttp.RespondWithJSONEncoded(
+					http.StatusOK,
+					&awsssm.DescribeInstanceInformationOutput{
+						InstanceInformationList: []*awsssm.InstanceInformation{
+							{
+								PingStatus: aws.String("Online"),
+							},
+						},
+					},
+				))
+			})
+
+			It("returns configured ssm manager", func() {
+				body, err := ioutil.ReadAll(response.Body)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(body).To(MatchJSON(`{
+          "ssm": {
+            "url": "` + credServer.URL() + `",
+            "path_prefix": "testpath",
+						"health": {}
+          }
+        }`))
+			})
 		})
 
 		Context("vault", func() {

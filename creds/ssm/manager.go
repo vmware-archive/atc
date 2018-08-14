@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/concourse/atc/creds"
 )
 
@@ -47,15 +48,36 @@ func buildSecretTemplate(name, tmpl string) (*template.Template, error) {
 }
 
 func (manager *SsmManager) MarshalJSON() ([]byte, error) {
+
+	health, err := manager.Health()
+	if err != nil {
+		return nil, err
+	}
+
 	return json.Marshal(&map[string]interface{}{
 		"aws_region":               manager.AwsRegion,
 		"pipeline_secret_template": manager.PipelineSecretTemplate,
 		"team_secret_template":     manager.TeamSecretTemplate,
+		"health":                   health,
 	})
 }
 
 func (manager SsmManager) Health() (interface{}, error) {
-	return nil, nil
+	config := &aws.Config{Region: &manager.AwsRegion}
+	if manager.AwsAccessKeyID != "" {
+		config.Credentials = credentials.NewStaticCredentials(manager.AwsAccessKeyID, manager.AwsSecretAccessKey, manager.AwsSessionToken)
+	}
+
+	session, err := session.NewSession(config)
+	if err != nil {
+		return nil, err
+	}
+	response, err := ssm.New(session, config).DescribeInstanceInformation(&ssm.DescribeInstanceInformationInput{})
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (manager SsmManager) IsConfigured() bool {
