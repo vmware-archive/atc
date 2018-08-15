@@ -11,10 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/concourse/atc/creds"
-	"github.com/prometheus/common/log"
 )
 
 const DefaultPipelineSecretTemplate = "/concourse/{{.Team}}/{{.Pipeline}}/{{.Secret}}"
@@ -112,29 +109,29 @@ func (manager SsmManager) Validate() error {
 	return nil
 }
 
-func (manager SsmManager) NewSsmFactory(mockImplementor ssmiface.SSMAPI) (*Ssm, error) {
-	if mockImplementor != nil {
-		return Ssm{
-			api: implementor,
-		}
-	}
+// func (manager SsmManager) NewSsmFactory(mockImplementor ssmiface.SSMAPI) (*Ssm, error) {
+// 	if mockImplementor != nil {
+// 		return Ssm{
+// 			api: implementor,
+// 		}
+// 	}
 
-	config := &aws.Config{Region: &manager.AwsRegion}
-	if manager.AwsAccessKeyID != "" {
-		config.Credentials = credentials.NewStaticCredentials(manager.AwsAccessKeyID, manager.AwsSecretAccessKey, manager.AwsSessionToken)
-	}
+// 	config := &aws.Config{Region: &manager.AwsRegion}
+// 	if manager.AwsAccessKeyID != "" {
+// 		config.Credentials = credentials.NewStaticCredentials(manager.AwsAccessKeyID, manager.AwsSecretAccessKey, manager.AwsSessionToken)
+// 	}
 
-	session, err := session.NewSession(config)
-	if err != nil {
-		log.Error("failed-to-create-aws-session", err)
-		return nil, err
-	}
+// 	session, err := session.NewSession(config)
+// 	if err != nil {
+// 		log.Error("failed-to-create-aws-session", err)
+// 		return nil, err
+// 	}
 
-	ssmSvc := ssm.New(session)
-	// ...
+// 	ssmSvc := ssm.New(session)
+// 	// ...
 
-	return nil, nil
-}
+// 	return nil, nil
+// }
 
 func (manager SsmManager) NewVariablesFactory(log lager.Logger) (creds.VariablesFactory, error) {
 	config := &aws.Config{Region: &manager.AwsRegion}

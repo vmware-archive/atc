@@ -32,7 +32,7 @@ func NewSsm(log lager.Logger, api ssmiface.SSMAPI, teamName string, pipelineName
 }
 
 func (s *Ssm) health() (*ssm.DescribeInstanceInformationOutput, error) {
-	return nil, nil
+	return s.api.DescribeInstanceInformation(&ssm.DescribeInstanceInformationInput{})
 }
 
 func (s *Ssm) transformSecret(nameTemplate *template.Template, secret string) (string, error) {
