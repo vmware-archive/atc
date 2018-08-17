@@ -126,25 +126,10 @@ func (manager VaultManager) Health() (*creds.HealthResponse, error) {
 }
 
 func (manager VaultManager) NewVariablesFactory(logger lager.Logger) (creds.VariablesFactory, error) {
-	tlsConfig := &vaultapi.TLSConfig{
-		CACert:        manager.TLS.CACert,
-		CAPath:        manager.TLS.CAPath,
-		TLSServerName: manager.TLS.ServerName,
-		Insecure:      manager.TLS.Insecure,
-
-		ClientCert: manager.TLS.ClientCert,
-		ClientKey:  manager.TLS.ClientKey,
-	}
-
-	c, err := NewAPIClient(logger, manager.URL, tlsConfig, manager.Auth)
-	if err != nil {
-		return nil, err
-	}
-
-	ra := NewReAuther(c, manager.Auth.BackendMaxTTL, manager.Auth.RetryInitial, manager.Auth.RetryMax)
-	var sr SecretReader = c
+	ra := NewReAuther(manager.Client, manager.Auth.BackendMaxTTL, manager.Auth.RetryInitial, manager.Auth.RetryMax)
+	var sr SecretReader = manager.Client
 	if manager.Cache {
-		sr = NewCache(c, manager.MaxLease)
+		sr = NewCache(manager.Client, manager.MaxLease)
 	}
 
 	return NewVaultFactory(sr, ra.LoggedIn(), manager.PathPrefix), nil

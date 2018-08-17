@@ -99,7 +99,7 @@ var _ = Describe("Pipelines API", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		FContext("SSM", func() {
+		Context("SSM", func() {
 			var mockService MockSsmService
 
 			BeforeEach(func() {
@@ -329,7 +329,7 @@ var _ = Describe("Pipelines API", func() {
 						PathPrefix: "some-prefix",
 						TLS:        tls,
 						UAA:        uaa,
-						Client:     &http.Client{},
+						Client:     &credhub.LazyCredhub{},
 					}
 
 					credsManagers["credhub"] = credhubManager
@@ -361,7 +361,7 @@ var _ = Describe("Pipelines API", func() {
 						PathPrefix: "some-prefix",
 						TLS:        tls,
 						UAA:        uaa,
-						Client:     &http.Client{},
+						Client:     &credhub.LazyCredhub{},
 					}
 
 					credsManagers["credhub"] = credhubManager

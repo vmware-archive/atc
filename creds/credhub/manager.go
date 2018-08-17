@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"net/url"
 	"sync"
 
@@ -21,7 +20,7 @@ type CredHubManager struct {
 
 	TLS    TLS
 	UAA    UAA
-	Client *http.Client
+	Client *LazyCredhub
 }
 
 type TLS struct {
@@ -84,13 +83,8 @@ func (manager *CredHubManager) Init(log lager.Logger) error {
 		options = append(options, credhub.ClientCert(manager.TLS.ClientCert, manager.TLS.ClientKey))
 	}
 
-	lc := newLazyCredhub(manager.URL, options)
-	credhubObject, err := lc.CredHub()
-	if err != nil {
-		return err
-	}
+	manager.Client = newLazyCredhub(manager.URL, options)
 
-	manager.Client = credhubObject.Client()
 	return nil
 }
 
@@ -123,7 +117,12 @@ func (manager CredHubManager) Health() (*creds.HealthResponse, error) {
 		Method: "/health",
 	}
 
-	response, err := manager.Client.Get(manager.URL + "/health")
+	credhubObject, err := manager.Client.CredHub()
+	if err != nil {
+		return healthResponse, err
+	}
+
+	response, err := credhubObject.Client().Get(manager.URL + "/health")
 	if err != nil {
 		healthResponse.Error = err.Error()
 		return healthResponse, nil
@@ -150,55 +149,24 @@ func (manager CredHubManager) Health() (*creds.HealthResponse, error) {
 }
 
 func (manager CredHubManager) NewVariablesFactory(logger lager.Logger) (creds.VariablesFactory, error) {
-	var options []credhub.Option
-
-	if manager.TLS.Insecure {
-		options = append(options, credhub.SkipTLSValidation(true))
-	}
-
-	caCerts := []string{}
-	for _, cert := range manager.TLS.CACerts {
-		contents, err := ioutil.ReadFile(cert)
-		if err != nil {
-			return nil, err
-		}
-
-		caCerts = append(caCerts, string(contents))
-	}
-
-	if len(caCerts) > 0 {
-		options = append(options, credhub.CaCerts(caCerts...))
-	}
-
-	if manager.UAA.ClientId != "" && manager.UAA.ClientSecret != "" {
-		options = append(options, credhub.Auth(auth.UaaClientCredentials(
-			manager.UAA.ClientId,
-			manager.UAA.ClientSecret,
-		)))
-	}
-
-	if manager.TLS.ClientCert != "" && manager.TLS.ClientKey != "" {
-		options = append(options, credhub.ClientCert(manager.TLS.ClientCert, manager.TLS.ClientKey))
-	}
-
-	return NewCredHubFactory(logger, newLazyCredhub(manager.URL, options), manager.PathPrefix), nil
+	return NewCredHubFactory(logger, manager.Client, manager.PathPrefix), nil
 }
 
-type lazyCredhub struct {
+type LazyCredhub struct {
 	url     string
 	options []credhub.Option
 	credhub *credhub.CredHub
 	mu      sync.Mutex
 }
 
-func newLazyCredhub(url string, options []credhub.Option) *lazyCredhub {
-	return &lazyCredhub{
+func newLazyCredhub(url string, options []credhub.Option) *LazyCredhub {
+	return &LazyCredhub{
 		url:     url,
 		options: options,
 	}
 }
 
-func (lc *lazyCredhub) CredHub() (*credhub.CredHub, error) {
+func (lc *LazyCredhub) CredHub() (*credhub.CredHub, error) {
 	lc.mu.Lock()
 	defer lc.mu.Unlock()
 	if lc.credhub != nil {

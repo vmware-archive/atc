@@ -65,24 +65,27 @@ func (manager *SsmManager) MarshalJSON() ([]byte, error) {
 }
 
 func (manager *SsmManager) Init(log lager.Logger) error {
-	config := &aws.Config{Region: &manager.AwsRegion}
-	if manager.AwsAccessKeyID != "" {
-		config.Credentials = credentials.NewStaticCredentials(manager.AwsAccessKeyID, manager.AwsSecretAccessKey, manager.AwsSessionToken)
-	}
-
-	session, err := session.NewSession(config)
+	session, err := manager.getSession()
 	if err != nil {
 		log.Error("failed-to-create-aws-session", err)
 		return err
 	}
 
 	manager.Ssm = &Ssm{
-		log:      log,
-		api:      ssm.New(session),
-		TeamName: "main",
+		api: ssm.New(session),
 	}
 
 	return nil
+}
+
+func (manager *SsmManager) getSession() (*session.Session, error) {
+
+	config := &aws.Config{Region: &manager.AwsRegion}
+	if manager.AwsAccessKeyID != "" {
+		config.Credentials = credentials.NewStaticCredentials(manager.AwsAccessKeyID, manager.AwsSecretAccessKey, manager.AwsSessionToken)
+	}
+
+	return session.NewSession(config)
 }
 
 func (manager *SsmManager) Health() (*creds.HealthResponse, error) {
@@ -151,12 +154,8 @@ func (manager *SsmManager) Validate() error {
 }
 
 func (manager *SsmManager) NewVariablesFactory(log lager.Logger) (creds.VariablesFactory, error) {
-	config := &aws.Config{Region: &manager.AwsRegion}
-	if manager.AwsAccessKeyID != "" {
-		config.Credentials = credentials.NewStaticCredentials(manager.AwsAccessKeyID, manager.AwsSecretAccessKey, manager.AwsSessionToken)
-	}
 
-	session, err := session.NewSession(config)
+	session, err := manager.getSession()
 	if err != nil {
 		log.Error("failed-to-create-aws-session", err)
 		return nil, err
