@@ -27,8 +27,21 @@ func (s *Server) ListTeams(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	sortTeams := make([]interface{}, 0)
+	for _, team := range presentedTeams {
+		sortTeams = append(sortTeams, team)
+	}
+
+	alphabeticalSort := func(team1, team2 *interface{}) bool {
+		t1 := (*team1).(atc.Team)
+		t2 := (*team2).(atc.Team)
+		return t1.Name < t2.Name
+	}
+
+	sortedTeams := Sorter{items: sortTeams}.GenericSort(alphabeticalSort)
+
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(presentedTeams)
+	err = json.NewEncoder(w).Encode(sortedTeams)
 	if err != nil {
 		hLog.Error("failed-to-encode-teams", err)
 		w.WriteHeader(http.StatusInternalServerError)

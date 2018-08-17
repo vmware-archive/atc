@@ -89,23 +89,22 @@ var _ = Describe("Teams API", func() {
 				fakeaccess.IsAdminReturns(true)
 
 				dbTeamFactory.GetTeamsReturns([]db.Team{fakeTeamOne, fakeTeamTwo, fakeTeamThree}, nil)
-
 			})
 
-			It("should return all teams", func() {
+			It("should return all teams in alphabetical order", func() {
 				body, err := ioutil.ReadAll(response.Body)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(body).To(MatchJSON(`[
+ 					 {
+ 						"id": 9,
+ 						"name": "aliens",
+						"auth": {"groups":[],"users":["local:username"]}
+ 					},
  					{
  						"id": 5,
  						"name": "avengers",
 						"auth": {"users":["local:username"],"groups":[]}
- 					},
- 					{
- 						"id": 9,
- 						"name": "aliens",
-						"auth": {"groups":[],"users":["local:username"]}
  					},
  					{
  						"id": 22,
@@ -123,26 +122,65 @@ var _ = Describe("Teams API", func() {
 				fakeaccess.IsAuthorizedReturnsOnCall(0, true)
 				fakeaccess.IsAuthorizedReturnsOnCall(1, false)
 				fakeaccess.IsAuthorizedReturnsOnCall(2, true)
+				fakeaccess.IsAuthorizedReturnsOnCall(3, true)
 
 				dbTeamFactory.GetTeamsReturns([]db.Team{fakeTeamOne, fakeTeamTwo, fakeTeamThree}, nil)
 			})
 
-			It("should return only the teams the user is authorized for", func() {
-				body, err := ioutil.ReadAll(response.Body)
-				Expect(err).NotTo(HaveOccurred())
+			Context("and there are no public teams", func() {
+				It("should return only the teams the user is authorized for in alphabetical order", func() {
+					body, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
 
-				Expect(body).To(MatchJSON(`[
- 					{
- 						"id": 5,
- 						"name": "avengers",
-						"auth": {"users":["local:username"],"groups":[]}
- 					},
- 					{
- 						"id": 22,
- 						"name": "predators",
-						"auth": {"users":["local:username"],"groups":[]}
- 					}
- 				]`))
+					Expect(body).To(MatchJSON(`[
+	 					{
+	 						"id": 5,
+	 						"name": "avengers",
+							"auth": {"users":["local:username"],"groups":[]}
+	 					},
+	 					{
+	 						"id": 22,
+	 						"name": "predators",
+							"auth": {"users":["local:username"],"groups":[]}
+	 					}
+	 				]`))
+				})
+			})
+
+			Context("and there are public teams", func() {
+				BeforeEach(func() {
+					fakeTeamFour := new(dbfakes.FakeTeam)
+					fakeTeamFour.IDReturns(25)
+					fakeTeamFour.NameReturns("public-team")
+					fakeTeamFour.AuthReturns(map[string][]string{
+						"groups": []string{}, "users": []string{},
+					})
+
+					dbTeamFactory.GetTeamsReturns([]db.Team{fakeTeamOne, fakeTeamTwo, fakeTeamThree, fakeTeamFour}, nil)
+				})
+
+				It("should return the public teams and the teams the user is authorized for in alphabetical order", func() {
+					body, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(body).To(MatchJSON(`[
+	 					{
+	 						"id": 5,
+	 						"name": "avengers",
+							"auth": {"users":["local:username"],"groups":[]}
+	 					},
+	 					{
+	 						"id": 22,
+	 						"name": "predators",
+							"auth": {"users":["local:username"],"groups":[]}
+	 					},
+	 					{
+	 						"id": 25,
+	 						"name": "public-team",
+	 						"auth": {"users":[], "groups":[]}
+	 					}
+	 				]`))
+				})
 			})
 		})
 
