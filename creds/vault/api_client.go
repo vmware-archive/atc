@@ -182,5 +182,5 @@ func (ac *APIClient) health() (*vaultapi.HealthResponse, error) {
 	}
 
 	healthResponse, err := client.Sys().Health()
-	return healthResponse, nil
+	return healthResponse, err
 }

@@ -22,8 +22,9 @@ type VaultManager struct {
 	Cache    bool          `long:"cache" description:"Cache returned secrets for their lease duration in memory"`
 	MaxLease time.Duration `long:"max-lease" description:"If the cache is enabled, and this is set, override secrets lease duration with a maximum value"`
 
-	TLS  TLS
-	Auth AuthConfig
+	TLS    TLS
+	Auth   AuthConfig
+	Client *APIClient
 }
 
 type TLS struct {
@@ -44,6 +45,27 @@ type AuthConfig struct {
 	RetryInitial  time.Duration `long:"retry-initial" default:"1s" description:"The initial time between retries when logging in or re-authing a secret."`
 
 	Params []template.VarKV `long:"auth-param"  description:"Paramter to pass when logging in via the backend. Can be specified multiple times." value-name:"NAME=VALUE"`
+}
+
+func (manager *VaultManager) Init(log lager.Logger) error {
+	var err error
+
+	tlsConfig := &vaultapi.TLSConfig{
+		CACert:        manager.TLS.CACert,
+		CAPath:        manager.TLS.CAPath,
+		TLSServerName: manager.TLS.ServerName,
+		Insecure:      manager.TLS.Insecure,
+
+		ClientCert: manager.TLS.ClientCert,
+		ClientKey:  manager.TLS.ClientKey,
+	}
+
+	manager.Client, err = NewAPIClient(nil, manager.URL, tlsConfig, manager.Auth)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (manager *VaultManager) MarshalJSON() ([]byte, error) {
@@ -88,28 +110,19 @@ func (manager VaultManager) Validate() error {
 	return errors.New("must configure client token or auth backend")
 }
 
-func (manager VaultManager) Health() (interface{}, error) {
-	tlsConfig := &vaultapi.TLSConfig{
-		CACert:        manager.TLS.CACert,
-		CAPath:        manager.TLS.CAPath,
-		TLSServerName: manager.TLS.ServerName,
-		Insecure:      manager.TLS.Insecure,
-
-		ClientCert: manager.TLS.ClientCert,
-		ClientKey:  manager.TLS.ClientKey,
+func (manager VaultManager) Health() (*creds.HealthResponse, error) {
+	health := &creds.HealthResponse{
+		Method: "/v1/sys/health",
 	}
 
-	c, err := NewAPIClient(nil, manager.URL, tlsConfig, manager.Auth)
+	response, err := manager.Client.health()
 	if err != nil {
-		return nil, err
+		health.Error = err.Error()
+		return health, nil
 	}
 
-	response, err := c.health()
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
+	health.Response = response
+	return health, nil
 }
 
 func (manager VaultManager) NewVariablesFactory(logger lager.Logger) (creds.VariablesFactory, error) {
