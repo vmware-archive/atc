@@ -10,12 +10,12 @@ import (
 	"github.com/concourse/atc/radar"
 )
 
-type FakeScanner struct {
-	RunStub        func(lager.Logger, radar.Scannable) (time.Duration, error)
+type FakeScannerV2 struct {
+	RunStub        func(lager.Logger, string) (time.Duration, error)
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
 		arg1 lager.Logger
-		arg2 radar.Scannable
+		arg2 string
 	}
 	runReturns struct {
 		result1 time.Duration
@@ -25,11 +25,11 @@ type FakeScanner struct {
 		result1 time.Duration
 		result2 error
 	}
-	ScanStub        func(lager.Logger, radar.Scannable) error
+	ScanStub        func(lager.Logger, string) error
 	scanMutex       sync.RWMutex
 	scanArgsForCall []struct {
 		arg1 lager.Logger
-		arg2 radar.Scannable
+		arg2 string
 	}
 	scanReturns struct {
 		result1 error
@@ -37,11 +37,11 @@ type FakeScanner struct {
 	scanReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ScanFromVersionStub        func(lager.Logger, radar.Scannable, atc.Version) error
+	ScanFromVersionStub        func(lager.Logger, string, atc.Version) error
 	scanFromVersionMutex       sync.RWMutex
 	scanFromVersionArgsForCall []struct {
 		arg1 lager.Logger
-		arg2 radar.Scannable
+		arg2 string
 		arg3 atc.Version
 	}
 	scanFromVersionReturns struct {
@@ -54,12 +54,12 @@ type FakeScanner struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeScanner) Run(arg1 lager.Logger, arg2 radar.Scannable) (time.Duration, error) {
+func (fake *FakeScannerV2) Run(arg1 lager.Logger, arg2 string) (time.Duration, error) {
 	fake.runMutex.Lock()
 	ret, specificReturn := fake.runReturnsOnCall[len(fake.runArgsForCall)]
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
 		arg1 lager.Logger
-		arg2 radar.Scannable
+		arg2 string
 	}{arg1, arg2})
 	fake.recordInvocation("Run", []interface{}{arg1, arg2})
 	fake.runMutex.Unlock()
@@ -72,19 +72,19 @@ func (fake *FakeScanner) Run(arg1 lager.Logger, arg2 radar.Scannable) (time.Dura
 	return fake.runReturns.result1, fake.runReturns.result2
 }
 
-func (fake *FakeScanner) RunCallCount() int {
+func (fake *FakeScannerV2) RunCallCount() int {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	return len(fake.runArgsForCall)
 }
 
-func (fake *FakeScanner) RunArgsForCall(i int) (lager.Logger, radar.Scannable) {
+func (fake *FakeScannerV2) RunArgsForCall(i int) (lager.Logger, string) {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	return fake.runArgsForCall[i].arg1, fake.runArgsForCall[i].arg2
 }
 
-func (fake *FakeScanner) RunReturns(result1 time.Duration, result2 error) {
+func (fake *FakeScannerV2) RunReturns(result1 time.Duration, result2 error) {
 	fake.RunStub = nil
 	fake.runReturns = struct {
 		result1 time.Duration
@@ -92,7 +92,7 @@ func (fake *FakeScanner) RunReturns(result1 time.Duration, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeScanner) RunReturnsOnCall(i int, result1 time.Duration, result2 error) {
+func (fake *FakeScannerV2) RunReturnsOnCall(i int, result1 time.Duration, result2 error) {
 	fake.RunStub = nil
 	if fake.runReturnsOnCall == nil {
 		fake.runReturnsOnCall = make(map[int]struct {
@@ -106,12 +106,12 @@ func (fake *FakeScanner) RunReturnsOnCall(i int, result1 time.Duration, result2 
 	}{result1, result2}
 }
 
-func (fake *FakeScanner) Scan(arg1 lager.Logger, arg2 radar.Scannable) error {
+func (fake *FakeScannerV2) Scan(arg1 lager.Logger, arg2 string) error {
 	fake.scanMutex.Lock()
 	ret, specificReturn := fake.scanReturnsOnCall[len(fake.scanArgsForCall)]
 	fake.scanArgsForCall = append(fake.scanArgsForCall, struct {
 		arg1 lager.Logger
-		arg2 radar.Scannable
+		arg2 string
 	}{arg1, arg2})
 	fake.recordInvocation("Scan", []interface{}{arg1, arg2})
 	fake.scanMutex.Unlock()
@@ -124,26 +124,26 @@ func (fake *FakeScanner) Scan(arg1 lager.Logger, arg2 radar.Scannable) error {
 	return fake.scanReturns.result1
 }
 
-func (fake *FakeScanner) ScanCallCount() int {
+func (fake *FakeScannerV2) ScanCallCount() int {
 	fake.scanMutex.RLock()
 	defer fake.scanMutex.RUnlock()
 	return len(fake.scanArgsForCall)
 }
 
-func (fake *FakeScanner) ScanArgsForCall(i int) (lager.Logger, radar.Scannable) {
+func (fake *FakeScannerV2) ScanArgsForCall(i int) (lager.Logger, string) {
 	fake.scanMutex.RLock()
 	defer fake.scanMutex.RUnlock()
 	return fake.scanArgsForCall[i].arg1, fake.scanArgsForCall[i].arg2
 }
 
-func (fake *FakeScanner) ScanReturns(result1 error) {
+func (fake *FakeScannerV2) ScanReturns(result1 error) {
 	fake.ScanStub = nil
 	fake.scanReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeScanner) ScanReturnsOnCall(i int, result1 error) {
+func (fake *FakeScannerV2) ScanReturnsOnCall(i int, result1 error) {
 	fake.ScanStub = nil
 	if fake.scanReturnsOnCall == nil {
 		fake.scanReturnsOnCall = make(map[int]struct {
@@ -155,12 +155,12 @@ func (fake *FakeScanner) ScanReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeScanner) ScanFromVersion(arg1 lager.Logger, arg2 radar.Scannable, arg3 atc.Version) error {
+func (fake *FakeScannerV2) ScanFromVersion(arg1 lager.Logger, arg2 string, arg3 atc.Version) error {
 	fake.scanFromVersionMutex.Lock()
 	ret, specificReturn := fake.scanFromVersionReturnsOnCall[len(fake.scanFromVersionArgsForCall)]
 	fake.scanFromVersionArgsForCall = append(fake.scanFromVersionArgsForCall, struct {
 		arg1 lager.Logger
-		arg2 radar.Scannable
+		arg2 string
 		arg3 atc.Version
 	}{arg1, arg2, arg3})
 	fake.recordInvocation("ScanFromVersion", []interface{}{arg1, arg2, arg3})
@@ -174,26 +174,26 @@ func (fake *FakeScanner) ScanFromVersion(arg1 lager.Logger, arg2 radar.Scannable
 	return fake.scanFromVersionReturns.result1
 }
 
-func (fake *FakeScanner) ScanFromVersionCallCount() int {
+func (fake *FakeScannerV2) ScanFromVersionCallCount() int {
 	fake.scanFromVersionMutex.RLock()
 	defer fake.scanFromVersionMutex.RUnlock()
 	return len(fake.scanFromVersionArgsForCall)
 }
 
-func (fake *FakeScanner) ScanFromVersionArgsForCall(i int) (lager.Logger, radar.Scannable, atc.Version) {
+func (fake *FakeScannerV2) ScanFromVersionArgsForCall(i int) (lager.Logger, string, atc.Version) {
 	fake.scanFromVersionMutex.RLock()
 	defer fake.scanFromVersionMutex.RUnlock()
 	return fake.scanFromVersionArgsForCall[i].arg1, fake.scanFromVersionArgsForCall[i].arg2, fake.scanFromVersionArgsForCall[i].arg3
 }
 
-func (fake *FakeScanner) ScanFromVersionReturns(result1 error) {
+func (fake *FakeScannerV2) ScanFromVersionReturns(result1 error) {
 	fake.ScanFromVersionStub = nil
 	fake.scanFromVersionReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeScanner) ScanFromVersionReturnsOnCall(i int, result1 error) {
+func (fake *FakeScannerV2) ScanFromVersionReturnsOnCall(i int, result1 error) {
 	fake.ScanFromVersionStub = nil
 	if fake.scanFromVersionReturnsOnCall == nil {
 		fake.scanFromVersionReturnsOnCall = make(map[int]struct {
@@ -205,7 +205,7 @@ func (fake *FakeScanner) ScanFromVersionReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeScanner) Invocations() map[string][][]interface{} {
+func (fake *FakeScannerV2) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.runMutex.RLock()
@@ -221,7 +221,7 @@ func (fake *FakeScanner) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeScanner) recordInvocation(key string, args []interface{}) {
+func (fake *FakeScannerV2) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -233,4 +233,4 @@ func (fake *FakeScanner) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ radar.Scanner = new(FakeScanner)
+var _ radar.ScannerV2 = new(FakeScannerV2)

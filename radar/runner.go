@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/lager"
-	"github.com/concourse/atc"
 	"github.com/concourse/atc/db"
 )
 
@@ -92,15 +91,15 @@ func (r *Runner) tick(ctx context.Context) error {
 		return err
 	}
 
-	r.scanResourceTypes(ctx, resourceTypes.Configs())
-	r.scanResources(ctx, resources.Configs())
+	r.scanResourceTypes(ctx, resourceTypes)
+	r.scanResources(ctx, resources)
 
 	return nil
 }
 
-func (r *Runner) scanResources(ctx context.Context, resources atc.ResourceConfigs) {
+func (r *Runner) scanResources(ctx context.Context, resources db.Resources) {
 	for _, resource := range resources {
-		scopedName := r.pipeline.ScopedName("resource:" + resource.Name)
+		scopedName := r.pipeline.ScopedName("resource:" + resource.Name())
 		if _, found := r.scanning.Load(scopedName); found {
 			continue
 		}
@@ -110,25 +109,26 @@ func (r *Runner) scanResources(ctx context.Context, resources atc.ResourceConfig
 		})
 
 		r.scanningWg.Add(1)
-		go func(name string, scopedName string) {
+		go func(resource db.Resource, scopedName string) {
 			defer r.scanningWg.Done()
 
 			r.scanning.Store(scopedName, true)
-			runner := r.scanRunnerFactory.ScanResourceRunner(logger, name)
+			runner := r.scanRunnerFactory.ScanResourceConfigRunner(logger, resource)
 			err := runner.Run(ctx)
 			if err != nil {
-				r.logger.Info("scanresources-runner-error", lager.Data{
-					"error": err,
+				r.logger.Info("scan-resource-config-runner-error", lager.Data{
+					"resource": resource.Name(),
+					"error":    err,
 				})
 			}
 			r.scanning.Delete(scopedName)
-		}(resource.Name, scopedName)
+		}(resource, scopedName)
 	}
 }
 
-func (r *Runner) scanResourceTypes(ctx context.Context, resourceTypes atc.ResourceTypes) {
+func (r *Runner) scanResourceTypes(ctx context.Context, resourceTypes db.ResourceTypes) {
 	for _, resourceType := range resourceTypes {
-		scopedName := r.pipeline.ScopedName("resource-type:" + resourceType.Name)
+		scopedName := r.pipeline.ScopedName("resource-type:" + resourceType.Name())
 		if _, found := r.scanning.Load(scopedName); found {
 			continue
 		}
@@ -138,18 +138,19 @@ func (r *Runner) scanResourceTypes(ctx context.Context, resourceTypes atc.Resour
 		})
 
 		r.scanningWg.Add(1)
-		go func(name string, scopedName string) {
+		go func(resourceType db.ResourceType, scopedName string) {
 			defer r.scanningWg.Done()
 
 			r.scanning.Store(scopedName, true)
-			runner := r.scanRunnerFactory.ScanResourceTypeRunner(logger, name)
+			runner := r.scanRunnerFactory.ScanResourceConfigRunner(logger, resourceType)
 			err := runner.Run(ctx)
 			if err != nil {
-				r.logger.Info("scanresources-runner-error", lager.Data{
-					"error": err,
+				r.logger.Info("scanresource-config-runner-error", lager.Data{
+					"resource-type": resourceType.Name(),
+					"error":         err,
 				})
 			}
 			r.scanning.Delete(scopedName)
-		}(resourceType.Name, scopedName)
+		}(resourceType, scopedName)
 	}
 }

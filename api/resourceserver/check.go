@@ -41,9 +41,21 @@ func (s *Server) CheckResource(dbPipeline db.Pipeline) http.Handler {
 			}
 		}
 
-		scanner := s.scannerFactory.NewResourceScanner(dbPipeline)
+		pipelineResource, found, err := dbPipeline.Resource(resourceName)
+		if err != nil {
+			logger.Error("failed-to-get-resource", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-		err = scanner.ScanFromVersion(logger, resourceName, fromVersion)
+		if !found {
+			logger.Debug("resource-not-found", lager.Data{"resource": resourceName})
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		scanner := s.scannerFactory.NewResourceScanner(dbPipeline)
+		err = scanner.ScanFromVersion(logger, pipelineResource, fromVersion)
 		switch scanErr := err.(type) {
 		case resource.ErrResourceScriptFailed:
 			checkResponseBody := atc.CheckResponseBody{

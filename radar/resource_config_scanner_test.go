@@ -24,7 +24,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ResourceScanner", func() {
+var _ = Describe("ResourceConfigScanner", func() {
 	var (
 		epoch time.Time
 
@@ -39,12 +39,11 @@ var _ = Describe("ResourceScanner", func() {
 		fakeResourceType      *dbfakes.FakeResourceType
 		versionedResourceType atc.VersionedResourceType
 
-		scanner                 ScannerV2
-		fakeResourceTypeScanner *radarfakes.FakeScannerV2
+		scanner Scanner
 
 		resourceConfig     atc.ResourceConfig
-		fakeDBResource     *dbfakes.FakeResource
 		fakeResourceConfig *dbfakes.FakeResourceConfig
+		fakeScannable      *radarfakes.FakeScannable
 
 		fakeLock *lockfakes.FakeLock
 		teamID   = 123
@@ -78,9 +77,9 @@ var _ = Describe("ResourceScanner", func() {
 		fakeResourceConfigCheckSession = new(dbfakes.FakeResourceConfigCheckSession)
 		fakeResourceConfigCheckSessionFactory = new(dbfakes.FakeResourceConfigCheckSessionFactory)
 		fakeResourceType = new(dbfakes.FakeResourceType)
-		fakeDBResource = new(dbfakes.FakeResource)
 		fakeDBPipeline = new(dbfakes.FakePipeline)
 		fakeResourceConfig = new(dbfakes.FakeResourceConfig)
+		fakeScannable = new(radarfakes.FakeScannable)
 
 		fakeResourceConfigCheckSessionFactory.FindOrCreateResourceConfigCheckSessionReturns(fakeResourceConfigCheckSession, nil)
 
@@ -101,20 +100,14 @@ var _ = Describe("ResourceScanner", func() {
 		fakeResourceType.SourceReturns(atc.Source{"custom": "((source-params))"})
 		fakeResourceType.VersionReturns(atc.Version{"custom": "version"})
 
-		fakeDBResource.IDReturns(39)
-		fakeDBResource.NameReturns("some-resource")
-		fakeDBResource.PipelineNameReturns("some-pipeline")
-		fakeDBResource.PausedReturns(false)
-		fakeDBResource.TypeReturns("git")
-		fakeDBResource.SourceReturns(atc.Source{"uri": "((source-params))"})
-		fakeDBResource.TagsReturns(atc.Tags{"some-tag"})
-		fakeDBResource.SetResourceConfigReturns(nil)
+		fakeScannable.NameReturns("some-resource")
+		fakeScannable.PausedReturns(false)
+		fakeScannable.TypeReturns("git")
+		fakeScannable.SourceReturns(atc.Source{"uri": "((source-params))"})
+		fakeScannable.TagsReturns(atc.Tags{"some-tag"})
+		fakeScannable.SetResourceConfigReturns(nil)
 
-		fakeDBPipeline.ResourceReturns(fakeDBResource, true, nil)
-
-		fakeResourceTypeScanner = new(radarfakes.FakeScannerV2)
-
-		scanner = NewResourceScanner(
+		scanner = NewResourceConfigScanner(
 			fakeClock,
 			fakeResourceFactory,
 			fakeResourceConfigCheckSessionFactory,
@@ -122,7 +115,6 @@ var _ = Describe("ResourceScanner", func() {
 			fakeDBPipeline,
 			"https://www.example.com",
 			variables,
-			fakeResourceTypeScanner,
 		)
 	})
 
@@ -139,7 +131,7 @@ var _ = Describe("ResourceScanner", func() {
 		})
 
 		JustBeforeEach(func() {
-			actualInterval, runErr = scanner.Run(lagertest.NewTestLogger("test"), "some-resource")
+			actualInterval, runErr = scanner.Run(lagertest.NewTestLogger("test"), fakeScannable)
 		})
 
 		Context("when the lock cannot be acquired", func() {
@@ -175,8 +167,8 @@ var _ = Describe("ResourceScanner", func() {
 					versionedResourceType,
 				})))
 
-				Expect(fakeDBResource.SetResourceConfigCallCount()).To(Equal(1))
-				resourceConfigID := fakeDBResource.SetResourceConfigArgsForCall(0)
+				Expect(fakeScannable.SetResourceConfigCallCount()).To(Equal(1))
+				resourceConfigID := fakeScannable.SetResourceConfigArgsForCall(0)
 				Expect(resourceConfigID).To(Equal(123))
 
 				_, _, owner, metadata, resourceSpec, resourceTypes, _ := fakeResourceFactory.NewResourceArgsForCall(0)
@@ -190,21 +182,15 @@ var _ = Describe("ResourceScanner", func() {
 					},
 					Tags:   atc.Tags{"some-tag"},
 					TeamID: 123,
-					Env: []string{
-						"ATC_EXTERNAL_URL=https://www.example.com",
-						"RESOURCE_PIPELINE_NAME=some-pipeline",
-						"RESOURCE_NAME=some-resource",
-					},
 				}))
 				Expect(resourceTypes).To(Equal(creds.NewVersionedResourceTypes(variables, atc.VersionedResourceTypes{
 					versionedResourceType,
 				})))
 			})
 
-			Context("when the resource config has a specified check interval", func() {
+			Context("when the scannable object has a specified check interval", func() {
 				BeforeEach(func() {
-					fakeDBResource.CheckEveryReturns("10ms")
-					fakeDBPipeline.ResourceReturns(fakeDBResource, true, nil)
+					fakeScannable.CheckEveryReturns("10ms")
 				})
 
 				It("leases for the configured interval", func() {
@@ -223,14 +209,13 @@ var _ = Describe("ResourceScanner", func() {
 
 				Context("when the interval cannot be parsed", func() {
 					BeforeEach(func() {
-						fakeDBResource.CheckEveryReturns("bad-value")
-						fakeDBPipeline.ResourceReturns(fakeDBResource, true, nil)
+						fakeScannable.CheckEveryReturns("bad-value")
 					})
 
 					It("sets the check error", func() {
-						Expect(fakeDBResource.SetCheckErrorCallCount()).To(Equal(1))
+						Expect(fakeScannable.SetCheckErrorCallCount()).To(Equal(1))
 
-						resourceErr := fakeDBResource.SetCheckErrorArgsForCall(0)
+						resourceErr := fakeScannable.SetCheckErrorArgsForCall(0)
 						Expect(resourceErr).To(MatchError("time: invalid duration bad-value"))
 					})
 
@@ -252,11 +237,12 @@ var _ = Describe("ResourceScanner", func() {
 
 			Context("when the resource uses a custom type", func() {
 				BeforeEach(func() {
-					fakeDBResource.TypeReturns("some-custom-resource")
+					fakeScannable.TypeReturns("some-custom-resource")
 				})
+
 				Context("and the custom type has a version", func() {
-					It("doesn't scan for new versions of the custom type", func() {
-						Expect(fakeResourceTypeScanner.ScanCallCount()).To(Equal(0))
+					It("does not fail", func() {
+						Expect(runErr).ToNot(HaveOccurred())
 					})
 				})
 
@@ -265,30 +251,28 @@ var _ = Describe("ResourceScanner", func() {
 						fakeResourceType.VersionReturns(nil)
 					})
 
-					It("scans for new versions of the custom type", func() {
-						Expect(fakeResourceTypeScanner.ScanCallCount()).To(Equal(1))
-						_, scannedResourceType := fakeResourceTypeScanner.ScanArgsForCall(0)
-						Expect(scannedResourceType).To(Equal("some-custom-resource"))
+					It("returns silently", func() {
+						Expect(runErr).ToNot(HaveOccurred())
 					})
 
-					Context("when scanning for the custom type fails", func() {
-						var typeScanErr = errors.New("type scan failed")
-						BeforeEach(func() {
-							fakeResourceTypeScanner.ScanReturns(typeScanErr)
-						})
-						It("returns the error from scanning for the type", func() {
-							Expect(runErr).To(Equal(typeScanErr))
-						})
-					})
+					// Context("when scanning for the custom type fails", func() {
+					// 	var typeScanErr = errors.New("type scan failed")
+					// 	BeforeEach(func() {
+					// 		fakeScanner.ScanReturns(typeScanErr)
+					// 	})
+					// 	It("returns the error from scanning for the type", func() {
+					// 		Expect(runErr).To(Equal(typeScanErr))
+					// 	})
+					// })
 
-					Context("when scanning for the custom type succeeds", func() {
-						BeforeEach(func() {
-							fakeResourceTypeScanner.ScanReturns(nil)
-						})
-						It("reloads the resource types", func() {
-							Expect(fakeDBPipeline.ResourceTypesCallCount()).To(Equal(2))
-						})
-					})
+					// Context("when scanning for the custom type succeeds", func() {
+					// 	BeforeEach(func() {
+					// 		fakeScanner.ScanReturns(nil)
+					// 	})
+					// 	It("reloads the resource types", func() {
+					// 		Expect(fakeDBPipeline.ResourceTypesCallCount()).To(Equal(2))
+					// 	})
+					// })
 				})
 			})
 
@@ -411,13 +395,9 @@ var _ = Describe("ResourceScanner", func() {
 				})
 			})
 
-			Context("when the resource is paused", func() {
-				var anotherFakeResource *dbfakes.FakeResource
+			Context("when the scannable object is paused", func() {
 				BeforeEach(func() {
-					anotherFakeResource = new(dbfakes.FakeResource)
-					anotherFakeResource.NameReturns("some-resource")
-					anotherFakeResource.PausedReturns(true)
-					fakeDBPipeline.ResourceReturns(anotherFakeResource, true, nil)
+					fakeScannable.PausedReturns(true)
 				})
 
 				It("does not check", func() {
@@ -433,7 +413,7 @@ var _ = Describe("ResourceScanner", func() {
 				})
 			})
 
-			Context("when checking if the resource is paused fails", func() {
+			Context("when checking if the pipeline is paused fails", func() {
 				disaster := errors.New("disaster")
 
 				BeforeEach(func() {
@@ -443,30 +423,6 @@ var _ = Describe("ResourceScanner", func() {
 				It("returns an error", func() {
 					Expect(runErr).To(HaveOccurred())
 					Expect(runErr).To(Equal(disaster))
-				})
-			})
-
-			Context("when checking if the resource is paused fails", func() {
-				disaster := errors.New("disaster")
-
-				BeforeEach(func() {
-					fakeDBPipeline.ResourceReturns(nil, false, disaster)
-				})
-
-				It("returns an error", func() {
-					Expect(runErr).To(HaveOccurred())
-					Expect(runErr).To(Equal(disaster))
-				})
-			})
-
-			Context("when the resource is not in the database", func() {
-				BeforeEach(func() {
-					fakeDBPipeline.ResourceReturns(nil, false, nil)
-				})
-
-				It("returns an error", func() {
-					Expect(runErr).To(HaveOccurred())
-					Expect(runErr.Error()).To(ContainSubstring("resource 'some-resource' not found"))
 				})
 			})
 		})
@@ -485,7 +441,7 @@ var _ = Describe("ResourceScanner", func() {
 		})
 
 		JustBeforeEach(func() {
-			scanErr = scanner.Scan(lagertest.NewTestLogger("test"), "some-resource")
+			scanErr = scanner.Scan(lagertest.NewTestLogger("test"), fakeScannable)
 		})
 
 		Context("if the lock can be acquired", func() {
@@ -493,39 +449,39 @@ var _ = Describe("ResourceScanner", func() {
 				fakeResourceConfig.AcquireResourceConfigCheckingLockWithIntervalCheckReturns(fakeLock, true, nil)
 			})
 
-			Context("Parent resource has no version and attempt to Scan fails", func() {
-				BeforeEach(func() {
-					var fakeGitResourceType *dbfakes.FakeResourceType
-					fakeGitResourceType = new(dbfakes.FakeResourceType)
+			// Context("Parent resource has no version and attempt to Scan fails", func() {
+			// 	BeforeEach(func() {
+			// 		var fakeGitResourceType *dbfakes.FakeResourceType
+			// 		fakeGitResourceType = new(dbfakes.FakeResourceType)
 
-					fakeDBPipeline.ResourceTypesReturns([]db.ResourceType{fakeGitResourceType}, nil)
+			// 		fakeDBPipeline.ResourceTypesReturns([]db.ResourceType{fakeGitResourceType}, nil)
 
-					fakeGitResourceType.IDReturns(5)
-					fakeGitResourceType.NameReturns("git")
-					fakeGitResourceType.TypeReturns("registry-image")
-					fakeGitResourceType.SourceReturns(atc.Source{"custom": "((source-params))"})
-					fakeGitResourceType.VersionReturns(nil)
+			// 		fakeGitResourceType.IDReturns(5)
+			// 		fakeGitResourceType.NameReturns("git")
+			// 		fakeGitResourceType.TypeReturns("registry-image")
+			// 		fakeGitResourceType.SourceReturns(atc.Source{"custom": "((source-params))"})
+			// 		fakeGitResourceType.VersionReturns(nil)
 
-					fakeResourceTypeScanner.ScanReturns(errors.New("some-resource-type-error"))
-				})
+			// 		fakeScanner.ScanReturns(errors.New("some-resource-type-error"))
+			// 	})
 
-				It("fails and returns error", func() {
-					Expect(fakeResourceTypeScanner.ScanCallCount()).To(Equal(1))
-					_, parentTypeName := fakeResourceTypeScanner.ScanArgsForCall(0)
-					Expect(parentTypeName).To(Equal("git"))
+			// 	It("fails and returns error", func() {
+			// 		Expect(fakeScanner.ScanCallCount()).To(Equal(1))
+			// 		_, parentTypeName := fakeScanner.ScanArgsForCall(0)
+			// 		Expect(parentTypeName.Name()).To(Equal("git"))
 
-					Expect(scanErr).To(HaveOccurred())
-					Expect(scanErr.Error()).To(Equal("some-resource-type-error"))
-				})
+			// 		Expect(scanErr).To(HaveOccurred())
+			// 		Expect(scanErr.Error()).To(Equal("some-resource-type-error"))
+			// 	})
 
-				It("saves the error to check_error on resource row in db", func() {
-					Expect(fakeDBResource.SetCheckErrorCallCount()).To(Equal(1))
+			// 	It("saves the error to check_error on resource row in db", func() {
+			// 		Expect(fakeScannable.SetCheckErrorCallCount()).To(Equal(1))
 
-					err := fakeDBResource.SetCheckErrorArgsForCall(0)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("some-resource-type-error"))
-				})
-			})
+			// 		err := fakeScannable.SetCheckErrorArgsForCall(0)
+			// 		Expect(err).To(HaveOccurred())
+			// 		Expect(err.Error()).To(Equal("some-resource-type-error"))
+			// 	})
+			// })
 
 			It("succeeds", func() {
 				Expect(scanErr).NotTo(HaveOccurred())
@@ -540,8 +496,8 @@ var _ = Describe("ResourceScanner", func() {
 					versionedResourceType,
 				})))
 
-				Expect(fakeDBResource.SetResourceConfigCallCount()).To(Equal(1))
-				resourceConfigID := fakeDBResource.SetResourceConfigArgsForCall(0)
+				Expect(fakeScannable.SetResourceConfigCallCount()).To(Equal(1))
+				resourceConfigID := fakeScannable.SetResourceConfigArgsForCall(0)
 				Expect(resourceConfigID).To(Equal(123))
 
 				_, _, owner, metadata, resourceSpec, resourceTypes, _ := fakeResourceFactory.NewResourceArgsForCall(0)
@@ -555,11 +511,6 @@ var _ = Describe("ResourceScanner", func() {
 					},
 					Tags:   atc.Tags{"some-tag"},
 					TeamID: 123,
-					Env: []string{
-						"ATC_EXTERNAL_URL=https://www.example.com",
-						"RESOURCE_PIPELINE_NAME=some-pipeline",
-						"RESOURCE_NAME=some-resource",
-					},
 				}))
 				Expect(resourceTypes).To(Equal(creds.NewVersionedResourceTypes(variables, atc.VersionedResourceTypes{
 					versionedResourceType,
@@ -583,23 +534,23 @@ var _ = Describe("ResourceScanner", func() {
 
 				It("sets the check error and returns the error", func() {
 					Expect(scanErr).To(HaveOccurred())
-					Expect(fakeDBResource.SetCheckErrorCallCount()).To(Equal(1))
+					Expect(fakeScannable.SetCheckErrorCallCount()).To(Equal(1))
 
-					resourceErr := fakeDBResource.SetCheckErrorArgsForCall(0)
+					resourceErr := fakeScannable.SetCheckErrorArgsForCall(0)
 					Expect(resourceErr).To(MatchError("catastrophe"))
 				})
 			})
 
 			Context("when updating the resource config id on the resource fails", func() {
 				BeforeEach(func() {
-					fakeDBResource.SetResourceConfigReturns(errors.New("catastrophe"))
+					fakeScannable.SetResourceConfigReturns(errors.New("catastrophe"))
 				})
 
 				It("sets the check error and returns the error", func() {
 					Expect(scanErr).To(HaveOccurred())
-					Expect(fakeDBResource.SetCheckErrorCallCount()).To(Equal(1))
+					Expect(fakeResourceConfig.SetCheckErrorCallCount()).To(Equal(1))
 
-					resourceErr := fakeDBResource.SetCheckErrorArgsForCall(0)
+					resourceErr := fakeResourceConfig.SetCheckErrorArgsForCall(0)
 					Expect(resourceErr).To(MatchError("catastrophe"))
 				})
 			})
@@ -611,17 +562,16 @@ var _ = Describe("ResourceScanner", func() {
 
 				It("sets the check error and returns the error", func() {
 					Expect(scanErr).To(HaveOccurred())
-					Expect(fakeDBResource.SetCheckErrorCallCount()).To(Equal(1))
+					Expect(fakeResourceConfig.SetCheckErrorCallCount()).To(Equal(1))
 
-					resourceErr := fakeDBResource.SetCheckErrorArgsForCall(0)
+					resourceErr := fakeResourceConfig.SetCheckErrorArgsForCall(0)
 					Expect(resourceErr).To(MatchError("catastrophe"))
 				})
 			})
 
 			Context("when the resource config has a specified check interval", func() {
 				BeforeEach(func() {
-					fakeDBResource.CheckEveryReturns("10ms")
-					fakeDBPipeline.ResourceReturns(fakeDBResource, true, nil)
+					fakeScannable.CheckEveryReturns("10ms")
 				})
 
 				It("leases for the configured interval", func() {
@@ -636,16 +586,15 @@ var _ = Describe("ResourceScanner", func() {
 
 				Context("when the interval cannot be parsed", func() {
 					BeforeEach(func() {
-						fakeDBResource.CheckEveryReturns("bad-value")
-						fakeDBPipeline.ResourceReturns(fakeDBResource, true, nil)
+						fakeScannable.CheckEveryReturns("bad-value")
 					})
 
 					It("sets the check error and returns the error", func() {
 						Expect(scanErr).To(HaveOccurred())
-						Expect(fakeDBResource.SetCheckErrorCallCount()).To(Equal(1))
+						Expect(fakeScannable.SetCheckErrorCallCount()).To(Equal(1))
 
-						resourceErr := fakeDBResource.SetCheckErrorArgsForCall(0)
-						Expect(resourceErr).To(MatchError("catastrophe"))
+						resourceErr := fakeScannable.SetCheckErrorArgsForCall(0)
+						Expect(resourceErr).To(MatchError("time: invalid duration bad-value"))
 					})
 				})
 			})
@@ -690,9 +639,9 @@ var _ = Describe("ResourceScanner", func() {
 			})
 
 			It("clears the resource's check error", func() {
-				Expect(fakeDBResource.SetCheckErrorCallCount()).To(Equal(1))
+				Expect(fakeResourceConfig.SetCheckErrorCallCount()).To(Equal(1))
 
-				err := fakeDBResource.SetCheckErrorArgsForCall(0)
+				err := fakeResourceConfig.SetCheckErrorArgsForCall(0)
 				Expect(err).To(BeNil())
 			})
 
@@ -806,9 +755,9 @@ var _ = Describe("ResourceScanner", func() {
 				})
 
 				It("sets the resource's check error", func() {
-					Expect(fakeDBResource.SetCheckErrorCallCount()).To(Equal(1))
+					Expect(fakeResourceConfig.SetCheckErrorCallCount()).To(Equal(1))
 
-					err := fakeDBResource.SetCheckErrorArgsForCall(0)
+					err := fakeResourceConfig.SetCheckErrorArgsForCall(0)
 					Expect(err).To(Equal(disaster))
 				})
 			})
@@ -825,9 +774,9 @@ var _ = Describe("ResourceScanner", func() {
 				})
 
 				It("sets the resource's check error", func() {
-					Expect(fakeDBResource.SetCheckErrorCallCount()).To(Equal(1))
+					Expect(fakeResourceConfig.SetCheckErrorCallCount()).To(Equal(1))
 
-					err := fakeDBResource.SetCheckErrorArgsForCall(0)
+					err := fakeResourceConfig.SetCheckErrorArgsForCall(0)
 					Expect(err).To(Equal(scriptFail))
 				})
 			})
@@ -849,7 +798,7 @@ var _ = Describe("ResourceScanner", func() {
 		})
 
 		JustBeforeEach(func() {
-			scanErr = scanner.ScanFromVersion(lagertest.NewTestLogger("test"), "some-resource", fromVersion)
+			scanErr = scanner.ScanFromVersion(lagertest.NewTestLogger("test"), fakeScannable, fromVersion)
 		})
 
 		Context("if the lock can be acquired", func() {
@@ -886,17 +835,6 @@ var _ = Describe("ResourceScanner", func() {
 
 				It("returns the error", func() {
 					Expect(scanErr).To(Equal(scriptFail))
-				})
-			})
-
-			Context("when the resource is not in the database", func() {
-				BeforeEach(func() {
-					fakeDBPipeline.ResourceReturns(nil, false, nil)
-				})
-
-				It("returns an error", func() {
-					Expect(scanErr).To(HaveOccurred())
-					Expect(scanErr.Error()).To(ContainSubstring("resource 'some-resource' not found"))
 				})
 			})
 		})

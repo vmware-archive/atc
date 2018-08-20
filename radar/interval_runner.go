@@ -14,23 +14,23 @@ type IntervalRunner interface {
 }
 
 type intervalRunner struct {
-	logger  lager.Logger
-	clock   clock.Clock
-	name    string
-	scanner Scanner
+	logger    lager.Logger
+	clock     clock.Clock
+	scannable Scannable
+	scanner   Scanner
 }
 
 func NewIntervalRunner(
 	logger lager.Logger,
 	clock clock.Clock,
-	name string,
+	scannable Scannable,
 	scanner Scanner,
 ) IntervalRunner {
 	return &intervalRunner{
-		logger:  logger,
-		clock:   clock,
-		name:    name,
-		scanner: scanner,
+		logger:    logger,
+		clock:     clock,
+		scannable: scannable,
+		scanner:   scanner,
 	}
 }
 
@@ -47,7 +47,7 @@ func (r *intervalRunner) Run(ctx context.Context) error {
 			return nil
 		case <-timer.C():
 			var err error
-			interval, err = r.scanner.Run(r.logger, r.name)
+			interval, err = r.scanner.Run(r.logger, r.scannable)
 			if err != nil {
 				if err == ErrFailedToAcquireLock {
 					break

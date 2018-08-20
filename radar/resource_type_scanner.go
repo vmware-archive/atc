@@ -32,7 +32,7 @@ func NewResourceTypeScanner(
 	dbPipeline db.Pipeline,
 	externalURL string,
 	variables creds.Variables,
-) Scanner {
+) ScannerV2 {
 	return &resourceTypeScanner{
 		clock:                             clock,
 		resourceFactory:                   resourceFactory,

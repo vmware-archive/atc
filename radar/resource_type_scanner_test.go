@@ -38,7 +38,7 @@ var _ = Describe("ResourceTypeScanner", func() {
 		fakeResourceType      *dbfakes.FakeResourceType
 		versionedResourceType atc.VersionedResourceType
 
-		scanner Scanner
+		scanner ScannerV2
 
 		fakeLock *lockfakes.FakeLock
 		teamID   = 123

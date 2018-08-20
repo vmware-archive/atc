@@ -12,25 +12,34 @@ import (
 	"code.cloudfoundry.org/lager"
 )
 
-//go:generate counterfeiter . Scanner
+//go:generate counterfeiter . ScannerV2
 
-type Scanner interface {
+type ScannerV2 interface {
 	Run(lager.Logger, string) (time.Duration, error)
 	Scan(lager.Logger, string) error
 	ScanFromVersion(lager.Logger, string, atc.Version) error
 }
 
+//go:generate counterfeiter . Scanner
+
+type Scanner interface {
+	Run(lager.Logger, Scannable) (time.Duration, error)
+	Scan(lager.Logger, Scannable) error
+	ScanFromVersion(lager.Logger, Scannable, atc.Version) error
+}
+
 //go:generate counterfeiter . ScanRunnerFactory
 
 type ScanRunnerFactory interface {
-	ScanResourceRunner(lager.Logger, string) IntervalRunner
-	ScanResourceTypeRunner(lager.Logger, string) IntervalRunner
+	// ScanResourceRunner(lager.Logger, string) IntervalRunner
+	// ScanResourceTypeRunner(lager.Logger, string) IntervalRunner
+	ScanResourceConfigRunner(lager.Logger, Scannable) IntervalRunner
 }
 
 type scanRunnerFactory struct {
-	clock               clock.Clock
-	resourceScanner     Scanner
-	resourceTypeScanner Scanner
+	clock                 clock.Clock
+	resourceConfigScanner Scanner
+	// resourceTypeScanner Scanner
 }
 
 func NewScanRunnerFactory(
@@ -43,17 +52,28 @@ func NewScanRunnerFactory(
 	externalURL string,
 	variables creds.Variables,
 ) ScanRunnerFactory {
-	resourceTypeScanner := NewResourceTypeScanner(
-		clock,
-		resourceFactory,
-		resourceConfigCheckSessionFactory,
-		resourceTypeCheckingInterval,
-		dbPipeline,
-		externalURL,
-		variables,
-	)
+	// resourceTypeScanner := NewResourceTypeScanner(
+	// 	clock,
+	// 	resourceFactory,
+	// 	resourceConfigCheckSessionFactory,
+	// 	resourceTypeCheckingInterval,
+	// 	dbPipeline,
+	// 	externalURL,
+	// 	variables,
+	// )
 
-	resourceScanner := NewResourceScanner(
+	// resourceScanner := NewResourceScanner(
+	// 	clock,
+	// 	resourceFactory,
+	// 	resourceConfigCheckSessionFactory,
+	// 	resourceCheckingInterval,
+	// 	dbPipeline,
+	// 	externalURL,
+	// 	variables,
+	// 	resourceTypeScanner,
+	// )
+
+	resourceConfigScanner := NewResourceConfigScanner(
 		clock,
 		resourceFactory,
 		resourceConfigCheckSessionFactory,
@@ -61,19 +81,24 @@ func NewScanRunnerFactory(
 		dbPipeline,
 		externalURL,
 		variables,
-		resourceTypeScanner,
 	)
+
 	return &scanRunnerFactory{
-		clock:               clock,
-		resourceScanner:     resourceScanner,
-		resourceTypeScanner: resourceTypeScanner,
+		clock: clock,
+		resourceConfigScanner: resourceConfigScanner,
+		// resourceScanner:     resourceScanner,
+		// resourceTypeScanner: resourceTypeScanner,
 	}
 }
 
-func (sf *scanRunnerFactory) ScanResourceRunner(logger lager.Logger, name string) IntervalRunner {
-	return NewIntervalRunner(logger.Session("interval-runner"), sf.clock, name, sf.resourceScanner)
-}
+// func (sf *scanRunnerFactory) ScanResourceRunner(logger lager.Logger, name string) IntervalRunner {
+// 	return NewIntervalRunner(logger.Session("interval-runner"), sf.clock, name, sf.resourceScanner)
+// }
 
-func (sf *scanRunnerFactory) ScanResourceTypeRunner(logger lager.Logger, name string) IntervalRunner {
-	return NewIntervalRunner(logger.Session("interval-runner"), sf.clock, name, sf.resourceTypeScanner)
+// func (sf *scanRunnerFactory) ScanResourceTypeRunner(logger lager.Logger, name string) IntervalRunner {
+// 	return NewIntervalRunner(logger.Session("interval-runner"), sf.clock, name, sf.resourceTypeScanner)
+// }
+
+func (sf *scanRunnerFactory) ScanResourceConfigRunner(logger lager.Logger, scannable Scannable) IntervalRunner {
+	return NewIntervalRunner(logger.Session("interval-runner"), sf.clock, scannable, sf.resourceConfigScanner)
 }

@@ -58,7 +58,7 @@ func (s *Server) CheckResourceWebHook(dbPipeline db.Pipeline) http.Handler {
 		}
 
 		scanner := s.scannerFactory.NewResourceScanner(dbPipeline)
-		err = scanner.ScanFromVersion(logger, resourceName, fromVersion)
+		err = scanner.ScanFromVersion(logger, pipelineResource, fromVersion)
 		switch err.(type) {
 		case db.ResourceNotFoundError:
 			w.WriteHeader(http.StatusNotFound)
