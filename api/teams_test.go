@@ -39,7 +39,7 @@ var _ = Describe("Teams API", func() {
 		fakeAccessor.CreateReturns(fakeaccess)
 	})
 
-	Describe("GET /api/v1/teams", func() {
+	FDescribe("GET /api/v1/teams", func() {
 		var (
 			response      *http.Response
 			fakeTeamOne   *dbfakes.FakeTeam
@@ -151,7 +151,7 @@ var _ = Describe("Teams API", func() {
 				BeforeEach(func() {
 					fakeTeamFour := new(dbfakes.FakeTeam)
 					fakeTeamFour.IDReturns(25)
-					fakeTeamFour.NameReturns("public-team")
+					fakeTeamFour.NameReturns("aa-team")
 					fakeTeamFour.AuthReturns(map[string][]string{
 						"groups": []string{}, "users": []string{},
 					})
@@ -176,7 +176,7 @@ var _ = Describe("Teams API", func() {
 	 					},
 	 					{
 	 						"id": 25,
-	 						"name": "public-team",
+	 						"name": "aa-team",
 	 						"auth": {"users":[], "groups":[]}
 	 					}
 	 				]`))

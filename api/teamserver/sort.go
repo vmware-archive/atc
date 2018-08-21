@@ -4,17 +4,17 @@ import (
 	"sort"
 )
 
-type extraBy func(item1, item2 *interface{}) bool
+type by func(item1, item2 *interface{}) bool
 
 type Sorter struct {
-	items   []interface{}interface
-	extraBy func(item1, item2 *{}) bool
+	items []interface{}
+	by    func(item1, item2 *interface{}) bool
 }
 
-func (b extraBy) Sort(items []interface{}) {
+func (b by) Sort(items []interface{}) {
 	s := &Sorter{
-		items:   items,
-		extraBy: b,
+		items: items,
+		by:    b,
 	}
 	sort.Sort(s)
 }
@@ -28,11 +28,11 @@ func (s *Sorter) Swap(i, j int) {
 }
 
 func (s *Sorter) Less(i, j int) bool {
-	return s.extraBy(&s.items[i], &s.items[j])
+	return s.by(&s.items[i], &s.items[j])
 }
 
-func (s Sorter) GenericSort(sorter func(item1, item2 *interface{}) bool) interface{} {
-	extraBy(sorter).Sort(s.items)
+func (s Sorter) GenericSort(sorter func(item1, item2 *interface{}) bool) []interface{} {
+	by(sorter).Sort(s.items)
 
 	return s.items
 }

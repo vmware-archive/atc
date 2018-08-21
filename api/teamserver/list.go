@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"reflect"
 
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/api/accessor"
@@ -20,16 +21,29 @@ func (s *Server) ListTeams(w http.ResponseWriter, r *http.Request) {
 	}
 
 	acc := accessor.GetAccessor(r)
-	presentedTeams := make([]atc.Team, 0)
+	authorizedTeams := make([]atc.Team, 0)
+	publicTeams := make([]atc.Team, 0)
+	// presentedTeams := make([]atc.Team, 0)
+
+	emptyTeam := atc.Team{}
 	for _, team := range teams {
 		if acc.IsAdmin() || acc.IsAuthorized(team.Name()) {
-			presentedTeams = append(presentedTeams, present.Team(team))
+			if reflect.DeepEqual(team.Auth, emptyTeam.Auth) {
+				publicTeams = append(publicTeams, present.Team(team))
+			} else {
+				authorizedTeams = append(authorizedTeams, present.Team(team))
+			}
 		}
 	}
 
-	sortTeams := make([]interface{}, 0)
-	for _, team := range presentedTeams {
-		sortTeams = append(sortTeams, team)
+	sortAuthorizedTeams := make([]interface{}, 0)
+	for _, team := range authorizedTeams {
+		sortAuthorizedTeams = append(sortAuthorizedTeams, team)
+	}
+
+	sortPublicTeams := make([]interface{}, 0)
+	for _, team := range publicTeams {
+		sortPublicTeams = append(sortPublicTeams, team)
 	}
 
 	alphabeticalSort := func(team1, team2 *interface{}) bool {
@@ -38,10 +52,15 @@ func (s *Server) ListTeams(w http.ResponseWriter, r *http.Request) {
 		return t1.Name < t2.Name
 	}
 
-	sortedTeams := Sorter{items: sortTeams}.GenericSort(alphabeticalSort)
+	sortAuthorizedTeams = Sorter{items: sortAuthorizedTeams}.GenericSort(alphabeticalSort)
+	sortPublicTeams = Sorter{items: sortPublicTeams}.GenericSort(alphabeticalSort)
+
+	// fmt.Printf("authrized & public %v", append(sortAuthorizedTeams, sortPublicTeams))
+	// sortAuthorizedTeams = append(sortAuthorizedTeams, sortPublicTeams)
+	// sortedTeams := Sorter{items: presentedTeams}.GenericSort(alphabeticalSort)
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(sortedTeams)
+	err = json.NewEncoder(w).Encode(append(sortAuthorizedTeams, sortPublicTeams))
 	if err != nil {
 		hLog.Error("failed-to-encode-teams", err)
 		w.WriteHeader(http.StatusInternalServerError)
