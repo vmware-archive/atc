@@ -150,6 +150,7 @@ var _ = Describe("Pipelines API", func() {
 					"name": "another-pipeline",
 					"paused": true,
 					"public": true,
+					"archived": false,
 					"team_name": "another"
 				}]`))
 			})
