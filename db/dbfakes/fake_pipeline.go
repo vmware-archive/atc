@@ -131,18 +131,6 @@ type FakePipeline struct {
 		result1 []db.Cause
 		result2 error
 	}
-	SetResourceCheckErrorStub        func(db.Resource, error) error
-	setResourceCheckErrorMutex       sync.RWMutex
-	setResourceCheckErrorArgsForCall []struct {
-		arg1 db.Resource
-		arg2 error
-	}
-	setResourceCheckErrorReturns struct {
-		result1 error
-	}
-	setResourceCheckErrorReturnsOnCall map[int]struct {
-		result1 error
-	}
 	SaveResourceVersionsStub        func(atc.ResourceConfig, []atc.Version) error
 	saveResourceVersionsMutex       sync.RWMutex
 	saveResourceVersionsArgsForCall []struct {
@@ -1032,55 +1020,6 @@ func (fake *FakePipeline) CausalityReturnsOnCall(i int, result1 []db.Cause, resu
 		result1 []db.Cause
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakePipeline) SetResourceCheckError(arg1 db.Resource, arg2 error) error {
-	fake.setResourceCheckErrorMutex.Lock()
-	ret, specificReturn := fake.setResourceCheckErrorReturnsOnCall[len(fake.setResourceCheckErrorArgsForCall)]
-	fake.setResourceCheckErrorArgsForCall = append(fake.setResourceCheckErrorArgsForCall, struct {
-		arg1 db.Resource
-		arg2 error
-	}{arg1, arg2})
-	fake.recordInvocation("SetResourceCheckError", []interface{}{arg1, arg2})
-	fake.setResourceCheckErrorMutex.Unlock()
-	if fake.SetResourceCheckErrorStub != nil {
-		return fake.SetResourceCheckErrorStub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.setResourceCheckErrorReturns.result1
-}
-
-func (fake *FakePipeline) SetResourceCheckErrorCallCount() int {
-	fake.setResourceCheckErrorMutex.RLock()
-	defer fake.setResourceCheckErrorMutex.RUnlock()
-	return len(fake.setResourceCheckErrorArgsForCall)
-}
-
-func (fake *FakePipeline) SetResourceCheckErrorArgsForCall(i int) (db.Resource, error) {
-	fake.setResourceCheckErrorMutex.RLock()
-	defer fake.setResourceCheckErrorMutex.RUnlock()
-	return fake.setResourceCheckErrorArgsForCall[i].arg1, fake.setResourceCheckErrorArgsForCall[i].arg2
-}
-
-func (fake *FakePipeline) SetResourceCheckErrorReturns(result1 error) {
-	fake.SetResourceCheckErrorStub = nil
-	fake.setResourceCheckErrorReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakePipeline) SetResourceCheckErrorReturnsOnCall(i int, result1 error) {
-	fake.SetResourceCheckErrorStub = nil
-	if fake.setResourceCheckErrorReturnsOnCall == nil {
-		fake.setResourceCheckErrorReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.setResourceCheckErrorReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakePipeline) SaveResourceVersions(arg1 atc.ResourceConfig, arg2 []atc.Version) error {
@@ -2572,8 +2511,6 @@ func (fake *FakePipeline) Invocations() map[string][][]interface{} {
 	defer fake.reloadMutex.RUnlock()
 	fake.causalityMutex.RLock()
 	defer fake.causalityMutex.RUnlock()
-	fake.setResourceCheckErrorMutex.RLock()
-	defer fake.setResourceCheckErrorMutex.RUnlock()
 	fake.saveResourceVersionsMutex.RLock()
 	defer fake.saveResourceVersionsMutex.RUnlock()
 	fake.getResourceVersionsMutex.RLock()
