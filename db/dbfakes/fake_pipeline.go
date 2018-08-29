@@ -218,26 +218,28 @@ type FakePipeline struct {
 		result2 bool
 		result3 error
 	}
-	DisableVersionedResourceStub        func(versionedResourceID int) error
-	disableVersionedResourceMutex       sync.RWMutex
-	disableVersionedResourceArgsForCall []struct {
-		versionedResourceID int
+	DisableResourceVersionStub        func(int, int) error
+	disableResourceVersionMutex       sync.RWMutex
+	disableResourceVersionArgsForCall []struct {
+		arg1 int
+		arg2 int
 	}
-	disableVersionedResourceReturns struct {
+	disableResourceVersionReturns struct {
 		result1 error
 	}
-	disableVersionedResourceReturnsOnCall map[int]struct {
+	disableResourceVersionReturnsOnCall map[int]struct {
 		result1 error
 	}
-	EnableVersionedResourceStub        func(versionedResourceID int) error
-	enableVersionedResourceMutex       sync.RWMutex
-	enableVersionedResourceArgsForCall []struct {
-		versionedResourceID int
+	EnableResourceVersionStub        func(int, int) error
+	enableResourceVersionMutex       sync.RWMutex
+	enableResourceVersionArgsForCall []struct {
+		arg1 int
+		arg2 int
 	}
-	enableVersionedResourceReturns struct {
+	enableResourceVersionReturns struct {
 		result1 error
 	}
-	enableVersionedResourceReturnsOnCall map[int]struct {
+	enableResourceVersionReturnsOnCall map[int]struct {
 		result1 error
 	}
 	GetBuildsWithVersionAsInputStub        func(versionedResourceID int) ([]db.Build, error)
@@ -1340,98 +1342,100 @@ func (fake *FakePipeline) VersionedResourceReturnsOnCall(i int, result1 db.Saved
 	}{result1, result2, result3}
 }
 
-func (fake *FakePipeline) DisableVersionedResource(versionedResourceID int) error {
-	fake.disableVersionedResourceMutex.Lock()
-	ret, specificReturn := fake.disableVersionedResourceReturnsOnCall[len(fake.disableVersionedResourceArgsForCall)]
-	fake.disableVersionedResourceArgsForCall = append(fake.disableVersionedResourceArgsForCall, struct {
-		versionedResourceID int
-	}{versionedResourceID})
-	fake.recordInvocation("DisableVersionedResource", []interface{}{versionedResourceID})
-	fake.disableVersionedResourceMutex.Unlock()
-	if fake.DisableVersionedResourceStub != nil {
-		return fake.DisableVersionedResourceStub(versionedResourceID)
+func (fake *FakePipeline) DisableResourceVersion(arg1 int, arg2 int) error {
+	fake.disableResourceVersionMutex.Lock()
+	ret, specificReturn := fake.disableResourceVersionReturnsOnCall[len(fake.disableResourceVersionArgsForCall)]
+	fake.disableResourceVersionArgsForCall = append(fake.disableResourceVersionArgsForCall, struct {
+		arg1 int
+		arg2 int
+	}{arg1, arg2})
+	fake.recordInvocation("DisableResourceVersion", []interface{}{arg1, arg2})
+	fake.disableResourceVersionMutex.Unlock()
+	if fake.DisableResourceVersionStub != nil {
+		return fake.DisableResourceVersionStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.disableVersionedResourceReturns.result1
+	return fake.disableResourceVersionReturns.result1
 }
 
-func (fake *FakePipeline) DisableVersionedResourceCallCount() int {
-	fake.disableVersionedResourceMutex.RLock()
-	defer fake.disableVersionedResourceMutex.RUnlock()
-	return len(fake.disableVersionedResourceArgsForCall)
+func (fake *FakePipeline) DisableResourceVersionCallCount() int {
+	fake.disableResourceVersionMutex.RLock()
+	defer fake.disableResourceVersionMutex.RUnlock()
+	return len(fake.disableResourceVersionArgsForCall)
 }
 
-func (fake *FakePipeline) DisableVersionedResourceArgsForCall(i int) int {
-	fake.disableVersionedResourceMutex.RLock()
-	defer fake.disableVersionedResourceMutex.RUnlock()
-	return fake.disableVersionedResourceArgsForCall[i].versionedResourceID
+func (fake *FakePipeline) DisableResourceVersionArgsForCall(i int) (int, int) {
+	fake.disableResourceVersionMutex.RLock()
+	defer fake.disableResourceVersionMutex.RUnlock()
+	return fake.disableResourceVersionArgsForCall[i].arg1, fake.disableResourceVersionArgsForCall[i].arg2
 }
 
-func (fake *FakePipeline) DisableVersionedResourceReturns(result1 error) {
-	fake.DisableVersionedResourceStub = nil
-	fake.disableVersionedResourceReturns = struct {
+func (fake *FakePipeline) DisableResourceVersionReturns(result1 error) {
+	fake.DisableResourceVersionStub = nil
+	fake.disableResourceVersionReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakePipeline) DisableVersionedResourceReturnsOnCall(i int, result1 error) {
-	fake.DisableVersionedResourceStub = nil
-	if fake.disableVersionedResourceReturnsOnCall == nil {
-		fake.disableVersionedResourceReturnsOnCall = make(map[int]struct {
+func (fake *FakePipeline) DisableResourceVersionReturnsOnCall(i int, result1 error) {
+	fake.DisableResourceVersionStub = nil
+	if fake.disableResourceVersionReturnsOnCall == nil {
+		fake.disableResourceVersionReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.disableVersionedResourceReturnsOnCall[i] = struct {
+	fake.disableResourceVersionReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakePipeline) EnableVersionedResource(versionedResourceID int) error {
-	fake.enableVersionedResourceMutex.Lock()
-	ret, specificReturn := fake.enableVersionedResourceReturnsOnCall[len(fake.enableVersionedResourceArgsForCall)]
-	fake.enableVersionedResourceArgsForCall = append(fake.enableVersionedResourceArgsForCall, struct {
-		versionedResourceID int
-	}{versionedResourceID})
-	fake.recordInvocation("EnableVersionedResource", []interface{}{versionedResourceID})
-	fake.enableVersionedResourceMutex.Unlock()
-	if fake.EnableVersionedResourceStub != nil {
-		return fake.EnableVersionedResourceStub(versionedResourceID)
+func (fake *FakePipeline) EnableResourceVersion(arg1 int, arg2 int) error {
+	fake.enableResourceVersionMutex.Lock()
+	ret, specificReturn := fake.enableResourceVersionReturnsOnCall[len(fake.enableResourceVersionArgsForCall)]
+	fake.enableResourceVersionArgsForCall = append(fake.enableResourceVersionArgsForCall, struct {
+		arg1 int
+		arg2 int
+	}{arg1, arg2})
+	fake.recordInvocation("EnableResourceVersion", []interface{}{arg1, arg2})
+	fake.enableResourceVersionMutex.Unlock()
+	if fake.EnableResourceVersionStub != nil {
+		return fake.EnableResourceVersionStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.enableVersionedResourceReturns.result1
+	return fake.enableResourceVersionReturns.result1
 }
 
-func (fake *FakePipeline) EnableVersionedResourceCallCount() int {
-	fake.enableVersionedResourceMutex.RLock()
-	defer fake.enableVersionedResourceMutex.RUnlock()
-	return len(fake.enableVersionedResourceArgsForCall)
+func (fake *FakePipeline) EnableResourceVersionCallCount() int {
+	fake.enableResourceVersionMutex.RLock()
+	defer fake.enableResourceVersionMutex.RUnlock()
+	return len(fake.enableResourceVersionArgsForCall)
 }
 
-func (fake *FakePipeline) EnableVersionedResourceArgsForCall(i int) int {
-	fake.enableVersionedResourceMutex.RLock()
-	defer fake.enableVersionedResourceMutex.RUnlock()
-	return fake.enableVersionedResourceArgsForCall[i].versionedResourceID
+func (fake *FakePipeline) EnableResourceVersionArgsForCall(i int) (int, int) {
+	fake.enableResourceVersionMutex.RLock()
+	defer fake.enableResourceVersionMutex.RUnlock()
+	return fake.enableResourceVersionArgsForCall[i].arg1, fake.enableResourceVersionArgsForCall[i].arg2
 }
 
-func (fake *FakePipeline) EnableVersionedResourceReturns(result1 error) {
-	fake.EnableVersionedResourceStub = nil
-	fake.enableVersionedResourceReturns = struct {
+func (fake *FakePipeline) EnableResourceVersionReturns(result1 error) {
+	fake.EnableResourceVersionStub = nil
+	fake.enableResourceVersionReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakePipeline) EnableVersionedResourceReturnsOnCall(i int, result1 error) {
-	fake.EnableVersionedResourceStub = nil
-	if fake.enableVersionedResourceReturnsOnCall == nil {
-		fake.enableVersionedResourceReturnsOnCall = make(map[int]struct {
+func (fake *FakePipeline) EnableResourceVersionReturnsOnCall(i int, result1 error) {
+	fake.EnableResourceVersionStub = nil
+	if fake.enableResourceVersionReturnsOnCall == nil {
+		fake.enableResourceVersionReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.enableVersionedResourceReturnsOnCall[i] = struct {
+	fake.enableResourceVersionReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -2523,10 +2527,10 @@ func (fake *FakePipeline) Invocations() map[string][][]interface{} {
 	defer fake.getVersionedResourceByVersionMutex.RUnlock()
 	fake.versionedResourceMutex.RLock()
 	defer fake.versionedResourceMutex.RUnlock()
-	fake.disableVersionedResourceMutex.RLock()
-	defer fake.disableVersionedResourceMutex.RUnlock()
-	fake.enableVersionedResourceMutex.RLock()
-	defer fake.enableVersionedResourceMutex.RUnlock()
+	fake.disableResourceVersionMutex.RLock()
+	defer fake.disableResourceVersionMutex.RUnlock()
+	fake.enableResourceVersionMutex.RLock()
+	defer fake.enableResourceVersionMutex.RUnlock()
 	fake.getBuildsWithVersionAsInputMutex.RLock()
 	defer fake.getBuildsWithVersionAsInputMutex.RUnlock()
 	fake.getBuildsWithVersionAsOutputMutex.RLock()
