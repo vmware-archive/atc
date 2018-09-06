@@ -1,4 +1,4 @@
-package migration_test
+package voyager_test
 
 import (
 	"database/sql"
@@ -11,8 +11,8 @@ import (
 
 	"github.com/concourse/atc/db/encryption"
 	"github.com/concourse/atc/db/lock"
-	"github.com/concourse/atc/db/migration"
-	"github.com/concourse/atc/db/migration/migrationfakes"
+	"github.com/concourse/atc/db/migration/voyager"
+	"github.com/concourse/atc/db/migration/voyager/voyagerfakes"
 	"github.com/lib/pq"
 
 	. "github.com/onsi/ginkgo"
@@ -29,7 +29,7 @@ var _ = Describe("Migration", func() {
 		lockDB      *sql.DB
 		lockFactory lock.LockFactory
 		strategy    encryption.Strategy
-		bindata     *migrationfakes.FakeBindata
+		bindata     *voyagerfakes.FakeSource
 	)
 
 	BeforeEach(func() {
@@ -42,7 +42,7 @@ var _ = Describe("Migration", func() {
 		lockFactory = lock.NewLockFactory(lockDB)
 
 		strategy = encryption.NewNoEncryption()
-		bindata = new(migrationfakes.FakeBindata)
+		bindata = new(voyagerfakes.FakeSource)
 		bindata.AssetStub = asset
 	})
 
@@ -53,7 +53,7 @@ var _ = Describe("Migration", func() {
 
 	Context("Migration test run", func() {
 		It("Runs all the migrations", func() {
-			migrator := migration.NewMigrator(db, lockFactory, strategy)
+			migrator := voyager.NewMigrator(db, lockFactory, strategy, bindata)
 
 			err := migrator.Up()
 			Expect(err).NotTo(HaveOccurred())
@@ -81,7 +81,7 @@ var _ = Describe("Migration", func() {
 
 			SetupMigrationsHistoryTableToExistAtVersion(db, myDatabaseVersion)
 
-			migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+			migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 			version, err := migrator.CurrentVersion()
 			Expect(err).NotTo(HaveOccurred())
@@ -99,7 +99,7 @@ var _ = Describe("Migration", func() {
 				"300000_this_is_to_prove_we_dont_use_string_sort.up.sql",
 				"2000000000_latest_migration.up.sql",
 			})
-			migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+			migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 			version, err := migrator.SupportedVersion()
 			Expect(err).NotTo(HaveOccurred())
@@ -118,7 +118,7 @@ var _ = Describe("Migration", func() {
 				"2000000000_latest_migration.up.sql",
 				"migrations.go",
 			})
-			migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+			migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 			version, err := migrator.SupportedVersion()
 			Expect(err).NotTo(HaveOccurred())
@@ -142,7 +142,7 @@ var _ = Describe("Migration", func() {
 
 					Expect(err).NotTo(HaveOccurred())
 
-					migrator := migration.NewMigrator(db, lockFactory, strategy)
+					migrator := voyager.NewMigrator(db, lockFactory, strategy, bindata)
 
 					err = migrator.Up()
 					Expect(err).To(HaveOccurred())
@@ -161,7 +161,7 @@ var _ = Describe("Migration", func() {
 
 				It("populate migrations_history table with starting version from schema_migrations table", func() {
 					startTime := time.Now()
-					migrator := migration.NewMigrator(db, lockFactory, strategy)
+					migrator := voyager.NewMigrator(db, lockFactory, strategy, bindata)
 
 					err = migrator.Up()
 					Expect(err).NotTo(HaveOccurred())
@@ -185,7 +185,7 @@ var _ = Describe("Migration", func() {
 					It("does not repopulate the migrations_history table", func() {
 						SetupMigrationsHistoryTableToExistAtVersion(db, 8878)
 						startTime := time.Now()
-						migrator := migration.NewMigrator(db, lockFactory, strategy)
+						migrator := voyager.NewMigrator(db, lockFactory, strategy, bindata)
 
 						err = migrator.Up()
 						Expect(err).NotTo(HaveOccurred())
@@ -218,7 +218,7 @@ var _ = Describe("Migration", func() {
 					simpleMigrationFilename,
 				})
 
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 				migrations, err := migrator.Migrations()
 				Expect(err).NotTo(HaveOccurred())
@@ -255,7 +255,7 @@ var _ = Describe("Migration", func() {
 					simpleMigrationFilename,
 				})
 
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 				err := migrator.Up()
 				Expect(err).NotTo(HaveOccurred())
 
@@ -292,7 +292,7 @@ var _ = Describe("Migration", func() {
 					addTableMigrationFilename,
 				})
 
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 				err := migrator.Up()
 				Expect(err).NotTo(HaveOccurred())
 
@@ -304,7 +304,7 @@ var _ = Describe("Migration", func() {
 						"1510262030_initial_schema.up.sql",
 						"1525724789_drop_reaper_addr_from_workers.up.sql",
 					})
-					migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+					migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 					err := migrator.Up()
 					Expect(err).To(HaveOccurred())
@@ -331,7 +331,7 @@ var _ = Describe("Migration", func() {
 						dirtyMigrationFilename,
 					})
 
-					migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+					migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 					err := migrator.Up()
 					Expect(err).To(HaveOccurred())
@@ -346,7 +346,7 @@ var _ = Describe("Migration", func() {
 					"1510262030_initial_schema.up.sql",
 				})
 
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 				err := migrator.Up()
 				Expect(err).NotTo(HaveOccurred())
 
@@ -368,7 +368,7 @@ var _ = Describe("Migration", func() {
 				bindata.AssetNamesReturns([]string{
 					"1510262030_initial_schema.up.sql",
 				})
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 				var wg sync.WaitGroup
 				wg.Add(3)
@@ -384,7 +384,7 @@ var _ = Describe("Migration", func() {
 		Context("golang migrations", func() {
 			It("runs a migration with Migrate", func() {
 
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 				bindata.AssetNamesReturns([]string{
 					"1510262030_initial_schema.up.sql",
 					"1516643303_update_auth_providers.up.go",
@@ -411,7 +411,7 @@ var _ = Describe("Migration", func() {
 
 			It("runs a migration with Up", func() {
 
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 				bindata.AssetNamesReturns([]string{
 					"1510262030_initial_schema.up.sql",
 					"1516643303_update_auth_providers.up.go",
@@ -440,7 +440,7 @@ var _ = Describe("Migration", func() {
 					"1510670987_update_unique_constraint_for_resource_caches.up.sql",
 					"1510670987_update_unique_constraint_for_resource_caches.down.sql",
 				})
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 				err := migrator.Up()
 				Expect(err).NotTo(HaveOccurred())
@@ -468,7 +468,7 @@ var _ = Describe("Migration", func() {
 					"1510670987_update_unique_constraint_for_resource_caches.up.sql",
 					"1510670987_update_unique_constraint_for_resource_caches.down.sql",
 				})
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 				err := migrator.Up()
 				Expect(err).NotTo(HaveOccurred())
@@ -499,7 +499,7 @@ var _ = Describe("Migration", func() {
 					"1510670987_update_unique_constraint_for_resource_caches.up.sql",
 					"1510670987_update_unique_constraint_for_resource_caches.down.sql",
 				})
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 				err := migrator.Up()
 				Expect(err).NotTo(HaveOccurred())
@@ -523,7 +523,7 @@ var _ = Describe("Migration", func() {
 					"1510262030_initial_schema.up.sql",
 					"1510670987_update_unique_constraint_for_resource_caches.up.sql",
 				})
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 
 				err := migrator.Migrate(upgradedSchemaVersion)
 				Expect(err).NotTo(HaveOccurred())
@@ -543,7 +543,7 @@ var _ = Describe("Migration", func() {
 			})
 
 			It("Locks the database so multiple consumers don't run downgrade at the same time", func() {
-				migrator := migration.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
 				bindata.AssetNamesReturns([]string{
 					"1510262030_initial_schema.up.sql",
 					"1510670987_update_unique_constraint_for_resource_caches.up.sql",
@@ -567,7 +567,7 @@ var _ = Describe("Migration", func() {
 
 })
 
-func TryRunUpAndVerifyResult(db *sql.DB, migrator migration.Migrator, wg *sync.WaitGroup) {
+func TryRunUpAndVerifyResult(db *sql.DB, migrator voyager.Migrator, wg *sync.WaitGroup) {
 	defer GinkgoRecover()
 	defer wg.Done()
 
@@ -579,7 +579,7 @@ func TryRunUpAndVerifyResult(db *sql.DB, migrator migration.Migrator, wg *sync.W
 	ExpectToBeAbleToInsertData(db)
 }
 
-func TryRunMigrateAndVerifyResult(db *sql.DB, migrator migration.Migrator, version int, wg *sync.WaitGroup) {
+func TryRunMigrateAndVerifyResult(db *sql.DB, migrator voyager.Migrator, version int, wg *sync.WaitGroup) {
 	defer GinkgoRecover()
 	defer wg.Done()
 
@@ -616,7 +616,7 @@ func SetupSchemaFromFile(db *sql.DB, path string) {
 	}
 }
 
-func ExpectDatabaseMigrationVersionToEqual(migrator migration.Migrator, expectedVersion int) {
+func ExpectDatabaseMigrationVersionToEqual(migrator voyager.Migrator, expectedVersion int) {
 	var dbVersion int
 	dbVersion, err := migrator.CurrentVersion()
 	Expect(err).NotTo(HaveOccurred())
@@ -646,4 +646,19 @@ func ExpectMigrationToHaveFailed(dbConn *sql.DB, failedVersion int, expectDirty 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(status).To(Equal("failed"))
 	Expect(dirty).To(Equal(expectDirty))
+}
+
+func ExpectMigrationVersionTableNotToExist(dbConn *sql.DB) {
+	var exists string
+	err := dbConn.QueryRow("SELECT EXISTS(SELECT 1 FROM information_schema.tables where table_name = 'migration_version')").Scan(&exists)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(exists).To(Equal("false"))
+}
+
+func ExpectDatabaseVersionToEqual(db *sql.DB, version int, table string) {
+	var dbVersion int
+	query := "SELECT version from " + table + " LIMIT 1"
+	err := db.QueryRow(query).Scan(&dbVersion)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(dbVersion).To(Equal(version))
 }

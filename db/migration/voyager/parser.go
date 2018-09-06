@@ -1,4 +1,4 @@
-package migration
+package voyager
 
 import (
 	"errors"
@@ -14,12 +14,12 @@ var goMigrationFuncName = regexp.MustCompile("(Up|Down)_[0-9]*")
 var ErrCouldNotParseDirection = errors.New("could not parse direction for migration")
 
 type Parser struct {
-	bindata Bindata
+	source Source
 }
 
-func NewParser(bindata Bindata) *Parser {
+func NewParser(source Source) *Parser {
 	return &Parser{
-		bindata: bindata,
+		source: source,
 	}
 }
 
@@ -50,7 +50,7 @@ func (p *Parser) ParseFileToMigration(migrationName string) (migration, error) {
 		return migration, err
 	}
 
-	migrationBytes, err := p.bindata.Asset(migrationName)
+	migrationBytes, err := p.source.Asset(migrationName)
 	if err != nil {
 		return migration, err
 	}

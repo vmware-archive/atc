@@ -1,8 +1,8 @@
 package migration_test
 
 import (
-	"github.com/concourse/atc/db/migration"
-	"github.com/concourse/atc/db/migration/migrationfakes"
+	"github.com/concourse/atc/db/migration/voyager"
+	"github.com/concourse/atc/db/migration/voyager/voyagerfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -25,15 +25,15 @@ var multipleStatementMigration = []byte(`
 
 var _ = Describe("Parser", func() {
 	var (
-		parser  *migration.Parser
-		bindata *migrationfakes.FakeBindata
+		parser  *voyager.Parser
+		bindata *voyagerfakes.FakeSource
 	)
 
 	BeforeEach(func() {
-		bindata = new(migrationfakes.FakeBindata)
+		bindata = new(voyagerfakes.FakeSource)
 		bindata.AssetReturns([]byte{}, nil)
 
-		parser = migration.NewParser(bindata)
+		parser = voyager.NewParser(bindata)
 	})
 	It("parses the direction of the migration from the file name", func() {
 		downMigration, err := parser.ParseFileToMigration("2000_some_migration.down.go")
@@ -48,17 +48,17 @@ var _ = Describe("Parser", func() {
 	It("parses the strategy of the migration from the file", func() {
 		downMigration, err := parser.ParseFileToMigration("2000_some_migration.down.go")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(downMigration.Strategy).To(Equal(migration.GoMigration))
+		Expect(downMigration.Strategy).To(Equal(voyager.GoMigration))
 
 		bindata.AssetReturns(basicSQLMigration, nil)
 		upMigration, err := parser.ParseFileToMigration("1000_some_migration.up.sql")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(upMigration.Strategy).To(Equal(migration.SQLTransaction))
+		Expect(upMigration.Strategy).To(Equal(voyager.SQLTransaction))
 
 		bindata.AssetReturns(noTransactionMigration, nil)
 		upNoTxMigration, err := parser.ParseFileToMigration("3000_some_no_transaction_migration.up.sql")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(upNoTxMigration.Strategy).To(Equal(migration.SQLNoTransaction))
+		Expect(upNoTxMigration.Strategy).To(Equal(voyager.SQLNoTransaction))
 	})
 
 	Context("SQL migrations", func() {

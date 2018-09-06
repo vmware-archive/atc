@@ -6,7 +6,7 @@ import (
 	"github.com/concourse/atc/db/encryption"
 	"github.com/concourse/atc/db/lock"
 	"github.com/concourse/atc/db/migration"
-	"github.com/concourse/atc/db/migration/migrationfakes"
+	"github.com/concourse/atc/db/migration/voyager/voyagerfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -18,7 +18,7 @@ var _ = Describe("OpenHelper", func() {
 		lockDB      *sql.DB
 		lockFactory lock.LockFactory
 		strategy    encryption.Strategy
-		bindata     *migrationfakes.FakeBindata
+		bindata     *voyagerfakes.FakeSource
 		openHelper  *migration.OpenHelper
 	)
 
@@ -33,7 +33,7 @@ var _ = Describe("OpenHelper", func() {
 		strategy = encryption.NewNoEncryption()
 		openHelper = migration.NewOpenHelper("postgres", postgresRunner.DataSourceName(), lockFactory, strategy)
 
-		bindata = new(migrationfakes.FakeBindata)
+		bindata = new(voyagerfakes.FakeSource)
 		bindata.AssetStub = asset
 	})
 

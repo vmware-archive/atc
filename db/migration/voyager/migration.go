@@ -1,4 +1,4 @@
-package migration
+package voyager
 
 import (
 	"database/sql"
@@ -11,130 +11,9 @@ import (
 	"github.com/concourse/atc/db/encryption"
 	"github.com/concourse/atc/db/lock"
 	"github.com/concourse/atc/db/migration/migrations"
-	"github.com/gobuffalo/packr"
 	multierror "github.com/hashicorp/go-multierror"
 	_ "github.com/lib/pq"
 )
-
-func NewOpenHelper(driver, name string, lockFactory lock.LockFactory, strategy encryption.Strategy) *OpenHelper {
-	return &OpenHelper{
-		driver,
-		name,
-		lockFactory,
-		strategy,
-	}
-}
-
-type OpenHelper struct {
-	driver         string
-	dataSourceName string
-	lockFactory    lock.LockFactory
-	strategy       encryption.Strategy
-}
-
-func (self *OpenHelper) CurrentVersion() (int, error) {
-	db, err := sql.Open(self.driver, self.dataSourceName)
-	if err != nil {
-		return -1, err
-	}
-
-	defer db.Close()
-
-	return NewMigrator(db, self.lockFactory, self.strategy).CurrentVersion()
-}
-
-func (self *OpenHelper) SupportedVersion() (int, error) {
-	db, err := sql.Open(self.driver, self.dataSourceName)
-	if err != nil {
-		return -1, err
-	}
-
-	defer db.Close()
-
-	return NewMigrator(db, self.lockFactory, self.strategy).SupportedVersion()
-}
-
-func (self *OpenHelper) Open() (*sql.DB, error) {
-	db, err := sql.Open(self.driver, self.dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := NewMigrator(db, self.lockFactory, self.strategy).Up(); err != nil {
-		_ = db.Close()
-		return nil, err
-	}
-
-	return db, nil
-}
-
-func (self *OpenHelper) OpenAtVersion(version int) (*sql.DB, error) {
-	db, err := sql.Open(self.driver, self.dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := NewMigrator(db, self.lockFactory, self.strategy).Migrate(version); err != nil {
-		_ = db.Close()
-		return nil, err
-	}
-
-	return db, nil
-}
-
-func (self *OpenHelper) MigrateToVersion(version int) error {
-	db, err := sql.Open(self.driver, self.dataSourceName)
-	if err != nil {
-		return err
-	}
-
-	defer db.Close()
-	m := NewMigrator(db, self.lockFactory, self.strategy)
-
-	err = self.migrateFromMigrationVersion(db)
-	if err != nil {
-		return err
-	}
-
-	return m.Migrate(version)
-}
-
-func (self *OpenHelper) migrateFromMigrationVersion(db *sql.DB) error {
-
-	if !checkTableExist(db, "migration_version") {
-		return nil
-	}
-
-	oldMigrationLastVersion := 189
-	newMigrationStartVersion := 1510262030
-
-	var err error
-	var dbVersion int
-
-	if err = db.QueryRow("SELECT version FROM migration_version").Scan(&dbVersion); err != nil {
-		return err
-	}
-
-	if dbVersion != oldMigrationLastVersion {
-		return fmt.Errorf("Must upgrade from db version %d (concourse 3.6.0), current db version: %d", oldMigrationLastVersion, dbVersion)
-	}
-
-	if _, err = db.Exec("DROP TABLE IF EXISTS migration_version"); err != nil {
-		return err
-	}
-
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS schema_migrations (version bigint, dirty boolean)")
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec("INSERT INTO schema_migrations (version, dirty) VALUES ($1, false)", newMigrationStartVersion)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 type Migrator interface {
 	CurrentVersion() (int, error)
@@ -144,17 +23,17 @@ type Migrator interface {
 	Migrations() ([]migration, error)
 }
 
-func NewMigrator(db *sql.DB, lockFactory lock.LockFactory, strategy encryption.Strategy) Migrator {
-	return NewMigratorForMigrations(db, lockFactory, strategy, &packrSource{packr.NewBox("./migrations")})
+func NewMigrator(db *sql.DB, lockFactory lock.LockFactory, strategy encryption.Strategy, source Source) Migrator {
+	return NewMigratorForMigrations(db, lockFactory, strategy, source)
 }
 
-func NewMigratorForMigrations(db *sql.DB, lockFactory lock.LockFactory, strategy encryption.Strategy, bindata Bindata) Migrator {
+func NewMigratorForMigrations(db *sql.DB, lockFactory lock.LockFactory, strategy encryption.Strategy, source Source) Migrator {
 	return &migrator{
 		db,
 		lockFactory,
 		strategy,
 		lager.NewLogger("migrations"),
-		bindata,
+		source,
 	}
 }
 
@@ -163,15 +42,15 @@ type migrator struct {
 	lockFactory lock.LockFactory
 	strategy    encryption.Strategy
 	logger      lager.Logger
-	bindata     Bindata
+	source      Source
 }
 
 func (m *migrator) SupportedVersion() (int, error) {
 	matches := []migration{}
 
-	assets := m.bindata.AssetNames()
+	assets := m.source.AssetNames()
 
-	var parser = NewParser(m.bindata)
+	var parser = NewParser(m.source)
 	for _, match := range assets {
 		if migration, err := parser.ParseMigrationFilename(match); err == nil {
 			matches = append(matches, migration)
@@ -337,8 +216,8 @@ func (m *migrator) runMigration(migration migration) error {
 
 func (self *migrator) Migrations() ([]migration, error) {
 	migrationList := []migration{}
-	assets := self.bindata.AssetNames()
-	var parser = NewParser(self.bindata)
+	assets := self.source.AssetNames()
+	var parser = NewParser(self.source)
 	for _, assetName := range assets {
 		parsedMigration, err := parser.ParseFileToMigration(assetName)
 		if err != nil {
@@ -385,14 +264,14 @@ func (self *migrator) acquireLock() (lock.Lock, error) {
 	return newLock, err
 }
 
-func checkTableExist(db *sql.DB, tableName string) bool {
+func CheckTableExist(db *sql.DB, tableName string) bool {
 	var exists bool
 	err := db.QueryRow("SELECT EXISTS ( SELECT 1 FROM information_schema.tables WHERE table_name=$1)", tableName).Scan(&exists)
 	return err != nil || exists
 }
 
 func (self *migrator) migrateFromSchemaMigrations() (int, error) {
-	if !checkTableExist(self.db, "schema_migrations") || checkTableExist(self.db, "migrations_history") {
+	if !CheckTableExist(self.db, "schema_migrations") || CheckTableExist(self.db, "migrations_history") {
 		return 0, nil
 	}
 
@@ -425,7 +304,7 @@ func (self *migrator) migrateToSchemaMigrations(toVersion int) error {
 		return nil
 	}
 
-	if !checkTableExist(self.db, "schema_migrations") {
+	if !CheckTableExist(self.db, "schema_migrations") {
 		_, err := self.db.Exec("CREATE TABLE schema_migrations (version bigint, dirty boolean)")
 		if err != nil {
 			return err
