@@ -63,27 +63,23 @@ func (m *migrator) SupportedVersion() (int, error) {
 func (self *migrator) CurrentVersion() (int, error) {
 	var currentVersion int
 	var direction string
-	err := self.db.QueryRow("SELECT version, direction FROM migrations_history WHERE status!='failed' ORDER BY tstamp DESC LIMIT 1").Scan(&currentVersion, &direction)
+	var dirty bool
+	err := self.db.QueryRow("SELECT version, direction, dirty FROM migrations_history WHERE status!='failed' ORDER BY tstamp DESC LIMIT 1").Scan(&currentVersion, &direction, &dirty)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return 0, nil
 		}
 		return -1, err
 	}
-	migrations, err := self.Migrations()
-	if err != nil {
-		return -1, err
+
+	if dirty {
+		return -1, errors.New("could not determine current migration version. Database is in dirty state")
 	}
-	versions := []int{migrations[0].Version}
-	for _, m := range migrations {
-		if m.Version > versions[len(versions)-1] {
-			versions = append(versions, m.Version)
-		}
-	}
-	for i, version := range versions {
-		if currentVersion == version && direction == "down" {
-			currentVersion = versions[i-1]
-			break
+
+	for direction == "down" {
+		err := self.db.QueryRow("SELECT version, direction FROM migrations_history WHERE status!='failed' AND version < $1 ORDER BY tstamp DESC LIMIT 1", currentVersion).Scan(&currentVersion, &direction)
+		if err != nil {
+			return -1, multierror.Append(errors.New("could not determine current migration version"), err)
 		}
 	}
 	return currentVersion, nil

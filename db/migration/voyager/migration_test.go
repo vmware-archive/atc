@@ -60,34 +60,70 @@ var _ = Describe("Migration", func() {
 		})
 	})
 
-	Context("Version Check", func() {
-		It("CurrentVersion reports the current version stored in the database", func() {
-			bindata.AssetNamesReturns([]string{
-				"1000_some_migration.up.sql",
-				"1510262030_initial_schema.up.sql",
-				"1510670987_update_unique_constraint_for_resource_caches.up.sql",
-				"2000000000_latest_migration_does_not_matter.up.sql",
-			})
-			bindata.AssetStub = func(name string) ([]byte, error) {
-				if name == "1000_some_migration.up.sql" {
-					return []byte{}, nil
-				} else if name == "2000000000_latest_migration_does_not_matter.up.sql" {
-					return []byte{}, nil
-				}
-				return asset(name)
-			}
-
-			myDatabaseVersion := 1234567890
-
-			SetupMigrationsHistoryTableToExistAtVersion(db, myDatabaseVersion)
-
-			migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
-
-			version, err := migrator.CurrentVersion()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(version).To(Equal(myDatabaseVersion))
+	Context("Current Version", func() {
+		BeforeEach(func() {
+			SetupMigrationsHistoryTableToExistAtVersion(db, 2000)
 		})
 
+		Context("when the latest migration was an up migration", func() {
+			It("reports the current version stored in the database", func() {
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+
+				version, err := migrator.CurrentVersion()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(version).To(Equal(2000))
+			})
+		})
+
+		Context("when the latest migration was a down migration", func() {
+			BeforeEach(func() {
+				_, err = db.Exec(`INSERT INTO migrations_history(version, tstamp, direction, status, dirty) VALUES($1, current_timestamp, 'up', 'passed', false)`, 3000)
+				Expect(err).NotTo(HaveOccurred())
+				_, err = db.Exec(`INSERT INTO migrations_history(version, tstamp, direction, status, dirty) VALUES($1, current_timestamp, 'up', 'passed', false)`, 4000)
+				Expect(err).NotTo(HaveOccurred())
+				_, err = db.Exec(`INSERT INTO migrations_history (version, tstamp, direction, status, dirty) VALUES ($1, current_timestamp, 'down', 'passed', false)`, 4000)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("reports the version before the latest down migration", func() {
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+
+				version, err := migrator.CurrentVersion()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(version).To(Equal(3000))
+			})
+		})
+
+		Context("when the latest migration was dirty", func() {
+			BeforeEach(func() {
+				_, err = db.Exec("INSERT INTO migrations_history (version, tstamp, direction, status, dirty) VALUES (3000, current_timestamp, 'down', 'passed', true)")
+				Expect(err).ToNot(HaveOccurred())
+			})
+			It("throws an error", func() {
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+
+				_, err := migrator.CurrentVersion()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Database is in dirty state"))
+			})
+		})
+
+		Context("when the latest migration failed", func() {
+			BeforeEach(func() {
+				_, err = db.Exec("INSERT INTO migrations_history (version, tstamp, direction, status, dirty) VALUES (3000, current_timestamp, 'down', 'failed', false)")
+				Expect(err).ToNot(HaveOccurred())
+			})
+			It("reports the version before the failed migration", func() {
+				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, bindata)
+
+				version, err := migrator.CurrentVersion()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(version).To(Equal(2000))
+			})
+		})
+	})
+
+	Context("Supported Version", func() {
 		It("SupportedVersion reports the highest supported migration version", func() {
 
 			SetupMigrationsHistoryTableToExistAtVersion(db, initialSchemaVersion)
