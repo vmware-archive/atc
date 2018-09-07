@@ -242,10 +242,11 @@ type FakePipeline struct {
 	enableResourceVersionReturnsOnCall map[int]struct {
 		result1 error
 	}
-	GetBuildsWithVersionAsInputStub        func(versionedResourceID int) ([]db.Build, error)
+	GetBuildsWithVersionAsInputStub        func(int, int) ([]db.Build, error)
 	getBuildsWithVersionAsInputMutex       sync.RWMutex
 	getBuildsWithVersionAsInputArgsForCall []struct {
-		versionedResourceID int
+		arg1 int
+		arg2 int
 	}
 	getBuildsWithVersionAsInputReturns struct {
 		result1 []db.Build
@@ -255,10 +256,11 @@ type FakePipeline struct {
 		result1 []db.Build
 		result2 error
 	}
-	GetBuildsWithVersionAsOutputStub        func(versionedResourceID int) ([]db.Build, error)
+	GetBuildsWithVersionAsOutputStub        func(int, int) ([]db.Build, error)
 	getBuildsWithVersionAsOutputMutex       sync.RWMutex
 	getBuildsWithVersionAsOutputArgsForCall []struct {
-		versionedResourceID int
+		arg1 int
+		arg2 int
 	}
 	getBuildsWithVersionAsOutputReturns struct {
 		result1 []db.Build
@@ -1440,16 +1442,17 @@ func (fake *FakePipeline) EnableResourceVersionReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *FakePipeline) GetBuildsWithVersionAsInput(versionedResourceID int) ([]db.Build, error) {
+func (fake *FakePipeline) GetBuildsWithVersionAsInput(arg1 int, arg2 int) ([]db.Build, error) {
 	fake.getBuildsWithVersionAsInputMutex.Lock()
 	ret, specificReturn := fake.getBuildsWithVersionAsInputReturnsOnCall[len(fake.getBuildsWithVersionAsInputArgsForCall)]
 	fake.getBuildsWithVersionAsInputArgsForCall = append(fake.getBuildsWithVersionAsInputArgsForCall, struct {
-		versionedResourceID int
-	}{versionedResourceID})
-	fake.recordInvocation("GetBuildsWithVersionAsInput", []interface{}{versionedResourceID})
+		arg1 int
+		arg2 int
+	}{arg1, arg2})
+	fake.recordInvocation("GetBuildsWithVersionAsInput", []interface{}{arg1, arg2})
 	fake.getBuildsWithVersionAsInputMutex.Unlock()
 	if fake.GetBuildsWithVersionAsInputStub != nil {
-		return fake.GetBuildsWithVersionAsInputStub(versionedResourceID)
+		return fake.GetBuildsWithVersionAsInputStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -1463,10 +1466,10 @@ func (fake *FakePipeline) GetBuildsWithVersionAsInputCallCount() int {
 	return len(fake.getBuildsWithVersionAsInputArgsForCall)
 }
 
-func (fake *FakePipeline) GetBuildsWithVersionAsInputArgsForCall(i int) int {
+func (fake *FakePipeline) GetBuildsWithVersionAsInputArgsForCall(i int) (int, int) {
 	fake.getBuildsWithVersionAsInputMutex.RLock()
 	defer fake.getBuildsWithVersionAsInputMutex.RUnlock()
-	return fake.getBuildsWithVersionAsInputArgsForCall[i].versionedResourceID
+	return fake.getBuildsWithVersionAsInputArgsForCall[i].arg1, fake.getBuildsWithVersionAsInputArgsForCall[i].arg2
 }
 
 func (fake *FakePipeline) GetBuildsWithVersionAsInputReturns(result1 []db.Build, result2 error) {
@@ -1491,16 +1494,17 @@ func (fake *FakePipeline) GetBuildsWithVersionAsInputReturnsOnCall(i int, result
 	}{result1, result2}
 }
 
-func (fake *FakePipeline) GetBuildsWithVersionAsOutput(versionedResourceID int) ([]db.Build, error) {
+func (fake *FakePipeline) GetBuildsWithVersionAsOutput(arg1 int, arg2 int) ([]db.Build, error) {
 	fake.getBuildsWithVersionAsOutputMutex.Lock()
 	ret, specificReturn := fake.getBuildsWithVersionAsOutputReturnsOnCall[len(fake.getBuildsWithVersionAsOutputArgsForCall)]
 	fake.getBuildsWithVersionAsOutputArgsForCall = append(fake.getBuildsWithVersionAsOutputArgsForCall, struct {
-		versionedResourceID int
-	}{versionedResourceID})
-	fake.recordInvocation("GetBuildsWithVersionAsOutput", []interface{}{versionedResourceID})
+		arg1 int
+		arg2 int
+	}{arg1, arg2})
+	fake.recordInvocation("GetBuildsWithVersionAsOutput", []interface{}{arg1, arg2})
 	fake.getBuildsWithVersionAsOutputMutex.Unlock()
 	if fake.GetBuildsWithVersionAsOutputStub != nil {
-		return fake.GetBuildsWithVersionAsOutputStub(versionedResourceID)
+		return fake.GetBuildsWithVersionAsOutputStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -1514,10 +1518,10 @@ func (fake *FakePipeline) GetBuildsWithVersionAsOutputCallCount() int {
 	return len(fake.getBuildsWithVersionAsOutputArgsForCall)
 }
 
-func (fake *FakePipeline) GetBuildsWithVersionAsOutputArgsForCall(i int) int {
+func (fake *FakePipeline) GetBuildsWithVersionAsOutputArgsForCall(i int) (int, int) {
 	fake.getBuildsWithVersionAsOutputMutex.RLock()
 	defer fake.getBuildsWithVersionAsOutputMutex.RUnlock()
-	return fake.getBuildsWithVersionAsOutputArgsForCall[i].versionedResourceID
+	return fake.getBuildsWithVersionAsOutputArgsForCall[i].arg1, fake.getBuildsWithVersionAsOutputArgsForCall[i].arg2
 }
 
 func (fake *FakePipeline) GetBuildsWithVersionAsOutputReturns(result1 []db.Build, result2 error) {

@@ -329,13 +329,14 @@ type FakeBuild struct {
 	saveInputReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SaveOutputStub        func(db.ResourceConfig, atc.Version, db.ResourceConfigMetadataFields, string) error
+	SaveOutputStub        func(db.ResourceConfig, atc.Version, db.ResourceConfigMetadataFields, string, string) error
 	saveOutputMutex       sync.RWMutex
 	saveOutputArgsForCall []struct {
 		arg1 db.ResourceConfig
 		arg2 atc.Version
 		arg3 db.ResourceConfigMetadataFields
 		arg4 string
+		arg5 string
 	}
 	saveOutputReturns struct {
 		result1 error
@@ -1807,7 +1808,7 @@ func (fake *FakeBuild) SaveInputReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeBuild) SaveOutput(arg1 db.ResourceConfig, arg2 atc.Version, arg3 db.ResourceConfigMetadataFields, arg4 string) error {
+func (fake *FakeBuild) SaveOutput(arg1 db.ResourceConfig, arg2 atc.Version, arg3 db.ResourceConfigMetadataFields, arg4 string, arg5 string) error {
 	fake.saveOutputMutex.Lock()
 	ret, specificReturn := fake.saveOutputReturnsOnCall[len(fake.saveOutputArgsForCall)]
 	fake.saveOutputArgsForCall = append(fake.saveOutputArgsForCall, struct {
@@ -1815,11 +1816,12 @@ func (fake *FakeBuild) SaveOutput(arg1 db.ResourceConfig, arg2 atc.Version, arg3
 		arg2 atc.Version
 		arg3 db.ResourceConfigMetadataFields
 		arg4 string
-	}{arg1, arg2, arg3, arg4})
-	fake.recordInvocation("SaveOutput", []interface{}{arg1, arg2, arg3, arg4})
+		arg5 string
+	}{arg1, arg2, arg3, arg4, arg5})
+	fake.recordInvocation("SaveOutput", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.saveOutputMutex.Unlock()
 	if fake.SaveOutputStub != nil {
-		return fake.SaveOutputStub(arg1, arg2, arg3, arg4)
+		return fake.SaveOutputStub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1833,10 +1835,10 @@ func (fake *FakeBuild) SaveOutputCallCount() int {
 	return len(fake.saveOutputArgsForCall)
 }
 
-func (fake *FakeBuild) SaveOutputArgsForCall(i int) (db.ResourceConfig, atc.Version, db.ResourceConfigMetadataFields, string) {
+func (fake *FakeBuild) SaveOutputArgsForCall(i int) (db.ResourceConfig, atc.Version, db.ResourceConfigMetadataFields, string, string) {
 	fake.saveOutputMutex.RLock()
 	defer fake.saveOutputMutex.RUnlock()
-	return fake.saveOutputArgsForCall[i].arg1, fake.saveOutputArgsForCall[i].arg2, fake.saveOutputArgsForCall[i].arg3, fake.saveOutputArgsForCall[i].arg4
+	return fake.saveOutputArgsForCall[i].arg1, fake.saveOutputArgsForCall[i].arg2, fake.saveOutputArgsForCall[i].arg3, fake.saveOutputArgsForCall[i].arg4, fake.saveOutputArgsForCall[i].arg5
 }
 
 func (fake *FakeBuild) SaveOutputReturns(result1 error) {
