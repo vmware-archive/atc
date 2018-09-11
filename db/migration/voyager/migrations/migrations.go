@@ -7,16 +7,16 @@ import (
 	"github.com/concourse/atc/db/encryption"
 )
 
-func NewMigrations(db *sql.DB, es encryption.Strategy) *migrations {
-	return &migrations{db, es}
+func NewGoMigrationsRunner(db *sql.DB, es encryption.Strategy) *GoMigrationsRunner {
+	return &GoMigrationsRunner{db, es}
 }
 
-type migrations struct {
+type GoMigrationsRunner struct {
 	*sql.DB
 	encryption.Strategy
 }
 
-func (self *migrations) Run(name string) error {
+func (self *GoMigrationsRunner) Run(name string) error {
 
 	res := reflect.ValueOf(self).MethodByName(name).Call(nil)
 

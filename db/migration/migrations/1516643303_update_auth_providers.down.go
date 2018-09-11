@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+
+	. "github.com/concourse/atc/db/migration/voyager/migrations"
 )
 
-func (self *migrations) Down_1516643303() error {
+func (self *GoMigrationsRunner) Down_1516643303() error {
 
 	type team struct {
 		id    int64

@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"strings"
+
+	. "github.com/concourse/atc/db/migration/voyager/migrations"
 )
 
 type GroupConfig struct {
@@ -18,7 +20,7 @@ type Pipeline struct {
 	Groups GroupConfigs `json:"groups,omitempty"`
 }
 
-func (self *migrations) Up_1522178770() error {
+func (self *GoMigrationsRunner) Up_1522178770() error {
 	tx, err := self.DB.Begin()
 	if err != nil {
 		return err

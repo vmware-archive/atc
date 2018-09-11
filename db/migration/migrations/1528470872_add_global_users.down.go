@@ -2,9 +2,11 @@ package migrations
 
 import (
 	"errors"
+
+	. "github.com/concourse/atc/db/migration/voyager/migrations"
 )
 
-func (self *migrations) Down_1528470872() error {
+func (self *GoMigrationsRunner) Down_1528470872() error {
 	var count int
 	err := self.DB.QueryRow("SELECT count(*) FROM teams WHERE legacy_auth IS NULL AND name != 'main'").Scan(&count)
 	if err != nil {

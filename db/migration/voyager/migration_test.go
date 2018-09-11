@@ -376,10 +376,10 @@ var _ = Describe("Migration", func() {
 				SetupMigrationsHistoryTableToExistAtVersion(db, 900)
 
 				source.AssetNamesReturns([]string{
-					"test_migrations/1000_initial_migration.up.sql",
+					"1000_initial_migration.up.sql",
 				})
 
-				source.AssetReturns(ioutil.ReadFile("test_migrations/1000_initial_migration.up.sql"))
+				source.AssetReturns(ioutil.ReadFile("migrations/1000_initial_migration.up.sql"))
 				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, source)
 
 				var wg sync.WaitGroup
@@ -394,7 +394,7 @@ var _ = Describe("Migration", func() {
 				var numRows int
 				err := db.QueryRow(`SELECT COUNT(*) from some_table`).Scan(&numRows)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(numRows).To(Equal(3))
+				Expect(numRows).To(Equal(12))
 			})
 
 			Context("With a non-transactional migration", func() {
@@ -425,35 +425,35 @@ var _ = Describe("Migration", func() {
 
 				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, source)
 				source.AssetNamesReturns([]string{
-					"1510262030_initial_schema.up.sql",
-					"1516643303_update_auth_providers.up.go",
+					"1000_initial_migration.up.sql",
+					"4000_go_migration.up.go",
 				})
 
 				By("applying the initial migration")
-				err := migrator.Migrate(1510262030)
+				err := migrator.Migrate(1000)
 				var columnExists string
-				err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM information_schema.columns where table_name = 'teams' AND column_name='basic_auth')").Scan(&columnExists)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(columnExists).To(Equal("true"))
-
-				err = migrator.Migrate(1516643303)
-				Expect(err).NotTo(HaveOccurred())
-
-				By("applying the go migration")
-				err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM information_schema.columns where table_name = 'teams' AND column_name='basic_auth')").Scan(&columnExists)
+				err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM information_schema.columns where table_name = 'some_table' AND column_name = 'name')").Scan(&columnExists)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(columnExists).To(Equal("false"))
 
-				By("updating the schema migrations table")
-				ExpectDatabaseMigrationVersionToEqual(migrator, 1516643303)
+				err = migrator.Migrate(4000)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("applying the go migration")
+				err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM information_schema.columns where table_name = 'some_table' AND column_name='name')").Scan(&columnExists)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(columnExists).To(Equal("true"))
+
+				By("updating the migrations history table")
+				ExpectDatabaseMigrationVersionToEqual(migrator, 4000)
 			})
 
 			It("runs a migration with Up", func() {
 
 				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, source)
 				source.AssetNamesReturns([]string{
-					"1510262030_initial_schema.up.sql",
-					"1516643303_update_auth_providers.up.go",
+					"1000_initial_migration.up.sql",
+					"4000_go_migration.up.go",
 				})
 
 				err := migrator.Up()
@@ -461,12 +461,12 @@ var _ = Describe("Migration", func() {
 
 				By("applying the migration")
 				var columnExists string
-				err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM information_schema.columns where table_name = 'teams' AND column_name='basic_auth')").Scan(&columnExists)
+				err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM information_schema.columns where table_name = 'some_table' AND column_name = 'name')").Scan(&columnExists)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(columnExists).To(Equal("false"))
+				Expect(columnExists).To(Equal("true"))
 
 				By("updating the schema migrations table")
-				ExpectDatabaseMigrationVersionToEqual(migrator, 1516643303)
+				ExpectDatabaseMigrationVersionToEqual(migrator, 4000)
 			})
 		})
 	})
@@ -584,7 +584,7 @@ var _ = Describe("Migration", func() {
 			It("Locks the database so multiple consumers don't run downgrade at the same time", func() {
 				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, source)
 				source.AssetNamesReturns([]string{
-					"1510262030_initial_schema.up.sql",
+					"1000_initial_migration.up.sql",
 					"1510670987_update_unique_constraint_for_resource_caches.up.sql",
 					"1510670987_update_unique_constraint_for_resource_caches.down.sql",
 				})

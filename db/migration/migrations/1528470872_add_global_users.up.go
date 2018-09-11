@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"strings"
 
+	. "github.com/concourse/atc/db/migration/voyager/migrations"
 	"github.com/mitchellh/mapstructure"
 )
 
-func (self *migrations) Up_1528470872() error {
+func (self *GoMigrationsRunner) Up_1528470872() error {
 
 	type team struct {
 		id    int64
