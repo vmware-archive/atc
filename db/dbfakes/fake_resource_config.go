@@ -87,6 +87,20 @@ type FakeResourceConfig struct {
 		result2 bool
 		result3 error
 	}
+	SaveVersionStub        func(version atc.Version, metadata db.ResourceConfigMetadataFields) (bool, error)
+	saveVersionMutex       sync.RWMutex
+	saveVersionArgsForCall []struct {
+		version  atc.Version
+		metadata db.ResourceConfigMetadataFields
+	}
+	saveVersionReturns struct {
+		result1 bool
+		result2 error
+	}
+	saveVersionReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	SaveVersionsStub        func(versions []atc.Version) error
 	saveVersionsMutex       sync.RWMutex
 	saveVersionsArgsForCall []struct {
@@ -447,6 +461,58 @@ func (fake *FakeResourceConfig) LatestVersionReturnsOnCall(i int, result1 db.Res
 	}{result1, result2, result3}
 }
 
+func (fake *FakeResourceConfig) SaveVersion(version atc.Version, metadata db.ResourceConfigMetadataFields) (bool, error) {
+	fake.saveVersionMutex.Lock()
+	ret, specificReturn := fake.saveVersionReturnsOnCall[len(fake.saveVersionArgsForCall)]
+	fake.saveVersionArgsForCall = append(fake.saveVersionArgsForCall, struct {
+		version  atc.Version
+		metadata db.ResourceConfigMetadataFields
+	}{version, metadata})
+	fake.recordInvocation("SaveVersion", []interface{}{version, metadata})
+	fake.saveVersionMutex.Unlock()
+	if fake.SaveVersionStub != nil {
+		return fake.SaveVersionStub(version, metadata)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.saveVersionReturns.result1, fake.saveVersionReturns.result2
+}
+
+func (fake *FakeResourceConfig) SaveVersionCallCount() int {
+	fake.saveVersionMutex.RLock()
+	defer fake.saveVersionMutex.RUnlock()
+	return len(fake.saveVersionArgsForCall)
+}
+
+func (fake *FakeResourceConfig) SaveVersionArgsForCall(i int) (atc.Version, db.ResourceConfigMetadataFields) {
+	fake.saveVersionMutex.RLock()
+	defer fake.saveVersionMutex.RUnlock()
+	return fake.saveVersionArgsForCall[i].version, fake.saveVersionArgsForCall[i].metadata
+}
+
+func (fake *FakeResourceConfig) SaveVersionReturns(result1 bool, result2 error) {
+	fake.SaveVersionStub = nil
+	fake.saveVersionReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeResourceConfig) SaveVersionReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.SaveVersionStub = nil
+	if fake.saveVersionReturnsOnCall == nil {
+		fake.saveVersionReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.saveVersionReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeResourceConfig) SaveVersions(versions []atc.Version) error {
 	var versionsCopy []atc.Version
 	if versions != nil {
@@ -676,6 +742,8 @@ func (fake *FakeResourceConfig) Invocations() map[string][][]interface{} {
 	defer fake.acquireResourceConfigCheckingLockWithIntervalCheckMutex.RUnlock()
 	fake.latestVersionMutex.RLock()
 	defer fake.latestVersionMutex.RUnlock()
+	fake.saveVersionMutex.RLock()
+	defer fake.saveVersionMutex.RUnlock()
 	fake.saveVersionsMutex.RLock()
 	defer fake.saveVersionsMutex.RUnlock()
 	fake.setCheckErrorMutex.RLock()

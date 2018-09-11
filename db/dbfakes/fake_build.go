@@ -329,14 +329,14 @@ type FakeBuild struct {
 	saveInputReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SaveOutputStub        func(db.ResourceConfig, atc.Version, db.ResourceConfigMetadataFields, string, string) error
+	SaveOutputStub        func(db.ResourceConfig, atc.Version, string, string, bool) error
 	saveOutputMutex       sync.RWMutex
 	saveOutputArgsForCall []struct {
 		arg1 db.ResourceConfig
 		arg2 atc.Version
-		arg3 db.ResourceConfigMetadataFields
+		arg3 string
 		arg4 string
-		arg5 string
+		arg5 bool
 	}
 	saveOutputReturns struct {
 		result1 error
@@ -1808,15 +1808,15 @@ func (fake *FakeBuild) SaveInputReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeBuild) SaveOutput(arg1 db.ResourceConfig, arg2 atc.Version, arg3 db.ResourceConfigMetadataFields, arg4 string, arg5 string) error {
+func (fake *FakeBuild) SaveOutput(arg1 db.ResourceConfig, arg2 atc.Version, arg3 string, arg4 string, arg5 bool) error {
 	fake.saveOutputMutex.Lock()
 	ret, specificReturn := fake.saveOutputReturnsOnCall[len(fake.saveOutputArgsForCall)]
 	fake.saveOutputArgsForCall = append(fake.saveOutputArgsForCall, struct {
 		arg1 db.ResourceConfig
 		arg2 atc.Version
-		arg3 db.ResourceConfigMetadataFields
+		arg3 string
 		arg4 string
-		arg5 string
+		arg5 bool
 	}{arg1, arg2, arg3, arg4, arg5})
 	fake.recordInvocation("SaveOutput", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.saveOutputMutex.Unlock()
@@ -1835,7 +1835,7 @@ func (fake *FakeBuild) SaveOutputCallCount() int {
 	return len(fake.saveOutputArgsForCall)
 }
 
-func (fake *FakeBuild) SaveOutputArgsForCall(i int) (db.ResourceConfig, atc.Version, db.ResourceConfigMetadataFields, string, string) {
+func (fake *FakeBuild) SaveOutputArgsForCall(i int) (db.ResourceConfig, atc.Version, string, string, bool) {
 	fake.saveOutputMutex.RLock()
 	defer fake.saveOutputMutex.RUnlock()
 	return fake.saveOutputArgsForCall[i].arg1, fake.saveOutputArgsForCall[i].arg2, fake.saveOutputArgsForCall[i].arg3, fake.saveOutputArgsForCall[i].arg4, fake.saveOutputArgsForCall[i].arg5
