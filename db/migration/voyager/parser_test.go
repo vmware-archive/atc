@@ -1,4 +1,4 @@
-package migration_test
+package voyager_test
 
 import (
 	"github.com/concourse/atc/db/migration/voyager"
@@ -22,6 +22,15 @@ var multipleStatementMigration = []byte(`
 		CREATE TABLE some_table (ID integer, something varchar);
 		ALTER TABLE some_table ADD COLUMN notes varchar;
 		COMMIT;`)
+
+var sqlFunctionMigration = []byte(`
+BEGIN;
+  CREATE OR REPLACE FUNCTION on_item_delete() RETURNS TRIGGER AS $$
+  BEGIN
+          EXECUTE format('DROP TABLE IF EXISTS item%s', OLD.id);
+          RETURN NULL;
+  END;
+  $$ LANGUAGE plpgsql;`)
 
 var _ = Describe("Parser", func() {
 	var (
@@ -70,10 +79,10 @@ var _ = Describe("Parser", func() {
 		})
 
 		It("combines sql functions in one statement", func() {
-			bindata.AssetStub = asset
-			migration, err := parser.ParseFileToMigration("1530823998_create_teams_trigger.up.sql")
+			bindata.AssetReturns(sqlFunctionMigration, nil)
+			migration, err := parser.ParseFileToMigration("1800_sql_function_migration.up.sql")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(len(migration.Statements)).To(Equal(6))
+			Expect(len(migration.Statements)).To(Equal(1))
 		})
 
 		It("removes the BEGIN and COMMIT statements", func() {

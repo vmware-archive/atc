@@ -534,9 +534,9 @@ var _ = Describe("Migration", func() {
 		Context("Downgrades to a version with new migrations_history table", func() {
 			It("Downgrades to a given version", func() {
 				source.AssetNamesReturns([]string{
-					"1510262030_initial_schema.up.sql",
-					"1510670987_update_unique_constraint_for_resource_caches.up.sql",
-					"1510670987_update_unique_constraint_for_resource_caches.down.sql",
+					"1000_initial_migration.up.sql",
+					"2000_update_some_table.up.sql",
+					"2000_update_some_table.down.sql",
 				})
 				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, source)
 
@@ -545,38 +545,38 @@ var _ = Describe("Migration", func() {
 
 				currentVersion, err := migrator.CurrentVersion()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(currentVersion).To(Equal(upgradedSchemaVersion))
+				Expect(currentVersion).To(Equal(2000))
 
-				err = migrator.Migrate(initialSchemaVersion)
+				err = migrator.Migrate(1000)
 				Expect(err).NotTo(HaveOccurred())
 
 				currentVersion, err = migrator.CurrentVersion()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(currentVersion).To(Equal(initialSchemaVersion))
+				Expect(currentVersion).To(Equal(1000))
 
 				ExpectToBeAbleToInsertData(db)
 			})
 
 			It("Doesn't fail if already at the requested version", func() {
 				source.AssetNamesReturns([]string{
-					"1510262030_initial_schema.up.sql",
-					"1510670987_update_unique_constraint_for_resource_caches.up.sql",
+					"1000_initial_migration.up.sql",
+					"2000_update_some_table.up.sql",
 				})
 				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, source)
 
-				err := migrator.Migrate(upgradedSchemaVersion)
+				err := migrator.Migrate(2000)
 				Expect(err).NotTo(HaveOccurred())
 
 				currentVersion, err := migrator.CurrentVersion()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(currentVersion).To(Equal(upgradedSchemaVersion))
+				Expect(currentVersion).To(Equal(2000))
 
-				err = migrator.Migrate(upgradedSchemaVersion)
+				err = migrator.Migrate(2000)
 				Expect(err).NotTo(HaveOccurred())
 
 				currentVersion, err = migrator.CurrentVersion()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(currentVersion).To(Equal(upgradedSchemaVersion))
+				Expect(currentVersion).To(Equal(2000))
 
 				ExpectToBeAbleToInsertData(db)
 			})
@@ -585,8 +585,8 @@ var _ = Describe("Migration", func() {
 				migrator := voyager.NewMigratorForMigrations(db, lockFactory, strategy, source)
 				source.AssetNamesReturns([]string{
 					"1000_initial_migration.up.sql",
-					"1510670987_update_unique_constraint_for_resource_caches.up.sql",
-					"1510670987_update_unique_constraint_for_resource_caches.down.sql",
+					"2000_update_some_table.up.sql",
+					"2000_update_some_table.down.sql",
 				})
 
 				err := migrator.Up()
@@ -595,9 +595,9 @@ var _ = Describe("Migration", func() {
 				var wg sync.WaitGroup
 				wg.Add(3)
 
-				go TryRunMigrateAndVerifyResult(db, migrator, initialSchemaVersion, &wg)
-				go TryRunMigrateAndVerifyResult(db, migrator, initialSchemaVersion, &wg)
-				go TryRunMigrateAndVerifyResult(db, migrator, initialSchemaVersion, &wg)
+				go TryRunMigrateAndVerifyResult(db, migrator, 1000, &wg)
+				go TryRunMigrateAndVerifyResult(db, migrator, 1000, &wg)
+				go TryRunMigrateAndVerifyResult(db, migrator, 1000, &wg)
 
 				wg.Wait()
 			})
