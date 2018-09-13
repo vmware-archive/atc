@@ -64,17 +64,6 @@ type FakeResourceConfigVersion struct {
 		result1 bool
 		result2 error
 	}
-	SaveMetadataStub        func(db.ResourceConfigMetadataFields) error
-	saveMetadataMutex       sync.RWMutex
-	saveMetadataArgsForCall []struct {
-		arg1 db.ResourceConfigMetadataFields
-	}
-	saveMetadataReturns struct {
-		result1 error
-	}
-	saveMetadataReturnsOnCall map[int]struct {
-		result1 error
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -322,54 +311,6 @@ func (fake *FakeResourceConfigVersion) ReloadReturnsOnCall(i int, result1 bool, 
 	}{result1, result2}
 }
 
-func (fake *FakeResourceConfigVersion) SaveMetadata(arg1 db.ResourceConfigMetadataFields) error {
-	fake.saveMetadataMutex.Lock()
-	ret, specificReturn := fake.saveMetadataReturnsOnCall[len(fake.saveMetadataArgsForCall)]
-	fake.saveMetadataArgsForCall = append(fake.saveMetadataArgsForCall, struct {
-		arg1 db.ResourceConfigMetadataFields
-	}{arg1})
-	fake.recordInvocation("SaveMetadata", []interface{}{arg1})
-	fake.saveMetadataMutex.Unlock()
-	if fake.SaveMetadataStub != nil {
-		return fake.SaveMetadataStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.saveMetadataReturns.result1
-}
-
-func (fake *FakeResourceConfigVersion) SaveMetadataCallCount() int {
-	fake.saveMetadataMutex.RLock()
-	defer fake.saveMetadataMutex.RUnlock()
-	return len(fake.saveMetadataArgsForCall)
-}
-
-func (fake *FakeResourceConfigVersion) SaveMetadataArgsForCall(i int) db.ResourceConfigMetadataFields {
-	fake.saveMetadataMutex.RLock()
-	defer fake.saveMetadataMutex.RUnlock()
-	return fake.saveMetadataArgsForCall[i].arg1
-}
-
-func (fake *FakeResourceConfigVersion) SaveMetadataReturns(result1 error) {
-	fake.SaveMetadataStub = nil
-	fake.saveMetadataReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeResourceConfigVersion) SaveMetadataReturnsOnCall(i int, result1 error) {
-	fake.SaveMetadataStub = nil
-	if fake.saveMetadataReturnsOnCall == nil {
-		fake.saveMetadataReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.saveMetadataReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeResourceConfigVersion) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -385,8 +326,6 @@ func (fake *FakeResourceConfigVersion) Invocations() map[string][][]interface{} 
 	defer fake.resourceConfigMutex.RUnlock()
 	fake.reloadMutex.RLock()
 	defer fake.reloadMutex.RUnlock()
-	fake.saveMetadataMutex.RLock()
-	defer fake.saveMetadataMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

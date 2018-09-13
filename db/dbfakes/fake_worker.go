@@ -232,6 +232,35 @@ type FakeWorker struct {
 	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
+	FindContainerOnWorkerStub        func(owner db.ContainerOwner) (db.CreatingContainer, db.CreatedContainer, error)
+	findContainerOnWorkerMutex       sync.RWMutex
+	findContainerOnWorkerArgsForCall []struct {
+		owner db.ContainerOwner
+	}
+	findContainerOnWorkerReturns struct {
+		result1 db.CreatingContainer
+		result2 db.CreatedContainer
+		result3 error
+	}
+	findContainerOnWorkerReturnsOnCall map[int]struct {
+		result1 db.CreatingContainer
+		result2 db.CreatedContainer
+		result3 error
+	}
+	CreateContainerStub        func(owner db.ContainerOwner, meta db.ContainerMetadata) (db.CreatingContainer, error)
+	createContainerMutex       sync.RWMutex
+	createContainerArgsForCall []struct {
+		owner db.ContainerOwner
+		meta  db.ContainerMetadata
+	}
+	createContainerReturns struct {
+		result1 db.CreatingContainer
+		result2 error
+	}
+	createContainerReturnsOnCall map[int]struct {
+		result1 db.CreatingContainer
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -1205,6 +1234,112 @@ func (fake *FakeWorker) DeleteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeWorker) FindContainerOnWorker(owner db.ContainerOwner) (db.CreatingContainer, db.CreatedContainer, error) {
+	fake.findContainerOnWorkerMutex.Lock()
+	ret, specificReturn := fake.findContainerOnWorkerReturnsOnCall[len(fake.findContainerOnWorkerArgsForCall)]
+	fake.findContainerOnWorkerArgsForCall = append(fake.findContainerOnWorkerArgsForCall, struct {
+		owner db.ContainerOwner
+	}{owner})
+	fake.recordInvocation("FindContainerOnWorker", []interface{}{owner})
+	fake.findContainerOnWorkerMutex.Unlock()
+	if fake.FindContainerOnWorkerStub != nil {
+		return fake.FindContainerOnWorkerStub(owner)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fake.findContainerOnWorkerReturns.result1, fake.findContainerOnWorkerReturns.result2, fake.findContainerOnWorkerReturns.result3
+}
+
+func (fake *FakeWorker) FindContainerOnWorkerCallCount() int {
+	fake.findContainerOnWorkerMutex.RLock()
+	defer fake.findContainerOnWorkerMutex.RUnlock()
+	return len(fake.findContainerOnWorkerArgsForCall)
+}
+
+func (fake *FakeWorker) FindContainerOnWorkerArgsForCall(i int) db.ContainerOwner {
+	fake.findContainerOnWorkerMutex.RLock()
+	defer fake.findContainerOnWorkerMutex.RUnlock()
+	return fake.findContainerOnWorkerArgsForCall[i].owner
+}
+
+func (fake *FakeWorker) FindContainerOnWorkerReturns(result1 db.CreatingContainer, result2 db.CreatedContainer, result3 error) {
+	fake.FindContainerOnWorkerStub = nil
+	fake.findContainerOnWorkerReturns = struct {
+		result1 db.CreatingContainer
+		result2 db.CreatedContainer
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeWorker) FindContainerOnWorkerReturnsOnCall(i int, result1 db.CreatingContainer, result2 db.CreatedContainer, result3 error) {
+	fake.FindContainerOnWorkerStub = nil
+	if fake.findContainerOnWorkerReturnsOnCall == nil {
+		fake.findContainerOnWorkerReturnsOnCall = make(map[int]struct {
+			result1 db.CreatingContainer
+			result2 db.CreatedContainer
+			result3 error
+		})
+	}
+	fake.findContainerOnWorkerReturnsOnCall[i] = struct {
+		result1 db.CreatingContainer
+		result2 db.CreatedContainer
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeWorker) CreateContainer(owner db.ContainerOwner, meta db.ContainerMetadata) (db.CreatingContainer, error) {
+	fake.createContainerMutex.Lock()
+	ret, specificReturn := fake.createContainerReturnsOnCall[len(fake.createContainerArgsForCall)]
+	fake.createContainerArgsForCall = append(fake.createContainerArgsForCall, struct {
+		owner db.ContainerOwner
+		meta  db.ContainerMetadata
+	}{owner, meta})
+	fake.recordInvocation("CreateContainer", []interface{}{owner, meta})
+	fake.createContainerMutex.Unlock()
+	if fake.CreateContainerStub != nil {
+		return fake.CreateContainerStub(owner, meta)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.createContainerReturns.result1, fake.createContainerReturns.result2
+}
+
+func (fake *FakeWorker) CreateContainerCallCount() int {
+	fake.createContainerMutex.RLock()
+	defer fake.createContainerMutex.RUnlock()
+	return len(fake.createContainerArgsForCall)
+}
+
+func (fake *FakeWorker) CreateContainerArgsForCall(i int) (db.ContainerOwner, db.ContainerMetadata) {
+	fake.createContainerMutex.RLock()
+	defer fake.createContainerMutex.RUnlock()
+	return fake.createContainerArgsForCall[i].owner, fake.createContainerArgsForCall[i].meta
+}
+
+func (fake *FakeWorker) CreateContainerReturns(result1 db.CreatingContainer, result2 error) {
+	fake.CreateContainerStub = nil
+	fake.createContainerReturns = struct {
+		result1 db.CreatingContainer
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeWorker) CreateContainerReturnsOnCall(i int, result1 db.CreatingContainer, result2 error) {
+	fake.CreateContainerStub = nil
+	if fake.createContainerReturnsOnCall == nil {
+		fake.createContainerReturnsOnCall = make(map[int]struct {
+			result1 db.CreatingContainer
+			result2 error
+		})
+	}
+	fake.createContainerReturnsOnCall[i] = struct {
+		result1 db.CreatingContainer
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeWorker) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -1256,6 +1391,10 @@ func (fake *FakeWorker) Invocations() map[string][][]interface{} {
 	defer fake.pruneMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.findContainerOnWorkerMutex.RLock()
+	defer fake.findContainerOnWorkerMutex.RUnlock()
+	fake.createContainerMutex.RLock()
+	defer fake.createContainerMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
