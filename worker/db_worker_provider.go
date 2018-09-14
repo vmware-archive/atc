@@ -7,6 +7,7 @@ import (
 	"code.cloudfoundry.org/clock"
 	gclient "code.cloudfoundry.org/garden/client"
 	"code.cloudfoundry.org/lager"
+	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db/lock"
 	"github.com/concourse/atc/worker/transport"
 	bclient "github.com/concourse/baggageclaim/client"
@@ -86,6 +87,43 @@ func (provider *dbWorkerProvider) RunningWorkers(logger lager.Logger) ([]Worker,
 	}
 
 	return workers, nil
+}
+
+func (provider *dbWorkerProvider) AllSatisfying(logger lager.Logger, spec WorkerSpec, resourceTypes creds.VersionedResourceTypes) ([]Worker, error) {
+	workers, err := provider.RunningWorkers(logger)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(workers) == 0 {
+		return nil, ErrNoWorkers
+	}
+
+	compatibleTeamWorkers := []Worker{}
+	compatibleGeneralWorkers := []Worker{}
+	for _, worker := range workers {
+		satisfyingWorker, err := worker.Satisfying(logger, spec, resourceTypes)
+		if err == nil {
+			if worker.IsOwnedByTeam() {
+				compatibleTeamWorkers = append(compatibleTeamWorkers, satisfyingWorker)
+			} else {
+				compatibleGeneralWorkers = append(compatibleGeneralWorkers, satisfyingWorker)
+			}
+		}
+	}
+
+	if len(compatibleTeamWorkers) != 0 {
+		return compatibleTeamWorkers, nil
+	}
+
+	if len(compatibleGeneralWorkers) != 0 {
+		return compatibleGeneralWorkers, nil
+	}
+
+	return nil, NoCompatibleWorkersError{
+		Spec:    spec,
+		Workers: workers,
+	}
 }
 
 func (provider *dbWorkerProvider) FindWorkerForContainerByOwner(
@@ -169,8 +207,6 @@ func (provider *dbWorkerProvider) NewGardenWorker(logger lager.Logger, tikTok cl
 
 	containerProvider := NewContainerProvider(
 		gClient,
-		bClient,
-		// rClient,
 		volumeClient,
 		savedWorker,
 		tikTok,
@@ -182,8 +218,6 @@ func (provider *dbWorkerProvider) NewGardenWorker(logger lager.Logger, tikTok cl
 
 	return NewGardenWorker(
 		gClient,
-		bClient,
-		// rClient,
 		containerProvider,
 		volumeClient,
 		savedWorker,

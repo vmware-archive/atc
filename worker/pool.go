@@ -9,7 +9,6 @@ import (
 
 	"code.cloudfoundry.org/clock"
 	"code.cloudfoundry.org/lager"
-	"github.com/concourse/atc"
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
 )
@@ -18,6 +17,8 @@ import (
 
 type WorkerProvider interface {
 	RunningWorkers(lager.Logger) ([]Worker, error)
+
+	AllSatisfying(logger lager.Logger, spec WorkerSpec, resourceTypes creds.VersionedResourceTypes) ([]Worker, error)
 
 	FindWorkerForContainer(
 		logger lager.Logger,
@@ -75,49 +76,8 @@ func NewPool(provider WorkerProvider, strategy ContainerPlacementStrategy) Clien
 	}
 }
 
-func (pool *pool) RunningWorkers(logger lager.Logger) ([]Worker, error) {
-	return pool.provider.RunningWorkers(logger)
-}
-
-func (pool *pool) AllSatisfying(logger lager.Logger, spec WorkerSpec, resourceTypes creds.VersionedResourceTypes) ([]Worker, error) {
-	workers, err := pool.provider.RunningWorkers(logger)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(workers) == 0 {
-		return nil, ErrNoWorkers
-	}
-
-	compatibleTeamWorkers := []Worker{}
-	compatibleGeneralWorkers := []Worker{}
-	for _, worker := range workers {
-		satisfyingWorker, err := worker.Satisfying(logger, spec, resourceTypes)
-		if err == nil {
-			if worker.IsOwnedByTeam() {
-				compatibleTeamWorkers = append(compatibleTeamWorkers, satisfyingWorker)
-			} else {
-				compatibleGeneralWorkers = append(compatibleGeneralWorkers, satisfyingWorker)
-			}
-		}
-	}
-
-	if len(compatibleTeamWorkers) != 0 {
-		return compatibleTeamWorkers, nil
-	}
-
-	if len(compatibleGeneralWorkers) != 0 {
-		return compatibleGeneralWorkers, nil
-	}
-
-	return nil, NoCompatibleWorkersError{
-		Spec:    spec,
-		Workers: workers,
-	}
-}
-
 func (pool *pool) Satisfying(logger lager.Logger, spec WorkerSpec, resourceTypes creds.VersionedResourceTypes) (Worker, error) {
-	compatibleWorkers, err := pool.AllSatisfying(logger, spec, resourceTypes)
+	compatibleWorkers, err := pool.provider.AllSatisfying(logger, spec, resourceTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +104,7 @@ func (pool *pool) FindOrCreateContainer(
 	}
 
 	if !found {
-		compatibleWorkers, err := pool.AllSatisfying(logger, spec.WorkerSpec(), resourceTypes)
+		compatibleWorkers, err := pool.provider.AllSatisfying(logger, spec.WorkerSpec(), resourceTypes)
 		if err != nil {
 			return nil, err
 		}
@@ -181,10 +141,6 @@ func (pool *pool) FindContainerByHandle(logger lager.Logger, teamID int, handle 
 	}
 
 	return worker.FindContainerByHandle(logger, teamID, handle)
-}
-
-func (*pool) FindResourceTypeByPath(string) (atc.WorkerResourceType, bool) {
-	return atc.WorkerResourceType{}, false
 }
 
 func (*pool) LookupVolume(lager.Logger, string) (Volume, bool, error) {

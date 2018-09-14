@@ -6,6 +6,7 @@ import (
 
 	"code.cloudfoundry.org/clock"
 	"code.cloudfoundry.org/lager"
+	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/worker"
 )
@@ -21,6 +22,21 @@ type FakeWorkerProvider struct {
 		result2 error
 	}
 	runningWorkersReturnsOnCall map[int]struct {
+		result1 []worker.Worker
+		result2 error
+	}
+	AllSatisfyingStub        func(logger lager.Logger, spec worker.WorkerSpec, resourceTypes creds.VersionedResourceTypes) ([]worker.Worker, error)
+	allSatisfyingMutex       sync.RWMutex
+	allSatisfyingArgsForCall []struct {
+		logger        lager.Logger
+		spec          worker.WorkerSpec
+		resourceTypes creds.VersionedResourceTypes
+	}
+	allSatisfyingReturns struct {
+		result1 []worker.Worker
+		result2 error
+	}
+	allSatisfyingReturnsOnCall map[int]struct {
 		result1 []worker.Worker
 		result2 error
 	}
@@ -121,6 +137,59 @@ func (fake *FakeWorkerProvider) RunningWorkersReturnsOnCall(i int, result1 []wor
 		})
 	}
 	fake.runningWorkersReturnsOnCall[i] = struct {
+		result1 []worker.Worker
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeWorkerProvider) AllSatisfying(logger lager.Logger, spec worker.WorkerSpec, resourceTypes creds.VersionedResourceTypes) ([]worker.Worker, error) {
+	fake.allSatisfyingMutex.Lock()
+	ret, specificReturn := fake.allSatisfyingReturnsOnCall[len(fake.allSatisfyingArgsForCall)]
+	fake.allSatisfyingArgsForCall = append(fake.allSatisfyingArgsForCall, struct {
+		logger        lager.Logger
+		spec          worker.WorkerSpec
+		resourceTypes creds.VersionedResourceTypes
+	}{logger, spec, resourceTypes})
+	fake.recordInvocation("AllSatisfying", []interface{}{logger, spec, resourceTypes})
+	fake.allSatisfyingMutex.Unlock()
+	if fake.AllSatisfyingStub != nil {
+		return fake.AllSatisfyingStub(logger, spec, resourceTypes)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.allSatisfyingReturns.result1, fake.allSatisfyingReturns.result2
+}
+
+func (fake *FakeWorkerProvider) AllSatisfyingCallCount() int {
+	fake.allSatisfyingMutex.RLock()
+	defer fake.allSatisfyingMutex.RUnlock()
+	return len(fake.allSatisfyingArgsForCall)
+}
+
+func (fake *FakeWorkerProvider) AllSatisfyingArgsForCall(i int) (lager.Logger, worker.WorkerSpec, creds.VersionedResourceTypes) {
+	fake.allSatisfyingMutex.RLock()
+	defer fake.allSatisfyingMutex.RUnlock()
+	return fake.allSatisfyingArgsForCall[i].logger, fake.allSatisfyingArgsForCall[i].spec, fake.allSatisfyingArgsForCall[i].resourceTypes
+}
+
+func (fake *FakeWorkerProvider) AllSatisfyingReturns(result1 []worker.Worker, result2 error) {
+	fake.AllSatisfyingStub = nil
+	fake.allSatisfyingReturns = struct {
+		result1 []worker.Worker
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeWorkerProvider) AllSatisfyingReturnsOnCall(i int, result1 []worker.Worker, result2 error) {
+	fake.AllSatisfyingStub = nil
+	if fake.allSatisfyingReturnsOnCall == nil {
+		fake.allSatisfyingReturnsOnCall = make(map[int]struct {
+			result1 []worker.Worker
+			result2 error
+		})
+	}
+	fake.allSatisfyingReturnsOnCall[i] = struct {
 		result1 []worker.Worker
 		result2 error
 	}{result1, result2}
@@ -293,6 +362,8 @@ func (fake *FakeWorkerProvider) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.runningWorkersMutex.RLock()
 	defer fake.runningWorkersMutex.RUnlock()
+	fake.allSatisfyingMutex.RLock()
+	defer fake.allSatisfyingMutex.RUnlock()
 	fake.findWorkerForContainerMutex.RLock()
 	defer fake.findWorkerForContainerMutex.RUnlock()
 	fake.findWorkerForContainerByOwnerMutex.RLock()

@@ -37,7 +37,6 @@ var _ = Describe("ContainerProvider", func() {
 
 		fakeGardenClient       *gardenfakes.FakeClient
 		fakeGardenContainer    *gardenfakes.FakeContainer
-		fakeBaggageclaimClient *baggageclaimfakes.FakeClient
 		fakeVolumeClient       *workerfakes.FakeVolumeClient
 		fakeImageFactory       *workerfakes.FakeImageFactory
 		fakeImage              *workerfakes.FakeImage
@@ -83,7 +82,6 @@ var _ = Describe("ContainerProvider", func() {
 		fakeImageFetchingDelegate = new(workerfakes.FakeImageFetchingDelegate)
 
 		fakeGardenClient = new(gardenfakes.FakeClient)
-		fakeBaggageclaimClient = new(baggageclaimfakes.FakeClient)
 		fakeVolumeClient = new(workerfakes.FakeVolumeClient)
 		fakeImageFactory = new(workerfakes.FakeImageFactory)
 		fakeImage = new(workerfakes.FakeImage)
@@ -111,7 +109,6 @@ var _ = Describe("ContainerProvider", func() {
 
 		containerProvider = NewContainerProvider(
 			fakeGardenClient,
-			fakeBaggageclaimClient,
 			fakeVolumeClient,
 			fakeDBWorker,
 			fakeClock,
@@ -252,11 +249,6 @@ var _ = Describe("ContainerProvider", func() {
 		})
 	})
 
-	CertsVolumeExists := func() {
-		fakeCertsVolume := new(baggageclaimfakes.FakeVolume)
-		fakeBaggageclaimClient.LookupVolumeReturns(fakeCertsVolume, true, nil)
-	}
-
 	ItHandlesContainerInCreatingState := func() {
 		Context("when container exists in garden", func() {
 			BeforeEach(func() {
@@ -280,7 +272,6 @@ var _ = Describe("ContainerProvider", func() {
 			BeforeEach(func() {
 				fakeGardenClient.LookupReturns(nil, garden.ContainerNotFoundError{})
 			})
-			BeforeEach(CertsVolumeExists)
 
 			It("gets image", func() {
 				Expect(fakeImageFactory.GetImageCallCount()).To(Equal(1))
@@ -360,9 +351,6 @@ var _ = Describe("ContainerProvider", func() {
 
 	ItHandlesNonExistentContainer := func(createDatabaseCallCountFunc func() int) {
 		Context("when the certs volume does not exist on the worker", func() {
-			BeforeEach(func() {
-				fakeBaggageclaimClient.LookupVolumeReturns(nil, false, nil)
-			})
 			It("creates the container in garden, but does not bind mount any certs", func() {
 				Expect(fakeGardenClient.CreateCallCount()).To(Equal(1))
 				actualSpec := fakeGardenClient.CreateArgsForCall(0)
@@ -374,12 +362,6 @@ var _ = Describe("ContainerProvider", func() {
 					},
 				))
 			})
-		})
-
-		BeforeEach(func() {
-			fakeCertsVolume := new(baggageclaimfakes.FakeVolume)
-			fakeCertsVolume.PathReturns("/the/certs/volume/path")
-			fakeBaggageclaimClient.LookupVolumeReturns(fakeCertsVolume, true, nil)
 		})
 
 		It("gets image", func() {

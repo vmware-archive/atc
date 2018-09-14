@@ -19,11 +19,9 @@ const creatingContainerRetryDelay = 1 * time.Second
 
 func NewContainerProvider(
 	gardenClient garden.Client,
-	baggageclaimClient baggageclaim.Client,
 	volumeClient VolumeClient,
 	dbWorker db.Worker,
 	clock clock.Clock,
-	//TODO: less of all this junk..
 	imageFactory ImageFactory,
 	dbVolumeRepository db.VolumeRepository,
 	dbTeamFactory db.TeamFactory,
@@ -32,7 +30,6 @@ func NewContainerProvider(
 
 	return &containerProvider{
 		gardenClient:       gardenClient,
-		baggageclaimClient: baggageclaimClient,
 		volumeClient:       volumeClient,
 		imageFactory:       imageFactory,
 		dbVolumeRepository: dbVolumeRepository,
@@ -68,7 +65,6 @@ type ContainerProvider interface {
 
 type containerProvider struct {
 	gardenClient       garden.Client
-	baggageclaimClient baggageclaim.Client
 	volumeClient       VolumeClient
 	imageFactory       ImageFactory
 	dbVolumeRepository db.VolumeRepository
@@ -143,7 +139,6 @@ func (p *containerProvider) FindOrCreateContainer(
 
 			worker := NewGardenWorker(
 				p.gardenClient,
-				p.baggageclaimClient,
 				p,
 				p.volumeClient,
 				p.worker,
@@ -367,7 +362,6 @@ func (p *containerProvider) createGardenContainer(
 
 	worker := NewGardenWorker(
 		p.gardenClient,
-		p.baggageclaimClient,
 		p,
 		p.volumeClient,
 		p.worker,

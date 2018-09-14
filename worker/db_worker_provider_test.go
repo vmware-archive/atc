@@ -12,7 +12,9 @@ import (
 	gfakes "code.cloudfoundry.org/garden/gardenfakes"
 	"code.cloudfoundry.org/garden/server"
 	"code.cloudfoundry.org/lager/lagertest"
+	"github.com/cloudfoundry/bosh-cli/director/template"
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/dbfakes"
 	"github.com/concourse/atc/db/lock/lockfakes"
@@ -28,6 +30,27 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 )
+
+func createNFakeWorkers(count int) (workers []*dbfakes.FakeWorker) {
+	workerVersion := "1.2.3"
+	for i := 1; i <= count; i++ {
+		gardenAddr := fmt.Sprintf("0.0.0.0:%d", 8888+GinkgoParallelNode()+i)
+		baggageclaimURL := fmt.Sprintf("http://0.0.0.0:%d", 9999+GinkgoParallelNode()+i)
+		fakeWorker := new(dbfakes.FakeWorker)
+		fakeWorker.NameReturns(fmt.Sprintf("worker-%d", i))
+		fakeWorker.PlatformReturns("linux")
+		fakeWorker.GardenAddrReturns(&gardenAddr)
+		fakeWorker.BaggageclaimURLReturns(&baggageclaimURL)
+		fakeWorker.StateReturns(db.WorkerStateRunning)
+		fakeWorker.ActiveContainersReturns(2)
+		fakeWorker.ResourceTypesReturns([]atc.WorkerResourceType{
+			{Type: "some-resource-a", Image: "some-image-a"}})
+
+		fakeWorker.VersionReturns(&workerVersion)
+		workers = append(workers, fakeWorker)
+	}
+	return
+}
 
 var _ = Describe("DBProvider", func() {
 	var (
@@ -211,23 +234,17 @@ var _ = Describe("DBProvider", func() {
 
 			Context("when some of the workers returned are stalled or landing", func() {
 				BeforeEach(func() {
-					landingWorker := new(dbfakes.FakeWorker)
+					workers := createNFakeWorkers(2)
+
+					landingWorker := workers[0]
 					landingWorker.NameReturns("landing-worker")
-					landingWorker.GardenAddrReturns(&gardenAddr)
-					landingWorker.BaggageclaimURLReturns(&baggageclaimURL)
 					landingWorker.StateReturns(db.WorkerStateLanding)
 					landingWorker.ActiveContainersReturns(5)
-					landingWorker.ResourceTypesReturns([]atc.WorkerResourceType{
-						{Type: "some-resource-b", Image: "some-image-b"}})
 
-					stalledWorker := new(dbfakes.FakeWorker)
+					stalledWorker := workers[1]
 					stalledWorker.NameReturns("stalled-worker")
-					stalledWorker.GardenAddrReturns(&gardenAddr)
-					stalledWorker.BaggageclaimURLReturns(&baggageclaimURL)
 					stalledWorker.StateReturns(db.WorkerStateStalled)
 					stalledWorker.ActiveContainersReturns(0)
-					stalledWorker.ResourceTypesReturns([]atc.WorkerResourceType{
-						{Type: "some-resource-b", Image: "some-image-b"}})
 
 					fakeDBWorkerFactory.WorkersReturns(
 						[]db.Worker{
@@ -245,44 +262,21 @@ var _ = Describe("DBProvider", func() {
 
 			Context("when a worker's major version is higher or lower than the atc worker version", func() {
 				BeforeEach(func() {
-					worker1 := new(dbfakes.FakeWorker)
-					worker1.NameReturns("worker-1")
-					worker1.GardenAddrReturns(&gardenAddr)
-					worker1.BaggageclaimURLReturns(&baggageclaimURL)
-					worker1.StateReturns(db.WorkerStateRunning)
-					worker1.ActiveContainersReturns(5)
-					worker1.ResourceTypesReturns([]atc.WorkerResourceType{
-						{Type: "some-resource-b", Image: "some-image-b"}})
+					fakeWorkers := createNFakeWorkers(3)
 					version1 := "1.1.0"
-					worker1.VersionReturns(&version1)
+					fakeWorkers[0].VersionReturns(&version1)
 
-					worker2 := new(dbfakes.FakeWorker)
-					worker2.NameReturns("worker-2")
-					worker2.GardenAddrReturns(&gardenAddr)
-					worker2.BaggageclaimURLReturns(&baggageclaimURL)
-					worker2.StateReturns(db.WorkerStateRunning)
-					worker2.ActiveContainersReturns(0)
-					worker2.ResourceTypesReturns([]atc.WorkerResourceType{
-						{Type: "some-resource-b", Image: "some-image-b"}})
 					version2 := "2.0.0"
-					worker2.VersionReturns(&version2)
+					fakeWorkers[1].VersionReturns(&version2)
 
-					worker3 := new(dbfakes.FakeWorker)
-					worker3.NameReturns("worker-2")
-					worker3.GardenAddrReturns(&gardenAddr)
-					worker3.BaggageclaimURLReturns(&baggageclaimURL)
-					worker3.StateReturns(db.WorkerStateRunning)
-					worker3.ActiveContainersReturns(0)
-					worker3.ResourceTypesReturns([]atc.WorkerResourceType{
-						{Type: "some-resource-b", Image: "some-image-b"}})
 					version3 := "0.0.0"
-					worker3.VersionReturns(&version3)
+					fakeWorkers[2].VersionReturns(&version3)
 
 					fakeDBWorkerFactory.WorkersReturns(
 						[]db.Worker{
-							worker3,
-							worker2,
-							worker1,
+							fakeWorkers[2],
+							fakeWorkers[1],
+							fakeWorkers[0],
 						}, nil)
 				})
 
@@ -295,44 +289,21 @@ var _ = Describe("DBProvider", func() {
 
 			Context("when a worker's minor version is higher or lower than the atc worker version", func() {
 				BeforeEach(func() {
-					worker1 := new(dbfakes.FakeWorker)
-					worker1.NameReturns("worker-1")
-					worker1.GardenAddrReturns(&gardenAddr)
-					worker1.BaggageclaimURLReturns(&baggageclaimURL)
-					worker1.StateReturns(db.WorkerStateRunning)
-					worker1.ActiveContainersReturns(5)
-					worker1.ResourceTypesReturns([]atc.WorkerResourceType{
-						{Type: "some-resource-b", Image: "some-image-b"}})
+					fakeWorkers := createNFakeWorkers(3)
 					version1 := "1.1.0"
-					worker1.VersionReturns(&version1)
+					fakeWorkers[0].VersionReturns(&version1)
 
-					worker2 := new(dbfakes.FakeWorker)
-					worker2.NameReturns("worker-2")
-					worker2.GardenAddrReturns(&gardenAddr)
-					worker2.BaggageclaimURLReturns(&baggageclaimURL)
-					worker2.StateReturns(db.WorkerStateRunning)
-					worker2.ActiveContainersReturns(0)
-					worker2.ResourceTypesReturns([]atc.WorkerResourceType{
-						{Type: "some-resource-b", Image: "some-image-b"}})
 					version2 := "1.2.0"
-					worker2.VersionReturns(&version2)
+					fakeWorkers[1].VersionReturns(&version2)
 
-					worker3 := new(dbfakes.FakeWorker)
-					worker3.NameReturns("worker-2")
-					worker3.GardenAddrReturns(&gardenAddr)
-					worker3.BaggageclaimURLReturns(&baggageclaimURL)
-					worker3.StateReturns(db.WorkerStateRunning)
-					worker3.ActiveContainersReturns(0)
-					worker3.ResourceTypesReturns([]atc.WorkerResourceType{
-						{Type: "some-resource-b", Image: "some-image-b"}})
 					version3 := "1.0.0"
-					worker3.VersionReturns(&version3)
+					fakeWorkers[2].VersionReturns(&version3)
 
 					fakeDBWorkerFactory.WorkersReturns(
 						[]db.Worker{
-							worker3,
-							worker2,
-							worker1,
+							fakeWorkers[2],
+							fakeWorkers[1],
+							fakeWorkers[0],
 						}, nil)
 				})
 
@@ -494,6 +465,154 @@ var _ = Describe("DBProvider", func() {
 				Expect(workersErr).To(Equal(disaster))
 			})
 		})
+	})
+
+	Describe("AllSatisfying", func() {
+		var (
+			spec WorkerSpec
+
+			satisfyingErr     error
+			satisfyingWorkers []Worker
+			resourceTypes     creds.VersionedResourceTypes
+
+			worker1 *dbfakes.FakeWorker
+			worker2 *dbfakes.FakeWorker
+			worker3 *dbfakes.FakeWorker
+		)
+
+		BeforeEach(func() {
+			// don't need a complicated spec here, as checking the spec is the responsibility
+			// of worker.Satisfying. We just care how we glue RunningWorkers and Satisfying
+			// together to find AllSatisfying
+			spec = WorkerSpec{
+				Platform: "linux",
+			}
+
+			resourceTypes = creds.NewVersionedResourceTypes(template.StaticVariables{}, atc.VersionedResourceTypes{})
+		})
+
+		JustBeforeEach(func() {
+			satisfyingWorkers, satisfyingErr = provider.AllSatisfying(logger, spec, resourceTypes)
+		})
+
+		Context("with multiple workers", func() {
+			BeforeEach(func() {
+				fakeWorkers := createNFakeWorkers(3)
+
+				worker1 = fakeWorkers[0]
+				worker2 = fakeWorkers[1]
+				worker3 = fakeWorkers[2]
+				worker3.PlatformReturns("some-platform")
+
+				fakeDBWorkerFactory.WorkersReturns(
+					[]db.Worker{
+						worker3,
+						worker2,
+						worker1,
+					}, nil)
+			})
+
+			It("succeeds", func() {
+				Expect(satisfyingErr).NotTo(HaveOccurred())
+			})
+
+			It("returns all workers satisfying the spec", func() {
+				Expect(satisfyingWorkers).To(HaveLen(2))
+				Expect(satisfyingWorkers[1].Name()).To(Equal("worker-1"))
+				Expect(satisfyingWorkers[0].Name()).To(Equal("worker-2"))
+			})
+
+			Context("when no workers satisfy the spec", func() {
+				BeforeEach(func() {
+					worker1.PlatformReturns("N64")
+					worker2.PlatformReturns("shoes")
+					worker3.PlatformReturns("some-platform")
+				})
+
+				It("returns a NoCompatibleWorkersError", func() {
+					Expect(satisfyingErr).To(HaveOccurred())
+					err, ok := satisfyingErr.(NoCompatibleWorkersError)
+					Expect(ok).To(BeTrue())
+					Expect(err.Workers).To(HaveLen(3))
+					Expect(err.Spec).To(Equal(spec))
+				})
+			})
+		})
+
+		Context("when team workers and general workers satisfy the spec", func() {
+			BeforeEach(func() {
+				fakeWorkers := createNFakeWorkers(3)
+				spec.TeamID = 1
+
+				// team worker satisfying spec
+				worker1 = fakeWorkers[0]
+				worker1.TeamIDReturns(spec.TeamID)
+
+				// non-team worker satisfying spec
+				worker2 = fakeWorkers[1]
+
+				// worker not satisfying spec
+				worker3 = fakeWorkers[2]
+				worker3.PlatformReturns("some-platform")
+
+				fakeDBWorkerFactory.WorkersReturns(
+					[]db.Worker{
+						worker3,
+						worker2,
+						worker1,
+					}, nil)
+			})
+
+			It("returns only the team workers that satisfy the spec", func() {
+				Expect(satisfyingErr).NotTo(HaveOccurred())
+				Expect(satisfyingWorkers).To(HaveLen(1))
+				Expect(satisfyingWorkers[0].Name()).To(Equal(worker1.Name()))
+			})
+		})
+
+		Context("when only general workers satisfy the spec", func() {
+			BeforeEach(func() {
+				fakeWorkers := createNFakeWorkers(3)
+				spec.TeamID = 1
+
+				// team worker not satisfying spec
+				worker1 = fakeWorkers[0]
+				worker1.TeamIDReturns(spec.TeamID)
+				worker1.PlatformReturns("some-platform")
+
+				// non-team worker satisfying spec
+				worker2 = fakeWorkers[1]
+
+				// non-team worker satisfying spec
+				worker3 = fakeWorkers[2]
+
+				fakeDBWorkerFactory.WorkersReturns(
+					[]db.Worker{
+						worker3,
+						worker2,
+						worker1,
+					}, nil)
+
+			})
+
+			It("returns the general workers that satisfy the spec", func() {
+				Expect(satisfyingErr).NotTo(HaveOccurred())
+				Expect(satisfyingWorkers).To(HaveLen(2))
+				Expect(satisfyingWorkers[1].Name()).To(Equal(worker2.Name()))
+				Expect(satisfyingWorkers[0].Name()).To(Equal(worker3.Name()))
+			})
+		})
+
+		Context("with no workers", func() {
+			BeforeEach(func() {
+				fakeDBWorkerFactory.WorkersReturns([]db.Worker{}, nil)
+			})
+
+			It("returns ErrNoWorkers", func() {
+				Expect(satisfyingErr).To(Equal(ErrNoWorkers))
+			})
+		})
+
 	})
 
 	Describe("FindWorkerForContainer", func() {

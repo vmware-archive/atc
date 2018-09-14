@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"code.cloudfoundry.org/lager"
-	"github.com/concourse/atc"
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/worker"
@@ -65,19 +64,6 @@ type FakeClient struct {
 		result2 bool
 		result3 error
 	}
-	FindResourceTypeByPathStub        func(path string) (atc.WorkerResourceType, bool)
-	findResourceTypeByPathMutex       sync.RWMutex
-	findResourceTypeByPathArgsForCall []struct {
-		path string
-	}
-	findResourceTypeByPathReturns struct {
-		result1 atc.WorkerResourceType
-		result2 bool
-	}
-	findResourceTypeByPathReturnsOnCall map[int]struct {
-		result1 atc.WorkerResourceType
-		result2 bool
-	}
 	SatisfyingStub        func(lager.Logger, worker.WorkerSpec, creds.VersionedResourceTypes) (worker.Worker, error)
 	satisfyingMutex       sync.RWMutex
 	satisfyingArgsForCall []struct {
@@ -91,34 +77,6 @@ type FakeClient struct {
 	}
 	satisfyingReturnsOnCall map[int]struct {
 		result1 worker.Worker
-		result2 error
-	}
-	AllSatisfyingStub        func(lager.Logger, worker.WorkerSpec, creds.VersionedResourceTypes) ([]worker.Worker, error)
-	allSatisfyingMutex       sync.RWMutex
-	allSatisfyingArgsForCall []struct {
-		arg1 lager.Logger
-		arg2 worker.WorkerSpec
-		arg3 creds.VersionedResourceTypes
-	}
-	allSatisfyingReturns struct {
-		result1 []worker.Worker
-		result2 error
-	}
-	allSatisfyingReturnsOnCall map[int]struct {
-		result1 []worker.Worker
-		result2 error
-	}
-	RunningWorkersStub        func(lager.Logger) ([]worker.Worker, error)
-	runningWorkersMutex       sync.RWMutex
-	runningWorkersArgsForCall []struct {
-		arg1 lager.Logger
-	}
-	runningWorkersReturns struct {
-		result1 []worker.Worker
-		result2 error
-	}
-	runningWorkersReturnsOnCall map[int]struct {
-		result1 []worker.Worker
 		result2 error
 	}
 	invocations      map[string][][]interface{}
@@ -293,57 +251,6 @@ func (fake *FakeClient) LookupVolumeReturnsOnCall(i int, result1 worker.Volume, 
 	}{result1, result2, result3}
 }
 
-func (fake *FakeClient) FindResourceTypeByPath(path string) (atc.WorkerResourceType, bool) {
-	fake.findResourceTypeByPathMutex.Lock()
-	ret, specificReturn := fake.findResourceTypeByPathReturnsOnCall[len(fake.findResourceTypeByPathArgsForCall)]
-	fake.findResourceTypeByPathArgsForCall = append(fake.findResourceTypeByPathArgsForCall, struct {
-		path string
-	}{path})
-	fake.recordInvocation("FindResourceTypeByPath", []interface{}{path})
-	fake.findResourceTypeByPathMutex.Unlock()
-	if fake.FindResourceTypeByPathStub != nil {
-		return fake.FindResourceTypeByPathStub(path)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.findResourceTypeByPathReturns.result1, fake.findResourceTypeByPathReturns.result2
-}
-
-func (fake *FakeClient) FindResourceTypeByPathCallCount() int {
-	fake.findResourceTypeByPathMutex.RLock()
-	defer fake.findResourceTypeByPathMutex.RUnlock()
-	return len(fake.findResourceTypeByPathArgsForCall)
-}
-
-func (fake *FakeClient) FindResourceTypeByPathArgsForCall(i int) string {
-	fake.findResourceTypeByPathMutex.RLock()
-	defer fake.findResourceTypeByPathMutex.RUnlock()
-	return fake.findResourceTypeByPathArgsForCall[i].path
-}
-
-func (fake *FakeClient) FindResourceTypeByPathReturns(result1 atc.WorkerResourceType, result2 bool) {
-	fake.FindResourceTypeByPathStub = nil
-	fake.findResourceTypeByPathReturns = struct {
-		result1 atc.WorkerResourceType
-		result2 bool
-	}{result1, result2}
-}
-
-func (fake *FakeClient) FindResourceTypeByPathReturnsOnCall(i int, result1 atc.WorkerResourceType, result2 bool) {
-	fake.FindResourceTypeByPathStub = nil
-	if fake.findResourceTypeByPathReturnsOnCall == nil {
-		fake.findResourceTypeByPathReturnsOnCall = make(map[int]struct {
-			result1 atc.WorkerResourceType
-			result2 bool
-		})
-	}
-	fake.findResourceTypeByPathReturnsOnCall[i] = struct {
-		result1 atc.WorkerResourceType
-		result2 bool
-	}{result1, result2}
-}
-
 func (fake *FakeClient) Satisfying(arg1 lager.Logger, arg2 worker.WorkerSpec, arg3 creds.VersionedResourceTypes) (worker.Worker, error) {
 	fake.satisfyingMutex.Lock()
 	ret, specificReturn := fake.satisfyingReturnsOnCall[len(fake.satisfyingArgsForCall)]
@@ -397,110 +304,6 @@ func (fake *FakeClient) SatisfyingReturnsOnCall(i int, result1 worker.Worker, re
 	}{result1, result2}
 }
 
-func (fake *FakeClient) AllSatisfying(arg1 lager.Logger, arg2 worker.WorkerSpec, arg3 creds.VersionedResourceTypes) ([]worker.Worker, error) {
-	fake.allSatisfyingMutex.Lock()
-	ret, specificReturn := fake.allSatisfyingReturnsOnCall[len(fake.allSatisfyingArgsForCall)]
-	fake.allSatisfyingArgsForCall = append(fake.allSatisfyingArgsForCall, struct {
-		arg1 lager.Logger
-		arg2 worker.WorkerSpec
-		arg3 creds.VersionedResourceTypes
-	}{arg1, arg2, arg3})
-	fake.recordInvocation("AllSatisfying", []interface{}{arg1, arg2, arg3})
-	fake.allSatisfyingMutex.Unlock()
-	if fake.AllSatisfyingStub != nil {
-		return fake.AllSatisfyingStub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.allSatisfyingReturns.result1, fake.allSatisfyingReturns.result2
-}
-
-func (fake *FakeClient) AllSatisfyingCallCount() int {
-	fake.allSatisfyingMutex.RLock()
-	defer fake.allSatisfyingMutex.RUnlock()
-	return len(fake.allSatisfyingArgsForCall)
-}
-
-func (fake *FakeClient) AllSatisfyingArgsForCall(i int) (lager.Logger, worker.WorkerSpec, creds.VersionedResourceTypes) {
-	fake.allSatisfyingMutex.RLock()
-	defer fake.allSatisfyingMutex.RUnlock()
-	return fake.allSatisfyingArgsForCall[i].arg1, fake.allSatisfyingArgsForCall[i].arg2, fake.allSatisfyingArgsForCall[i].arg3
-}
-
-func (fake *FakeClient) AllSatisfyingReturns(result1 []worker.Worker, result2 error) {
-	fake.AllSatisfyingStub = nil
-	fake.allSatisfyingReturns = struct {
-		result1 []worker.Worker
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeClient) AllSatisfyingReturnsOnCall(i int, result1 []worker.Worker, result2 error) {
-	fake.AllSatisfyingStub = nil
-	if fake.allSatisfyingReturnsOnCall == nil {
-		fake.allSatisfyingReturnsOnCall = make(map[int]struct {
-			result1 []worker.Worker
-			result2 error
-		})
-	}
-	fake.allSatisfyingReturnsOnCall[i] = struct {
-		result1 []worker.Worker
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeClient) RunningWorkers(arg1 lager.Logger) ([]worker.Worker, error) {
-	fake.runningWorkersMutex.Lock()
-	ret, specificReturn := fake.runningWorkersReturnsOnCall[len(fake.runningWorkersArgsForCall)]
-	fake.runningWorkersArgsForCall = append(fake.runningWorkersArgsForCall, struct {
-		arg1 lager.Logger
-	}{arg1})
-	fake.recordInvocation("RunningWorkers", []interface{}{arg1})
-	fake.runningWorkersMutex.Unlock()
-	if fake.RunningWorkersStub != nil {
-		return fake.RunningWorkersStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.runningWorkersReturns.result1, fake.runningWorkersReturns.result2
-}
-
-func (fake *FakeClient) RunningWorkersCallCount() int {
-	fake.runningWorkersMutex.RLock()
-	defer fake.runningWorkersMutex.RUnlock()
-	return len(fake.runningWorkersArgsForCall)
-}
-
-func (fake *FakeClient) RunningWorkersArgsForCall(i int) lager.Logger {
-	fake.runningWorkersMutex.RLock()
-	defer fake.runningWorkersMutex.RUnlock()
-	return fake.runningWorkersArgsForCall[i].arg1
-}
-
-func (fake *FakeClient) RunningWorkersReturns(result1 []worker.Worker, result2 error) {
-	fake.RunningWorkersStub = nil
-	fake.runningWorkersReturns = struct {
-		result1 []worker.Worker
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeClient) RunningWorkersReturnsOnCall(i int, result1 []worker.Worker, result2 error) {
-	fake.RunningWorkersStub = nil
-	if fake.runningWorkersReturnsOnCall == nil {
-		fake.runningWorkersReturnsOnCall = make(map[int]struct {
-			result1 []worker.Worker
-			result2 error
-		})
-	}
-	fake.runningWorkersReturnsOnCall[i] = struct {
-		result1 []worker.Worker
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -510,14 +313,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.findContainerByHandleMutex.RUnlock()
 	fake.lookupVolumeMutex.RLock()
 	defer fake.lookupVolumeMutex.RUnlock()
-	fake.findResourceTypeByPathMutex.RLock()
-	defer fake.findResourceTypeByPathMutex.RUnlock()
 	fake.satisfyingMutex.RLock()
 	defer fake.satisfyingMutex.RUnlock()
-	fake.allSatisfyingMutex.RLock()
-	defer fake.allSatisfyingMutex.RUnlock()
-	fake.runningWorkersMutex.RLock()
-	defer fake.runningWorkersMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

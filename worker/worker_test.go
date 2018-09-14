@@ -13,7 +13,6 @@ import (
 	"github.com/concourse/atc/db/dbfakes"
 	. "github.com/concourse/atc/worker"
 	wfakes "github.com/concourse/atc/worker/workerfakes"
-	"github.com/concourse/baggageclaim/baggageclaimfakes"
 	"github.com/cppforlife/go-semi-semantic/version"
 
 	. "github.com/onsi/ginkgo"
@@ -22,23 +21,22 @@ import (
 
 var _ = Describe("Worker", func() {
 	var (
-		logger                     *lagertest.TestLogger
-		fakeVolumeClient           *wfakes.FakeVolumeClient
-		fakeClock                  *fakeclock.FakeClock
-		fakeContainerProvider      *wfakes.FakeContainerProvider
-		activeContainers           int
-		resourceTypes              []atc.WorkerResourceType
-		platform                   string
-		tags                       atc.Tags
-		teamID                     int
-		ephemeral                  bool
-		workerName                 string
-		workerStartTime            int64
-		workerUptime               uint64
-		gardenWorker               Worker
-		workerVersion              string
-		fakeGardenClient           *gardenfakes.FakeClient
-		fakeBaggageClaimClient     *baggageclaimfakes.FakeClient
+		logger                *lagertest.TestLogger
+		fakeVolumeClient      *wfakes.FakeVolumeClient
+		fakeClock             *fakeclock.FakeClock
+		fakeContainerProvider *wfakes.FakeContainerProvider
+		activeContainers      int
+		resourceTypes         []atc.WorkerResourceType
+		platform              string
+		tags                  atc.Tags
+		teamID                int
+		ephemeral             bool
+		workerName            string
+		workerStartTime       int64
+		workerUptime          uint64
+		gardenWorker          Worker
+		workerVersion         string
+		fakeGardenClient      *gardenfakes.FakeClient
 	)
 
 	BeforeEach(func() {
@@ -64,7 +62,6 @@ var _ = Describe("Worker", func() {
 
 		fakeContainerProvider = new(wfakes.FakeContainerProvider)
 		fakeGardenClient = new(gardenfakes.FakeClient)
-		fakeBaggageClaimClient = new(baggageclaimfakes.FakeClient)
 	})
 
 	JustBeforeEach(func() {
@@ -81,7 +78,6 @@ var _ = Describe("Worker", func() {
 
 		gardenWorker = NewGardenWorker(
 			fakeGardenClient,
-			fakeBaggageClaimClient,
 			fakeContainerProvider,
 			fakeVolumeClient,
 			dbWorker,

@@ -13,7 +13,6 @@ import (
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
-	"github.com/concourse/baggageclaim"
 	"github.com/cppforlife/go-semi-semantic/version"
 )
 
@@ -49,8 +48,7 @@ type Worker interface {
 }
 
 type gardenWorker struct {
-	gardenClient       garden.Client
-	baggageclaimClient baggageclaim.Client
+	gardenClient garden.Client
 
 	volumeClient      VolumeClient
 	containerProvider ContainerProvider
@@ -70,7 +68,6 @@ type gardenWorker struct {
 
 func NewGardenWorker(
 	gardenClient garden.Client,
-	baggageclaimClient baggageclaim.Client,
 	containerProvider ContainerProvider,
 	volumeClient VolumeClient,
 	dbWorker db.Worker,
@@ -78,10 +75,9 @@ func NewGardenWorker(
 ) Worker {
 
 	return &gardenWorker{
-		gardenClient:       gardenClient,
-		baggageclaimClient: baggageclaimClient,
-		volumeClient:       volumeClient,
-		containerProvider:  containerProvider,
+		gardenClient:      gardenClient,
+		volumeClient:      volumeClient,
+		containerProvider: containerProvider,
 
 		clock:            clock,
 		activeContainers: dbWorker.ActiveContainers(),
@@ -170,7 +166,6 @@ func (worker *gardenWorker) FindOrCreateContainer(
 	spec ContainerSpec,
 	resourceTypes creds.VersionedResourceTypes,
 ) (Container, error) {
-
 	return worker.containerProvider.FindOrCreateContainer(
 		ctx,
 		logger,
@@ -237,14 +232,6 @@ func determineUnderlyingTypeName(typeName string, resourceTypes creds.VersionedR
 		delete(resourceTypesMap, underlyingTypeName)
 	}
 	return underlyingTypeName
-}
-
-func (worker *gardenWorker) AllSatisfying(logger lager.Logger, spec WorkerSpec, resourceTypes creds.VersionedResourceTypes) ([]Worker, error) {
-	return nil, ErrNotImplemented
-}
-
-func (worker *gardenWorker) RunningWorkers(logger lager.Logger) ([]Worker, error) {
-	return nil, ErrNotImplemented
 }
 
 func (worker *gardenWorker) Description() string {

@@ -6,7 +6,6 @@ import (
 
 	"code.cloudfoundry.org/garden"
 	"code.cloudfoundry.org/lager"
-	"github.com/concourse/atc"
 	"github.com/concourse/atc/creds"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/baggageclaim"
@@ -29,11 +28,7 @@ type Client interface {
 
 	LookupVolume(lager.Logger, string) (Volume, bool, error)
 
-	FindResourceTypeByPath(path string) (atc.WorkerResourceType, bool)
-
 	Satisfying(lager.Logger, WorkerSpec, creds.VersionedResourceTypes) (Worker, error)
-	AllSatisfying(lager.Logger, WorkerSpec, creds.VersionedResourceTypes) ([]Worker, error)
-	RunningWorkers(lager.Logger) ([]Worker, error)
 }
 
 //go:generate counterfeiter . InputSource
