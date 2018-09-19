@@ -154,6 +154,15 @@ type FakeResource struct {
 	resourceConfigCheckErrorReturnsOnCall map[int]struct {
 		result1 error
 	}
+	ResourceConfigIDStub        func() int
+	resourceConfigIDMutex       sync.RWMutex
+	resourceConfigIDArgsForCall []struct{}
+	resourceConfigIDReturns     struct {
+		result1 int
+	}
+	resourceConfigIDReturnsOnCall map[int]struct {
+		result1 int
+	}
 	ResourceConfigVersionIDStub        func(atc.Version) (int, bool, error)
 	resourceConfigVersionIDMutex       sync.RWMutex
 	resourceConfigVersionIDArgsForCall []struct {
@@ -168,6 +177,36 @@ type FakeResource struct {
 		result1 int
 		result2 bool
 		result3 error
+	}
+	VersionsStub        func(page db.Page) ([]atc.ResourceVersion, db.Pagination, bool, error)
+	versionsMutex       sync.RWMutex
+	versionsArgsForCall []struct {
+		page db.Page
+	}
+	versionsReturns struct {
+		result1 []atc.ResourceVersion
+		result2 db.Pagination
+		result3 bool
+		result4 error
+	}
+	versionsReturnsOnCall map[int]struct {
+		result1 []atc.ResourceVersion
+		result2 db.Pagination
+		result3 bool
+		result4 error
+	}
+	IsVersionDisabledStub        func(version atc.Version) (bool, error)
+	isVersionDisabledMutex       sync.RWMutex
+	isVersionDisabledArgsForCall []struct {
+		version atc.Version
+	}
+	isVersionDisabledReturns struct {
+		result1 bool
+		result2 error
+	}
+	isVersionDisabledReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
 	}
 	SetResourceConfigStub        func(int) error
 	setResourceConfigMutex       sync.RWMutex
@@ -864,6 +903,46 @@ func (fake *FakeResource) ResourceConfigCheckErrorReturnsOnCall(i int, result1 e
 	}{result1}
 }
 
+func (fake *FakeResource) ResourceConfigID() int {
+	fake.resourceConfigIDMutex.Lock()
+	ret, specificReturn := fake.resourceConfigIDReturnsOnCall[len(fake.resourceConfigIDArgsForCall)]
+	fake.resourceConfigIDArgsForCall = append(fake.resourceConfigIDArgsForCall, struct{}{})
+	fake.recordInvocation("ResourceConfigID", []interface{}{})
+	fake.resourceConfigIDMutex.Unlock()
+	if fake.ResourceConfigIDStub != nil {
+		return fake.ResourceConfigIDStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.resourceConfigIDReturns.result1
+}
+
+func (fake *FakeResource) ResourceConfigIDCallCount() int {
+	fake.resourceConfigIDMutex.RLock()
+	defer fake.resourceConfigIDMutex.RUnlock()
+	return len(fake.resourceConfigIDArgsForCall)
+}
+
+func (fake *FakeResource) ResourceConfigIDReturns(result1 int) {
+	fake.ResourceConfigIDStub = nil
+	fake.resourceConfigIDReturns = struct {
+		result1 int
+	}{result1}
+}
+
+func (fake *FakeResource) ResourceConfigIDReturnsOnCall(i int, result1 int) {
+	fake.ResourceConfigIDStub = nil
+	if fake.resourceConfigIDReturnsOnCall == nil {
+		fake.resourceConfigIDReturnsOnCall = make(map[int]struct {
+			result1 int
+		})
+	}
+	fake.resourceConfigIDReturnsOnCall[i] = struct {
+		result1 int
+	}{result1}
+}
+
 func (fake *FakeResource) ResourceConfigVersionID(arg1 atc.Version) (int, bool, error) {
 	fake.resourceConfigVersionIDMutex.Lock()
 	ret, specificReturn := fake.resourceConfigVersionIDReturnsOnCall[len(fake.resourceConfigVersionIDArgsForCall)]
@@ -916,6 +995,114 @@ func (fake *FakeResource) ResourceConfigVersionIDReturnsOnCall(i int, result1 in
 		result2 bool
 		result3 error
 	}{result1, result2, result3}
+}
+
+func (fake *FakeResource) Versions(page db.Page) ([]atc.ResourceVersion, db.Pagination, bool, error) {
+	fake.versionsMutex.Lock()
+	ret, specificReturn := fake.versionsReturnsOnCall[len(fake.versionsArgsForCall)]
+	fake.versionsArgsForCall = append(fake.versionsArgsForCall, struct {
+		page db.Page
+	}{page})
+	fake.recordInvocation("Versions", []interface{}{page})
+	fake.versionsMutex.Unlock()
+	if fake.VersionsStub != nil {
+		return fake.VersionsStub(page)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3, ret.result4
+	}
+	return fake.versionsReturns.result1, fake.versionsReturns.result2, fake.versionsReturns.result3, fake.versionsReturns.result4
+}
+
+func (fake *FakeResource) VersionsCallCount() int {
+	fake.versionsMutex.RLock()
+	defer fake.versionsMutex.RUnlock()
+	return len(fake.versionsArgsForCall)
+}
+
+func (fake *FakeResource) VersionsArgsForCall(i int) db.Page {
+	fake.versionsMutex.RLock()
+	defer fake.versionsMutex.RUnlock()
+	return fake.versionsArgsForCall[i].page
+}
+
+func (fake *FakeResource) VersionsReturns(result1 []atc.ResourceVersion, result2 db.Pagination, result3 bool, result4 error) {
+	fake.VersionsStub = nil
+	fake.versionsReturns = struct {
+		result1 []atc.ResourceVersion
+		result2 db.Pagination
+		result3 bool
+		result4 error
+	}{result1, result2, result3, result4}
+}
+
+func (fake *FakeResource) VersionsReturnsOnCall(i int, result1 []atc.ResourceVersion, result2 db.Pagination, result3 bool, result4 error) {
+	fake.VersionsStub = nil
+	if fake.versionsReturnsOnCall == nil {
+		fake.versionsReturnsOnCall = make(map[int]struct {
+			result1 []atc.ResourceVersion
+			result2 db.Pagination
+			result3 bool
+			result4 error
+		})
+	}
+	fake.versionsReturnsOnCall[i] = struct {
+		result1 []atc.ResourceVersion
+		result2 db.Pagination
+		result3 bool
+		result4 error
+	}{result1, result2, result3, result4}
+}
+
+func (fake *FakeResource) IsVersionDisabled(version atc.Version) (bool, error) {
+	fake.isVersionDisabledMutex.Lock()
+	ret, specificReturn := fake.isVersionDisabledReturnsOnCall[len(fake.isVersionDisabledArgsForCall)]
+	fake.isVersionDisabledArgsForCall = append(fake.isVersionDisabledArgsForCall, struct {
+		version atc.Version
+	}{version})
+	fake.recordInvocation("IsVersionDisabled", []interface{}{version})
+	fake.isVersionDisabledMutex.Unlock()
+	if fake.IsVersionDisabledStub != nil {
+		return fake.IsVersionDisabledStub(version)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.isVersionDisabledReturns.result1, fake.isVersionDisabledReturns.result2
+}
+
+func (fake *FakeResource) IsVersionDisabledCallCount() int {
+	fake.isVersionDisabledMutex.RLock()
+	defer fake.isVersionDisabledMutex.RUnlock()
+	return len(fake.isVersionDisabledArgsForCall)
+}
+
+func (fake *FakeResource) IsVersionDisabledArgsForCall(i int) atc.Version {
+	fake.isVersionDisabledMutex.RLock()
+	defer fake.isVersionDisabledMutex.RUnlock()
+	return fake.isVersionDisabledArgsForCall[i].version
+}
+
+func (fake *FakeResource) IsVersionDisabledReturns(result1 bool, result2 error) {
+	fake.IsVersionDisabledStub = nil
+	fake.isVersionDisabledReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeResource) IsVersionDisabledReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.IsVersionDisabledStub = nil
+	if fake.isVersionDisabledReturnsOnCall == nil {
+		fake.isVersionDisabledReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.isVersionDisabledReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeResource) SetResourceConfig(arg1 int) error {
@@ -1172,8 +1359,14 @@ func (fake *FakeResource) Invocations() map[string][][]interface{} {
 	defer fake.failingToCheckMutex.RUnlock()
 	fake.resourceConfigCheckErrorMutex.RLock()
 	defer fake.resourceConfigCheckErrorMutex.RUnlock()
+	fake.resourceConfigIDMutex.RLock()
+	defer fake.resourceConfigIDMutex.RUnlock()
 	fake.resourceConfigVersionIDMutex.RLock()
 	defer fake.resourceConfigVersionIDMutex.RUnlock()
+	fake.versionsMutex.RLock()
+	defer fake.versionsMutex.RUnlock()
+	fake.isVersionDisabledMutex.RLock()
+	defer fake.isVersionDisabledMutex.RUnlock()
 	fake.setResourceConfigMutex.RLock()
 	defer fake.setResourceConfigMutex.RUnlock()
 	fake.setCheckErrorMutex.RLock()
