@@ -9,10 +9,11 @@ import (
 )
 
 type FakeAccessFactory struct {
-	CreateStub        func(*http.Request) accessor.Access
+	CreateStub        func(*http.Request, string) accessor.Access
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		arg1 *http.Request
+		arg2 string
 	}
 	createReturns struct {
 		result1 accessor.Access
@@ -24,16 +25,17 @@ type FakeAccessFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeAccessFactory) Create(arg1 *http.Request) accessor.Access {
+func (fake *FakeAccessFactory) Create(arg1 *http.Request, arg2 string) accessor.Access {
 	fake.createMutex.Lock()
 	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		arg1 *http.Request
-	}{arg1})
-	fake.recordInvocation("Create", []interface{}{arg1})
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("Create", []interface{}{arg1, arg2})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
-		return fake.CreateStub(arg1)
+		return fake.CreateStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -47,10 +49,10 @@ func (fake *FakeAccessFactory) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeAccessFactory) CreateArgsForCall(i int) *http.Request {
+func (fake *FakeAccessFactory) CreateArgsForCall(i int) (*http.Request, string) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
-	return fake.createArgsForCall[i].arg1
+	return fake.createArgsForCall[i].arg1, fake.createArgsForCall[i].arg2
 }
 
 func (fake *FakeAccessFactory) CreateReturns(result1 accessor.Access) {
