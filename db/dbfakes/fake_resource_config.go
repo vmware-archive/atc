@@ -138,23 +138,6 @@ type FakeResourceConfig struct {
 		result2 bool
 		result3 error
 	}
-	VersionsStub        func(page db.Page) (db.ResourceConfigVersions, db.Pagination, bool, error)
-	versionsMutex       sync.RWMutex
-	versionsArgsForCall []struct {
-		page db.Page
-	}
-	versionsReturns struct {
-		result1 db.ResourceConfigVersions
-		result2 db.Pagination
-		result3 bool
-		result4 error
-	}
-	versionsReturnsOnCall map[int]struct {
-		result1 db.ResourceConfigVersions
-		result2 db.Pagination
-		result3 bool
-		result4 error
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -668,63 +651,6 @@ func (fake *FakeResourceConfig) FindVersionReturnsOnCall(i int, result1 db.Resou
 	}{result1, result2, result3}
 }
 
-func (fake *FakeResourceConfig) Versions(page db.Page) (db.ResourceConfigVersions, db.Pagination, bool, error) {
-	fake.versionsMutex.Lock()
-	ret, specificReturn := fake.versionsReturnsOnCall[len(fake.versionsArgsForCall)]
-	fake.versionsArgsForCall = append(fake.versionsArgsForCall, struct {
-		page db.Page
-	}{page})
-	fake.recordInvocation("Versions", []interface{}{page})
-	fake.versionsMutex.Unlock()
-	if fake.VersionsStub != nil {
-		return fake.VersionsStub(page)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2, ret.result3, ret.result4
-	}
-	return fake.versionsReturns.result1, fake.versionsReturns.result2, fake.versionsReturns.result3, fake.versionsReturns.result4
-}
-
-func (fake *FakeResourceConfig) VersionsCallCount() int {
-	fake.versionsMutex.RLock()
-	defer fake.versionsMutex.RUnlock()
-	return len(fake.versionsArgsForCall)
-}
-
-func (fake *FakeResourceConfig) VersionsArgsForCall(i int) db.Page {
-	fake.versionsMutex.RLock()
-	defer fake.versionsMutex.RUnlock()
-	return fake.versionsArgsForCall[i].page
-}
-
-func (fake *FakeResourceConfig) VersionsReturns(result1 db.ResourceConfigVersions, result2 db.Pagination, result3 bool, result4 error) {
-	fake.VersionsStub = nil
-	fake.versionsReturns = struct {
-		result1 db.ResourceConfigVersions
-		result2 db.Pagination
-		result3 bool
-		result4 error
-	}{result1, result2, result3, result4}
-}
-
-func (fake *FakeResourceConfig) VersionsReturnsOnCall(i int, result1 db.ResourceConfigVersions, result2 db.Pagination, result3 bool, result4 error) {
-	fake.VersionsStub = nil
-	if fake.versionsReturnsOnCall == nil {
-		fake.versionsReturnsOnCall = make(map[int]struct {
-			result1 db.ResourceConfigVersions
-			result2 db.Pagination
-			result3 bool
-			result4 error
-		})
-	}
-	fake.versionsReturnsOnCall[i] = struct {
-		result1 db.ResourceConfigVersions
-		result2 db.Pagination
-		result3 bool
-		result4 error
-	}{result1, result2, result3, result4}
-}
-
 func (fake *FakeResourceConfig) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -750,8 +676,6 @@ func (fake *FakeResourceConfig) Invocations() map[string][][]interface{} {
 	defer fake.setCheckErrorMutex.RUnlock()
 	fake.findVersionMutex.RLock()
 	defer fake.findVersionMutex.RUnlock()
-	fake.versionsMutex.RLock()
-	defer fake.versionsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
