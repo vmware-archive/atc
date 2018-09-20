@@ -529,6 +529,7 @@ func (cmd *RunCommand) constructAPIMembers(
 		dbContainerRepository,
 		gcContainerDestroyer,
 		dbBuildFactory,
+		dbResourceConfigFactory,
 		engine,
 		workerClient,
 		workerProvider,
@@ -1231,6 +1232,7 @@ func (cmd *RunCommand) constructAPIHandler(
 	dbContainerRepository db.ContainerRepository,
 	gcContainerDestroyer gc.Destroyer,
 	dbBuildFactory db.BuildFactory,
+	resourceConfigFactory db.ResourceConfigFactory,
 	engine engine.Engine,
 	workerClient worker.Client,
 	workerProvider worker.WorkerProvider,
@@ -1271,6 +1273,7 @@ func (cmd *RunCommand) constructAPIHandler(
 		dbContainerRepository,
 		gcContainerDestroyer,
 		dbBuildFactory,
+		resourceConfigFactory,
 
 		cmd.PeerURLOrDefault().String(),
 		buildserver.NewEventHandler,
