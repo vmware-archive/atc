@@ -1,5 +1,0 @@
-BEGIN;
-
-  ALTER TABLE workers ALTER COLUMN reaper_addr DROP DEFAULT;
-
-COMMIT;
