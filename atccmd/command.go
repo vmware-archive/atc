@@ -959,16 +959,22 @@ func (cmd *RunCommand) tlsConfig() (*tls.Config, error) {
 		}
 
 		tlsConfig = &tls.Config{
-			Certificates:     []tls.Certificate{cert},
-			MinVersion:       tls.VersionTLS12,
-			CurvePreferences: []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+			Certificates: []tls.Certificate{cert},
+			MinVersion:   tls.VersionTLS12,
+
+			// https://wiki.mozilla.org/Security/Server_Side_TLS#Modern_compatibility
+			CurvePreferences: []tls.CurveID{
+				tls.CurveP256,
+				tls.CurveP384,
+				tls.CurveP521,
+			},
+
+			// Security team recommends a very restricted set of cipher suites
 			CipherSuites: []uint16{
-				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
 				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
 				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-				tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-				tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
 			},
+
 			PreferServerCipherSuites: true,
 			NextProtos:               []string{"h2"},
 		}
